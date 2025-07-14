@@ -54,8 +54,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const sortedTasks = [...tasks].sort((a, b) => {
-    let aValue = a[sortField];
-    let bValue = b[sortField];
+    let aValue: string | number = a[sortField];
+    let bValue: string | number = b[sortField];
 
     // Handle date sorting
     if (sortField === 'dueDate') {
