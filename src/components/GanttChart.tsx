@@ -328,34 +328,37 @@ const DependencyArrow = ({
         top: 0,
         width: '100%',
         height: '100%',
-        zIndex: 5,
+        zIndex: 10,
         position: 'absolute'
       }}
     >
       <defs>
         <marker
           id={`arrowhead-${fromTask.id}-${toTask.id}`}
-          markerWidth="8"
-          markerHeight="8"
-          refX="7"
-          refY="4"
+          markerWidth="10"
+          markerHeight="10"
+          refX="9"
+          refY="5"
           orient="auto"
           fill={arrowColor}
         >
-          <polygon points="0 0, 8 4, 0 8" />
+          <polygon points="0 0, 10 5, 0 10" />
         </marker>
       </defs>
       <path
         d={`M ${fromLeft + fromTaskWidth}% ${fromY} 
-            L ${fromLeft + fromTaskWidth + 1}% ${fromY}
-            Q ${(fromLeft + toLeft) / 2 + 2}% ${fromY < toY ? fromY - 15 : fromY + 15}
-            ${toLeft - 1}% ${toY}
+            L ${fromLeft + fromTaskWidth + 2}% ${fromY}
+            Q ${(fromLeft + fromTaskWidth + toLeft) / 2}% ${fromY < toY ? Math.min(fromY, toY) - 20 : Math.max(fromY, toY) + 20}
+            ${toLeft - 2}% ${toY}
             L ${toLeft}% ${toY}`}
         stroke={arrowColor}
-        strokeWidth="2"
+        strokeWidth="3"
         fill="none"
         markerEnd={`url(#arrowhead-${fromTask.id}-${toTask.id})`}
-        className="drop-shadow-sm"
+        className="drop-shadow-lg"
+        style={{
+          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+        }}
       />
     </svg>
   );
