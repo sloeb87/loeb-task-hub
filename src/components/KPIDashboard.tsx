@@ -5,13 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Filter, Calendar, BarChart3 } from "lucide-react";
 import { Task } from "@/types/task";
 import { TaskCharts } from "@/components/TaskCharts";
-import { TeamPerformanceChart } from "@/components/TeamPerformanceChart";
-import { ProjectPerformance } from "@/components/ProjectPerformance";
 import { FollowUpsSection } from "@/components/FollowUpsSection";
 import { ProfessionalMetricsCards } from "@/components/ProfessionalMetricsCards";
 import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
+import { TaskStatusTimelineChart } from "@/components/TaskStatusTimelineChart";
+import { OverdueAnalysisChart } from "@/components/OverdueAnalysisChart";
 import { useKPIMetrics } from "@/hooks/useKPIMetrics";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface KPIDashboardProps {
   tasks: Task[];
@@ -21,6 +20,7 @@ interface KPIDashboardProps {
 export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedScope, setSelectedScope] = useState<string>("all");
+  const [selectedTimeRange, setSelectedTimeRange] = useState<string>("all");
   const [detailModal, setDetailModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -95,46 +95,68 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
     percentage: ((count / metrics.totalTasks) * 100).toFixed(1)
   }));
 
-  const userPerformanceData = Object.entries(metrics.tasksByUser)
-    .map(([user, count]) => {
-      const userTasks = filteredTasks.filter(t => t.responsible === user);
-      const completedTasks = userTasks.filter(t => t.status === "Completed").length;
-      return {
-        user: user.split(' ').map(n => n[0]).join('').toUpperCase(),
-        fullName: user,
-        total: count,
-        completed: completedTasks,
-        completionRate: count > 0 ? (completedTasks / count) * 100 : 0
-      };
-    })
-    .sort((a, b) => b.completionRate - a.completionRate);
-
-  const getProjectStats = () => {
-    const projectStats = filteredTasks.reduce((acc, task) => {
-      if (!acc[task.project]) {
-        acc[task.project] = { total: 0, completed: 0, overdue: 0, inProgress: 0 };
-      }
-      acc[task.project].total++;
-      if (task.status === "Completed") acc[task.project].completed++;
-      if (task.status === "In Progress") acc[task.project].inProgress++;
+  // Generate timeline data for status chart
+  const generateTimelineData = () => {
+    const now = new Date();
+    const data = [];
+    
+    // Generate data for the last 12 periods based on time range
+    for (let i = 11; i >= 0; i--) {
+      let periodStart = new Date();
+      let periodEnd = new Date();
+      let dateLabel = '';
       
-      const today = new Date();
-      const dueDate = new Date(task.dueDate);
-      if (task.status !== "Completed" && dueDate < today) {
-        acc[task.project].overdue++;
+      switch (selectedTimeRange) {
+        case "week":
+          periodStart.setDate(now.getDate() - (i * 7) - 7);
+          periodEnd.setDate(now.getDate() - (i * 7));
+          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          break;
+        case "month":
+          periodStart.setMonth(now.getMonth() - i - 1);
+          periodEnd.setMonth(now.getMonth() - i);
+          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          break;
+        case "quarter":
+          periodStart.setMonth(now.getMonth() - (i * 3) - 3);
+          periodEnd.setMonth(now.getMonth() - (i * 3));
+          dateLabel = `Q${Math.floor(periodStart.getMonth() / 3) + 1} ${periodStart.getFullYear().toString().slice(-2)}`;
+          break;
+        default:
+          periodStart.setMonth(now.getMonth() - i - 1);
+          periodEnd.setMonth(now.getMonth() - i);
+          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
       }
       
-      return acc;
-    }, {} as Record<string, any>);
-
-    return Object.entries(projectStats).map(([name, stats]) => ({
-      name,
-      ...stats,
-      completionRate: stats.total > 0 ? (stats.completed / stats.total) * 100 : 0
-    }));
+      const periodTasks = filteredTasks.filter(task => {
+        const taskDate = new Date(task.creationDate);
+        return taskDate >= periodStart && taskDate < periodEnd;
+      });
+      
+      data.push({
+        date: dateLabel,
+        open: periodTasks.filter(t => t.status === "Open").length,
+        inProgress: periodTasks.filter(t => t.status === "In Progress").length,
+        completed: periodTasks.filter(t => t.status === "Completed").length,
+      });
+    }
+    
+    return data;
   };
 
-  const projectStats = getProjectStats();
+  const timelineData = generateTimelineData();
+
+  // Calculate overdue analysis
+  const overdueTasks = filteredTasks.filter(t => {
+    const today = new Date();
+    const dueDate = new Date(t.dueDate);
+    return t.status !== "Completed" && dueDate < today;
+  });
+  const notOverdueTasks = filteredTasks.filter(t => {
+    const today = new Date();
+    const dueDate = new Date(t.dueDate);
+    return t.status === "Completed" || dueDate >= today;
+  });
 
   return (
     <div className="space-y-6">
@@ -179,6 +201,18 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
               ))}
             </SelectContent>
           </Select>
+          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select time range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="week">Last Week</SelectItem>
+              <SelectItem value="month">Last Month</SelectItem>
+              <SelectItem value="quarter">Last Quarter</SelectItem>
+              <SelectItem value="year">Last Year</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center space-x-2">
           {selectedProject !== "all" && (
@@ -191,6 +225,11 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
               Scope: {selectedScope}
             </Badge>
           )}
+          {selectedTimeRange !== "all" && (
+            <Badge variant="secondary" className="text-sm">
+              Time: {selectedTimeRange}
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -198,16 +237,20 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
       <ProfessionalMetricsCards 
         tasks={filteredTasks} 
         onMetricClick={handleMetricClick}
+        timeRange={selectedTimeRange}
       />
 
       {/* Charts Section */}
       <TaskCharts statusChartData={statusChartData} priorityChartData={priorityChartData} />
       
-      {/* Team Performance */}
-      <TeamPerformanceChart userPerformanceData={userPerformanceData} />
-      
-      {/* Project Performance */}
-      <ProjectPerformance projectStats={projectStats} />
+      {/* New Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TaskStatusTimelineChart data={timelineData} />
+        <OverdueAnalysisChart 
+          overdueCount={overdueTasks.length} 
+          notOverdueCount={notOverdueTasks.length} 
+        />
+      </div>
 
       {/* Follow-ups Section */}
       <FollowUpsSection followUps={filteredFollowUps} selectedProject={selectedProject} />

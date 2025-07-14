@@ -17,9 +17,10 @@ import { Task } from "@/types/task";
 interface ProfessionalMetricsCardsProps {
   tasks: Task[];
   onMetricClick: (metricType: string, title: string, filteredTasks: Task[]) => void;
+  timeRange: string;
 }
 
-export const ProfessionalMetricsCards = ({ tasks, onMetricClick }: ProfessionalMetricsCardsProps) => {
+export const ProfessionalMetricsCards = ({ tasks, onMetricClick, timeRange }: ProfessionalMetricsCardsProps) => {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.status === "Completed");
   const overdueTasks = tasks.filter(t => {
@@ -29,18 +30,52 @@ export const ProfessionalMetricsCards = ({ tasks, onMetricClick }: ProfessionalM
   });
   const inProgressTasks = tasks.filter(t => t.status === "In Progress");
   const onHoldTasks = tasks.filter(t => t.status === "On Hold");
-  const criticalTasks = tasks.filter(t => t.priority === "Critical");
   
-  // Calculate tasks created this month
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const tasksCreatedThisMonth = tasks.filter(t => {
-    const creationDate = new Date(t.creationDate);
-    return creationDate.getMonth() === currentMonth && creationDate.getFullYear() === currentYear;
-  });
+  // Critical tasks that are NOT completed
+  const criticalTasks = tasks.filter(t => t.priority === "Critical" && t.status !== "Completed");
+  
+  // Filter created tasks based on time range
+  const getCreatedTasks = () => {
+    const now = new Date();
+    let startDate = new Date();
+    
+    switch (timeRange) {
+      case "week":
+        startDate.setDate(now.getDate() - 7);
+        break;
+      case "month":
+        startDate.setMonth(now.getMonth() - 1);
+        break;
+      case "quarter":
+        startDate.setMonth(now.getMonth() - 3);
+        break;
+      case "year":
+        startDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        return tasks; // all time
+    }
+    
+    return tasks.filter(t => {
+      const creationDate = new Date(t.creationDate);
+      return creationDate >= startDate;
+    });
+  };
+
+  const createdTasks = getCreatedTasks();
 
   // Calculate completion rate
   const completionRate = totalTasks > 0 ? (completedTasks.length / totalTasks) * 100 : 0;
+
+  const getTimeRangeLabel = () => {
+    switch (timeRange) {
+      case "week": return "This Week";
+      case "month": return "This Month";
+      case "quarter": return "This Quarter";
+      case "year": return "This Year";
+      default: return "All Time";
+    }
+  };
 
   const metrics = [
     {
@@ -55,15 +90,15 @@ export const ProfessionalMetricsCards = ({ tasks, onMetricClick }: ProfessionalM
       tasks: tasks
     },
     {
-      title: "Created This Month",
-      value: tasksCreatedThisMonth.length,
-      subtitle: "New tasks added",
+      title: "Created",
+      value: createdTasks.length,
+      subtitle: `${getTimeRangeLabel()}`,
       icon: Plus,
       color: "text-green-600",
       bgColor: "bg-green-50 dark:bg-green-900/20",
       iconBg: "bg-green-100 dark:bg-green-900",
       metricType: "created",
-      tasks: tasksCreatedThisMonth
+      tasks: createdTasks
     },
     {
       title: "Completed Tasks",
@@ -113,7 +148,7 @@ export const ProfessionalMetricsCards = ({ tasks, onMetricClick }: ProfessionalM
     {
       title: "Critical Priority",
       value: criticalTasks.length,
-      subtitle: "High priority items",
+      subtitle: "Incomplete critical tasks",
       icon: TrendingUp,
       color: "text-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-900/20",
