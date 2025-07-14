@@ -33,7 +33,19 @@ import { toast } from "@/hooks/use-toast";
 const GanttView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  
+  // Use localStorage to sync tasks between views
+  const getStoredTasks = (): Task[] => {
+    try {
+      const stored = localStorage.getItem('pmtask-tasks');
+      return stored ? JSON.parse(stored) : mockTasks;
+    } catch (error) {
+      console.warn('Failed to load tasks from localStorage:', error);
+      return mockTasks;
+    }
+  };
+  
+  const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
   const [projects] = useState<Project[]>(mockProjects);
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
@@ -109,8 +121,17 @@ const GanttView = () => {
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+    setTasks(updatedTasks);
     setSelectedTask(null);
+    
+    // Sync to localStorage
+    try {
+      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.warn('Failed to save tasks to localStorage:', error);
+    }
+    
     toast({
       title: "Task Updated",
       description: `Task "${updatedTask.title}" has been updated successfully.`,
@@ -119,6 +140,28 @@ const GanttView = () => {
 
   const handleTasksChange = (updatedTasks: Task[]) => {
     setTasks(updatedTasks);
+    
+    // Sync to localStorage for cross-component synchronization
+    try {
+      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.warn('Failed to save tasks to localStorage:', error);
+    }
+    
+    // Add toast notification for dependency changes
+    const hasUpdatedDependencies = updatedTasks.some(task => {
+      const originalTask = tasks.find(t => t.id === task.id);
+      return originalTask && 
+        JSON.stringify(originalTask.dependencies || []) !== 
+        JSON.stringify(task.dependencies || []);
+    });
+    
+    if (hasUpdatedDependencies) {
+      toast({
+        title: "Dependencies Updated",
+        description: "Task dependencies have been synchronized across all views.",
+      });
+    }
   };
 
   const exportGantt = () => {

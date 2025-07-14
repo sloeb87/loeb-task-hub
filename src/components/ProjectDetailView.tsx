@@ -55,6 +55,22 @@ export const ProjectDetailView = ({
         }
       });
     }
+    
+    // Also update local state to ensure immediate UI updates
+    const allUpdatedTasks = allTasks.map(existingTask => {
+      const updatedTask = updatedTasks.find(t => t.id === existingTask.id);
+      return updatedTask || existingTask;
+    });
+    
+    // Trigger any additional sync if needed
+    if (onSaveTask) {
+      updatedTasks.forEach(task => {
+        const originalTask = allTasks.find(t => t.id === task.id);
+        if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(task)) {
+          onSaveTask(task);
+        }
+      });
+    }
   };
 
   const handleEditTaskLocal = (task: Task) => {

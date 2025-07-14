@@ -17,7 +17,19 @@ import Parameters from "@/components/Parameters";
 
 const Index = () => {
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  
+  // Initialize tasks from localStorage for synchronization
+  const getStoredTasks = (): Task[] => {
+    try {
+      const stored = localStorage.getItem('pmtask-tasks');
+      return stored ? JSON.parse(stored) : mockTasks;
+    } catch (error) {
+      console.warn('Failed to load tasks from localStorage:', error);
+      return mockTasks;
+    }
+  };
+  
+  const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -47,12 +59,30 @@ const Index = () => {
       creationDate: new Date().toISOString().split('T')[0],
       followUps: []
     };
-    setTasks([...tasks, newTask]);
+    const updatedTasks = [...tasks, newTask];
+    setTasks(updatedTasks);
+    
+    // Sync to localStorage
+    try {
+      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.warn('Failed to save tasks to localStorage:', error);
+    }
+    
     setIsTaskFormOpen(false);
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+    setTasks(updatedTasks);
+    
+    // Sync to localStorage for cross-component synchronization
+    try {
+      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.warn('Failed to save tasks to localStorage:', error);
+    }
+    
     setSelectedTask(null);
   };
 
