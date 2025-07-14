@@ -60,36 +60,36 @@ export const FollowUpsSection = ({ followUps, selectedProject }: FollowUpsSectio
             No follow-ups found for the selected filter.
           </p>
         ) : (
-          <div className="space-y-6 max-h-96 overflow-y-auto">
+          <div className="space-y-6">
             {sortedTasks.map(([taskId, taskData]) => (
-              <div key={taskId} className="border rounded-lg p-4 space-y-3">
+              <div key={taskId} className="border rounded-lg p-6 space-y-4">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <h4 className="font-medium text-foreground">{taskData.taskTitle}</h4>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                    <h4 className="font-medium text-foreground text-lg">{taskData.taskTitle}</h4>
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground mt-1">
                       <span>({taskId})</span>
                       <span>•</span>
                       <span>{taskData.project}</span>
                     </div>
                   </div>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-sm">
                     {taskData.followUps.length} follow-up{taskData.followUps.length !== 1 ? 's' : ''}
                   </Badge>
                 </div>
                 
-                <div className="space-y-2 pl-4 border-l-2 border-muted">
+                <div className="space-y-4 pl-6 border-l-2 border-muted">
                   {taskData.followUps
                     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
                     .map((followUp) => (
-                      <div key={followUp.id} className="text-sm">
-                        <div className="flex items-center space-x-2 text-muted-foreground mb-1">
-                          <span className="font-medium">
+                      <div key={followUp.id} className="bg-muted/30 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                          <span className="font-medium text-sm">
                             {new Date(followUp.timestamp).toLocaleDateString()}
                           </span>
                           <span>•</span>
-                          <span>{followUp.author}</span>
+                          <span className="text-sm">{followUp.author}</span>
                         </div>
-                        <p className="text-foreground">{followUp.text}</p>
+                        <p className="text-foreground leading-relaxed">{followUp.text}</p>
                       </div>
                     ))}
                 </div>
