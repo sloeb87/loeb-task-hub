@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo } from "lucide-react";
@@ -64,6 +63,18 @@ const Index = () => {
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
 
+  // Generate next sequential task ID
+  const getNextTaskId = (): string => {
+    const existingNumbers = tasks
+      .map(task => task.id)
+      .filter(id => id.startsWith('T'))
+      .map(id => parseInt(id.substring(1)))
+      .filter(num => !isNaN(num));
+    
+    const maxNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
+    return `T${maxNumber + 1}`;
+  };
+
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       switch (activeFilter) {
@@ -86,7 +97,7 @@ const Index = () => {
   const handleCreateTask = (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     const newTask: Task = {
       ...taskData,
-      id: `T${tasks.length + 1}`,
+      id: getNextTaskId(),
       creationDate: new Date().toISOString().split('T')[0],
       followUps: []
     };
