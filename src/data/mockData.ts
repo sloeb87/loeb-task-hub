@@ -239,7 +239,14 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-01",
     endDate: "2024-06-30",
     status: "Active",
-    tasks: ["T1", "T2"]
+    tasks: ["T1", "T2"],
+    links: {
+      oneNote: "https://onenote.com/ecommerce-project",
+      teams: "https://teams.microsoft.com/ecommerce-channel",
+      email: "ecommerce-team@company.com",
+      file: "https://sharepoint.com/ecommerce-specs.pdf",
+      folder: "https://sharepoint.com/projects/ecommerce"
+    }
   },
   {
     id: "P2", 
@@ -250,7 +257,11 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-10",
     endDate: "2024-04-15",
     status: "Active",
-    tasks: ["T3", "T7"]
+    tasks: ["T3", "T7"],
+    links: {
+      teams: "https://teams.microsoft.com/mobile-dev",
+      folder: "https://sharepoint.com/projects/mobile-app"
+    }
   },
   {
     id: "P3",
@@ -261,7 +272,11 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-15",
     endDate: "2024-03-30",
     status: "Active",
-    tasks: ["T4"]
+    tasks: ["T4"],
+    links: {
+      oneNote: "https://onenote.com/website-redesign",
+      email: "design-team@company.com"
+    }
   },
   {
     id: "P4",
