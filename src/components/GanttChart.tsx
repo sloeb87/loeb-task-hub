@@ -481,9 +481,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     useSensor(KeyboardSensor)
   );
 
-  // Use custom dates if set, otherwise use project dates
-  const baseStartDate = customStartDate ? customStartDate : new Date(projectStartDate);
-  const baseEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
+  // Use custom dates if set, otherwise use project dates with validation
+  const parseDate = (dateString: string): Date => {
+    const parsed = new Date(dateString);
+    if (isNaN(parsed.getTime())) {
+      console.warn(`Invalid date string: ${dateString}, using current date as fallback`);
+      return new Date();
+    }
+    return parsed;
+  };
+
+  const baseStartDate = customStartDate ? customStartDate : parseDate(projectStartDate);
+  const baseEndDate = customEndDate ? customEndDate : parseDate(projectEndDate);
   const baseDuration = Math.max(1, differenceInDays(baseEndDate, baseStartDate) + 1);
   
   // Create an extended timeline that's wider than the visible area for scrolling
@@ -520,13 +529,20 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     const markers = [];
     const { visibleStartDate } = visibleDateRange;
     
+    // Validate visibleStartDate before proceeding
+    if (!visibleStartDate || isNaN(visibleStartDate.getTime())) {
+      console.warn('Invalid visibleStartDate, skipping timeline markers');
+      return [];
+    }
+    
     const totalWeeks = Math.ceil(ganttDuration / 7);
     
     for (let week = 0; week <= totalWeeks; week++) {
       const date = addDays(visibleStartDate, week * 7);
       const position = (week * 7 / ganttDuration) * 100;
       
-      if (position <= 100) {
+      // Validate the calculated date before formatting
+      if (position <= 100 && !isNaN(date.getTime())) {
         markers.push({
           date: format(date, 'MMM dd'),
           position,
@@ -727,7 +743,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {customStartDate ? format(customStartDate, "MMM dd") : format(ganttStartDate, "MMM dd")}
+                    {customStartDate ? format(customStartDate, "MMM dd") : (ganttStartDate && !isNaN(ganttStartDate.getTime()) ? format(ganttStartDate, "MMM dd") : "Invalid Date")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -755,7 +771,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {customEndDate ? format(customEndDate, "MMM dd") : format(ganttEndDate, "MMM dd")}
+                    {customEndDate ? format(customEndDate, "MMM dd") : (ganttEndDate && !isNaN(ganttEndDate.getTime()) ? format(ganttEndDate, "MMM dd") : "Invalid Date")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
