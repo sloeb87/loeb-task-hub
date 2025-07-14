@@ -875,7 +875,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
         </div>
 
         {/* Interactive Gantt Timeline - Scrollable Container */}
-        <div className="max-h-[600px] overflow-auto border border-gray-300 rounded-lg">
+        <div className="max-h-[400px] overflow-auto border border-gray-300 rounded-lg">{/* Reduced height to ensure scroll appears */}
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
