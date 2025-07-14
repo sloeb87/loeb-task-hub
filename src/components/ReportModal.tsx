@@ -309,12 +309,12 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
                             <div className="space-y-2">
                               {lastThreeFollowUps.map((followUp) => (
                                 <div key={followUp.id} className="bg-blue-50 rounded-md p-3">
-                                  <div className="flex justify-between items-start mb-1">
-                                    <p className="text-xs text-gray-700 flex-1 pr-2">{followUp.text}</p>
-                                    <span className="text-xs text-blue-600 whitespace-nowrap">
+                                  <p className="text-xs text-gray-700">
+                                    <span className="font-medium text-blue-600">
                                       {new Date(followUp.timestamp).toLocaleDateString()}
                                     </span>
-                                  </div>
+                                    : {followUp.text}
+                                  </p>
                                 </div>
                               ))}
                             </div>
