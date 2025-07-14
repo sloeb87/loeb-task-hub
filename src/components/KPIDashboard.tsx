@@ -1,7 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Filter, Calendar, BarChart3 } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Filter, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { Task } from "@/types/task";
 import { TaskCharts } from "@/components/TaskCharts";
 import { FollowUpsSection } from "@/components/FollowUpsSection";
@@ -23,6 +28,8 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedScope, setSelectedScope] = useState<string>("all");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("all");
+  const [customDateFrom, setCustomDateFrom] = useState<Date | undefined>();
+  const [customDateTo, setCustomDateTo] = useState<Date | undefined>();
   const [detailModal, setDetailModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -39,9 +46,22 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
     return tasks.filter(task => {
       const projectMatch = selectedProject === "all" || task.project === selectedProject;
       const scopeMatch = selectedScope === "all" || task.scope === selectedScope;
-      return projectMatch && scopeMatch;
+      
+      // Date range filtering
+      let dateMatch = true;
+      if (selectedTimeRange === "custom" && (customDateFrom || customDateTo)) {
+        const taskDate = new Date(task.creationDate);
+        if (customDateFrom && taskDate < customDateFrom) {
+          dateMatch = false;
+        }
+        if (customDateTo && taskDate > customDateTo) {
+          dateMatch = false;
+        }
+      }
+      
+      return projectMatch && scopeMatch && dateMatch;
     });
-  }, [tasks, selectedProject, selectedScope]);
+  }, [tasks, selectedProject, selectedScope, selectedTimeRange, customDateFrom, customDateTo]);
 
   const availableProjects = useMemo(() => {
     const projectNames = [...new Set(tasks.map(task => task.project))];
@@ -171,6 +191,14 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
     return t.status === "Completed" || dueDate >= today;
   });
 
+  const handleTimeRangeChange = (value: string) => {
+    setSelectedTimeRange(value);
+    if (value !== "custom") {
+      setCustomDateFrom(undefined);
+      setCustomDateTo(undefined);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -214,7 +242,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
               ))}
             </SelectContent>
           </Select>
-          <Select value={selectedTimeRange} onValueChange={setSelectedTimeRange}>
+          <Select value={selectedTimeRange} onValueChange={handleTimeRangeChange}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Select time range" />
             </SelectTrigger>
@@ -224,8 +252,62 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
               <SelectItem value="month">Last Month</SelectItem>
               <SelectItem value="quarter">Last Quarter</SelectItem>
               <SelectItem value="year">Last Year</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
             </SelectContent>
           </Select>
+          
+          {/* Custom Date Range Pickers */}
+          {selectedTimeRange === "custom" && (
+            <>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal",
+                      !customDateFrom && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customDateFrom ? format(customDateFrom, "PPP") : <span>From date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateFrom}
+                    onSelect={setCustomDateFrom}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[140px] justify-start text-left font-normal",
+                      !customDateTo && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customDateTo ? format(customDateTo, "PPP") : <span>To date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customDateTo}
+                    onSelect={setCustomDateTo}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </>
+          )}
         </div>
         <div className="flex items-center space-x-2">
           {selectedProject !== "all" && (
@@ -240,7 +322,12 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
           )}
           {selectedTimeRange !== "all" && (
             <Badge variant="secondary" className="text-sm">
-              Time: {selectedTimeRange}
+              Time: {selectedTimeRange === "custom" ? "Custom Range" : selectedTimeRange}
+            </Badge>
+          )}
+          {selectedTimeRange === "custom" && (customDateFrom || customDateTo) && (
+            <Badge variant="secondary" className="text-sm">
+              {customDateFrom ? format(customDateFrom, "MMM dd") : "Start"} - {customDateTo ? format(customDateTo, "MMM dd") : "End"}
             </Badge>
           )}
         </div>
