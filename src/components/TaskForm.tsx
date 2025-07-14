@@ -64,6 +64,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
   const [availablePriorities, setAvailablePriorities] = useState<string[]>([]);
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load parameters from localStorage
   useEffect(() => {
@@ -79,9 +80,9 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
 
   // Initialize form data when task changes or dialog opens
   useEffect(() => {
-    console.log('TaskForm useEffect triggered - task:', task?.id, 'isOpen:', isOpen);
+    console.log('TaskForm useEffect triggered - task:', task?.id, 'isOpen:', isOpen, 'isInitialized:', isInitialized);
     
-    if (isOpen) {
+    if (isOpen && !isInitialized) {
       if (task) {
         // Editing existing task
         console.log('Loading existing task data:', task);
@@ -148,8 +149,14 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         setDate(new Date());
         console.log('Form data set for new task');
       }
+      setIsInitialized(true);
     }
-  }, [task, isOpen, projectName]);
+    
+    // Reset initialization when dialog closes
+    if (!isOpen) {
+      setIsInitialized(false);
+    }
+  }, [task, isOpen, projectName, isInitialized]);
 
   // Set project scope when project changes
   useEffect(() => {
