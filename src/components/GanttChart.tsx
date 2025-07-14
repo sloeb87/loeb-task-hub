@@ -20,7 +20,7 @@ import {
   useDraggable,
   useDroppable
 } from '@dnd-kit/core';
-import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal } from 'lucide-react';
+import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -534,6 +534,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     setCustomEndDate(undefined);
   };
 
+  const handleOpenInNewWindow = () => {
+    // Get the current project if there's only one project in tasks
+    const projectNames = [...new Set(tasks.map(task => task.project))];
+    let ganttUrl = '/gantt';
+    
+    if (projectNames.length === 1) {
+      ganttUrl += `?project=${encodeURIComponent(projectNames[0])}`;
+    }
+    
+    window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
+  };
+
   if (tasks.length === 0) {
     return (
       <Card>
@@ -630,6 +642,17 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   <RotateCcw className="h-4 w-4" />
                 </Button>
               )}
+              
+              {/* Open in New Window Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleOpenInNewWindow}
+                title="Open Gantt chart in new window"
+                className="ml-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
