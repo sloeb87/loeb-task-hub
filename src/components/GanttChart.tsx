@@ -832,7 +832,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                     className="absolute top-0 h-full border-l-2 border-red-500 bg-red-500 bg-opacity-10"
                     style={{ left: `${todayPos}%` }}
                   >
-                    <div className="text-xs text-red-700 mt-6 ml-1 whitespace-nowrap font-bold">
+                    <div className="text-xs text-red-700 mt-8 ml-1 whitespace-nowrap font-bold">
                       TODAY
                     </div>
                   </div>
