@@ -1,21 +1,33 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo } from "lucide-react";
-import { Task, TaskStatus, TaskPriority, TaskType, Project } from "@/types/task";
-import { mockTasks, mockProjects } from "@/data/mockData";
+import { Task, Project } from "@/types/task";
+import { mockProjects } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
 import { TaskTable } from "@/components/TaskTable";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { KPIDashboard } from "@/components/KPIDashboard";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
-import { TaskSummaryCards } from "@/components/TaskSummaryCards";
+import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
 import ProjectsPage from "./Projects";
 import Parameters from "@/components/Parameters";
+import { useTaskStorage } from "@/hooks/useTaskStorage";
+import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 
 const Index = () => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Custom hooks for optimized data management
+  const { 
+    tasks, 
+    isLoading, 
+    error, 
+    createTask, 
+    updateTask, 
+    addFollowUp 
+  } = useTaskStorage();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -31,7 +43,7 @@ const Index = () => {
     }
   }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
     localStorage.setItem('dark-mode', JSON.stringify(newDarkMode));
@@ -41,160 +53,64 @@ const Index = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  };
+  }, [isDarkMode]);
 
-  const getStoredTasks = (): Task[] => {
-    try {
-      const stored = localStorage.getItem('pmtask-tasks');
-      let tasks = stored ? JSON.parse(stored) : mockTasks;
-      
-      // Migrate old task IDs to new format (T1, T2, T3...)
-      let needsMigration = false;
-      tasks = tasks.map((task: Task, index: number) => {
-        if (!task.id.startsWith('T') || task.id.includes('-')) {
-          needsMigration = true;
-          return { ...task, id: `T${index + 1}` };
-        }
-        return task;
-      });
-      
-      // Save migrated tasks back to localStorage
-      if (needsMigration) {
-        localStorage.setItem('pmtask-tasks', JSON.stringify(tasks));
-        console.log('Migrated task IDs to new format:', tasks.map(t => t.id));
-      }
-      
-      return tasks;
-    } catch (error) {
-      console.warn('Failed to load tasks from localStorage:', error);
-      return mockTasks;
-    }
-  };
-
-  const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
-  const [projects, setProjects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
+  // State management
+  const [projects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
-  const [activeFilter, setActiveFilter] = useState<"all" | "open" | "inprogress" | "onhold" | "critical">("all");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
 
-  // Generate next sequential task ID
-  const getNextTaskId = (): string => {
-    const existingNumbers = tasks
-      .map(task => task.id)
-      .filter(id => id.startsWith('T'))
-      .map(id => parseInt(id.substring(1)))
-      .filter(num => !isNaN(num));
-    
-    const maxNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0;
-    return `T${maxNumber + 1}`;
-  };
+  // Use optimized filtering hook
+  const { filteredTasks, taskCounts } = useTaskFilters(tasks, activeFilter);
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
-      switch (activeFilter) {
-        case "open":
-          return task.status === "Open";
-        case "inprogress":
-          return task.status === "In Progress";
-        case "onhold":
-          return task.status === "On Hold";
-        case "critical":
-          return task.priority === "Critical" && task.status !== "Completed";
-        case "all":
-          return true; // Include ALL tasks, including completed ones
-        default:
-          return true;
-      }
-    });
-  }, [tasks, activeFilter]);
-
-  const handleCreateTask = (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: getNextTaskId(),
-      creationDate: new Date().toISOString().split('T')[0],
-      followUps: []
-    };
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-
-    try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-    } catch (error) {
-      console.warn('Failed to save tasks to localStorage:', error);
-    }
+  // Event handlers using useCallback for optimization
+  const handleCreateTask = useCallback((taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    createTask(taskData);
     setIsTaskFormOpen(false);
-  };
+  }, [createTask]);
 
-  const handleUpdateTask = (updatedTask: Task) => {
+  const handleUpdateTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
-    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
-    setTasks(updatedTasks);
-
-    try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-    } catch (error) {
-      console.warn('Failed to save tasks to localStorage:', error);
-    }
+    updateTask(updatedTask);
     setSelectedTask(null);
     setIsTaskFormOpen(false);
-  };
+  }, [updateTask]);
 
-  const handleEditTask = (task: Task) => {
+  const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
     setIsTaskFormOpen(true);
-  };
+  }, []);
 
-  const handleAddFollowUp = (taskId: string, followUpText: string) => {
-    setTasks(tasks.map(task => {
-      if (task.id === taskId) {
-        const newFollowUp = {
-          id: `${taskId}-F${task.followUps.length + 1}`,
-          text: followUpText,
-          timestamp: new Date().toISOString(),
-          author: 'Current User'
-        };
-        return {
-          ...task,
-          followUps: [...task.followUps, newFollowUp]
-        };
-      }
-      return task;
-    }));
+  const handleAddFollowUpWrapper = useCallback((taskId: string, followUpText: string) => {
+    addFollowUp(taskId, followUpText);
     setFollowUpTask(null);
-  };
+  }, [addFollowUp]);
 
-  const handleFollowUpTask = (updatedTask: Task) => {
+  const handleFollowUpTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
-    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
-    setTasks(updatedTasks);
+    updateTask(updatedTask);
+  }, [updateTask]);
 
-    try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-    } catch (error) {
-      console.warn('Failed to save tasks to localStorage:', error);
-    }
-  };
-
-  const handleCreateProject = (projectData: Omit<Project, 'id'>) => {
+  const handleCreateProject = useCallback((projectData: Omit<Project, 'id'>) => {
     const newProject: Project = {
       ...projectData,
       id: `P${projects.length + 1}`
     };
-    setProjects([...projects, newProject]);
-  };
+    // Note: Projects are currently static, consider adding project persistence if needed
+  }, [projects.length]);
 
-  const handleUpdateProject = (updatedProject: Project) => {
-    setProjects(projects.map(project => project.id === updatedProject.id ? updatedProject : project));
-  };
+  const handleUpdateProject = useCallback((updatedProject: Project) => {
+    // Note: Projects are currently static, consider adding project persistence if needed
+  }, []);
 
-  const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+  const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('Index - handleSaveTask called with:', taskData);
     if ('id' in taskData) {
       // Updating existing task
@@ -203,7 +119,33 @@ const Index = () => {
       // Creating new task
       handleCreateTask(taskData);
     }
-  };
+  }, [handleUpdateTask, handleCreateTask]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading tasks...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400">Error: {error}</p>
+          <Button onClick={() => window.location.reload()} className="mt-4">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -237,12 +179,12 @@ const Index = () => {
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                 <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Showing {filteredTasks.length} of {tasks.length} tasks
+                  Showing {filteredTasks.length} of {taskCounts.total} tasks
                 </div>
               </div>
             </div>
 
-            <TaskSummaryCards 
+            <TaskSummaryCardsOptimized 
               tasks={tasks}
               activeFilter={activeFilter}
               onFilterChange={setActiveFilter}
@@ -274,7 +216,7 @@ const Index = () => {
         )}
 
         {/* Task Form Dialog */}
-        <TaskForm 
+        <TaskFormOptimized 
           isOpen={isTaskFormOpen} 
           onClose={() => {
             setIsTaskFormOpen(false);
@@ -291,7 +233,7 @@ const Index = () => {
           <FollowUpDialog 
             isOpen={!!followUpTask} 
             onClose={() => setFollowUpTask(null)} 
-            onAddFollowUp={text => handleAddFollowUp(followUpTask.id, text)} 
+            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
             task={followUpTask} 
           />
         )}
