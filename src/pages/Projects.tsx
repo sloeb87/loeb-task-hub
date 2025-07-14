@@ -68,8 +68,11 @@ const ProjectsPage = ({
   const handleEditTask = (task: Task) => {
     console.log('handleEditTask called with:', task.title, 'isTaskFormOpen:', isTaskFormOpen);
     setSelectedTask(task);
-    setIsTaskFormOpen(true);
-    console.log('setIsTaskFormOpen(true) called');
+    // Use setTimeout to ensure state updates are processed
+    setTimeout(() => {
+      setIsTaskFormOpen(true);
+      console.log('setIsTaskFormOpen(true) called in timeout');
+    }, 0);
   };
 
   const handleAddTaskToProject = (projectId: string) => {

@@ -99,8 +99,16 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log('Dialog onOpenChange called with:', open);
+      if (!open) onClose();
+    }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto"
+        onOpenAutoFocus={(e) => {
+          console.log('Dialog auto focus');
+          // Don't prevent default, let it focus properly
+        }}
+      >
         <DialogHeader>
           <DialogTitle>
             {task ? `Edit Task ${task.id}` : 'Create New Task'}
