@@ -7,6 +7,7 @@ import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
 import { TaskForm } from "@/components/TaskForm";
 import { ProjectDetailView } from "@/components/ProjectDetailView";
+import { ReportModal } from "@/components/ReportModal";
 
 interface ProjectsPageProps {
   tasks: Task[];
@@ -36,6 +37,8 @@ const ProjectsPage = ({
   const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const [detailProject, setDetailProject] = useState<Project | null>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportProject, setReportProject] = useState<Project | null>(null);
 
   console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask?.title);
 
@@ -108,51 +111,8 @@ const ProjectsPage = ({
   const handleGenerateReport = (project?: Project) => {
     const targetProject = project || detailProject;
     if (!targetProject) return;
-    const projectTasks = tasks.filter(task => task.project === targetProject.name);
-    const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
-    const totalTasks = projectTasks.length;
-    const overdueTasks = projectTasks.filter(task => 
-      task.status !== 'Completed' && new Date(task.dueDate) < new Date()
-    ).length;
-
-    const reportContent = `
-PROJECT REPORT: ${targetProject.name}
-
-Project Overview:
-- Status: ${targetProject.status}
-- Owner: ${targetProject.owner}
-- Timeline: ${targetProject.startDate} to ${targetProject.endDate}
-- Team: ${targetProject.team.join(', ')}
-
-Task Summary:
-- Total Tasks: ${totalTasks}
-- Completed: ${completedTasks}
-- Remaining: ${totalTasks - completedTasks}
-- Overdue: ${overdueTasks}
-- Completion Rate: ${totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
-
-Task Details:
-${projectTasks.map(task => `
-- ${task.id}: ${task.title}
-  Status: ${task.status}
-  Priority: ${task.priority}
-  Responsible: ${task.responsible}
-  Due: ${task.dueDate}
-`).join('')}
-
-Generated on: ${new Date().toLocaleDateString()}
-    `.trim();
-
-    // Create a downloadable report
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${targetProject.name}_Report_${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setReportProject(targetProject);
+    setIsReportModalOpen(true);
   };
 
   if (viewMode === 'detail' && detailProject) {
@@ -310,6 +270,19 @@ Generated on: ${new Date().toLocaleDateString()}
         projectName={taskProjectId}
         onEditRelatedTask={handleEditTask}
       />
+
+      {/* Report Modal */}
+      {reportProject && (
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => {
+            setIsReportModalOpen(false);
+            setReportProject(null);
+          }}
+          project={reportProject}
+          tasks={tasks}
+        />
+      )}
     </div>
   );
 };
