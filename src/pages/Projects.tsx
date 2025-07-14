@@ -1,216 +1,197 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Calendar, Users, BarChart3, Clock, Plus } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, FolderKanban } from "lucide-react";
 import { Task, Project } from "@/types/task";
+import { ProjectTable } from "@/components/ProjectTable";
+import { ProjectForm } from "@/components/ProjectForm";
+import { TaskForm } from "@/components/TaskForm";
 
 interface ProjectsPageProps {
   tasks: Task[];
   projects: Project[];
   onCreateProject: (project: Omit<Project, 'id'>) => void;
   onUpdateProject: (project: Project) => void;
+  onCreateTask: (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
+  onUpdateTask: (task: Task) => void;
 }
 
-const ProjectsPage = ({ tasks, projects, onCreateProject, onUpdateProject }: ProjectsPageProps) => {
+const ProjectsPage = ({ 
+  tasks, 
+  projects, 
+  onCreateProject, 
+  onUpdateProject,
+  onCreateTask,
+  onUpdateTask
+}: ProjectsPageProps) => {
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
 
-  const getProjectStats = (project: Project) => {
-    const projectTasks = tasks.filter(task => task.project === project.name);
-    const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
-    const totalTasks = projectTasks.length;
-    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-    return {
-      totalTasks,
-      completedTasks,
-      completionRate,
-      overdueTasks: projectTasks.filter(task => 
-        task.status !== 'Completed' && new Date(task.dueDate) < new Date()
-      ).length
-    };
+  const handleEditProject = (project: Project) => {
+    setSelectedProject(project);
+    setIsProjectFormOpen(true);
   };
 
-  const getTimelineData = (project: Project) => {
-    const projectTasks = tasks.filter(task => task.project === project.name);
-    const projectStart = new Date(project.startDate);
-    const projectEnd = new Date(project.endDate);
-    const totalDays = Math.ceil((projectEnd.getTime() - projectStart.getTime()) / (1000 * 60 * 60 * 24));
+  const handleSaveProject = (projectData: Project | Omit<Project, 'id'>) => {
+    if ('id' in projectData) {
+      onUpdateProject(projectData);
+    } else {
+      onCreateProject(projectData);
+    }
+    setIsProjectFormOpen(false);
+    setSelectedProject(null);
+  };
 
-    return projectTasks.map(task => {
-      const taskStart = new Date(task.startDate);
-      const taskEnd = new Date(task.dueDate);
-      const startOffset = Math.max(0, Math.ceil((taskStart.getTime() - projectStart.getTime()) / (1000 * 60 * 60 * 24)));
-      const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24));
-      const leftPercent = (startOffset / totalDays) * 100;
-      const widthPercent = (duration / totalDays) * 100;
+  const handleCreateTaskForProject = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      setTaskProjectId(project.name); // Use project name for task.project field
+      setSelectedTask(null);
+      setIsTaskFormOpen(true);
+    }
+  };
 
-      return {
-        ...task,
-        leftPercent: Math.min(leftPercent, 95),
-        widthPercent: Math.min(widthPercent, 100 - leftPercent),
-        startOffset,
-        duration
+  const handleAddTaskToProject = (projectId: string) => {
+    // For now, just open task form to create new task
+    handleCreateTaskForProject(projectId);
+  };
+
+  const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    if ('id' in taskData) {
+      onUpdateTask(taskData);
+    } else {
+      // Set the project name if creating task for specific project
+      const finalTaskData = {
+        ...taskData,
+        project: taskProjectId || taskData.project
       };
-    });
+      onCreateTask(finalTaskData);
+    }
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
+    setTaskProjectId(null);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Project Management</h1>
-          <p className="text-gray-600 mt-1">Gantt charts and project timelines</p>
+        <div className="flex items-center space-x-3">
+          <FolderKanban className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Project Management</h1>
+            <p className="text-gray-600 mt-1">Manage projects, assign tasks, and track progress</p>
+          </div>
         </div>
-        <Button onClick={() => {/* TODO: Add create project modal */}}>
-          <Plus className="w-4 h-4 mr-2" />
+        <Button 
+          onClick={() => setIsProjectFormOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus className="w-4 h-4" />
           New Project
         </Button>
       </div>
 
-      {/* Project Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {projects.map(project => {
-          const stats = getProjectStats(project);
-          return (
-            <Card 
-              key={project.id} 
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedProject?.id === project.id ? 'ring-2 ring-blue-500' : ''
-              }`}
-              onClick={() => setSelectedProject(project)}
-            >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
-                  <Badge variant={
-                    project.status === 'Active' ? 'default' :
-                    project.status === 'Completed' ? 'secondary' : 'outline'
-                  }>
-                    {project.status}
-                  </Badge>
-                </div>
-                <p className="text-sm text-gray-600">{project.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Calendar className="w-4 h-4" />
-                  <span>{project.startDate} - {project.endDate}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Users className="w-4 h-4" />
-                  <span>{project.team.length} team members</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <BarChart3 className="w-4 h-4" />
-                  <span>{stats.completedTasks}/{stats.totalTasks} tasks completed</span>
-                </div>
-                
-                {/* Progress Bar */}
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all"
-                    style={{ width: `${stats.completionRate}%` }}
-                  ></div>
-                </div>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{stats.completionRate.toFixed(0)}% Complete</span>
-                  {stats.overdueTasks > 0 && (
-                    <span className="text-red-600">{stats.overdueTasks} overdue</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+      {/* Project Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Projects</p>
+                <p className="text-2xl font-bold text-gray-900">{projects.length}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Projects</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {projects.filter(p => p.status === 'Active').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">On Hold</p>
+                <p className="text-2xl font-bold text-orange-600">
+                  {projects.filter(p => p.status === 'On Hold').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Completed</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {projects.filter(p => p.status === 'Completed').length}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Simple Timeline Chart */}
-      {selectedProject && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <Clock className="w-5 h-5" />
-              <span>{selectedProject.name} - Timeline</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {/* Timeline Header */}
-              <div className="flex justify-between text-sm text-gray-600 border-b pb-2">
-                <span>Project: {selectedProject.startDate}</span>
-                <span>to {selectedProject.endDate}</span>
-              </div>
-              
-              {/* Timeline Tasks */}
-              <div className="space-y-3">
-                {getTimelineData(selectedProject).map(task => (
-                  <div key={task.id} className="space-y-1">
-                    <div className="flex justify-between items-center text-sm">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant={
-                          task.priority === 'Critical' ? 'destructive' :
-                          task.priority === 'High' ? 'default' :
-                          task.priority === 'Medium' ? 'secondary' : 'outline'
-                        }>
-                          {task.priority}
-                        </Badge>
-                        <span className="font-medium">{task.title}</span>
-                      </div>
-                      <span className="text-gray-500">{task.responsible}</span>
-                    </div>
-                    <div className="relative h-6 bg-gray-100 rounded">
-                      <div 
-                        className={`absolute h-full rounded ${
-                          task.status === 'Completed' ? 'bg-green-500' :
-                          task.status === 'In Progress' ? 'bg-blue-500' :
-                          task.status === 'On Hold' ? 'bg-gray-500' : 'bg-orange-500'
-                        }`}
-                        style={{
-                          left: `${task.leftPercent}%`,
-                          width: `${task.widthPercent}%`
-                        }}
-                      />
-                      <div className="absolute inset-0 flex items-center px-2 text-xs text-white font-medium">
-                        {task.startDate} - {task.dueDate}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* No Project Selected */}
-      {!selectedProject && projects.length > 0 && (
+      {/* Project Table */}
+      {projects.length > 0 ? (
+        <ProjectTable
+          projects={projects}
+          tasks={tasks}
+          onEditProject={handleEditProject}
+          onCreateTask={handleCreateTaskForProject}
+          onAddTaskToProject={handleAddTaskToProject}
+        />
+      ) : (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
             <div className="text-center text-gray-500">
-              <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Select a project above to view its Gantt chart</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* No Projects */}
-      {projects.length === 0 && (
-        <Card>
-          <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center text-gray-500">
-              <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <FolderKanban className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium mb-2">No projects yet</p>
               <p className="mb-4">Create your first project to start managing timelines</p>
-              <Button onClick={() => {/* TODO: Add create project modal */}}>
+              <Button onClick={() => setIsProjectFormOpen(true)}>
+                <Plus className="w-4 h-4 mr-2" />
                 Create Project
               </Button>
             </div>
           </CardContent>
         </Card>
       )}
+
+      {/* Project Form Modal */}
+      <ProjectForm
+        isOpen={isProjectFormOpen}
+        onClose={() => {
+          setIsProjectFormOpen(false);
+          setSelectedProject(null);
+        }}
+        onSave={handleSaveProject}
+        project={selectedProject}
+      />
+
+      {/* Task Form Modal */}
+      <TaskForm
+        isOpen={isTaskFormOpen}
+        onClose={() => {
+          setIsTaskFormOpen(false);
+          setSelectedTask(null);
+          setTaskProjectId(null);
+        }}
+        onSave={handleSaveTask}
+        task={selectedTask}
+      />
     </div>
   );
 };

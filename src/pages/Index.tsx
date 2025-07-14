@@ -250,6 +250,8 @@ const Index = () => {
             projects={projects}
             onCreateProject={handleCreateProject}
             onUpdateProject={handleUpdateProject}
+            onCreateTask={handleCreateTask}
+            onUpdateTask={handleUpdateTask}
           />
         )}
 
