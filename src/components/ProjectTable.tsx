@@ -136,16 +136,8 @@ export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onA
                       handleRowClick(project);
                     }}
                   >
-                    <td className="px-4 py-4">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="p-1 h-6 w-6"
-                        onClick={(e) => toggleExpanded(project.id, e)}
-                      >
-                        {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-                      </Button>
-                    </td>
+                     <td className="px-4 py-4">
+                     </td>
                     
                     <td className="px-4 py-4">
                       <div className="space-y-1">
