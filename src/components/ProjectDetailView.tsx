@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
+import { GanttChart } from "@/components/GanttChart";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -17,6 +19,7 @@ interface ProjectDetailViewProps {
   onCreateTask: () => void;
   onEditTask: (task: Task) => void;
   onGenerateReport: () => void;
+  onUpdateTask?: (task: Task) => void;
 }
 
 export const ProjectDetailView = ({ 
@@ -27,7 +30,8 @@ export const ProjectDetailView = ({
   onEditProject, 
   onCreateTask, 
   onEditTask,
-  onGenerateReport 
+  onGenerateReport,
+  onUpdateTask 
 }: ProjectDetailViewProps) => {
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
@@ -36,6 +40,17 @@ export const ProjectDetailView = ({
   const overdueTasks = projectTasks.filter(task => 
     task.status !== 'Completed' && new Date(task.dueDate) < new Date()
   ).length;
+
+  const handleTasksChange = (updatedTasks: Task[]) => {
+    if (onUpdateTask) {
+      updatedTasks.forEach(task => {
+        const originalTask = allTasks.find(t => t.id === task.id);
+        if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(task)) {
+          onUpdateTask(task);
+        }
+      });
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -169,30 +184,52 @@ export const ProjectDetailView = ({
         </Card>
       </div>
 
-      {/* Tasks Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Tasks</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {projectTasks.length > 0 ? (
-            <TaskTable 
-              tasks={projectTasks} 
-              onEditTask={onEditTask}
-              onFollowUp={onEditTask}
-            />
-          ) : (
-            <div className="text-center py-8 text-gray-500">
-              <p className="text-lg font-medium mb-2">No tasks yet</p>
-              <p className="mb-4">Create your first task for this project</p>
-              <Button onClick={onCreateTask}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Task
-              </Button>
-            </div>
+      {/* Tasks and Gantt Section */}
+      <Tabs defaultValue="tasks" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="tasks">Task List</TabsTrigger>
+          {projectTasks.length > 0 && (
+            <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
           )}
-        </CardContent>
-      </Card>
+        </TabsList>
+
+        <TabsContent value="tasks">
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Tasks</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {projectTasks.length > 0 ? (
+                <TaskTable 
+                  tasks={projectTasks} 
+                  onEditTask={onEditTask}
+                  onFollowUp={onEditTask}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p className="text-lg font-medium mb-2">No tasks yet</p>
+                  <p className="mb-4">Create your first task for this project</p>
+                  <Button onClick={onCreateTask}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Task
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {projectTasks.length > 0 && (
+          <TabsContent value="gantt">
+            <GanttChart
+              tasks={projectTasks}
+              onTasksChange={handleTasksChange}
+              projectStartDate={project.startDate}
+              projectEndDate={project.endDate}
+            />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 };

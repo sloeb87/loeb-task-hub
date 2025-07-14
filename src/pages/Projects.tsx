@@ -149,6 +149,7 @@ Generated on: ${new Date().toLocaleDateString()}
         onCreateTask={() => handleCreateTaskForProject()}
         onEditTask={handleEditTask}
         onGenerateReport={() => handleGenerateReport()}
+        onUpdateTask={onUpdateTask}
       />
     );
   }
