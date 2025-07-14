@@ -2,8 +2,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
 import { Task } from "@/types/task";
 import { useState } from "react";
 
@@ -26,6 +27,7 @@ interface Filters {
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({
     status: [],
     priority: [],
@@ -90,6 +92,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
   const filteredAndSortedTasks = tasks
     .filter(task => {
+      const matchesSearch = searchTerm === "" || 
+        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!matchesSearch) return false;
       if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
       if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
       if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
@@ -224,7 +231,31 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <SortableHeader field="title">Task</SortableHeader>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="space-y-2">
+                  <div 
+                    className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 transition-colors"
+                    onClick={() => handleSort('title')}
+                  >
+                    <span>Task</span>
+                    {sortField === 'title' && (
+                      sortDirection === 'asc' ? 
+                        <ChevronUp className="w-3 h-3" /> : 
+                        <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-7 h-6 text-xs"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+              </th>
               <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
               <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
               <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
