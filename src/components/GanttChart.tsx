@@ -292,6 +292,18 @@ const DependencyArrow = ({
   const fromIndex = allTasks.findIndex(t => t.id === fromTask.id);
   const toIndex = allTasks.findIndex(t => t.id === toTask.id);
   
+  // Debug logging
+  console.log('DependencyArrow:', {
+    fromTask: fromTask.id,
+    toTask: toTask.id,
+    fromIndex,
+    toIndex,
+    fromTaskStartDate: fromTask.startDate,
+    fromTaskDueDate: fromTask.dueDate,
+    toTaskStartDate: toTask.startDate,
+    toTaskDueDate: toTask.dueDate
+  });
+  
   const fromEndDate = new Date(fromTask.dueDate);
   const toStartDate = new Date(toTask.startDate);
   
@@ -305,8 +317,15 @@ const DependencyArrow = ({
   const fromLeft = (fromDaysFromStart / ganttDuration) * 100;
   const toLeft = (toDaysFromStart / ganttDuration) * 100;
   
-  const fromY = fromIndex * 60 + 30; // Center of task
+  // Fixed Y positioning calculation
+  const fromY = fromIndex * 60 + 30; // Center of task (task height 40px + 20px margin = 60px per task)
   const toY = toIndex * 60 + 30; // Center of task
+  
+  // Ensure we have valid positions
+  if (fromIndex === -1 || toIndex === -1) {
+    console.warn('Invalid task index for dependency:', { fromIndex, toIndex });
+    return null;
+  }
   
   // Get arrow color based on dependency task status
   const getArrowColor = (status: string) => {
@@ -320,45 +339,83 @@ const DependencyArrow = ({
 
   const arrowColor = getArrowColor(fromTask.status);
   
+  // Calculate the path - from end of fromTask to start of toTask
+  const fromX = fromLeft + fromTaskWidth;
+  const toX = toLeft;
+  
+  // Create a curved path
+  const midX = (fromX + toX) / 2;
+  const curveOffset = Math.abs(fromY - toY) > 60 ? 30 : 15; // Larger curve for tasks far apart
+  const midY = fromY < toY ? Math.min(fromY, toY) - curveOffset : Math.max(fromY, toY) + curveOffset;
+  
+  console.log('Arrow positioning:', {
+    fromX: `${fromX}%`,
+    toX: `${toX}%`,
+    fromY,
+    toY,
+    midX: `${midX}%`,
+    midY,
+    arrowColor
+  });
+  
   return (
     <svg
-      className="absolute pointer-events-none"
+      className="absolute inset-0 pointer-events-none"
       style={{
-        left: 0,
-        top: 0,
         width: '100%',
         height: '100%',
-        zIndex: 10,
-        position: 'absolute'
+        zIndex: 15,
+        overflow: 'visible'
       }}
+      viewBox="0 0 100 1000"
+      preserveAspectRatio="none"
     >
       <defs>
         <marker
           id={`arrowhead-${fromTask.id}-${toTask.id}`}
           markerWidth="10"
           markerHeight="10"
-          refX="9"
+          refX="8"
           refY="5"
           orient="auto"
-          fill={arrowColor}
+          markerUnits="strokeWidth"
         >
-          <polygon points="0 0, 10 5, 0 10" />
+          <polygon 
+            points="0,0 10,5 0,10" 
+            fill={arrowColor}
+            stroke={arrowColor}
+          />
         </marker>
       </defs>
+      
+      {/* Main arrow path */}
       <path
-        d={`M ${fromLeft + fromTaskWidth}% ${fromY} 
-            L ${fromLeft + fromTaskWidth + 2}% ${fromY}
-            Q ${(fromLeft + fromTaskWidth + toLeft) / 2}% ${fromY < toY ? Math.min(fromY, toY) - 20 : Math.max(fromY, toY) + 20}
-            ${toLeft - 2}% ${toY}
-            L ${toLeft}% ${toY}`}
+        d={`M ${fromX} ${fromY} 
+            Q ${midX} ${midY} 
+            ${toX} ${toY}`}
         stroke={arrowColor}
         strokeWidth="3"
         fill="none"
         markerEnd={`url(#arrowhead-${fromTask.id}-${toTask.id})`}
-        className="drop-shadow-lg"
         style={{
           filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
         }}
+      />
+      
+      {/* Highlight circle at connection points for visibility */}
+      <circle
+        cx={fromX}
+        cy={fromY}
+        r="3"
+        fill={arrowColor}
+        opacity="0.8"
+      />
+      <circle
+        cx={toX}
+        cy={toY}
+        r="3"
+        fill={arrowColor}
+        opacity="0.8"
       />
     </svg>
   );
