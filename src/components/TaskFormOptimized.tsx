@@ -5,6 +5,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface TaskFormProps {
@@ -92,6 +93,7 @@ export const TaskFormOptimized = React.memo(({
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [projectScope, setProjectScope] = useState<string | null>(null);
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
 
   // Load parameters from localStorage with memoization
   const parameters = useMemo(() => {
@@ -242,6 +244,25 @@ export const TaskFormOptimized = React.memo(({
       onClose();
     }
   }, [onEditRelatedTask, onClose]);
+
+  const handleFollowUpAdd = (text: string) => {
+    if (!task) return;
+    
+    const newFollowUp = {
+      id: `fu-${Date.now()}`,
+      text: text,
+      timestamp: new Date().toISOString(),
+      author: 'Current User'
+    };
+
+    const updatedTask = {
+      ...task,
+      followUps: [...task.followUps, newFollowUp]
+    };
+
+    onSave(updatedTask);
+    setFollowUpDialogOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -571,6 +592,72 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
               )}
+
+              {/* Follow-ups Section (only for existing tasks) */}
+              {task && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Follow-ups
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFollowUpDialogOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <MessageSquarePlus className="w-4 h-4" />
+                        Add Follow-up
+                      </Button>
+                    </div>
+
+                    {task.followUps.length > 0 && (
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {task.followUps
+                          .slice(-5) // Show last 5 follow-ups in edit mode
+                          .reverse()
+                          .map((followUp) => (
+                            <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="w-3 h-3 text-gray-400" />
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {followUp.author}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                  <CalendarLucide className="w-3 h-3" />
+                                  {new Date(followUp.timestamp).toLocaleDateString()}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{followUp.text}</p>
+                            </div>
+                          ))}
+                        
+                        {task.followUps.length > 5 && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 italic text-center">
+                            +{task.followUps.length - 5} more follow-ups...
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {task.followUps.length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No follow-ups yet</p>
+                        <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -590,6 +677,16 @@ export const TaskFormOptimized = React.memo(({
           </div>
         </form>
       </DialogContent>
+
+      {/* Follow-up Dialog */}
+      {task && (
+        <FollowUpDialog
+          isOpen={followUpDialogOpen}
+          onClose={() => setFollowUpDialogOpen(false)}
+          onAddFollowUp={handleFollowUpAdd}
+          task={task}
+        />
+      )}
     </Dialog>
   );
 });
