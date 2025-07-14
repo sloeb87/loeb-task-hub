@@ -1,10 +1,11 @@
+
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink } from "lucide-react";
+import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink, MessageSquare } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
 interface ProjectTableProps {
@@ -334,6 +335,46 @@ export const ProjectTable = ({
                                 </div>
                               ) : (
                                 <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned to this project yet.</p>
+                              )}
+                              
+                              {/* Recent Comments Section */}
+                              {stats.projectTasks.some(task => task.comments && task.comments.length > 0) && (
+                                <div className="mt-6">
+                                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Recent Comments
+                                  </h4>
+                                  <div className="space-y-3">
+                                    {stats.projectTasks
+                                      .filter(task => task.comments && task.comments.length > 0)
+                                      .slice(0, 3)
+                                      .map(task => (
+                                        <div key={task.id} className="bg-white dark:bg-gray-700 rounded border dark:border-gray-600 p-3">
+                                          <div className="flex items-center space-x-2 mb-2">
+                                            <Badge variant="outline" className="text-xs">
+                                              {task.id}
+                                            </Badge>
+                                            <span className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</span>
+                                          </div>
+                                          <div className="space-y-2">
+                                            {task.comments!
+                                              .slice(-3)
+                                              .reverse()
+                                              .map((comment, index) => (
+                                                <div key={index} className="border-l-2 border-blue-200 dark:border-blue-700 pl-3">
+                                                  <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                                                    {comment.text}
+                                                  </div>
+                                                  <div className="text-xs text-gray-400 mt-1">
+                                                    {new Date(comment.timestamp).toLocaleDateString()}
+                                                  </div>
+                                                </div>
+                                              ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                                </div>
                               )}
                             </CardContent>
                           </Card>
