@@ -206,6 +206,18 @@ const DraggableTask = ({
         const depYPosition = allTasks.findIndex(t => t.id === depId) * 60;
         const currentYPosition = yPosition * 60;
         
+        // Get arrow color based on dependency task status
+        const getArrowColor = (status: string) => {
+          switch (status) {
+            case 'Completed': return '#22c55e'; // green-500
+            case 'In Progress': return '#3b82f6'; // blue-500
+            case 'On Hold': return '#eab308'; // yellow-500
+            default: return '#6b7280'; // gray-500
+          }
+        };
+
+        const arrowColor = getArrowColor(depTask.status);
+        
         return (
           <svg
             key={depId}
@@ -221,24 +233,23 @@ const DraggableTask = ({
             <defs>
               <marker
                 id={`arrowhead-${task.id}-${depId}`}
-                markerWidth="8"
-                markerHeight="6"
-                refX="7"
-                refY="3"
+                markerWidth="10"
+                markerHeight="8"
+                refX="9"
+                refY="4"
                 orient="auto"
-                className="fill-red-500"
+                fill={arrowColor}
               >
-                <polygon points="0 0, 8 3, 0 6" />
+                <polygon points="0 0, 10 4, 0 8" />
               </marker>
             </defs>
             <path
               d={`M 0 ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 0 : Math.abs(currentYPosition - depYPosition) + 20)} 
                   Q ${Math.abs(taskLeft - depLeft) * 0.3}% ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 10 : Math.abs(currentYPosition - depYPosition) + 10)}
                   ${Math.abs(taskLeft - depLeft)}% ${currentYPosition === depYPosition ? 20 : (currentYPosition < depYPosition ? Math.abs(currentYPosition - depYPosition) + 20 : 20)}`}
-              stroke="#ef4444"
-              strokeWidth="2"
+              stroke={arrowColor}
+              strokeWidth="2.5"
               fill="none"
-              strokeDasharray="4,4"
               markerEnd={`url(#arrowhead-${task.id}-${depId})`}
               className="drop-shadow-sm"
             />
@@ -697,18 +708,6 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
               );
             })}
           </div>
-        </div>
-
-        {/* Instructions */}
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h5 className="font-medium text-blue-900 mb-2">How to use the Gantt Chart:</h5>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• <strong>Move tasks:</strong> Drag the center of a task to move it along the timeline</li>
-            <li>• <strong>Resize tasks:</strong> Hover over a task and drag the left/right edges to change start/end dates</li>
-            <li>• <strong>Edit tasks:</strong> Click on any task to open the task editor</li>
-            <li>• <strong>Filter timeline:</strong> Use the date pickers above to focus on specific time periods</li>
-            <li>• <strong>Manage dependencies:</strong> Use the panel below to add/remove task dependencies</li>
-          </ul>
         </div>
       </CardContent>
     </Card>
