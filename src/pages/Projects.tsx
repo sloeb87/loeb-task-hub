@@ -6,6 +6,7 @@ import { Task, Project } from "@/types/task";
 import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
 import { TaskForm } from "@/components/TaskForm";
+import { ProjectDetailView } from "@/components/ProjectDetailView";
 
 interface ProjectsPageProps {
   tasks: Task[];
@@ -29,9 +30,16 @@ const ProjectsPage = ({
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
+  const [detailProject, setDetailProject] = useState<Project | null>(null);
 
   const handleEditProject = (project: Project) => {
-    setSelectedProject(project);
+    setDetailProject(project);
+    setViewMode('detail');
+  };
+
+  const handleEditProjectForm = () => {
+    setSelectedProject(detailProject);
     setIsProjectFormOpen(true);
   };
 
@@ -45,13 +53,18 @@ const ProjectsPage = ({
     setSelectedProject(null);
   };
 
-  const handleCreateTaskForProject = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId);
+  const handleCreateTaskForProject = (projectId?: string) => {
+    const project = projectId ? projects.find(p => p.id === projectId) : detailProject;
     if (project) {
       setTaskProjectId(project.name); // Use project name for task.project field
       setSelectedTask(null);
       setIsTaskFormOpen(true);
     }
+  };
+
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskFormOpen(true);
   };
 
   const handleAddTaskToProject = (projectId: string) => {
@@ -75,8 +88,10 @@ const ProjectsPage = ({
     setTaskProjectId(null);
   };
 
-  const handleGenerateReport = (project: Project) => {
-    const projectTasks = tasks.filter(task => task.project === project.name);
+  const handleGenerateReport = (project?: Project) => {
+    const targetProject = project || detailProject;
+    if (!targetProject) return;
+    const projectTasks = tasks.filter(task => task.project === targetProject.name);
     const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
     const totalTasks = projectTasks.length;
     const overdueTasks = projectTasks.filter(task => 
@@ -84,13 +99,13 @@ const ProjectsPage = ({
     ).length;
 
     const reportContent = `
-PROJECT REPORT: ${project.name}
+PROJECT REPORT: ${targetProject.name}
 
 Project Overview:
-- Status: ${project.status}
-- Owner: ${project.owner}
-- Timeline: ${project.startDate} to ${project.endDate}
-- Team: ${project.team.join(', ')}
+- Status: ${targetProject.status}
+- Owner: ${targetProject.owner}
+- Timeline: ${targetProject.startDate} to ${targetProject.endDate}
+- Team: ${targetProject.team.join(', ')}
 
 Task Summary:
 - Total Tasks: ${totalTasks}
@@ -116,12 +131,27 @@ Generated on: ${new Date().toLocaleDateString()}
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${project.name}_Report_${new Date().toISOString().split('T')[0]}.txt`;
+    a.download = `${targetProject.name}_Report_${new Date().toISOString().split('T')[0]}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
+
+  if (viewMode === 'detail' && detailProject) {
+    return (
+      <ProjectDetailView
+        project={detailProject}
+        tasks={tasks}
+        allTasks={tasks}
+        onBack={() => setViewMode('list')}
+        onEditProject={handleEditProjectForm}
+        onCreateTask={() => handleCreateTaskForProject()}
+        onEditTask={handleEditTask}
+        onGenerateReport={() => handleGenerateReport()}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -240,6 +270,8 @@ Generated on: ${new Date().toLocaleDateString()}
         }}
         onSave={handleSaveTask}
         task={selectedTask}
+        allTasks={tasks}
+        projectName={taskProjectId}
       />
     </div>
   );

@@ -5,20 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Clock, FolderOpen } from "lucide-react";
 
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   task?: Task | null;
+  allTasks?: Task[];
+  projectName?: string;
 }
 
-export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
+export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], projectName }: TaskFormProps) => {
   const [formData, setFormData] = useState({
     scope: task?.scope || '',
-    project: task?.project || '',
+    project: task?.project || projectName || '',
     environment: task?.environment || 'Production',
     taskType: task?.taskType || 'Development' as TaskType,
     title: task?.title || '',
@@ -26,7 +30,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
     status: task?.status || 'Open' as TaskStatus,
     priority: task?.priority || 'Medium' as TaskPriority,
     responsible: task?.responsible || '',
-    startDate: task?.startDate || '',
+    startDate: task?.startDate || new Date().toISOString().split('T')[0],
     dueDate: task?.dueDate || '',
     completionDate: task?.completionDate || '',
     details: task?.details || '',
@@ -39,6 +43,11 @@ export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
     },
     stakeholders: task?.stakeholders || []
   });
+
+  // Get related tasks from the same project
+  const relatedTasks = allTasks.filter(t => 
+    t.project === formData.project && t.id !== task?.id
+  );
 
   const [newStakeholder, setNewStakeholder] = useState('');
 
@@ -329,6 +338,42 @@ export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
               ))}
             </div>
           </div>
+
+          {/* Related Tasks */}
+          {relatedTasks.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FolderOpen className="w-4 h-4" />
+                  Related Tasks in {formData.project}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {relatedTasks.map(relatedTask => (
+                    <div key={relatedTask.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border text-sm">
+                      <div className="flex items-center space-x-2">
+                        <Badge variant="outline" className="text-xs">
+                          {relatedTask.id}
+                        </Badge>
+                        <span className="font-medium">{relatedTask.title}</span>
+                        <Badge variant={
+                          relatedTask.status === 'Completed' ? 'secondary' :
+                          relatedTask.status === 'In Progress' ? 'default' : 'outline'
+                        } className="text-xs">
+                          {relatedTask.status}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center space-x-2 text-xs text-gray-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{relatedTask.dueDate}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Form Actions */}
           <div className="flex justify-end space-x-2 pt-4">
