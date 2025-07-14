@@ -54,15 +54,17 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl">
-            <FileText className="w-6 h-6" />
-            Project Report: {project.name}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="h-screen w-screen max-w-none m-0 p-0 overflow-hidden">
+        <div className="h-full flex flex-col">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <FileText className="w-6 h-6" />
+              Project Report: {project.name}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-6">
+          <div className="flex-1 overflow-y-auto px-6 py-6">
+            <div className="space-y-6">
           {/* Project Overview */}
           <Card>
             <CardHeader>
@@ -307,6 +309,8 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
               </div>
             </CardContent>
           </Card>
+            </div>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
