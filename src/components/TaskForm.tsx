@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -31,6 +30,8 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects, projectName, onEditRelatedTask }: TaskFormProps) => {
+  console.log('TaskForm render - task:', task?.id, task?.title, 'isOpen:', isOpen);
+  
   const [formData, setFormData] = useState({
     title: "",
     project: "",
@@ -75,70 +76,76 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
     }
   }, []);
 
-  // Initialize form data when task or projectName changes
+  // Initialize form data when task changes or dialog opens
   useEffect(() => {
-    console.log('TaskForm useEffect - task:', task?.title, 'projectName:', projectName);
+    console.log('TaskForm useEffect triggered - task:', task?.id, 'isOpen:', isOpen);
     
-    if (task) {
-      // Editing existing task
-      const taskFormData = {
-        title: task.title || "",
-        project: task.project || "",
-        scope: task.scope || "",
-        environment: task.environment || "",
-        taskType: task.taskType || "",
-        status: task.status || "",
-        priority: task.priority || "",
-        responsible: task.responsible || "",
-        startDate: task.startDate || new Date().toISOString().split('T')[0],
-        dueDate: new Date(task.dueDate),
-        description: task.description || "",
-        details: task.details || "",
-        dependencies: task.dependencies || [],
-        links: {
-          oneNote: task.links?.oneNote || "",
-          teams: task.links?.teams || "",
-          email: task.links?.email || "",
-          file: task.links?.file || "",
-          folder: task.links?.folder || ""
-        },
-        stakeholders: task.stakeholders || [],
-        comments: task.comments || []
-      };
-      
-      console.log('Setting form data for existing task:', taskFormData);
-      setFormData(taskFormData);
-      setDate(new Date(task.dueDate));
-    } else {
-      // Creating new task
-      const newTaskFormData = {
-        title: "",
-        project: projectName || "",
-        scope: "",
-        environment: "",
-        taskType: "",
-        status: "",
-        priority: "",
-        responsible: "",
-        startDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(),
-        description: "",
-        details: "",
-        dependencies: [],
-        links: {
-          oneNote: "",
-          teams: "",
-          email: "",
-          file: "",
-          folder: ""
-        },
-        stakeholders: [],
-        comments: []
-      };
-      
-      console.log('Setting form data for new task:', newTaskFormData);
-      setFormData(newTaskFormData);
-      setDate(new Date());
+    if (isOpen) {
+      if (task) {
+        // Editing existing task
+        console.log('Loading existing task data:', task);
+        
+        const taskFormData = {
+          title: task.title || "",
+          project: task.project || "",
+          scope: task.scope || "",
+          environment: task.environment || "",
+          taskType: task.taskType || "",
+          status: task.status || "",
+          priority: task.priority || "",
+          responsible: task.responsible || "",
+          startDate: task.startDate || new Date().toISOString().split('T')[0],
+          dueDate: new Date(task.dueDate),
+          description: task.description || "",
+          details: task.details || "",
+          dependencies: task.dependencies || [],
+          links: {
+            oneNote: task.links?.oneNote || "",
+            teams: task.links?.teams || "",
+            email: task.links?.email || "",
+            file: task.links?.file || "",
+            folder: task.links?.folder || ""
+          },
+          stakeholders: task.stakeholders || [],
+          comments: task.comments || []
+        };
+        
+        console.log('Setting form data for existing task:', taskFormData);
+        setFormData(taskFormData);
+        setDate(new Date(task.dueDate));
+      } else {
+        // Creating new task
+        console.log('Creating new task with projectName:', projectName);
+        
+        const newTaskFormData = {
+          title: "",
+          project: projectName || "",
+          scope: "",
+          environment: "",
+          taskType: "",
+          status: "",
+          priority: "",
+          responsible: "",
+          startDate: new Date().toISOString().split('T')[0],
+          dueDate: new Date(),
+          description: "",
+          details: "",
+          dependencies: [],
+          links: {
+            oneNote: "",
+            teams: "",
+            email: "",
+            file: "",
+            folder: ""
+          },
+          stakeholders: [],
+          comments: []
+        };
+        
+        console.log('Setting form data for new task:', newTaskFormData);
+        setFormData(newTaskFormData);
+        setDate(new Date());
+      }
     }
   }, [task, projectName, isOpen]);
 
@@ -205,7 +212,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
-            {task ? 'Edit Task' : 'Create New Task'}
+            {task ? `Edit Task: ${task.title}` : 'Create New Task'}
           </DialogTitle>
         </DialogHeader>
 
