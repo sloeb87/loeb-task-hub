@@ -87,6 +87,11 @@ const ProjectsPage = ({
     });
   };
 
+  const handleFollowUp = (updatedTask: Task) => {
+    console.log('Follow-up updated for task:', updatedTask.title);
+    onUpdateTask(updatedTask);
+  };
+
   const handleAddTaskToProject = (projectId: string) => {
     // For now, just open task form to create new task
     handleCreateTaskForProject(projectId);

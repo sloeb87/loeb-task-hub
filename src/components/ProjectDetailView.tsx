@@ -83,6 +83,13 @@ export const ProjectDetailView = ({
     setIsTaskFormOpen(true);
   };
 
+  const handleFollowUpLocal = (updatedTask: Task) => {
+    console.log('ProjectDetailView - handleFollowUpLocal called with:', updatedTask.title);
+    if (onUpdateTask) {
+      onUpdateTask(updatedTask);
+    }
+  };
+
   const handleSaveTaskLocal = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     if (onSaveTask) {
       onSaveTask(taskData);
@@ -327,7 +334,7 @@ export const ProjectDetailView = ({
                 <TaskTable 
                   tasks={projectTasks} 
                   onEditTask={handleEditTaskLocal}
-                  onFollowUp={handleEditTaskLocal}
+                  onFollowUp={handleFollowUpLocal}
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
