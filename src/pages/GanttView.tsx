@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,11 +27,12 @@ import {
 } from "lucide-react";
 import { Task, TaskStatus, TaskPriority, Project } from "@/types/task";
 import { mockTasks, mockProjects } from "@/data/mockData";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 
 const GanttView = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [projects] = useState<Project[]>(mockProjects);
   const [selectedProject, setSelectedProject] = useState<string>("all");
@@ -41,6 +42,14 @@ const GanttView = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Check if project is specified in URL params
+  useEffect(() => {
+    const projectParam = searchParams.get('project');
+    if (projectParam) {
+      setSelectedProject(projectParam);
+    }
+  }, [searchParams]);
 
   // Enhanced filtering logic
   const filteredTasks = useMemo(() => {

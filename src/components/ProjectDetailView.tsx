@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
@@ -73,6 +73,11 @@ export const ProjectDetailView = ({
     setSelectedTask(null);
   };
 
+  const handleOpenGanttWindow = () => {
+    const ganttUrl = `/gantt?project=${encodeURIComponent(project.name)}`;
+    window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
@@ -104,6 +109,12 @@ export const ProjectDetailView = ({
             <FileBarChart className="w-4 h-4 mr-2" />
             Generate Report
           </Button>
+          {projectTasks.length > 0 && (
+            <Button variant="outline" onClick={handleOpenGanttWindow}>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Open Gantt
+            </Button>
+          )}
           <Button onClick={onCreateTask}>
             <Plus className="w-4 h-4 mr-2" />
             Add Task
