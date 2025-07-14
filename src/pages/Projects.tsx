@@ -15,6 +15,8 @@ interface ProjectsPageProps {
   onUpdateProject: (project: Project) => void;
   onCreateTask: (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onUpdateTask: (task: Task) => void;
+  projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
+  setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
 }
 
 const ProjectsPage = ({ 
@@ -23,7 +25,9 @@ const ProjectsPage = ({
   onCreateProject, 
   onUpdateProject,
   onCreateTask,
-  onUpdateTask
+  onUpdateTask,
+  projectFilter = 'all',
+  setProjectFilter
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -190,7 +194,10 @@ Generated on: ${new Date().toLocaleDateString()}
 
       {/* Project Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${projectFilter === 'all' ? 'ring-2 ring-blue-500' : ''}`}
+          onClick={() => setProjectFilter?.('all')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -200,7 +207,10 @@ Generated on: ${new Date().toLocaleDateString()}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${projectFilter === 'active' ? 'ring-2 ring-blue-500' : ''}`}
+          onClick={() => setProjectFilter?.('active')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -212,7 +222,10 @@ Generated on: ${new Date().toLocaleDateString()}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${projectFilter === 'on-hold' ? 'ring-2 ring-orange-500' : ''}`}
+          onClick={() => setProjectFilter?.('on-hold')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -224,7 +237,10 @@ Generated on: ${new Date().toLocaleDateString()}
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card 
+          className={`cursor-pointer transition-all hover:shadow-md ${projectFilter === 'completed' ? 'ring-2 ring-green-500' : ''}`}
+          onClick={() => setProjectFilter?.('completed')}
+        >
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -247,6 +263,7 @@ Generated on: ${new Date().toLocaleDateString()}
           onCreateTask={handleCreateTaskForProject}
           onAddTaskToProject={handleAddTaskToProject}
           onGenerateReport={handleGenerateReport}
+          filter={projectFilter}
         />
       ) : (
         <Card>

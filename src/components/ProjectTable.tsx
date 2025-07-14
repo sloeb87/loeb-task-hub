@@ -14,12 +14,13 @@ interface ProjectTableProps {
   onCreateTask: (projectId: string) => void;
   onAddTaskToProject: (projectId: string) => void;
   onGenerateReport?: (project: Project) => void;
+  filter?: 'all' | 'active' | 'on-hold' | 'completed';
 }
 
 type SortField = 'name' | 'owner' | 'startDate' | 'endDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onAddTaskToProject, onGenerateReport }: ProjectTableProps) => {
+export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onAddTaskToProject, onGenerateReport, filter = 'all' }: ProjectTableProps) => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
@@ -50,7 +51,15 @@ export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onA
     }
   };
 
-  const sortedProjects = [...projects].sort((a, b) => {
+  const filteredProjects = projects.filter(project => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return project.status === 'Active';
+    if (filter === 'on-hold') return project.status === 'On Hold';
+    if (filter === 'completed') return project.status === 'Completed';
+    return true;
+  });
+
+  const sortedProjects = [...filteredProjects].sort((a, b) => {
     let aValue: string | number = a[sortField];
     let bValue: string | number = b[sortField];
 

@@ -25,6 +25,7 @@ const Index = () => {
   const [activeFilter, setActiveFilter] = useState<"all" | "open" | "inprogress" | "onhold" | "critical">("all");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
   const [isParametersOpen, setIsParametersOpen] = useState(false);
+  const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -288,6 +289,8 @@ const Index = () => {
             onUpdateProject={handleUpdateProject}
             onCreateTask={handleCreateTask}
             onUpdateTask={handleUpdateTask}
+            projectFilter={projectFilter}
+            setProjectFilter={setProjectFilter}
           />
         )}
 
