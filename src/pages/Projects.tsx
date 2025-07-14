@@ -258,6 +258,8 @@ Generated on: ${new Date().toLocaleDateString()}
         }}
         onSave={handleSaveProject}
         project={selectedProject}
+        allTasks={tasks}
+        onUpdateTask={onUpdateTask}
       />
 
       {/* Task Form Modal */}

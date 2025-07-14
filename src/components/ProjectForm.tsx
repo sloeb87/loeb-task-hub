@@ -1,21 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X } from "lucide-react";
-import { Project } from "@/types/task";
+import { Project, Task } from "@/types/task";
+import { GanttChart } from "./GanttChart";
 
 interface ProjectFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (project: Project | Omit<Project, 'id'>) => void;
   project?: Project | null;
+  allTasks?: Task[];
+  onUpdateTask?: (task: Task) => void;
 }
 
-export const ProjectForm = ({ isOpen, onClose, onSave, project }: ProjectFormProps) => {
+export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
   const [formData, setFormData] = useState({
     name: project?.name || '',
     description: project?.description || '',
@@ -28,6 +32,11 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project }: ProjectFormPro
   });
 
   const [newTeamMember, setNewTeamMember] = useState('');
+  
+  // Get project tasks
+  const projectTasks = allTasks.filter(task => 
+    project?.name && task.project === project.name
+  );
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -66,17 +75,52 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project }: ProjectFormPro
     }
   };
 
+  const handleTasksChange = (updatedTasks: Task[]) => {
+    if (onUpdateTask) {
+      updatedTasks.forEach(task => {
+        const originalTask = allTasks.find(t => t.id === task.id);
+        if (originalTask && JSON.stringify(originalTask) !== JSON.stringify(task)) {
+          onUpdateTask(task);
+        }
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (project) {
+      setFormData({
+        name: project.name,
+        description: project.description,
+        owner: project.owner,
+        startDate: project.startDate,
+        endDate: project.endDate,
+        status: project.status,
+        team: project.team,
+        tasks: project.tasks
+      });
+    }
+  }, [project]);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
           <DialogDescription>
-            {project ? 'Update project details and team members.' : 'Create a new project with team members and timeline.'}
+            {project ? 'Update project details, team members, and manage task dependencies.' : 'Create a new project with team members and timeline.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <Tabs defaultValue="details" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="details">Project Details</TabsTrigger>
+            {project && projectTasks.length > 0 && (
+              <TabsTrigger value="gantt">Gantt & Dependencies</TabsTrigger>
+            )}
+          </TabsList>
+
+          <TabsContent value="details">
+            <form onSubmit={handleSubmit} className="space-y-6">
           {/* Basic Information */}
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -189,16 +233,29 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project }: ProjectFormPro
             )}
           </div>
 
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-2 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {project ? 'Update Project' : 'Create Project'}
-            </Button>
-          </div>
-        </form>
+              {/* Form Actions */}
+              <div className="flex justify-end space-x-2 pt-4 border-t">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  {project ? 'Update Project' : 'Create Project'}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+
+          {project && projectTasks.length > 0 && (
+            <TabsContent value="gantt">
+              <GanttChart
+                tasks={projectTasks}
+                onTasksChange={handleTasksChange}
+                projectStartDate={formData.startDate}
+                projectEndDate={formData.endDate}
+              />
+            </TabsContent>
+          )}
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
