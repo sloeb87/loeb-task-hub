@@ -215,18 +215,20 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
             </Card>
           </div>
 
-          {/* Gantt Chart - Full Width */}
-          <div className="w-full">
-            <h3 className="text-lg font-semibold mb-4">Project Timeline (Gantt Chart)</h3>
-            <div className="w-full overflow-x-auto">
+          {/* Gantt Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Timeline (Gantt Chart)</CardTitle>
+            </CardHeader>
+            <CardContent>
               <GanttChart 
                 tasks={projectTasks} 
                 onTasksChange={() => {}} 
                 projectStartDate={project.startDate}
                 projectEndDate={project.endDate}
               />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Detailed Task List */}
           <Card>
