@@ -243,7 +243,7 @@ const Index = () => {
             />
           </>
         ) : activeView === "dashboard" ? (
-          <KPIDashboard tasks={tasks} />
+          <KPIDashboard tasks={tasks} projects={projects} />
         ) : (
           <ProjectsPage 
             tasks={tasks} 
