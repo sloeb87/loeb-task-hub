@@ -34,6 +34,7 @@ const ProjectsPage = ({
   const [detailProject, setDetailProject] = useState<Project | null>(null);
 
   const handleEditProject = (project: Project) => {
+    console.log('handleEditProject called with:', project.name);
     setDetailProject(project);
     setViewMode('detail');
   };
@@ -63,8 +64,10 @@ const ProjectsPage = ({
   };
 
   const handleEditTask = (task: Task) => {
+    console.log('handleEditTask called with:', task.title, 'isTaskFormOpen:', isTaskFormOpen);
     setSelectedTask(task);
     setIsTaskFormOpen(true);
+    console.log('setIsTaskFormOpen(true) called');
   };
 
   const handleAddTaskToProject = (projectId: string) => {

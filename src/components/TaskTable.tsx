@@ -212,6 +212,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const handleRowClick = (task: Task) => {
+    console.log('Task row clicked:', task.title);
     onEditTask(task);
   };
 
@@ -270,7 +271,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <tr 
                 key={task.id} 
                 className="hover:bg-gray-50 transition-colors cursor-pointer"
-                onClick={() => handleRowClick(task)}
+                onClick={(e) => {
+                  console.log('Task TR clicked:', e.target, task.title);
+                  handleRowClick(task);
+                }}
               >
                 <td className="px-4 py-4">
                   <div className="space-y-1">

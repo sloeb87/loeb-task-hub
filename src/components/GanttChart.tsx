@@ -95,7 +95,11 @@ const SortableTask = ({
       <div className="flex items-center justify-between">
         <div 
           className="flex items-center space-x-2 min-w-[200px] cursor-pointer hover:bg-gray-50 p-2 rounded"
-          onClick={() => onEditTask?.(task)}
+          onClick={(e) => {
+            console.log('Gantt task info clicked:', task.title);
+            e.stopPropagation();
+            onEditTask?.(task);
+          }}
         >
           <div {...attributes} {...listeners} className="cursor-grab">
             <GripVertical className="w-4 h-4 text-gray-400" />
@@ -165,7 +169,11 @@ const SortableTask = ({
             left: `${taskLeft}%`,
             width: `${Math.max(2, taskWidth)}%`,
           }}
-          onClick={() => onEditTask?.(task)}
+          onClick={(e) => {
+            console.log('Gantt bar clicked:', task.title);
+            e.stopPropagation();
+            onEditTask?.(task);
+          }}
         >
           <div className="px-2 py-1 text-xs text-white truncate">
             {task.title}

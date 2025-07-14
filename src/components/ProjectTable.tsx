@@ -86,6 +86,7 @@ export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onA
   };
 
   const handleRowClick = (project: Project) => {
+    console.log('Row clicked:', project.name);
     onEditProject(project);
   };
 
@@ -121,7 +122,10 @@ export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onA
                 <React.Fragment key={project.id}>
                   <tr 
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
-                    onClick={() => handleRowClick(project)}
+                    onClick={(e) => {
+                      console.log('TR clicked:', e.target);
+                      handleRowClick(project);
+                    }}
                   >
                     <td className="px-4 py-4">
                       <Button
