@@ -14,10 +14,11 @@ interface TaskTableProps {
   onFollowUp: (task: Task) => void;
 }
 
-type SortField = 'id' | 'title' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate';
+type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate';
 type SortDirection = 'asc' | 'desc';
 
 interface Filters {
+  scope: string[];
   status: string[];
   priority: string[];
   project: string[];
@@ -29,6 +30,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({
+    scope: [],
     status: [],
     priority: [],
     project: [],
@@ -148,6 +150,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
       if (!matchesSearch) return false;
+      if (filters.scope.length > 0 && !filters.scope.includes(task.scope)) return false;
       if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
       if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
       if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
@@ -316,6 +319,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-gray-900">
+                <TableHead style={{ minWidth: '130px' }}>
+                  <FilterableHeader field="scope" filterType="scope">Scope</FilterableHeader>
+                </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
                   <SortableHeader field="title">Task</SortableHeader>
                 </TableHead>
@@ -341,6 +347,13 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                   onClick={(e) => handleRowClick(task, e)}
                 >
+                  {/* Scope Column */}
+                  <TableCell>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      {task.scope}
+                    </div>
+                  </TableCell>
+
                   {/* Task Column */}
                   <TableCell>
                     <div className="space-y-2">
@@ -421,7 +434,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{task.scope}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
                       <Badge variant="outline" className="text-xs">
                         {task.taskType}
