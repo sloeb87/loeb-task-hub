@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Task } from "@/types/task";
@@ -13,7 +12,7 @@ export const TaskSummaryCards = ({ tasks, activeFilter, onFilterChange }: TaskSu
   const getFilteredCount = (filter: string) => {
     switch (filter) {
       case "all":
-        return tasks.filter(t => t.status === "Open" || t.status === "In Progress" || t.status === "On Hold").length;
+        return tasks.length; // Include ALL tasks, including completed ones
       case "open":
         return tasks.filter(t => t.status === "Open").length;
       case "inprogress":
