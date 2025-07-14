@@ -127,7 +127,8 @@ const Index = () => {
   };
 
   const handleEditTask = (task: Task) => {
-    console.log('Index - handleEditTask called with task:', task.id, task.title);
+    console.log('Index - handleEditTask called with task:', task);
+    console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
     setIsTaskFormOpen(true);
   };
@@ -256,7 +257,7 @@ const Index = () => {
 
         {/* Task Form Dialog */}
         <TaskForm 
-          isOpen={isTaskFormOpen || !!selectedTask} 
+          isOpen={isTaskFormOpen} 
           onClose={() => {
             setIsTaskFormOpen(false);
             setSelectedTask(null);

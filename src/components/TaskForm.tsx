@@ -31,7 +31,7 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects, projectName, onEditRelatedTask }: TaskFormProps) => {
-  console.log('TaskForm render - task:', task?.id, task?.title, 'isOpen:', isOpen);
+  console.log('TaskForm render - task:', task, 'isOpen:', isOpen);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -79,14 +79,14 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
 
   // Initialize form data when task or dialog state changes
   useEffect(() => {
-    console.log('TaskForm initialization useEffect - task:', task?.id, 'isOpen:', isOpen);
+    console.log('TaskForm initialization useEffect - task:', task, 'isOpen:', isOpen);
     
     if (isOpen) {
       if (task) {
         // Editing existing task - populate all fields
         console.log('Loading existing task data for editing:', task);
         
-        const taskFormData = {
+        setFormData({
           title: task.title || "",
           project: task.project || "",
           scope: task.scope || "",
@@ -109,17 +109,15 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
           },
           stakeholders: task.stakeholders || [],
           comments: task.comments || []
-        };
-        
-        setFormData(taskFormData);
+        });
         setDate(new Date(task.dueDate));
         
-        console.log('Form data populated for editing:', taskFormData);
+        console.log('Form data populated for editing task:', task.id);
       } else {
         // Creating new task - use defaults with optional project name
         console.log('Setting up form for new task, projectName:', projectName);
         
-        const newTaskFormData = {
+        setFormData({
           title: "",
           project: projectName || "",
           scope: "",
@@ -142,12 +140,10 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
           },
           stakeholders: [],
           comments: []
-        };
-        
-        setFormData(newTaskFormData);
+        });
         setDate(new Date());
         
-        console.log('Form data set for new task:', newTaskFormData);
+        console.log('Form data set for new task');
       }
     }
   }, [task, isOpen, projectName]);
@@ -196,6 +192,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       taskType: formData.taskType as TaskType,
       status: formData.status as TaskStatus,
       priority: formData.priority as TaskPriority,
+      ...(task && { id: task.id, creationDate: task.creationDate, followUps: task.followUps })
     };
 
     console.log('Saving task data:', taskData);
