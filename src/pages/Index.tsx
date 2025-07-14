@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,10 +13,9 @@ import { mockTasks, mockProjects } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
 import ProjectsPage from "./Projects";
 import Parameters from "@/components/Parameters";
-
 const Index = () => {
   const navigate = useNavigate();
-  
+
   // Initialize tasks from localStorage for synchronization
   const getStoredTasks = (): Task[] => {
     try {
@@ -28,7 +26,6 @@ const Index = () => {
       return mockTasks;
     }
   };
-  
   const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
@@ -38,20 +35,24 @@ const Index = () => {
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
-
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       switch (activeFilter) {
-        case "open": return task.status === "Open";
-        case "inprogress": return task.status === "In Progress";
-        case "onhold": return task.status === "On Hold";
-        case "critical": return task.priority === "Critical";
-        case "all": return task.status === "Open" || task.status === "In Progress" || task.status === "On Hold";
-        default: return true;
+        case "open":
+          return task.status === "Open";
+        case "inprogress":
+          return task.status === "In Progress";
+        case "onhold":
+          return task.status === "On Hold";
+        case "critical":
+          return task.priority === "Critical";
+        case "all":
+          return task.status === "Open" || task.status === "In Progress" || task.status === "On Hold";
+        default:
+          return true;
       }
     });
   }, [tasks, activeFilter]);
-
   const handleCreateTask = (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     const newTask: Task = {
       ...taskData,
@@ -61,31 +62,27 @@ const Index = () => {
     };
     const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
-    
+
     // Sync to localStorage
     try {
       localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
     } catch (error) {
       console.warn('Failed to save tasks to localStorage:', error);
     }
-    
     setIsTaskFormOpen(false);
   };
-
   const handleUpdateTask = (updatedTask: Task) => {
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
     setTasks(updatedTasks);
-    
+
     // Sync to localStorage for cross-component synchronization
     try {
       localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
     } catch (error) {
       console.warn('Failed to save tasks to localStorage:', error);
     }
-    
     setSelectedTask(null);
   };
-
   const handleAddFollowUp = (taskId: string, followUpText: string) => {
     setTasks(tasks.map(task => {
       if (task.id === taskId) {
@@ -104,21 +101,17 @@ const Index = () => {
     }));
     setFollowUpTask(null);
   };
-
   const handleCreateProject = (projectData: Omit<Project, 'id'>) => {
     const newProject: Project = {
       ...projectData,
-      id: `P${projects.length + 1}`,
+      id: `P${projects.length + 1}`
     };
     setProjects([...projects, newProject]);
   };
-
   const handleUpdateProject = (updatedProject: Project) => {
     setProjects(projects.map(project => project.id === updatedProject.id ? updatedProject : project));
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -130,45 +123,20 @@ const Index = () => {
               </Badge>
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                variant={activeView === "projects" ? "default" : "outline"}
-                onClick={() => setActiveView("projects")}
-                size="sm"
-              >
+              <Button variant={activeView === "projects" ? "default" : "outline"} onClick={() => setActiveView("projects")} size="sm">
                 <FolderKanban className="w-4 h-4 mr-2" />
                 Projects
               </Button>
-              <Button
-                variant={activeView === "tasks" ? "default" : "outline"}
-                onClick={() => setActiveView("tasks")}
-                size="sm"
-              >
+              <Button variant={activeView === "tasks" ? "default" : "outline"} onClick={() => setActiveView("tasks")} size="sm">
                 <ListTodo className="w-4 h-4 mr-2" />
                 Tasks
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => navigate('/gantt')}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                Gantt
-              </Button>
-              <Button
-                variant={activeView === "dashboard" ? "default" : "outline"}
-                onClick={() => setActiveView("dashboard")}
-                size="sm"
-              >
+              
+              <Button variant={activeView === "dashboard" ? "default" : "outline"} onClick={() => setActiveView("dashboard")} size="sm">
                 <BarChart3 className="w-4 h-4 mr-2" />
                 KPIs
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => setIsParametersOpen(true)}
-                size="sm"
-                className="flex items-center gap-2"
-              >
+              <Button variant="outline" onClick={() => setIsParametersOpen(true)} size="sm" className="flex items-center gap-2">
                 <Settings className="w-4 h-4" />
               </Button>
             </div>
@@ -177,8 +145,7 @@ const Index = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeView === "tasks" ? (
-          <>
+        {activeView === "tasks" ? <>
             {/* Task Management Header */}
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center space-x-3">
@@ -188,10 +155,7 @@ const Index = () => {
                   <p className="text-gray-600 mt-1">Create, assign, and track individual tasks</p>
                 </div>
               </div>
-              <Button 
-                onClick={() => setIsTaskFormOpen(true)} 
-                className="flex items-center gap-2"
-              >
+              <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2">
                 <Plus className="w-4 h-4" />
                 New Task
               </Button>
@@ -210,10 +174,7 @@ const Index = () => {
 
             {/* Task Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "all" ? "ring-2 ring-blue-500" : ""}`}
-                onClick={() => setActiveFilter("all")}
-              >
+              <Card className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "all" ? "ring-2 ring-blue-500" : ""}`} onClick={() => setActiveFilter("all")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -228,10 +189,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "open" ? "ring-2 ring-orange-500" : ""}`}
-                onClick={() => setActiveFilter("open")}
-              >
+              <Card className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "open" ? "ring-2 ring-orange-500" : ""}`} onClick={() => setActiveFilter("open")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -246,10 +204,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "inprogress" ? "ring-2 ring-blue-500" : ""}`}
-                onClick={() => setActiveFilter("inprogress")}
-              >
+              <Card className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "inprogress" ? "ring-2 ring-blue-500" : ""}`} onClick={() => setActiveFilter("inprogress")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -264,10 +219,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "onhold" ? "ring-2 ring-gray-500" : ""}`}
-                onClick={() => setActiveFilter("onhold")}
-              >
+              <Card className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "onhold" ? "ring-2 ring-gray-500" : ""}`} onClick={() => setActiveFilter("onhold")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -282,10 +234,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "critical" ? "ring-2 ring-red-500" : ""}`}
-                onClick={() => setActiveFilter("critical")}
-              >
+              <Card className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "critical" ? "ring-2 ring-red-500" : ""}`} onClick={() => setActiveFilter("critical")}>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -303,58 +252,21 @@ const Index = () => {
             </div>
 
             {/* Task Table */}
-            <TaskTable
-              tasks={filteredTasks}
-              onEditTask={setSelectedTask}
-              onFollowUp={setFollowUpTask}
-            />
-          </>
-        ) : activeView === "dashboard" ? (
-          <KPIDashboard tasks={tasks} projects={projects} />
-        ) : (
-          <ProjectsPage 
-            tasks={tasks} 
-            projects={projects}
-            onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onCreateTask={handleCreateTask}
-            onUpdateTask={handleUpdateTask}
-            projectFilter={projectFilter}
-            setProjectFilter={setProjectFilter}
-          />
-        )}
+            <TaskTable tasks={filteredTasks} onEditTask={setSelectedTask} onFollowUp={setFollowUpTask} />
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} />}
 
         {/* Task Form Dialog */}
-        {(isTaskFormOpen || selectedTask) && (
-          <TaskForm
-            isOpen={isTaskFormOpen || !!selectedTask}
-            onClose={() => {
-              setIsTaskFormOpen(false);
-              setSelectedTask(null);
-            }}
-            onSave={selectedTask ? handleUpdateTask : handleCreateTask}
-            task={selectedTask}
-          />
-        )}
+        {(isTaskFormOpen || selectedTask) && <TaskForm isOpen={isTaskFormOpen || !!selectedTask} onClose={() => {
+        setIsTaskFormOpen(false);
+        setSelectedTask(null);
+      }} onSave={selectedTask ? handleUpdateTask : handleCreateTask} task={selectedTask} />}
 
         {/* Follow Up Dialog */}
-        {followUpTask && (
-          <FollowUpDialog
-            isOpen={!!followUpTask}
-            onClose={() => setFollowUpTask(null)}
-            onAddFollowUp={(text) => handleAddFollowUp(followUpTask.id, text)}
-            task={followUpTask}
-          />
-        )}
+        {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUp(followUpTask.id, text)} task={followUpTask} />}
 
         {/* Parameters Dialog */}
-        <Parameters
-          isOpen={isParametersOpen}
-          onClose={() => setIsParametersOpen(false)}
-        />
+        <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
