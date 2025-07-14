@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
@@ -109,6 +109,11 @@ export const ProjectDetailView = ({
     setIsProjectFormOpen(false);
   };
 
+  const handleLinkClick = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    window.open(url, '_blank');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
@@ -204,6 +209,70 @@ export const ProjectDetailView = ({
                 ))}
               </div>
             </div>
+
+            {/* Project Links */}
+            {project.links && Object.values(project.links).some(link => link) && (
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-2">Project Links</p>
+                <div className="flex items-center space-x-2">
+                  {project.links.folder && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2 h-8 w-8 hover:bg-blue-100"
+                      onClick={(e) => handleLinkClick(project.links.folder!, e)}
+                      title="Open Project Folder"
+                    >
+                      <FolderOpen className="w-4 h-4 text-blue-600" />
+                    </Button>
+                  )}
+                  {project.links.email && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2 h-8 w-8 hover:bg-green-100"
+                      onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
+                      title="Send Project Email"
+                    >
+                      <Mail className="w-4 h-4 text-green-600" />
+                    </Button>
+                  )}
+                  {project.links.file && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2 h-8 w-8 hover:bg-purple-100"
+                      onClick={(e) => handleLinkClick(project.links.file!, e)}
+                      title="Open Project File"
+                    >
+                      <FileText className="w-4 h-4 text-purple-600" />
+                    </Button>
+                  )}
+                  {project.links.oneNote && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2 h-8 w-8 hover:bg-orange-100"
+                      onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
+                      title="Open Project OneNote"
+                    >
+                      <ExternalLink className="w-4 h-4 text-orange-600" />
+                    </Button>
+                  )}
+                  {project.links.teams && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="p-2 h-8 w-8 hover:bg-indigo-100"
+                      onClick={(e) => handleLinkClick(project.links.teams!, e)}
+                      title="Open Project Teams"
+                    >
+                      <ExternalLink className="w-4 h-4 text-indigo-600" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

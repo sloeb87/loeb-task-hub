@@ -28,7 +28,14 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
     endDate: project?.endDate || '',
     status: project?.status || 'Active' as Project['status'],
     team: project?.team || [] as string[],
-    tasks: project?.tasks || [] as string[]
+    tasks: project?.tasks || [] as string[],
+    links: {
+      oneNote: project?.links?.oneNote || '',
+      teams: project?.links?.teams || '',
+      email: project?.links?.email || '',
+      file: project?.links?.file || '',
+      folder: project?.links?.folder || '',
+    }
   });
 
   const [newTeamMember, setNewTeamMember] = useState('');
@@ -42,6 +49,16 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+  };
+
+  const handleLinkChange = (linkType: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      links: {
+        ...prev.links,
+        [linkType]: value
+      }
     }));
   };
 
@@ -96,7 +113,14 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
         endDate: project.endDate,
         status: project.status,
         team: project.team,
-        tasks: project.tasks
+        tasks: project.tasks,
+        links: {
+          oneNote: project.links?.oneNote || '',
+          teams: project.links?.teams || '',
+          email: project.links?.email || '',
+          file: project.links?.file || '',
+          folder: project.links?.folder || '',
+        }
       });
     }
   }, [project]);
@@ -231,6 +255,58 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Project Links */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-gray-900">Project Links</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="oneNote">OneNote</Label>
+                <Input
+                  id="oneNote"
+                  value={formData.links.oneNote}
+                  onChange={(e) => handleLinkChange('oneNote', e.target.value)}
+                  placeholder="OneNote link..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="teams">Teams</Label>
+                <Input
+                  id="teams"
+                  value={formData.links.teams}
+                  onChange={(e) => handleLinkChange('teams', e.target.value)}
+                  placeholder="Teams link..."
+                />
+              </div>
+              <div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  value={formData.links.email}
+                  onChange={(e) => handleLinkChange('email', e.target.value)}
+                  placeholder="project@example.com"
+                />
+              </div>
+              <div>
+                <Label htmlFor="file">File</Label>
+                <Input
+                  id="file"
+                  value={formData.links.file}
+                  onChange={(e) => handleLinkChange('file', e.target.value)}
+                  placeholder="File link..."
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="folder">Folder</Label>
+              <Input
+                id="folder"
+                value={formData.links.folder}
+                onChange={(e) => handleLinkChange('folder', e.target.value)}
+                placeholder="Folder/SharePoint link..."
+              />
+            </div>
           </div>
 
               {/* Form Actions */}

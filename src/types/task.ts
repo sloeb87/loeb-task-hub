@@ -50,6 +50,13 @@ export interface Project {
   endDate: string;
   status: "Active" | "On Hold" | "Completed";
   tasks: string[]; // Task IDs
+  links?: {
+    oneNote?: string;
+    teams?: string;
+    email?: string;
+    file?: string;
+    folder?: string;
+  };
 }
 
 export interface KPIMetrics {
