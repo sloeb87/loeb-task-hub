@@ -141,65 +141,83 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
       startDate = new Date(customDateFrom);
       endDate = new Date(customDateTo);
       
-      // Generate data based on the custom range
+      // Generate weekly data based on the custom range
       const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
-      const periodsCount = Math.min(12, Math.max(1, daysDiff / 7)); // Weekly periods within the range
+      const weeksCount = Math.max(1, Math.ceil(daysDiff / 7));
       
-      for (let i = 0; i < periodsCount; i++) {
-        const periodStart = new Date(startDate.getTime() + (i * (daysDiff / periodsCount) * 24 * 60 * 60 * 1000));
-        const periodEnd = new Date(startDate.getTime() + ((i + 1) * (daysDiff / periodsCount) * 24 * 60 * 60 * 1000));
+      for (let i = 0; i < weeksCount; i++) {
+        const weekStart = new Date(startDate.getTime() + (i * 7 * 24 * 60 * 60 * 1000));
+        const weekEnd = new Date(startDate.getTime() + ((i + 1) * 7 * 24 * 60 * 60 * 1000));
         
-        const periodTasks = filteredTasks.filter(task => {
+        // Tasks opened in this week
+        const openedTasks = filteredTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
-          return taskDate >= periodStart && taskDate < periodEnd;
+          return taskDate >= weekStart && taskDate < weekEnd;
         });
         
+        // Tasks closed in this week
+        const closedTasks = filteredTasks.filter(task => {
+          const completionDate = task.completionDate ? new Date(task.completionDate) : null;
+          return completionDate && completionDate >= weekStart && completionDate < weekEnd;
+        });
+        
+        // WIP tasks at the end of this week (all tasks created before or during this week minus completed tasks)
+        const allTasksUpToWeek = filteredTasks.filter(task => {
+          const taskDate = new Date(task.creationDate);
+          return taskDate < weekEnd;
+        });
+        const completedTasksUpToWeek = allTasksUpToWeek.filter(task => {
+          const completionDate = task.completionDate ? new Date(task.completionDate) : null;
+          return completionDate && completionDate < weekEnd;
+        });
+        const wipTasks = allTasksUpToWeek.length - completedTasksUpToWeek.length;
+        
         data.push({
-          date: periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          open: periodTasks.filter(t => t.status === "Open").length,
-          inProgress: periodTasks.filter(t => t.status === "In Progress").length,
-          completed: periodTasks.filter(t => t.status === "Completed").length,
+          date: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          opened: openedTasks.length,
+          closed: closedTasks.length,
+          wip: wipTasks,
         });
       }
     } else {
-      // Generate data for the last 12 periods based on time range
+      // Generate data for the last 12 weeks
       for (let i = 11; i >= 0; i--) {
-        let periodStart = new Date();
-        let periodEnd = new Date();
-        let dateLabel = '';
+        const weekStart = new Date();
+        const weekEnd = new Date();
         
-        switch (selectedTimeRange) {
-          case "week":
-            periodStart.setDate(now.getDate() - (i * 7) - 7);
-            periodEnd.setDate(now.getDate() - (i * 7));
-            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            break;
-          case "month":
-            periodStart.setMonth(now.getMonth() - i - 1);
-            periodEnd.setMonth(now.getMonth() - i);
-            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-            break;
-          case "quarter":
-            periodStart.setMonth(now.getMonth() - (i * 3) - 3);
-            periodEnd.setMonth(now.getMonth() - (i * 3));
-            dateLabel = `Q${Math.floor(periodStart.getMonth() / 3) + 1} ${periodStart.getFullYear().toString().slice(-2)}`;
-            break;
-          default:
-            periodStart.setMonth(now.getMonth() - i - 1);
-            periodEnd.setMonth(now.getMonth() - i);
-            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-        }
+        weekStart.setDate(now.getDate() - (i * 7) - 7);
+        weekEnd.setDate(now.getDate() - (i * 7));
         
-        const periodTasks = filteredTasks.filter(task => {
+        const dateLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        // Tasks opened in this week
+        const openedTasks = filteredTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
-          return taskDate >= periodStart && taskDate < periodEnd;
+          return taskDate >= weekStart && taskDate < weekEnd;
         });
+        
+        // Tasks closed in this week
+        const closedTasks = filteredTasks.filter(task => {
+          const completionDate = task.completionDate ? new Date(task.completionDate) : null;
+          return completionDate && completionDate >= weekStart && completionDate < weekEnd;
+        });
+        
+        // WIP tasks at the end of this week (all tasks created before or during this week minus completed tasks)
+        const allTasksUpToWeek = filteredTasks.filter(task => {
+          const taskDate = new Date(task.creationDate);
+          return taskDate < weekEnd;
+        });
+        const completedTasksUpToWeek = allTasksUpToWeek.filter(task => {
+          const completionDate = task.completionDate ? new Date(task.completionDate) : null;
+          return completionDate && completionDate < weekEnd;
+        });
+        const wipTasks = allTasksUpToWeek.length - completedTasksUpToWeek.length;
         
         data.push({
           date: dateLabel,
-          open: periodTasks.filter(t => t.status === "Open").length,
-          inProgress: periodTasks.filter(t => t.status === "In Progress").length,
-          completed: periodTasks.filter(t => t.status === "Completed").length,
+          opened: openedTasks.length,
+          closed: closedTasks.length,
+          wip: wipTasks,
         });
       }
     }
