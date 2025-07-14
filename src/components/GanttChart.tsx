@@ -875,7 +875,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
         </div>
 
         {/* Interactive Gantt Timeline - Scrollable Container */}
-        <div className="max-h-[400px] overflow-auto border border-gray-300 rounded-lg">{/* Reduced height to ensure scroll appears */}
+        <div className="max-h-[400px] overflow-auto border border-gray-300 rounded-lg">{/* Both vertical and horizontal scroll */}
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
@@ -891,7 +891,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 className="relative border border-gray-200 rounded-lg"
                 style={{ 
                   height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
-                  minHeight: '300px' 
+                  minHeight: '300px',
+                  minWidth: '1200px' // Enable horizontal scrolling
                 }}
               >
                 {/* Vertical Grid Lines for Date Separation */}
