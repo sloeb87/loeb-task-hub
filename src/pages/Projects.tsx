@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -85,11 +86,6 @@ const ProjectsPage = ({
       setIsTaskFormOpen(true);
       console.log('State updated - task:', task.title, 'opening modal');
     });
-  };
-
-  const handleFollowUp = (updatedTask: Task) => {
-    console.log('Follow-up updated for task:', updatedTask.title);
-    onUpdateTask(updatedTask);
   };
 
   const handleAddTaskToProject = (projectId: string) => {
@@ -273,7 +269,6 @@ const ProjectsPage = ({
         onSave={handleSaveTask}
         task={selectedTask}
         allTasks={tasks}
-        allProjects={projects}
         projectName={taskProjectId}
         onEditRelatedTask={handleEditTask}
       />
