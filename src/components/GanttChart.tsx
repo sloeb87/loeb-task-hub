@@ -271,6 +271,40 @@ const DraggableTask = ({
           💬
         </button>
       )}
+      
+      {/* Dependency Text Display */}
+      {task.dependencies && task.dependencies.length > 0 && (
+        <div 
+          className="absolute left-full ml-2 top-0 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 shadow-sm z-20 whitespace-nowrap"
+          style={{ minWidth: 'max-content' }}
+        >
+          <span className="font-medium text-blue-600">Depends on:</span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            {task.dependencies.map(depId => {
+              const depTask = allTasks.find(t => t.id === depId);
+              return depTask ? (
+                <span 
+                  key={depId} 
+                  className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium
+                    ${depTask.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                      depTask.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
+                      depTask.status === 'On Hold' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }
+                  `}
+                  title={`${depTask.title} (${depTask.status})`}
+                >
+                  {depTask.id}
+                </span>
+              ) : (
+                <span key={depId} className="inline-block px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">
+                  {depId} (missing)
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -807,22 +841,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 />
               ))}
               
-              {/* Dependency Arrows - rendered after all tasks */}
-              {filteredTasks.map(task => 
-                task.dependencies?.map(depId => {
-                  const depTask = filteredTasks.find(t => t.id === depId);
-                  return depTask ? (
-                    <DependencyArrow
-                      key={`${task.id}-${depId}`}
-                      fromTask={depTask}
-                      toTask={task}
-                      allTasks={filteredTasks}
-                      ganttStartDate={ganttStartDate}
-                      ganttDuration={ganttDuration}
-                    />
-                  ) : null;
-                })
-              ).flat().filter(Boolean)}
+              {/* Dependency Arrows/Lines - REMOVED - Now using text labels instead */}
+              {/* The dependency visualization is now handled by text labels next to each task */}
               
               {/* Drag feedback overlay */}
               {draggedTask && (
@@ -888,25 +908,25 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
               </div>
             </div>
 
-            {/* Dependency Lines */}
+            {/* Dependency Text Labels */}
             <div>
-              <h5 className="text-xs font-medium text-gray-600 mb-2">Dependency Lines</h5>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Dependency Labels</h5>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-green-500"></div>
-                  <span className="text-xs text-gray-600">From Completed Task</span>
+                  <div className="px-1.5 py-0.5 rounded text-xs bg-green-100 text-green-700 font-medium">T1</div>
+                  <span className="text-xs text-gray-600">Completed Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-blue-500"></div>
-                  <span className="text-xs text-gray-600">From In Progress Task</span>
+                  <div className="px-1.5 py-0.5 rounded text-xs bg-blue-100 text-blue-700 font-medium">T2</div>
+                  <span className="text-xs text-gray-600">In Progress Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-yellow-500"></div>
-                  <span className="text-xs text-gray-600">From On Hold Task</span>
+                  <div className="px-1.5 py-0.5 rounded text-xs bg-yellow-100 text-yellow-700 font-medium">T3</div>
+                  <span className="text-xs text-gray-600">On Hold Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-gray-500"></div>
-                  <span className="text-xs text-gray-600">From Open Task</span>
+                  <div className="px-1.5 py-0.5 rounded text-xs bg-gray-100 text-gray-700 font-medium">T4</div>
+                  <span className="text-xs text-gray-600">Open Task</span>
                 </div>
               </div>
             </div>
