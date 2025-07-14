@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -60,7 +59,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     return new Date(dueDate) < new Date();
   };
 
-  // Get unique values for filters
   const getUniqueValues = (field: keyof Task) => {
     return [...new Set(tasks.map(task => task[field] as string))].sort();
   };
@@ -90,7 +88,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }));
   };
 
-  // Apply filters and sorting
   const filteredAndSortedTasks = tasks
     .filter(task => {
       if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
@@ -103,7 +100,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
       let aValue: string | number = a[sortField];
       let bValue: string | number = b[sortField];
 
-      // Handle date sorting
       if (sortField === 'dueDate') {
         aValue = new Date(aValue as string).getTime();
         bValue = new Date(bValue as string).getTime();
@@ -229,7 +225,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
               <SortableHeader field="dueDate">Dates</SortableHeader>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                Follow Ups
               </th>
             </tr>
           </thead>
@@ -254,12 +250,76 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     <p className="text-xs text-gray-500 line-clamp-2">
                       {task.description}
                     </p>
-                    {task.followUps.length > 0 && (
-                      <div className="flex items-center text-xs text-blue-600">
-                        <MessageSquarePlus className="w-3 h-3 mr-1" />
-                        {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
+                    
+                    <div className="flex items-center space-x-2 mt-2">
+                      <div className="flex space-x-1">
+                        {task.links.folder && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-blue-100"
+                            onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                            title="Open Folder"
+                          >
+                            <FolderOpen className="w-3 h-3 text-blue-600" />
+                          </Button>
+                        )}
+                        {task.links.email && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-green-100"
+                            onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                            title="Send Email"
+                          >
+                            <Mail className="w-3 h-3 text-green-600" />
+                          </Button>
+                        )}
+                        {task.links.file && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-purple-100"
+                            onClick={(e) => handleLinkClick(task.links.file!, e)}
+                            title="Open File"
+                          >
+                            <FileText className="w-3 h-3 text-purple-600" />
+                          </Button>
+                        )}
+                        {task.links.oneNote && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-orange-100"
+                            onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                            title="Open OneNote"
+                          >
+                            <ExternalLink className="w-3 h-3 text-orange-600" />
+                          </Button>
+                        )}
+                        {task.links.teams && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-indigo-100"
+                            onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                            title="Open Teams"
+                          >
+                            <ExternalLink className="w-3 h-3 text-indigo-600" />
+                          </Button>
+                        )}
                       </div>
-                    )}
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => handleActionClick(e, () => onFollowUp(task))}
+                        className="flex items-center space-x-1 text-xs px-2 py-1 h-6"
+                      >
+                        <MessageSquarePlus className="w-3 h-3" />
+                        <span>Follow Up</span>
+                      </Button>
+                    </div>
                   </div>
                 </td>
                 <td className="px-4 py-4">
@@ -315,73 +375,28 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   </div>
                 </td>
                 <td className="px-4 py-4">
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleActionClick(e, () => onFollowUp(task))}
-                      className="flex items-center space-x-1"
-                    >
-                      <MessageSquarePlus className="w-3 h-3" />
-                      <span className="text-xs">Follow Up</span>
-                    </Button>
-                  </div>
-                  {/* Quick Links */}
-                  <div className="flex space-x-1 mt-2">
-                    {task.links.folder && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 hover:bg-blue-100"
-                        onClick={(e) => handleLinkClick(task.links.folder!, e)}
-                        title="Open Folder"
-                      >
-                        <FolderOpen className="w-3 h-3 text-blue-600" />
-                      </Button>
+                  <div className="space-y-2">
+                    {task.followUps.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">No follow-ups</div>
+                    ) : (
+                      task.followUps
+                        .slice(-3) // Get last 3 follow-ups
+                        .reverse() // Show most recent first
+                        .map((followUp, index) => (
+                          <div key={followUp.id} className="border-l-2 border-blue-200 pl-2">
+                            <div className="text-xs text-gray-600 line-clamp-2">
+                              {followUp.text}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {followUp.author} - {new Date(followUp.timestamp).toLocaleDateString()}
+                            </div>
+                          </div>
+                        ))
                     )}
-                    {task.links.email && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 hover:bg-green-100"
-                        onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
-                        title="Send Email"
-                      >
-                        <Mail className="w-3 h-3 text-green-600" />
-                      </Button>
-                    )}
-                    {task.links.file && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 hover:bg-purple-100"
-                        onClick={(e) => handleLinkClick(task.links.file!, e)}
-                        title="Open File"
-                      >
-                        <FileText className="w-3 h-3 text-purple-600" />
-                      </Button>
-                    )}
-                    {task.links.oneNote && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 hover:bg-orange-100"
-                        onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
-                        title="Open OneNote"
-                      >
-                        <ExternalLink className="w-3 h-3 text-orange-600" />
-                      </Button>
-                    )}
-                    {task.links.teams && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 hover:bg-indigo-100"
-                        onClick={(e) => handleLinkClick(task.links.teams!, e)}
-                        title="Open Teams"
-                      >
-                        <ExternalLink className="w-3 h-3 text-indigo-600" />
-                      </Button>
+                    {task.followUps.length > 3 && (
+                      <div className="text-xs text-blue-600 italic">
+                        +{task.followUps.length - 3} more...
+                      </div>
                     )}
                   </div>
                 </td>
