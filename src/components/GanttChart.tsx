@@ -708,10 +708,101 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
           </div>
         </div>
 
-        {/* Color Legend */}
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+        {/* Interactive Gantt Timeline */}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <TimelineDropZone
+            ganttStartDate={ganttStartDate}
+            ganttDuration={ganttDuration}
+            onTaskUpdate={onTaskUpdate}
+          >
+            <div 
+              className="relative border border-gray-200 rounded-lg"
+              style={{ 
+                height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
+                minHeight: '300px' 
+              }}
+            >
+              {/* Vertical Grid Lines for Date Separation */}
+              {timelineMarkers.map((marker, index) => (
+                <div
+                  key={`grid-${index}`}
+                  className="absolute top-0 h-full border-l border-gray-200 pointer-events-none"
+                  style={{ left: `${marker.position}%` }}
+                />
+              ))}
+              
+              {/* Today Grid Line */}
+              {(() => {
+                const today = new Date();
+                const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
+                if (todayPos >= 0 && todayPos <= 100) {
+                  return (
+                    <div
+                      className="absolute top-0 h-full border-l-2 border-red-400 pointer-events-none opacity-50"
+                      style={{ left: `${todayPos}%` }}
+                    />
+                  );
+                }
+                return null;
+              })()}
+
+              {filteredTasks.map((task, index) => (
+                <DraggableTask
+                  key={task.id}
+                  task={task}
+                  ganttStartDate={ganttStartDate}
+                  ganttDuration={ganttDuration}
+                  onTaskUpdate={onTaskUpdate}
+                  onEditTask={onEditTask}
+                  onAddDependency={handleAddDependency}
+                  onRemoveDependency={handleRemoveDependency}
+                  allTasks={filteredTasks}
+                  yPosition={index}
+                  isDragging={draggedTask?.id === task.id}
+                  onTasksChange={onTasksChange}
+                />
+              ))}
+              
+              {/* Dependency Arrows - rendered after all tasks */}
+              {filteredTasks.map(task => 
+                task.dependencies?.map(depId => {
+                  const depTask = filteredTasks.find(t => t.id === depId);
+                  return depTask ? (
+                    <DependencyArrow
+                      key={`${task.id}-${depId}`}
+                      fromTask={depTask}
+                      toTask={task}
+                      allTasks={filteredTasks}
+                      ganttStartDate={ganttStartDate}
+                      ganttDuration={ganttDuration}
+                    />
+                  ) : null;
+                })
+              ).flat().filter(Boolean)}
+              
+              {/* Drag feedback overlay */}
+              {draggedTask && (
+                <div className="absolute inset-0 bg-blue-50 bg-opacity-50 pointer-events-none flex items-center justify-center">
+                  <div className="text-blue-600 font-medium">
+                    {dragType === 'move' && 'Moving task...'}
+                    {dragType === 'resize-start' && 'Adjusting start date...'}
+                    {dragType === 'resize-end' && 'Adjusting end date...'}
+                  </div>
+                </div>
+              )}
+            </div>
+          </TimelineDropZone>
+        </DndContext>
+
+        {/* Color Legend - Moved Below */}
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">Color Legend</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Task Status Colors */}
             <div>
               <h5 className="text-xs font-medium text-gray-600 mb-2">Task Status</h5>
@@ -801,77 +892,14 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   <div className="w-1 h-4 bg-red-500 rounded"></div>
                   <span className="text-xs text-gray-600">Today Line</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-4 bg-gray-200 rounded"></div>
+                  <span className="text-xs text-gray-600">Date Grid Lines</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Interactive Gantt Timeline */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <TimelineDropZone
-            ganttStartDate={ganttStartDate}
-            ganttDuration={ganttDuration}
-            onTaskUpdate={onTaskUpdate}
-          >
-            <div 
-              className="relative border border-gray-200 rounded-lg"
-              style={{ 
-                height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
-                minHeight: '300px' 
-              }}
-            >
-              {filteredTasks.map((task, index) => (
-                <DraggableTask
-                  key={task.id}
-                  task={task}
-                  ganttStartDate={ganttStartDate}
-                  ganttDuration={ganttDuration}
-                  onTaskUpdate={onTaskUpdate}
-                  onEditTask={onEditTask}
-                  onAddDependency={handleAddDependency}
-                  onRemoveDependency={handleRemoveDependency}
-                  allTasks={filteredTasks}
-                  yPosition={index}
-                  isDragging={draggedTask?.id === task.id}
-                  onTasksChange={onTasksChange}
-                />
-              ))}
-              
-              {/* Dependency Arrows - rendered after all tasks */}
-              {filteredTasks.map(task => 
-                task.dependencies?.map(depId => {
-                  const depTask = filteredTasks.find(t => t.id === depId);
-                  return depTask ? (
-                    <DependencyArrow
-                      key={`${task.id}-${depId}`}
-                      fromTask={depTask}
-                      toTask={task}
-                      allTasks={filteredTasks}
-                      ganttStartDate={ganttStartDate}
-                      ganttDuration={ganttDuration}
-                    />
-                  ) : null;
-                })
-              ).flat().filter(Boolean)}
-              
-              {/* Drag feedback overlay */}
-              {draggedTask && (
-                <div className="absolute inset-0 bg-blue-50 bg-opacity-50 pointer-events-none flex items-center justify-center">
-                  <div className="text-blue-600 font-medium">
-                    {dragType === 'move' && 'Moving task...'}
-                    {dragType === 'resize-start' && 'Adjusting start date...'}
-                    {dragType === 'resize-end' && 'Adjusting end date...'}
-                  </div>
-                </div>
-              )}
-            </div>
-          </TimelineDropZone>
-        </DndContext>
 
         {/* Task Dependencies Panel */}
         <div className="mt-8">
