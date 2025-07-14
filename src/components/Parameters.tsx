@@ -28,11 +28,51 @@ const defaultPriorities = ["Low", "Medium", "High", "Critical"];
 const defaultScopes = ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
 
 export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
-  const [environments, setEnvironments] = useState<string[]>(defaultEnvironments);
-  const [taskTypes, setTaskTypes] = useState<string[]>(defaultTaskTypes);
-  const [statuses, setStatuses] = useState<string[]>(defaultStatuses);
-  const [priorities, setPriorities] = useState<string[]>(defaultPriorities);
-  const [scopes, setScopes] = useState<string[]>(defaultScopes);
+  // Load existing parameters from localStorage or use defaults
+  const [environments, setEnvironments] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('parameters');
+      return stored ? JSON.parse(stored).environments || defaultEnvironments : defaultEnvironments;
+    } catch {
+      return defaultEnvironments;
+    }
+  });
+  
+  const [taskTypes, setTaskTypes] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('parameters');
+      return stored ? JSON.parse(stored).taskTypes || defaultTaskTypes : defaultTaskTypes;
+    } catch {
+      return defaultTaskTypes;
+    }
+  });
+  
+  const [statuses, setStatuses] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('parameters');
+      return stored ? JSON.parse(stored).statuses || defaultStatuses : defaultStatuses;
+    } catch {
+      return defaultStatuses;
+    }
+  });
+  
+  const [priorities, setPriorities] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('parameters');
+      return stored ? JSON.parse(stored).priorities || defaultPriorities : defaultPriorities;
+    } catch {
+      return defaultPriorities;
+    }
+  });
+  
+  const [scopes, setScopes] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('parameters');
+      return stored ? JSON.parse(stored).scopes || defaultScopes : defaultScopes;
+    } catch {
+      return defaultScopes;
+    }
+  });
 
   const [newEnvironment, setNewEnvironment] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
