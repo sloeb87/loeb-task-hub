@@ -20,6 +20,7 @@ interface TaskFormProps {
 }
 
 export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], projectName }: TaskFormProps) => {
+  console.log('TaskForm render - isOpen:', isOpen, 'task:', task?.title);
   const [formData, setFormData] = useState({
     scope: task?.scope || '',
     project: task?.project || projectName || '',

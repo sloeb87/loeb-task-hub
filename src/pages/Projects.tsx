@@ -33,6 +33,8 @@ const ProjectsPage = ({
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const [detailProject, setDetailProject] = useState<Project | null>(null);
 
+  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask?.title);
+
   const handleEditProject = (project: Project) => {
     console.log('handleEditProject called with:', project.name);
     setDetailProject(project);
