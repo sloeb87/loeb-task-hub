@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -85,7 +86,8 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         // Editing existing task
         console.log('Loading existing task data:', task);
         
-        const taskFormData = {
+        // Set form data directly with all task properties
+        setFormData({
           title: task.title || "",
           project: task.project || "",
           scope: task.scope || "",
@@ -108,16 +110,17 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
           },
           stakeholders: task.stakeholders || [],
           comments: task.comments || []
-        };
+        });
         
-        console.log('Setting form data for existing task:', taskFormData);
-        setFormData(taskFormData);
+        // Set the due date separately
         setDate(new Date(task.dueDate));
+        
+        console.log('Form data set for existing task');
       } else {
         // Creating new task
         console.log('Creating new task with projectName:', projectName);
         
-        const newTaskFormData = {
+        setFormData({
           title: "",
           project: projectName || "",
           scope: "",
@@ -140,14 +143,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
           },
           stakeholders: [],
           comments: []
-        };
+        });
         
-        console.log('Setting form data for new task:', newTaskFormData);
-        setFormData(newTaskFormData);
         setDate(new Date());
+        console.log('Form data set for new task');
       }
     }
-  }, [task, projectName, isOpen]);
+  }, [task, isOpen, projectName]);
 
   // Set project scope when project changes
   useEffect(() => {
@@ -206,6 +208,9 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       onClose();
     }
   };
+
+  // Debug: Log current form data
+  console.log('Current form data:', formData);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
