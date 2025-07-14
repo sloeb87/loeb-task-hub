@@ -1,11 +1,13 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink, MessageSquare, Filter } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink, MessageSquare, Filter, Search } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
 interface ProjectTableProps {
@@ -26,15 +28,6 @@ interface ProjectFilters {
   status: string[];
 }
 
-interface PanelSizes {
-  expand: number;
-  name: number;
-  owner: number;
-  status: number;
-  timeline: number;
-  actions: number;
-}
-
 export const ProjectTable = ({
   projects,
   tasks,
@@ -47,20 +40,13 @@ export const ProjectTable = ({
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<ProjectFilters>({
     owner: [],
     status: []
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [panelSizes, setPanelSizes] = useState<PanelSizes>({
-    expand: 5,
-    name: 35,
-    owner: 20,
-    status: 25,
-    timeline: 15,
-    actions: 15
-  });
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -128,6 +114,12 @@ export const ProjectTable = ({
   };
 
   const filteredProjects = projects.filter(project => {
+    // Apply search filter
+    const matchesSearch = searchTerm === "" || 
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    
     // Apply main filter
     if (filter === 'active' && project.status !== 'Active') return false;
     if (filter === 'on-hold' && project.status !== 'On Hold') return false;
@@ -159,11 +151,9 @@ export const ProjectTable = ({
     field: SortField;
     children: React.ReactNode;
   }) => (
-    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded" onClick={() => handleSort(field)}>
-      <div className="flex items-center space-x-1">
-        <span>{children}</span>
-        {sortField === field && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
-      </div>
+    <div className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors p-1 rounded" onClick={() => handleSort(field)}>
+      <span>{children}</span>
+      {sortField === field && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
     </div>
   );
 
@@ -176,70 +166,58 @@ export const ProjectTable = ({
     filterType: keyof ProjectFilters; 
     children: React.ReactNode;
   }) => (
-    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-      <div className="flex items-center justify-between">
-        <div 
-          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1 rounded px-1 py-1"
-          onClick={() => handleSort(field)}
+    <div className="flex items-center justify-between">
+      <SortableHeader field={field}>{children}</SortableHeader>
+      <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+        <Button
+          size="sm"
+          variant="ghost"
+          className={`p-1 h-6 w-6 ml-1 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+          onClick={(e) => toggleFilterDropdown(filterType, e)}
         >
-          <span>{children}</span>
-          {sortField === field && (
-            sortDirection === 'asc' ? 
-              <ChevronUp className="w-3 h-3" /> : 
-              <ChevronDown className="w-3 h-3" />
+          <Filter className="w-3 h-3" />
+          {filters[filterType].length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {filters[filterType].length}
+            </span>
           )}
-        </div>
-        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={`p-1 h-6 w-6 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
-            onClick={(e) => toggleFilterDropdown(filterType, e)}
-          >
-            <Filter className="w-3 h-3" />
-            {filters[filterType].length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {filters[filterType].length}
-              </span>
-            )}
-          </Button>
-          {showFilters[filterType] && (
-            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {getUniqueValues(filterType as keyof Project).map(value => (
-                  <div key={value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${filterType}-${value}`}
-                      checked={filters[filterType].includes(value)}
-                      onCheckedChange={(checked) => 
-                        handleFilterChange(filterType, value, checked as boolean)
-                      }
-                    />
-                    <label 
-                      htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
-                      title={value}
-                    >
-                      {value}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              {filters[filterType].length > 0 && (
-                <div className="mt-2 pt-2 border-t dark:border-gray-600">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => clearFilter(filterType)}
-                    className="w-full"
+        </Button>
+        {showFilters[filterType] && (
+          <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {getUniqueValues(filterType as keyof Project).map(value => (
+                <div key={value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${filterType}-${value}`}
+                    checked={filters[filterType].includes(value)}
+                    onCheckedChange={(checked) => 
+                      handleFilterChange(filterType, value, checked as boolean)
+                    }
+                  />
+                  <label 
+                    htmlFor={`${filterType}-${value}`}
+                    className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                    title={value}
                   >
-                    Clear All ({filters[filterType].length})
-                  </Button>
+                    {value}
+                  </label>
                 </div>
-              )}
+              ))}
             </div>
-          )}
-        </div>
+            {filters[filterType].length > 0 && (
+              <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => clearFilter(filterType)}
+                  className="w-full"
+                >
+                  Clear All ({filters[filterType].length})
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -264,80 +242,59 @@ export const ProjectTable = ({
     window.open(url, '_blank');
   };
 
-  const handlePanelResize = (sizes: number[]) => {
-    setPanelSizes({
-      expand: sizes[0],
-      name: sizes[1],
-      owner: sizes[2],
-      status: sizes[3],
-      timeline: sizes[4],
-      actions: sizes[5]
-    });
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
-      <div className="overflow-x-auto">
-        {/* Headers */}
-        <ResizablePanelGroup 
-          direction="horizontal" 
-          className="min-w-full border-b border-gray-200 dark:border-gray-700"
-          onLayout={handlePanelResize}
-        >
-          <ResizablePanel defaultSize={panelSizes.expand} minSize={4} maxSize={8}>
-            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider h-full flex items-center">
-              {/* Empty header for expand/collapse */}
-            </div>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.name} minSize={25} maxSize={50}>
-            <SortableHeader field="name">Project Name</SortableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.owner} minSize={15} maxSize={30}>
-            <FilterableHeader field="owner" filterType="owner">Owner & Team</FilterableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.status} minSize={20} maxSize={35}>
-            <FilterableHeader field="status" filterType="status">Status & Progress</FilterableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.timeline} minSize={10} maxSize={25}>
-            <SortableHeader field="startDate">Timeline</SortableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.actions} minSize={10} maxSize={20}>
-            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider h-full flex items-center">
-              Actions
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      {/* Search Bar */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
 
-        {/* Rows */}
-        <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-          {sortedProjects.map(project => {
-            const stats = getProjectStats(project);
-            const isExpanded = expandedProject === project.id;
-            return (
-              <React.Fragment key={project.id}>
-                <ResizablePanelGroup 
-                  direction="horizontal" 
-                  className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                  onLayout={() => {}} // Keep panels in sync but don't update state for each row
-                >
-                  {/* Expand/Collapse Column */}
-                  <ResizablePanel defaultSize={panelSizes.expand} minSize={4} maxSize={8}>
-                    <div className="px-4 py-4 cursor-pointer h-full flex items-center" onClick={e => toggleExpanded(project.id, e)}>
-                      <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50 dark:bg-gray-900">
+              <TableHead className="w-[5%]">
+                {/* Empty header for expand/collapse */}
+              </TableHead>
+              <TableHead className="w-[35%]">
+                <SortableHeader field="name">Project Name</SortableHeader>
+              </TableHead>
+              <TableHead className="w-[20%]">
+                <FilterableHeader field="owner" filterType="owner">Owner & Team</FilterableHeader>
+              </TableHead>
+              <TableHead className="w-[25%]">
+                <FilterableHeader field="status" filterType="status">Status & Progress</FilterableHeader>
+              </TableHead>
+              <TableHead className="w-[15%]">
+                <SortableHeader field="startDate">Timeline</SortableHeader>
+              </TableHead>
+              <TableHead className="w-[10%]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedProjects.map(project => {
+              const stats = getProjectStats(project);
+              const isExpanded = expandedProject === project.id;
+              return (
+                <React.Fragment key={project.id}>
+                  <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
+                    {/* Expand/Collapse Column */}
+                    <TableCell>
+                      <Button size="sm" variant="ghost" className="p-1 h-6 w-6" onClick={e => toggleExpanded(project.id, e)}>
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </Button>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle />
+                    </TableCell>
 
-                  {/* Project Name Column */}
-                  <ResizablePanel defaultSize={panelSizes.name} minSize={25} maxSize={50}>
-                    <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
+                    {/* Project Name Column */}
+                    <TableCell>
                       <div className="space-y-1">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white">{project.name}</h3>
                         <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{project.description}</p>
@@ -401,13 +358,10 @@ export const ProjectTable = ({
                           )}
                         </div>
                       </div>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle />
+                    </TableCell>
 
-                  {/* Owner & Team Column */}
-                  <ResizablePanel defaultSize={panelSizes.owner} minSize={15} maxSize={30}>
-                    <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
+                    {/* Owner & Team Column */}
+                    <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <Users className="w-3 h-3 text-gray-400" />
@@ -415,13 +369,10 @@ export const ProjectTable = ({
                         </div>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{project.team.length} team members</p>
                       </div>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle />
+                    </TableCell>
 
-                  {/* Status & Progress Column */}
-                  <ResizablePanel defaultSize={panelSizes.status} minSize={20} maxSize={35}>
-                    <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
+                    {/* Status & Progress Column */}
+                    <TableCell>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Badge variant={project.status === 'Active' ? 'default' : project.status === 'Completed' ? 'secondary' : 'outline'}>
@@ -437,13 +388,10 @@ export const ProjectTable = ({
                           {stats.overdueTasks > 0 && <span className="text-red-600 dark:text-red-400 ml-1">({stats.overdueTasks} overdue)</span>}
                         </div>
                       </div>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle />
+                    </TableCell>
 
-                  {/* Timeline Column */}
-                  <ResizablePanel defaultSize={panelSizes.timeline} minSize={10} maxSize={25}>
-                    <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
+                    {/* Timeline Column */}
+                    <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
                           <Calendar className="w-3 h-3" />
@@ -453,13 +401,10 @@ export const ProjectTable = ({
                           to {project.endDate}
                         </div>
                       </div>
-                    </div>
-                  </ResizablePanel>
-                  <ResizableHandle />
+                    </TableCell>
 
-                  {/* Actions Column */}
-                  <ResizablePanel defaultSize={panelSizes.actions} minSize={10} maxSize={20}>
-                    <div className="px-4 py-4">
+                    {/* Actions Column */}
+                    <TableCell>
                       <div className="flex space-x-1">
                         <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900" onClick={e => handleActionClick(e, () => onCreateTask(project.id))} title="Create New Task">
                           <Plus className="w-3 h-3 text-blue-600 dark:text-blue-400" />
@@ -471,94 +416,95 @@ export const ProjectTable = ({
                           </Button>
                         )}
                       </div>
-                    </div>
-                  </ResizablePanel>
-                </ResizablePanelGroup>
+                    </TableCell>
+                  </TableRow>
 
-                {/* Expanded Content */}
-                {isExpanded && (
-                  <div className="bg-gray-50 dark:bg-gray-900">
-                    <ResizablePanelGroup direction="horizontal" className="min-w-full">
-                      <ResizablePanel defaultSize={100}>
-                        <div className="px-4 py-4">
-                          <Card className="dark:bg-gray-800 dark:border-gray-700">
-                            <CardContent className="p-4">
-                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Project Tasks</h4>
-                              {stats.projectTasks.length > 0 ? (
-                                <div className="space-y-2">
-                                  {stats.projectTasks.map(task => (
-                                    <div key={task.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
-                                      <div className="flex items-center space-x-3">
-                                        <Badge variant="outline" className="text-xs">
-                                          {task.id}
-                                        </Badge>
-                                        <span className="text-sm text-gray-900 dark:text-white">{task.title}</span>
-                                        <Badge variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'} className="text-xs">
-                                          {task.status}
-                                        </Badge>
-                                      </div>
-                                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                                        <span>{task.responsible}</span>
-                                        <span>Due: {task.dueDate}</span>
-                                      </div>
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <TableRow className="bg-gray-50 dark:bg-gray-900">
+                      <TableCell colSpan={6}>
+                        <Card className="dark:bg-gray-800 dark:border-gray-700">
+                          <CardContent className="p-4">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Project Tasks</h4>
+                            {stats.projectTasks.length > 0 ? (
+                              <div className="space-y-2">
+                                {stats.projectTasks.map(task => (
+                                  <div key={task.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
+                                    <div className="flex items-center space-x-3">
+                                      <Badge variant="outline" className="text-xs">
+                                        {task.id}
+                                      </Badge>
+                                      <span className="text-sm text-gray-900 dark:text-white">{task.title}</span>
+                                      <Badge variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'} className="text-xs">
+                                        {task.status}
+                                      </Badge>
                                     </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned to this project yet.</p>
-                              )}
-                              
-                              {/* Recent Comments Section */}
-                              {stats.projectTasks.some(task => task.comments && task.comments.length > 0) && (
-                                <div className="mt-6">
-                                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
-                                    <MessageSquare className="w-4 h-4 mr-2" />
-                                    Recent Comments
-                                  </h4>
-                                  <div className="space-y-3">
-                                    {stats.projectTasks
-                                      .filter(task => task.comments && task.comments.length > 0)
-                                      .slice(0, 3)
-                                      .map(task => (
-                                        <div key={task.id} className="bg-white dark:bg-gray-700 rounded border dark:border-gray-600 p-3">
-                                          <div className="flex items-center space-x-2 mb-2">
-                                            <Badge variant="outline" className="text-xs">
-                                              {task.id}
-                                            </Badge>
-                                            <span className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</span>
-                                          </div>
-                                          <div className="space-y-2">
-                                            {task.comments!
-                                              .slice(-3)
-                                              .reverse()
-                                              .map((comment, index) => (
-                                                <div key={index} className="border-l-2 border-blue-200 dark:border-blue-700 pl-3">
-                                                  <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
-                                                    {comment.text}
-                                                  </div>
-                                                  <div className="text-xs text-gray-400 mt-1">
-                                                    {new Date(comment.timestamp).toLocaleDateString()}
-                                                  </div>
-                                                </div>
-                                              ))}
-                                          </div>
-                                        </div>
-                                      ))}
+                                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                                      <span>{task.responsible}</span>
+                                      <span>Due: {task.dueDate}</span>
+                                    </div>
                                   </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned to this project yet.</p>
+                            )}
+                            
+                            {/* Recent Comments Section */}
+                            {stats.projectTasks.some(task => task.comments && task.comments.length > 0) && (
+                              <div className="mt-6">
+                                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  Recent Comments
+                                </h4>
+                                <div className="space-y-3">
+                                  {stats.projectTasks
+                                    .filter(task => task.comments && task.comments.length > 0)
+                                    .slice(0, 3)
+                                    .map(task => (
+                                      <div key={task.id} className="bg-white dark:bg-gray-700 rounded border dark:border-gray-600 p-3">
+                                        <div className="flex items-center space-x-2 mb-2">
+                                          <Badge variant="outline" className="text-xs">
+                                            {task.id}
+                                          </Badge>
+                                          <span className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                          {task.comments!
+                                            .slice(-3)
+                                            .reverse()
+                                            .map((comment, index) => (
+                                              <div key={index} className="border-l-2 border-blue-200 dark:border-blue-700 pl-3">
+                                                <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                                                  {comment.text}
+                                                </div>
+                                                <div className="text-xs text-gray-400 mt-1">
+                                                  {new Date(comment.timestamp).toLocaleDateString()}
+                                                </div>
+                                              </div>
+                                            ))}
+                                        </div>
+                                      </div>
+                                    ))}
                                 </div>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </ResizablePanel>
-                    </ResizablePanelGroup>
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
       </div>
+      {sortedProjects.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 dark:text-gray-400">No projects found matching your criteria.</p>
+        </div>
+      )}
     </div>
   );
 };

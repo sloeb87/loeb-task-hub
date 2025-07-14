@@ -1,10 +1,11 @@
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
 import { Task } from "@/types/task";
 import React, { useState, useRef, useEffect } from "react";
@@ -25,15 +26,6 @@ interface Filters {
   responsible: string[];
 }
 
-interface PanelSizes {
-  task: number;
-  project: number;
-  status: number;
-  responsible: number;
-  dueDate: number;
-  followUps: number;
-}
-
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -46,14 +38,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [panelSizes, setPanelSizes] = useState<PanelSizes>({
-    task: 30,
-    project: 20,
-    status: 15,
-    responsible: 15,
-    dueDate: 15,
-    followUps: 20
-  });
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -160,17 +144,15 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <div 
-      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors p-1 rounded"
       onClick={() => handleSort(field)}
     >
-      <div className="flex items-center space-x-1">
-        <span>{children}</span>
-        {sortField === field && (
-          sortDirection === 'asc' ? 
-            <ChevronUp className="w-3 h-3" /> : 
-            <ChevronDown className="w-3 h-3" />
-        )}
-      </div>
+      <span>{children}</span>
+      {sortField === field && (
+        sortDirection === 'asc' ? 
+          <ChevronUp className="w-3 h-3" /> : 
+          <ChevronDown className="w-3 h-3" />
+      )}
     </div>
   );
 
@@ -183,70 +165,58 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     filterType: keyof Filters; 
     children: React.ReactNode;
   }) => (
-    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-      <div className="flex items-center justify-between">
-        <div 
-          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1 rounded px-1 py-1"
-          onClick={() => handleSort(field)}
+    <div className="flex items-center justify-between">
+      <SortableHeader field={field}>{children}</SortableHeader>
+      <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+        <Button
+          size="sm"
+          variant="ghost"
+          className={`p-1 h-6 w-6 ml-1 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+          onClick={(e) => toggleFilterDropdown(filterType, e)}
         >
-          <span>{children}</span>
-          {sortField === field && (
-            sortDirection === 'asc' ? 
-              <ChevronUp className="w-3 h-3" /> : 
-              <ChevronDown className="w-3 h-3" />
+          <Filter className="w-3 h-3" />
+          {filters[filterType].length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {filters[filterType].length}
+            </span>
           )}
-        </div>
-        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={`p-1 h-6 w-6 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
-            onClick={(e) => toggleFilterDropdown(filterType, e)}
-          >
-            <Filter className="w-3 h-3" />
-            {filters[filterType].length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                {filters[filterType].length}
-              </span>
-            )}
-          </Button>
-          {showFilters[filterType] && (
-            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {getUniqueValues(filterType as keyof Task).map(value => (
-                  <div key={value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${filterType}-${value}`}
-                      checked={filters[filterType].includes(value)}
-                      onCheckedChange={(checked) => 
-                        handleFilterChange(filterType, value, checked as boolean)
-                      }
-                    />
-                    <label 
-                      htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
-                      title={value}
-                    >
-                      {value}
-                    </label>
-                  </div>
-                ))}
-              </div>
-              {filters[filterType].length > 0 && (
-                <div className="mt-2 pt-2 border-t dark:border-gray-600">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => clearFilter(filterType)}
-                    className="w-full"
+        </Button>
+        {showFilters[filterType] && (
+          <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {getUniqueValues(filterType as keyof Task).map(value => (
+                <div key={value} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`${filterType}-${value}`}
+                    checked={filters[filterType].includes(value)}
+                    onCheckedChange={(checked) => 
+                      handleFilterChange(filterType, value, checked as boolean)
+                    }
+                  />
+                  <label 
+                    htmlFor={`${filterType}-${value}`}
+                    className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                    title={value}
                   >
-                    Clear All ({filters[filterType].length})
-                  </Button>
+                    {value}
+                  </label>
                 </div>
-              )}
+              ))}
             </div>
-          )}
-        </div>
+            {filters[filterType].length > 0 && (
+              <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => clearFilter(filterType)}
+                  className="w-full"
+                >
+                  Clear All ({filters[filterType].length})
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -263,100 +233,58 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     onEditTask(task);
   };
 
-  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation();
-    action();
-  };
-
   const handleFollowUpClick = (task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
     onFollowUp(task);
   };
 
-  const handlePanelResize = (sizes: number[]) => {
-    setPanelSizes({
-      task: sizes[0],
-      project: sizes[1],
-      status: sizes[2],
-      responsible: sizes[3],
-      dueDate: sizes[4],
-      followUps: sizes[5]
-    });
-  };
-
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
-      <div className="overflow-x-auto">
-        {/* Headers */}
-        <ResizablePanelGroup 
-          direction="horizontal" 
-          className="min-w-full border-b border-gray-200 dark:border-gray-700"
-          onLayout={handlePanelResize}
-        >
-          <ResizablePanel defaultSize={panelSizes.task} minSize={25} maxSize={45}>
-            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              <div className="space-y-2">
-                <div 
-                  className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded px-1 py-1"
-                  onClick={() => handleSort('title')}
-                >
-                  <span>Task</span>
-                  {sortField === 'title' && (
-                    sortDirection === 'asc' ? 
-                      <ChevronUp className="w-3 h-3" /> : 
-                      <ChevronDown className="w-3 h-3" />
-                  )}
-                </div>
-                <div className="relative">
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
-                  <Input
-                    placeholder="Search tasks..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-7 h-6 text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                </div>
-              </div>
-            </div>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.project} minSize={15} maxSize={30}>
-            <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.status} minSize={10} maxSize={25}>
-            <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.responsible} minSize={10} maxSize={25}>
-            <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.dueDate} minSize={10} maxSize={25}>
-            <SortableHeader field="dueDate">Due Date</SortableHeader>
-          </ResizablePanel>
-          <ResizableHandle />
-          <ResizablePanel defaultSize={panelSizes.followUps} minSize={15} maxSize={30}>
-            <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer">
-              Follow Ups
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+      {/* Search Bar */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+      </div>
 
-        {/* Rows */}
-        <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-          {filteredAndSortedTasks.map((task) => (
-            <ResizablePanelGroup 
-              key={task.id} 
-              direction="horizontal" 
-              className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              onLayout={() => {}} // Keep panels in sync but don't update state for each row
-            >
-              {/* Task Column */}
-              <ResizablePanel defaultSize={panelSizes.task} minSize={25} maxSize={45}>
-                <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
-                  <div className="space-y-1">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50 dark:bg-gray-900">
+              <TableHead className="w-[35%]">
+                <SortableHeader field="title">Task</SortableHeader>
+              </TableHead>
+              <TableHead className="w-[15%]">
+                <FilterableHeader field="project" filterType="project">Project</FilterableHeader>
+              </TableHead>
+              <TableHead className="w-[15%]">
+                <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
+              </TableHead>
+              <TableHead className="w-[15%]">
+                <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
+              </TableHead>
+              <TableHead className="w-[10%]">
+                <SortableHeader field="dueDate">Due Date</SortableHeader>
+              </TableHead>
+              <TableHead className="w-[10%]">Follow Ups</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredAndSortedTasks.map((task) => (
+              <TableRow 
+                key={task.id} 
+                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                onClick={() => handleRowClick(task)}
+              >
+                {/* Task Column */}
+                <TableCell>
+                  <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
                       {isOverdue(task.dueDate, task.status) && (
@@ -370,7 +298,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       {task.description}
                     </p>
                     
-                    <div className="flex items-center space-x-1 mt-2">
+                    <div className="flex items-center space-x-1">
                       {task.links.folder && (
                         <Button 
                           size="sm" 
@@ -428,13 +356,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       )}
                     </div>
                   </div>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle />
+                </TableCell>
 
-              {/* Project & Details Column */}
-              <ResizablePanel defaultSize={panelSizes.project} minSize={15} maxSize={30}>
-                <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
+                {/* Project Column */}
+                <TableCell>
                   <div className="space-y-1">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">{task.scope}</div>
@@ -443,13 +368,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       {task.taskType}
                     </Badge>
                   </div>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle />
+                </TableCell>
 
-              {/* Status & Priority Column */}
-              <ResizablePanel defaultSize={panelSizes.status} minSize={10} maxSize={25}>
-                <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
+                {/* Status & Priority Column */}
+                <TableCell>
                   <div className="space-y-2">
                     <Badge className={`text-xs ${getStatusColor(task.status)}`}>
                       {task.status}
@@ -458,32 +380,28 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       {task.priority}
                     </Badge>
                   </div>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle />
+                </TableCell>
 
-              {/* Responsible Column */}
-              <ResizablePanel defaultSize={panelSizes.responsible} minSize={10} maxSize={25}>
-                <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
-                  <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
-                  </div>
-                  {task.stakeholders.length > 0 && (
-                    <div className="flex items-center space-x-1 mt-1">
-                      <Users className="w-3 h-3 text-gray-400" />
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
-                      </span>
+                {/* Responsible Column */}
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
                     </div>
-                  )}
-                </div>
-              </ResizablePanel>
-              <ResizableHandle />
+                    {task.stakeholders.length > 0 && (
+                      <div className="flex items-center space-x-1">
+                        <Users className="w-3 h-3 text-gray-400" />
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
 
-              {/* Due Date Column */}
-              <ResizablePanel defaultSize={panelSizes.dueDate} minSize={10} maxSize={25}>
-                <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
+                {/* Due Date Column */}
+                <TableCell>
                   <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" />
@@ -496,14 +414,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       </div>
                     )}
                   </div>
-                </div>
-              </ResizablePanel>
-              <ResizableHandle />
+                </TableCell>
 
-              {/* Follow Ups Column */}
-              <ResizablePanel defaultSize={panelSizes.followUps} minSize={15} maxSize={30}>
-                <div className="px-4 py-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" onClick={(e) => handleFollowUpClick(task, e)}>
-                  <div className="space-y-2">
+                {/* Follow Ups Column */}
+                <TableCell>
+                  <div className="space-y-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors p-2 rounded" onClick={(e) => handleFollowUpClick(task, e)}>
                     {task.followUps.length === 0 ? (
                       <div className="text-xs text-gray-400 italic flex items-center">
                         <MessageSquarePlus className="w-3 h-3 mr-1" />
@@ -530,11 +445,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       </div>
                     )}
                   </div>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          ))}
-        </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
       {filteredAndSortedTasks.length === 0 && (
         <div className="text-center py-12">
