@@ -1,11 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit } from "lucide-react";
 import { Project, Task } from "@/types/task";
-import { useState } from "react";
+
 
 interface ProjectTableProps {
   projects: Project[];
