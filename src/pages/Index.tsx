@@ -100,6 +100,14 @@ const Index = () => {
             </div>
             <div className="flex items-center space-x-2">
               <Button
+                variant={activeView === "projects" ? "default" : "outline"}
+                onClick={() => setActiveView("projects")}
+                size="sm"
+              >
+                <FolderKanban className="w-4 h-4 mr-2" />
+                Projects
+              </Button>
+              <Button
                 variant={activeView === "tasks" ? "default" : "outline"}
                 onClick={() => setActiveView("tasks")}
                 size="sm"
@@ -113,14 +121,6 @@ const Index = () => {
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 KPIs
-              </Button>
-              <Button
-                variant={activeView === "projects" ? "default" : "outline"}
-                onClick={() => setActiveView("projects")}
-                size="sm"
-              >
-                <FolderKanban className="w-4 h-4 mr-2" />
-                Projects
               </Button>
             </div>
           </div>

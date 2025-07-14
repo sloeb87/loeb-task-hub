@@ -75,6 +75,54 @@ const ProjectsPage = ({
     setTaskProjectId(null);
   };
 
+  const handleGenerateReport = (project: Project) => {
+    const projectTasks = tasks.filter(task => task.project === project.name);
+    const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
+    const totalTasks = projectTasks.length;
+    const overdueTasks = projectTasks.filter(task => 
+      task.status !== 'Completed' && new Date(task.dueDate) < new Date()
+    ).length;
+
+    const reportContent = `
+PROJECT REPORT: ${project.name}
+
+Project Overview:
+- Status: ${project.status}
+- Owner: ${project.owner}
+- Timeline: ${project.startDate} to ${project.endDate}
+- Team: ${project.team.join(', ')}
+
+Task Summary:
+- Total Tasks: ${totalTasks}
+- Completed: ${completedTasks}
+- Remaining: ${totalTasks - completedTasks}
+- Overdue: ${overdueTasks}
+- Completion Rate: ${totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0}%
+
+Task Details:
+${projectTasks.map(task => `
+- ${task.id}: ${task.title}
+  Status: ${task.status}
+  Priority: ${task.priority}
+  Responsible: ${task.responsible}
+  Due: ${task.dueDate}
+`).join('')}
+
+Generated on: ${new Date().toLocaleDateString()}
+    `.trim();
+
+    // Create a downloadable report
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${project.name}_Report_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -153,6 +201,7 @@ const ProjectsPage = ({
           onEditProject={handleEditProject}
           onCreateTask={handleCreateTaskForProject}
           onAddTaskToProject={handleAddTaskToProject}
+          onGenerateReport={handleGenerateReport}
         />
       ) : (
         <Card>

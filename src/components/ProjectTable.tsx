@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit } from "lucide-react";
+import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
 
@@ -13,12 +13,13 @@ interface ProjectTableProps {
   onEditProject: (project: Project) => void;
   onCreateTask: (projectId: string) => void;
   onAddTaskToProject: (projectId: string) => void;
+  onGenerateReport?: (project: Project) => void;
 }
 
 type SortField = 'name' | 'owner' | 'startDate' | 'endDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
-export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onAddTaskToProject }: ProjectTableProps) => {
+export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onAddTaskToProject, onGenerateReport }: ProjectTableProps) => {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
@@ -205,6 +206,17 @@ export const ProjectTable = ({ projects, tasks, onEditProject, onCreateTask, onA
                         >
                           <Edit className="w-3 h-3 text-green-600" />
                         </Button>
+                        {onGenerateReport && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="p-1 h-6 w-6 hover:bg-purple-100"
+                            onClick={(e) => handleActionClick(e, () => onGenerateReport(project))}
+                            title="Generate Report"
+                          >
+                            <FileBarChart className="w-3 h-3 text-purple-600" />
+                          </Button>
+                        )}
                       </div>
                     </td>
                   </tr>
