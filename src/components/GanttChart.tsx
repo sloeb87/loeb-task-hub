@@ -708,6 +708,104 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
           </div>
         </div>
 
+        {/* Color Legend */}
+        <div className="mb-6 p-4 bg-gray-50 rounded-lg border">
+          <h4 className="text-sm font-semibold text-gray-700 mb-3">Color Legend</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Task Status Colors */}
+            <div>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Task Status</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-orange-500 rounded"></div>
+                  <span className="text-xs text-gray-600">Open</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-blue-500 rounded"></div>
+                  <span className="text-xs text-gray-600">In Progress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-green-500 rounded"></div>
+                  <span className="text-xs text-gray-600">Completed</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-yellow-500 rounded"></div>
+                  <span className="text-xs text-gray-600">On Hold</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Priority Colors */}
+            <div>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Priority (Border)</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-gray-200 border-2 border-gray-400 rounded"></div>
+                  <span className="text-xs text-gray-600">Low</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-gray-200 border-2 border-yellow-500 rounded"></div>
+                  <span className="text-xs text-gray-600">Medium</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-gray-200 border-2 border-orange-500 rounded"></div>
+                  <span className="text-xs text-gray-600">High</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-gray-200 border-2 border-red-500 rounded"></div>
+                  <span className="text-xs text-gray-600">Critical</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dependency Arrows */}
+            <div>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Dependency Arrows</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-0 border-t-2 border-green-500 relative">
+                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-green-500 border-t border-t-transparent border-b border-b-transparent"></div>
+                  </div>
+                  <span className="text-xs text-gray-600">From Completed Task</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-0 border-t-2 border-blue-500 relative">
+                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-blue-500 border-t border-t-transparent border-b border-b-transparent"></div>
+                  </div>
+                  <span className="text-xs text-gray-600">From In Progress Task</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-0 border-t-2 border-yellow-500 relative">
+                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-yellow-500 border-t border-t-transparent border-b border-b-transparent"></div>
+                  </div>
+                  <span className="text-xs text-gray-600">From On Hold Task</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-0 border-t-2 border-gray-500 relative">
+                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-gray-500 border-t border-t-transparent border-b border-b-transparent"></div>
+                  </div>
+                  <span className="text-xs text-gray-600">From Open Task</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Other Elements</h5>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-3 bg-red-100 border border-red-300 rounded"></div>
+                  <span className="text-xs text-gray-600">Overdue Task</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-4 bg-red-500 rounded"></div>
+                  <span className="text-xs text-gray-600">Today Line</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Interactive Gantt Timeline */}
         <DndContext
           sensors={sensors}
