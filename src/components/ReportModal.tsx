@@ -54,7 +54,7 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl h-[95vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <FileText className="w-6 h-6" />
@@ -62,7 +62,7 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 overflow-y-auto flex-1">
+        <div className="space-y-6">
           {/* Project Overview */}
           <Card>
             <CardHeader>
@@ -220,15 +220,13 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
             <CardHeader>
               <CardTitle>Project Timeline (Gantt Chart)</CardTitle>
             </CardHeader>
-            <CardContent className="h-[60vh] overflow-hidden">
-              <div className="h-full w-full">
-                <GanttChart 
-                  tasks={projectTasks} 
-                  onTasksChange={() => {}} 
-                  projectStartDate={project.startDate}
-                  projectEndDate={project.endDate}
-                />
-              </div>
+            <CardContent>
+              <GanttChart 
+                tasks={projectTasks} 
+                onTasksChange={() => {}} 
+                projectStartDate={project.startDate}
+                projectEndDate={project.endDate}
+              />
             </CardContent>
           </Card>
 
