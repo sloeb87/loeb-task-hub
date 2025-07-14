@@ -20,7 +20,7 @@ import {
   useDraggable,
   useDroppable
 } from '@dnd-kit/core';
-import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink, ZoomIn, ZoomOut, Target } from 'lucide-react';
+import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink, ZoomIn, ZoomOut, Target, Play } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -646,6 +646,25 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     setZoomLevel(1); // Reset zoom to normal when going to today
   };
 
+  const handleGoToFirstTask = () => {
+    if (filteredTasks.length === 0) return;
+    
+    // Sort tasks by start date and get the first one
+    const sortedTasks = filteredTasks.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    const firstTask = sortedTasks[0];
+    
+    // Center view on first task with some padding
+    const taskStartDate = new Date(firstTask.startDate);
+    const tenDaysBefore = new Date(taskStartDate);
+    tenDaysBefore.setDate(taskStartDate.getDate() - 10);
+    const tenDaysAfter = new Date(taskStartDate);
+    tenDaysAfter.setDate(taskStartDate.getDate() + 20); // Show a bit more after to see the task
+    
+    setCustomStartDate(tenDaysBefore);
+    setCustomEndDate(tenDaysAfter);
+    setZoomLevel(1); // Reset zoom to normal when going to first task
+  };
+
   if (tasks.length === 0) {
     return (
       <Card>
@@ -752,6 +771,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <Target className="h-4 w-4" />
+              </Button>
+              
+              {/* Go to First Task Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoToFirstTask}
+                title="Center view on first task (±10 days)"
+                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                disabled={filteredTasks.length === 0}
+              >
+                <Play className="h-4 w-4" />
               </Button>
             </div>
           </div>
