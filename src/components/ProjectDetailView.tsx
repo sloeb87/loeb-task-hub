@@ -265,6 +265,7 @@ export const ProjectDetailView = ({
         task={selectedTask}
         allTasks={allTasks}
         projectName={project.name}
+        onEditRelatedTask={handleEditTaskLocal}
       />
     </div>
   );

@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
-import { X, Plus, Clock, FolderOpen } from "lucide-react";
+import { X, Plus, Clock, FolderOpen, ExternalLink, Edit } from "lucide-react";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -17,9 +17,10 @@ interface TaskFormProps {
   task?: Task | null;
   allTasks?: Task[];
   projectName?: string;
+  onEditRelatedTask?: (task: Task) => void;
 }
 
-export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], projectName }: TaskFormProps) => {
+export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], projectName, onEditRelatedTask }: TaskFormProps) => {
   console.log('TaskForm render - isOpen:', isOpen, 'task:', task?.title);
   const [formData, setFormData] = useState({
     scope: task?.scope || '',
@@ -360,12 +361,16 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
               <CardContent>
                 <div className="space-y-2 max-h-40 overflow-y-auto">
                   {relatedTasks.map(relatedTask => (
-                    <div key={relatedTask.id} className="flex items-center justify-between p-2 bg-gray-50 rounded border text-sm">
-                      <div className="flex items-center space-x-2">
+                    <div 
+                      key={relatedTask.id} 
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded border text-sm hover:bg-gray-100 transition-colors cursor-pointer group"
+                      onClick={() => onEditRelatedTask?.(relatedTask)}
+                    >
+                      <div className="flex items-center space-x-2 flex-1">
                         <Badge variant="outline" className="text-xs">
                           {relatedTask.id}
                         </Badge>
-                        <span className="font-medium">{relatedTask.title}</span>
+                        <span className="font-medium group-hover:text-blue-600">{relatedTask.title}</span>
                         <Badge variant={
                           relatedTask.status === 'Completed' ? 'secondary' :
                           relatedTask.status === 'In Progress' ? 'default' : 'outline'
@@ -373,9 +378,24 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
                           {relatedTask.status}
                         </Badge>
                       </div>
-                      <div className="flex items-center space-x-2 text-xs text-gray-500">
-                        <Clock className="w-3 h-3" />
-                        <span>{relatedTask.dueDate}</span>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-1 text-xs text-gray-500">
+                          <Clock className="w-3 h-3" />
+                          <span>{relatedTask.dueDate}</span>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          className="p-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditRelatedTask?.(relatedTask);
+                          }}
+                          title="Edit Related Task"
+                        >
+                          <Edit className="w-3 h-3 text-blue-600" />
+                        </Button>
                       </div>
                     </div>
                   ))}

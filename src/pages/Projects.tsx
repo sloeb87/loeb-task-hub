@@ -291,6 +291,7 @@ Generated on: ${new Date().toLocaleDateString()}
         task={selectedTask}
         allTasks={tasks}
         projectName={taskProjectId}
+        onEditRelatedTask={handleEditTask}
       />
     </div>
   );
