@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { GanttChart } from "@/components/GanttChart";
-import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText } from "lucide-react";
+import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
 interface ReportModalProps {
@@ -50,6 +50,12 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
       case 'On Hold': return <AlertTriangle className="w-4 h-4 text-orange-600" />;
       default: return <XCircle className="w-4 h-4 text-gray-600" />;
     }
+  };
+
+  const getLastThreeFollowUps = (task: Task) => {
+    return task.followUps
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 3);
   };
 
   return (
@@ -238,59 +244,88 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
             <CardContent>
               {projectTasks.length > 0 ? (
                 <div className="space-y-4">
-                  {projectTasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 space-y-2">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs">{task.id}</Badge>
-                            <h4 className="font-medium">{task.title}</h4>
+                  {projectTasks.map((task) => {
+                    const lastThreeFollowUps = getLastThreeFollowUps(task);
+                    
+                    return (
+                      <div key={task.id} className="border rounded-lg p-4 space-y-2">
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">{task.id}</Badge>
+                              <h4 className="font-medium">{task.title}</h4>
+                            </div>
+                            <p className="text-sm text-gray-600">{task.description}</p>
                           </div>
-                          <p className="text-sm text-gray-600">{task.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(task.status)}
-                          <Badge 
-                            variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'}
-                            className="text-xs"
-                          >
-                            {task.status}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-gray-600">Responsible:</span>
-                          <div className="font-medium">{task.responsible}</div>
-                        </div>
-                        <div>
-                          <span className="text-gray-600">Priority:</span>
-                          <div>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(task.status)}
                             <Badge 
-                              variant={task.priority === 'High' ? 'destructive' : task.priority === 'Medium' ? 'default' : 'secondary'}
+                              variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'}
                               className="text-xs"
                             >
-                              {task.priority}
+                              {task.status}
                             </Badge>
                           </div>
                         </div>
-                        <div>
-                          <span className="text-gray-600">Due Date:</span>
-                          <div className={`font-medium ${new Date(task.dueDate) < new Date() && task.status !== 'Completed' ? 'text-red-600' : ''}`}>
-                            {task.dueDate}
-                            {new Date(task.dueDate) < new Date() && task.status !== 'Completed' && (
-                              <AlertTriangle className="inline w-3 h-3 ml-1" />
-                            )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-600">Responsible:</span>
+                            <div className="font-medium">{task.responsible}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Priority:</span>
+                            <div>
+                              <Badge 
+                                variant={task.priority === 'High' ? 'destructive' : task.priority === 'Medium' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {task.priority}
+                              </Badge>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Due Date:</span>
+                            <div className={`font-medium ${new Date(task.dueDate) < new Date() && task.status !== 'Completed' ? 'text-red-600' : ''}`}>
+                              {task.dueDate}
+                              {new Date(task.dueDate) < new Date() && task.status !== 'Completed' && (
+                                <AlertTriangle className="inline w-3 h-3 ml-1" />
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-gray-600">Created:</span>
+                            <div className="font-medium">{task.creationDate}</div>
                           </div>
                         </div>
-                        <div>
-                          <span className="text-gray-600">Created:</span>
-                          <div className="font-medium">{task.creationDate}</div>
-                        </div>
+
+                        {/* Last 3 Follow-ups */}
+                        {lastThreeFollowUps.length > 0 && (
+                          <div className="mt-4 pt-3 border-t border-gray-200">
+                            <div className="flex items-center gap-2 mb-3">
+                              <MessageSquare className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm font-medium text-gray-700">Recent Follow-ups</span>
+                            </div>
+                            <div className="space-y-2">
+                              {lastThreeFollowUps.map((followUp) => (
+                                <div key={followUp.id} className="bg-blue-50 rounded-md p-3">
+                                  <div className="flex justify-between items-start mb-1">
+                                    <span className="text-xs font-medium text-blue-900">
+                                      {followUp.author}
+                                    </span>
+                                    <span className="text-xs text-blue-600">
+                                      {new Date(followUp.timestamp).toLocaleDateString()}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-700">{followUp.text}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="text-center text-gray-500 py-8">No tasks assigned to this project yet.</p>
