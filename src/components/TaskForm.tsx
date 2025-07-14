@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -32,7 +33,7 @@ interface TaskFormProps {
 export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects, projectName, onEditRelatedTask }: TaskFormProps) => {
   const [formData, setFormData] = useState({
     title: "",
-    project: projectName || "",
+    project: "",
     scope: "",
     environment: "",
     taskType: "",
@@ -54,7 +55,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
     stakeholders: [] as string[],
     comments: [] as { text: string; timestamp: string }[]
   });
-  const [date, setDate] = useState<Date | undefined>(formData.dueDate);
+  const [date, setDate] = useState<Date | undefined>(new Date());
   const [availableEnvironments, setAvailableEnvironments] = useState<string[]>([]);
   const [availableTaskTypes, setAvailableTaskTypes] = useState<string[]>([]);
   const [availableStatuses, setAvailableStatuses] = useState<string[]>([]);
@@ -62,8 +63,8 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
 
+  // Load parameters from localStorage
   useEffect(() => {
-    // Load parameters from localStorage
     const storedParameters = localStorage.getItem('parameters');
     if (storedParameters) {
       const params = JSON.parse(storedParameters);
@@ -72,37 +73,45 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       setAvailableStatuses(params.statuses || []);
       setAvailablePriorities(params.priorities || []);
     }
+  }, []);
 
-    // Set initial form data if task exists
+  // Initialize form data when task or projectName changes
+  useEffect(() => {
+    console.log('TaskForm useEffect - task:', task?.title, 'projectName:', projectName);
+    
     if (task) {
-      setFormData({
-        title: task.title,
-        project: task.project,
-        scope: task.scope,
-        environment: task.environment,
-        taskType: task.taskType,
-        status: task.status,
-        priority: task.priority,
-        responsible: task.responsible,
-        startDate: task.startDate,
+      // Editing existing task
+      const taskFormData = {
+        title: task.title || "",
+        project: task.project || "",
+        scope: task.scope || "",
+        environment: task.environment || "",
+        taskType: task.taskType || "",
+        status: task.status || "",
+        priority: task.priority || "",
+        responsible: task.responsible || "",
+        startDate: task.startDate || new Date().toISOString().split('T')[0],
         dueDate: new Date(task.dueDate),
-        description: task.description,
-        details: task.details,
+        description: task.description || "",
+        details: task.details || "",
         dependencies: task.dependencies || [],
         links: {
-          oneNote: task.links.oneNote || "",
-          teams: task.links.teams || "",
-          email: task.links.email || "",
-          file: task.links.file || "",
-          folder: task.links.folder || ""
+          oneNote: task.links?.oneNote || "",
+          teams: task.links?.teams || "",
+          email: task.links?.email || "",
+          file: task.links?.file || "",
+          folder: task.links?.folder || ""
         },
-        stakeholders: task.stakeholders,
+        stakeholders: task.stakeholders || [],
         comments: task.comments || []
-      });
+      };
+      
+      console.log('Setting form data for existing task:', taskFormData);
+      setFormData(taskFormData);
       setDate(new Date(task.dueDate));
     } else {
-      // Reset form data when creating a new task
-      setFormData({
+      // Creating new task
+      const newTaskFormData = {
         title: "",
         project: projectName || "",
         scope: "",
@@ -125,15 +134,18 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         },
         stakeholders: [],
         comments: []
-      });
-      setDate(undefined);
+      };
+      
+      console.log('Setting form data for new task:', newTaskFormData);
+      setFormData(newTaskFormData);
+      setDate(new Date());
     }
-  }, [task, projectName]);
+  }, [task, projectName, isOpen]);
 
+  // Set project scope when project changes
   useEffect(() => {
-    // Set project scope if projectName is available
-    if (projectName || formData.project) {
-      const project = allProjects.find((p: Project) => p.name === (projectName || formData.project));
+    if (formData.project) {
+      const project = allProjects.find((p: Project) => p.name === formData.project);
       if (project) {
         setProjectScope(project.scope);
         setFormData(prev => ({ ...prev, scope: project.scope }));
@@ -141,10 +153,10 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
     } else {
       setProjectScope(null);
     }
-  }, [projectName, formData.project, allProjects]);
+  }, [formData.project, allProjects]);
 
+  // Load related tasks based on dependencies
   useEffect(() => {
-    // Load related tasks based on task IDs
     if (formData.dependencies && formData.dependencies.length > 0) {
       const loadedTasks = allTasks.filter(t => formData.dependencies.includes(t.id));
       setRelatedTasks(loadedTasks);
@@ -176,7 +188,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       priority: formData.priority as TaskPriority,
     };
 
-    // Save the task and close the form
+    console.log('Saving task data:', taskData);
     onSave(taskData);
     onClose();
   };
