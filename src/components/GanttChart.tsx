@@ -467,6 +467,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1); // 1 = normal, 2 = zoom in, 0.5 = zoom out
+  const [scrollOffset, setScrollOffset] = useState(0); // Track horizontal scroll position
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Remove this callback as we handle comments directly in the component
   
@@ -484,6 +486,11 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   const baseEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
   const baseDuration = Math.max(1, differenceInDays(baseEndDate, baseStartDate) + 1);
   
+  // Create an extended timeline that's wider than the visible area for scrolling
+  const extendedDuration = Math.max(baseDuration * 3, 90); // At least 3x the base duration or 90 days
+  const extendedStartDate = new Date(baseStartDate.getTime() - (extendedDuration * 24 * 60 * 60 * 1000) / 3);
+  const extendedEndDate = new Date(extendedStartDate.getTime() + (extendedDuration * 24 * 60 * 60 * 1000));
+  
   // Apply zoom level to date range
   const centerDate = new Date(baseStartDate.getTime() + (baseDuration * 24 * 60 * 60 * 1000) / 2);
   const zoomedDuration = Math.max(7, Math.round(baseDuration / zoomLevel)); // Minimum 1 week view
@@ -498,13 +505,25 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     return taskStart <= ganttEndDate && taskEnd >= ganttStartDate;
   });
 
-  // Generate timeline markers
+  // Calculate visible date range based on scroll position
+  const visibleDateRange = useMemo(() => {
+    const totalExtendedDuration = differenceInDays(extendedEndDate, extendedStartDate);
+    const visibleStartOffset = scrollOffset * (totalExtendedDuration - ganttDuration);
+    const visibleStartDate = addDays(extendedStartDate, Math.floor(visibleStartOffset));
+    const visibleEndDate = addDays(visibleStartDate, ganttDuration);
+    
+    return { visibleStartDate, visibleEndDate };
+  }, [extendedStartDate, extendedEndDate, ganttDuration, scrollOffset]);
+
+  // Generate timeline markers that respond to scroll position
   const timelineMarkers = useMemo(() => {
     const markers = [];
+    const { visibleStartDate } = visibleDateRange;
+    
     const totalWeeks = Math.ceil(ganttDuration / 7);
     
     for (let week = 0; week <= totalWeeks; week++) {
-      const date = addDays(ganttStartDate, week * 7);
+      const date = addDays(visibleStartDate, week * 7);
       const position = (week * 7 / ganttDuration) * 100;
       
       if (position <= 100) {
@@ -517,7 +536,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     }
     
     return markers;
-  }, [ganttStartDate, ganttDuration]);
+  }, [visibleDateRange, ganttDuration]);
 
   const onTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
     const updatedTasks = tasks.map(task => 
@@ -856,7 +875,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
             {/* Today indicator */}
             {(() => {
               const today = new Date();
-              const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
+              const { visibleStartDate } = visibleDateRange;
+              const todayPos = ((differenceInDays(today, visibleStartDate) / ganttDuration) * 100);
               if (todayPos >= 0 && todayPos <= 100) {
                 return (
                   <div
@@ -875,7 +895,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
         </div>
 
         {/* Interactive Gantt Timeline - Scrollable Container */}
-        <div className="max-h-[400px] overflow-auto border border-gray-300 rounded-lg">{/* Both vertical and horizontal scroll */}
+        <div 
+          ref={scrollContainerRef}
+          className="max-h-[400px] overflow-auto border border-gray-300 rounded-lg"
+          onScroll={(e) => {
+            const target = e.currentTarget;
+            const scrollLeft = target.scrollLeft;
+            const scrollWidth = target.scrollWidth;
+            const clientWidth = target.clientWidth;
+            const scrollPercentage = scrollLeft / (scrollWidth - clientWidth);
+            setScrollOffset(scrollPercentage);
+          }}
+        >{/* Both vertical and horizontal scroll */}
           <DndContext
             sensors={sensors}
             collisionDetection={closestCorners}
@@ -907,7 +938,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 {/* Today Grid Line */}
                 {(() => {
                   const today = new Date();
-                  const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
+                  const { visibleStartDate } = visibleDateRange;
+                  const todayPos = ((differenceInDays(today, visibleStartDate) / ganttDuration) * 100);
                   if (todayPos >= 0 && todayPos <= 100) {
                     return (
                       <div
@@ -923,7 +955,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   <DraggableTask
                     key={task.id}
                     task={task}
-                    ganttStartDate={ganttStartDate}
+                    ganttStartDate={visibleDateRange.visibleStartDate}
                     ganttDuration={ganttDuration}
                     onTaskUpdate={onTaskUpdate}
                     onEditTask={onEditTask}
