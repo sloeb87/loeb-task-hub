@@ -8,11 +8,12 @@ import { TaskTable } from "@/components/TaskTable";
 import { TaskForm } from "@/components/TaskForm";
 import { KPIDashboard } from "@/components/KPIDashboard";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
-import { Plus, Filter, Search, BarChart3, FolderKanban, Calendar } from "lucide-react";
+import { Plus, Filter, Search, BarChart3, FolderKanban, Calendar, Settings, ListTodo } from "lucide-react";
 import { Task, TaskStatus, TaskPriority, TaskType, Project } from "@/types/task";
 import { mockTasks, mockProjects } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
 import ProjectsPage from "./Projects";
+import Parameters from "@/components/Parameters";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const Index = () => {
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "open" | "inprogress" | "onhold" | "critical">("all");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
+  const [isParametersOpen, setIsParametersOpen] = useState(false);
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -95,21 +97,8 @@ const Index = () => {
               <Badge variant="secondary" className="text-xs">
                 Loeb Consulting
               </Badge>
-              <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2 ml-4">
-                <Plus className="w-4 h-4" />
-                New Task
-              </Button>
             </div>
             <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => navigate('/gantt')}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Calendar className="w-4 h-4" />
-                Gantt Chart
-              </Button>
               <Button
                 variant={activeView === "projects" ? "default" : "outline"}
                 onClick={() => setActiveView("projects")}
@@ -123,7 +112,17 @@ const Index = () => {
                 onClick={() => setActiveView("tasks")}
                 size="sm"
               >
+                <ListTodo className="w-4 h-4 mr-2" />
                 Tasks
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/gantt')}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Gantt
               </Button>
               <Button
                 variant={activeView === "dashboard" ? "default" : "outline"}
@@ -133,6 +132,14 @@ const Index = () => {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 KPIs
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsParametersOpen(true)}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
           </div>
         </div>
@@ -141,6 +148,24 @@ const Index = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeView === "tasks" ? (
           <>
+            {/* Task Management Header */}
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center space-x-3">
+                <ListTodo className="w-8 h-8 text-blue-600" />
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">Task Management</h1>
+                  <p className="text-gray-600 mt-1">Create, assign, and track individual tasks</p>
+                </div>
+              </div>
+              <Button 
+                onClick={() => setIsTaskFormOpen(true)} 
+                className="flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                New Task
+              </Button>
+            </div>
+
             {/* Controls */}
             <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -288,6 +313,12 @@ const Index = () => {
             task={followUpTask}
           />
         )}
+
+        {/* Parameters Dialog */}
+        <Parameters
+          isOpen={isParametersOpen}
+          onClose={() => setIsParametersOpen(false)}
+        />
       </div>
     </div>
   );
