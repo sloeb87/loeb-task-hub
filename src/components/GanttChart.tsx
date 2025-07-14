@@ -370,50 +370,32 @@ const DependencyArrow = ({
       viewBox="0 0 100 1000"
       preserveAspectRatio="none"
     >
-      <defs>
-        <marker
-          id={`arrowhead-${fromTask.id}-${toTask.id}`}
-          markerWidth="10"
-          markerHeight="10"
-          refX="8"
-          refY="5"
-          orient="auto"
-          markerUnits="strokeWidth"
-        >
-          <polygon 
-            points="0,0 10,5 0,10" 
-            fill={arrowColor}
-            stroke={arrowColor}
-          />
-        </marker>
-      </defs>
-      
-      {/* Main arrow path */}
+      {/* Simple line without arrowhead */}
       <path
         d={`M ${fromX} ${fromY} 
             Q ${midX} ${midY} 
             ${toX} ${toY}`}
         stroke={arrowColor}
-        strokeWidth="3"
+        strokeWidth="2"
         fill="none"
-        markerEnd={`url(#arrowhead-${fromTask.id}-${toTask.id})`}
+        strokeDasharray="none"
         style={{
-          filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
+          filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))'
         }}
       />
       
-      {/* Highlight circle at connection points for visibility */}
+      {/* Small connection circles for better visibility */}
       <circle
         cx={fromX}
         cy={fromY}
-        r="3"
+        r="2"
         fill={arrowColor}
         opacity="0.8"
       />
       <circle
         cx={toX}
         cy={toY}
-        r="3"
+        r="2"
         fill={arrowColor}
         opacity="0.8"
       />
@@ -906,32 +888,24 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
               </div>
             </div>
 
-            {/* Dependency Arrows */}
+            {/* Dependency Lines */}
             <div>
-              <h5 className="text-xs font-medium text-gray-600 mb-2">Dependency Arrows</h5>
+              <h5 className="text-xs font-medium text-gray-600 mb-2">Dependency Lines</h5>
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-green-500 relative">
-                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-green-500 border-t border-t-transparent border-b border-b-transparent"></div>
-                  </div>
+                  <div className="w-6 h-0 border-t-2 border-green-500"></div>
                   <span className="text-xs text-gray-600">From Completed Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-blue-500 relative">
-                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-blue-500 border-t border-t-transparent border-b border-b-transparent"></div>
-                  </div>
+                  <div className="w-6 h-0 border-t-2 border-blue-500"></div>
                   <span className="text-xs text-gray-600">From In Progress Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-yellow-500 relative">
-                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-yellow-500 border-t border-t-transparent border-b border-b-transparent"></div>
-                  </div>
+                  <div className="w-6 h-0 border-t-2 border-yellow-500"></div>
                   <span className="text-xs text-gray-600">From On Hold Task</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-0 border-t-2 border-gray-500 relative">
-                    <div className="absolute -right-1 -top-1 w-0 h-0 border-l-2 border-l-gray-500 border-t border-t-transparent border-b border-b-transparent"></div>
-                  </div>
+                  <div className="w-6 h-0 border-t-2 border-gray-500"></div>
                   <span className="text-xs text-gray-600">From Open Task</span>
                 </div>
               </div>
