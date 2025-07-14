@@ -119,7 +119,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <th 
-      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center space-x-1">
@@ -142,10 +142,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     filterType: keyof Filters; 
     children: React.ReactNode;
   }) => (
-    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
       <div className="flex items-center justify-between">
         <div 
-          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 transition-colors flex-1"
+          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1"
           onClick={() => handleSort(field)}
         >
           <span>{children}</span>
@@ -165,7 +165,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             <Filter className="w-3 h-3" />
           </Button>
           {showFilters[filterType] && (
-            <div className="absolute top-8 right-0 z-50 bg-white border rounded-lg shadow-lg p-3 min-w-[200px]">
+            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px]">
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {getUniqueValues(filterType as keyof Task).map(value => (
                   <div key={value} className="flex items-center space-x-2">
@@ -178,7 +178,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     />
                     <label 
                       htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1"
+                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white"
                     >
                       {value}
                     </label>
@@ -186,7 +186,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 ))}
               </div>
               {filters[filterType].length > 0 && (
-                <div className="mt-2 pt-2 border-t">
+                <div className="mt-2 pt-2 border-t dark:border-gray-600">
                   <Button
                     size="sm"
                     variant="outline"
@@ -227,15 +227,15 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 <div className="space-y-2">
                   <div 
-                    className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 transition-colors"
+                    className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     onClick={() => handleSort('title')}
                   >
                     <span>Task</span>
@@ -251,7 +251,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       placeholder="Search tasks..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-7 h-6 text-xs"
+                      className="pl-7 h-6 text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                       onClick={(e) => e.stopPropagation()}
                     />
                   </div>
@@ -261,16 +261,16 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
               <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
               <SortableHeader field="dueDate">Dates</SortableHeader>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer">
                 Follow Ups
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {filteredAndSortedTasks.map((task) => (
               <tr 
                 key={task.id} 
-                className="hover:bg-gray-50 transition-colors cursor-pointer"
+                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                 onClick={(e) => {
                   console.log('Task TR clicked:', e.target, task.title);
                   handleRowClick(task);
@@ -279,15 +279,15 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <td className="px-4 py-4">
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-blue-600">{task.id}</span>
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
                       {isOverdue(task.dueDate, task.status) && (
                         <Badge variant="destructive" className="text-xs">Overdue</Badge>
                       )}
                     </div>
-                    <h3 className="text-sm font-medium text-gray-900 line-clamp-2">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
                       {task.title}
                     </h3>
-                    <p className="text-xs text-gray-500 line-clamp-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                       {task.description}
                     </p>
                     
@@ -296,55 +296,55 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 hover:bg-blue-100"
+                          className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
                           onClick={(e) => handleLinkClick(task.links.folder!, e)}
                           title="Open Folder"
                         >
-                          <FolderOpen className="w-3 h-3 text-blue-600" />
+                          <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                         </Button>
                       )}
                       {task.links.email && (
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 hover:bg-green-100"
+                          className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
                           onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
                           title="Send Email"
                         >
-                          <Mail className="w-3 h-3 text-green-600" />
+                          <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
                         </Button>
                       )}
                       {task.links.file && (
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 hover:bg-purple-100"
+                          className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
                           onClick={(e) => handleLinkClick(task.links.file!, e)}
                           title="Open File"
                         >
-                          <FileText className="w-3 h-3 text-purple-600" />
+                          <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                         </Button>
                       )}
                       {task.links.oneNote && (
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 hover:bg-orange-100"
+                          className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
                           onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
                           title="Open OneNote"
                         >
-                          <ExternalLink className="w-3 h-3 text-orange-600" />
+                          <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
                         </Button>
                       )}
                       {task.links.teams && (
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 hover:bg-indigo-100"
+                          className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
                           onClick={(e) => handleLinkClick(task.links.teams!, e)}
                           title="Open Teams"
                         >
-                          <ExternalLink className="w-3 h-3 text-indigo-600" />
+                          <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                         </Button>
                       )}
                     </div>
@@ -352,9 +352,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 </td>
                 <td className="px-4 py-4">
                   <div className="space-y-1">
-                    <div className="text-sm font-medium text-gray-900">{task.project}</div>
-                    <div className="text-xs text-gray-500">{task.scope}</div>
-                    <div className="text-xs text-gray-500">{task.environment}</div>
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{task.scope}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
                     <Badge variant="outline" className="text-xs">
                       {task.taskType}
                     </Badge>
@@ -373,19 +373,19 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <td className="px-4 py-4">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{task.responsible}</span>
+                    <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
                   </div>
                   {task.stakeholders.length > 0 && (
                     <div className="flex items-center space-x-1 mt-1">
                       <Users className="w-3 h-3 text-gray-400" />
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
                 </td>
                 <td className="px-4 py-4">
-                  <div className="space-y-1 text-xs text-gray-500">
+                  <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" />
                       Created: {new Date(task.creationDate).toLocaleDateString()}
@@ -395,7 +395,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       Due: {new Date(task.dueDate).toLocaleDateString()}
                     </div>
                     {task.completionDate && (
-                      <div className="flex items-center text-green-600">
+                      <div className="flex items-center text-green-600 dark:text-green-400">
                         <Calendar className="w-3 h-3 mr-1" />
                         Completed: {new Date(task.completionDate).toLocaleDateString()}
                       </div>
@@ -403,7 +403,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   </div>
                 </td>
                 <td 
-                  className="px-4 py-4 cursor-pointer hover:bg-blue-50 transition-colors"
+                  className="px-4 py-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                   onClick={(e) => handleFollowUpClick(task, e)}
                 >
                   <div className="space-y-2">
@@ -417,8 +417,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         .slice(-3) // Get last 3 follow-ups
                         .reverse() // Show most recent first
                         .map((followUp, index) => (
-                          <div key={followUp.id} className="border-l-2 border-blue-200 pl-2">
-                            <div className="text-xs text-gray-600 line-clamp-2">
+                          <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
                               {followUp.text}
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
@@ -428,7 +428,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         ))
                     )}
                     {task.followUps.length > 3 && (
-                      <div className="text-xs text-blue-600 italic">
+                      <div className="text-xs text-blue-600 dark:text-blue-400 italic">
                         +{task.followUps.length - 3} more...
                       </div>
                     )}
@@ -441,7 +441,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
       </div>
       {filteredAndSortedTasks.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No tasks found matching your criteria.</p>
+          <p className="text-gray-500 dark:text-gray-400">No tasks found matching your criteria.</p>
         </div>
       )}
     </div>
