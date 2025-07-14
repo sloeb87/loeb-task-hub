@@ -2,7 +2,9 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquarePlus, Edit, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter } from "lucide-react";
 import { Task } from "@/types/task";
 import { useState } from "react";
 
@@ -15,9 +17,23 @@ interface TaskTableProps {
 type SortField = 'id' | 'title' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate';
 type SortDirection = 'asc' | 'desc';
 
+interface Filters {
+  status: string[];
+  priority: string[];
+  project: string[];
+  responsible: string[];
+}
+
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [filters, setFilters] = useState<Filters>({
+    status: [],
+    priority: [],
+    project: [],
+    responsible: []
+  });
+  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,6 +60,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     return new Date(dueDate) < new Date();
   };
 
+  // Get unique values for filters
+  const getUniqueValues = (field: keyof Task) => {
+    return [...new Set(tasks.map(task => task[field] as string))].sort();
+  };
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -53,20 +74,45 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => {
-    let aValue: string | number = a[sortField];
-    let bValue: string | number = b[sortField];
+  const handleFilterChange = (filterType: keyof Filters, value: string, checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: checked 
+        ? [...prev[filterType], value]
+        : prev[filterType].filter(item => item !== value)
+    }));
+  };
 
-    // Handle date sorting
-    if (sortField === 'dueDate') {
-      aValue = new Date(aValue as string).getTime();
-      bValue = new Date(bValue as string).getTime();
-    }
+  const toggleFilterDropdown = (filterType: string) => {
+    setShowFilters(prev => ({
+      ...prev,
+      [filterType]: !prev[filterType]
+    }));
+  };
 
-    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-    return 0;
-  });
+  // Apply filters and sorting
+  const filteredAndSortedTasks = tasks
+    .filter(task => {
+      if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
+      if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
+      if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
+      if (filters.responsible.length > 0 && !filters.responsible.includes(task.responsible)) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      let aValue: string | number = a[sortField];
+      let bValue: string | number = b[sortField];
+
+      // Handle date sorting
+      if (sortField === 'dueDate') {
+        aValue = new Date(aValue as string).getTime();
+        bValue = new Date(bValue as string).getTime();
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <th 
@@ -80,6 +126,77 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             <ChevronUp className="w-3 h-3" /> : 
             <ChevronDown className="w-3 h-3" />
         )}
+      </div>
+    </th>
+  );
+
+  const FilterableHeader = ({ 
+    field, 
+    filterType, 
+    children 
+  }: { 
+    field: SortField; 
+    filterType: keyof Filters; 
+    children: React.ReactNode;
+  }) => (
+    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      <div className="flex items-center justify-between">
+        <div 
+          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 transition-colors flex-1"
+          onClick={() => handleSort(field)}
+        >
+          <span>{children}</span>
+          {sortField === field && (
+            sortDirection === 'asc' ? 
+              <ChevronUp className="w-3 h-3" /> : 
+              <ChevronDown className="w-3 h-3" />
+          )}
+        </div>
+        <div className="relative">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="p-1 h-6 w-6"
+            onClick={() => toggleFilterDropdown(filterType)}
+          >
+            <Filter className="w-3 h-3" />
+          </Button>
+          {showFilters[filterType] && (
+            <div className="absolute top-8 right-0 z-50 bg-white border rounded-lg shadow-lg p-3 min-w-[200px]">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {getUniqueValues(filterType as keyof Task).map(value => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${filterType}-${value}`}
+                      checked={filters[filterType].includes(value)}
+                      onCheckedChange={(checked) => 
+                        handleFilterChange(filterType, value, checked as boolean)
+                      }
+                    />
+                    <label 
+                      htmlFor={`${filterType}-${value}`}
+                      className="text-sm cursor-pointer flex-1"
+                    >
+                      {value}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters[filterType].length > 0 && (
+                <div className="mt-2 pt-2 border-t">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setFilters(prev => ({ ...prev, [filterType]: [] }))}
+                    className="w-full"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </th>
   );
@@ -107,9 +224,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           <thead className="bg-gray-50">
             <tr>
               <SortableHeader field="title">Task</SortableHeader>
-              <SortableHeader field="project">Project & Details</SortableHeader>
-              <SortableHeader field="status">Status & Priority</SortableHeader>
-              <SortableHeader field="responsible">Responsible</SortableHeader>
+              <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
+              <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
+              <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
               <SortableHeader field="dueDate">Dates</SortableHeader>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -117,7 +234,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sortedTasks.map((task) => (
+            {filteredAndSortedTasks.map((task) => (
               <tr 
                 key={task.id} 
                 className="hover:bg-gray-50 transition-colors cursor-pointer"
@@ -208,15 +325,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       <MessageSquarePlus className="w-3 h-3" />
                       <span className="text-xs">Follow Up</span>
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={(e) => handleActionClick(e, () => onEditTask(task))}
-                      className="flex items-center space-x-1"
-                    >
-                      <Edit className="w-3 h-3" />
-                      <span className="text-xs">Edit</span>
-                    </Button>
                   </div>
                   {/* Quick Links */}
                   <div className="flex space-x-1 mt-2">
@@ -282,7 +390,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           </tbody>
         </table>
       </div>
-      {tasks.length === 0 && (
+      {filteredAndSortedTasks.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500">No tasks found matching your criteria.</p>
         </div>
