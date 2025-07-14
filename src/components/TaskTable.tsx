@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
 import { Task } from "@/types/task";
 import React, { useState } from "react";
@@ -230,241 +229,215 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
       <div className="overflow-x-auto">
-        <ResizablePanelGroup direction="horizontal" className="min-w-full">
-          <div className="flex w-full">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-900">
-                <tr>
-                  <ResizablePanel defaultSize={25} minSize={20}>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      <div className="space-y-2">
-                        <div 
-                          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                          onClick={() => handleSort('title')}
-                        >
-                          <span>Task</span>
-                          {sortField === 'title' && (
-                            sortDirection === 'asc' ? 
-                              <ChevronUp className="w-3 h-3" /> : 
-                              <ChevronDown className="w-3 h-3" />
-                          )}
-                        </div>
-                        <div className="relative">
-                          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
-                          <Input
-                            placeholder="Search tasks..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-7 h-6 text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                    </th>
-                  </ResizablePanel>
-                  <ResizableHandle />
-                  
-                  <ResizablePanel defaultSize={20} minSize={15}>
-                    <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
-                  </ResizablePanel>
-                  <ResizableHandle />
-                  
-                  <ResizablePanel defaultSize={15} minSize={12}>
-                    <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
-                  </ResizablePanel>
-                  <ResizableHandle />
-                  
-                  <ResizablePanel defaultSize={15} minSize={12}>
-                    <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
-                  </ResizablePanel>
-                  <ResizableHandle />
-                  
-                  <ResizablePanel defaultSize={12} minSize={10}>
-                    <SortableHeader field="dueDate">Dates</SortableHeader>
-                  </ResizablePanel>
-                  <ResizableHandle />
-                  
-                  <ResizablePanel defaultSize={13} minSize={10}>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer">
-                      Follow Ups
-                    </th>
-                  </ResizablePanel>
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                {filteredAndSortedTasks.map((task) => (
-                  <tr 
-                    key={task.id} 
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                    onClick={(e) => {
-                      console.log('Task TR clicked:', e.target, task.title);
-                      handleRowClick(task);
-                    }}
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <div className="space-y-2">
+                  <div 
+                    className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                    onClick={() => handleSort('title')}
                   >
-                    <td className="px-4 py-4 align-top">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
-                          {isOverdue(task.dueDate, task.status) && (
-                            <Badge variant="destructive" className="text-xs">Overdue</Badge>
-                          )}
-                        </div>
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-                          {task.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                          {task.description}
-                        </p>
-                        
-                        <div className="flex items-center space-x-1 mt-2">
-                          {task.links.folder && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
-                              onClick={(e) => handleLinkClick(task.links.folder!, e)}
-                              title="Open Folder"
-                            >
-                              <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            </Button>
-                          )}
-                          {task.links.email && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
-                              onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
-                              title="Send Email"
-                            >
-                              <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
-                            </Button>
-                          )}
-                          {task.links.file && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
-                              onClick={(e) => handleLinkClick(task.links.file!, e)}
-                              title="Open File"
-                            >
-                              <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                            </Button>
-                          )}
-                          {task.links.oneNote && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
-                              onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
-                              title="Open OneNote"
-                            >
-                              <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
-                            </Button>
-                          )}
-                          {task.links.teams && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
-                              onClick={(e) => handleLinkClick(task.links.teams!, e)}
-                              title="Open Teams"
-                            >
-                              <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="space-y-1">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{task.scope}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
-                        <Badge variant="outline" className="text-xs">
-                          {task.taskType}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="space-y-2">
-                        <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                          {task.status}
-                        </Badge>
-                        <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
-                          {task.priority}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
-                      </div>
-                      {task.stakeholders.length > 0 && (
-                        <div className="flex items-center space-x-1 mt-1">
-                          <Users className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
-                          </span>
-                        </div>
+                    <span>Task</span>
+                    {sortField === 'title' && (
+                      sortDirection === 'asc' ? 
+                        <ChevronUp className="w-3 h-3" /> : 
+                        <ChevronDown className="w-3 h-3" />
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-7 h-6 text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+              </th>
+              <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
+              <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
+              <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
+              <SortableHeader field="dueDate">Dates</SortableHeader>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer">
+                Follow Ups
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {filteredAndSortedTasks.map((task) => (
+              <tr 
+                key={task.id} 
+                className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                onClick={(e) => {
+                  console.log('Task TR clicked:', e.target, task.title);
+                  handleRowClick(task);
+                }}
+              >
+                <td className="px-4 py-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
+                      {isOverdue(task.dueDate, task.status) && (
+                        <Badge variant="destructive" className="text-xs">Overdue</Badge>
                       )}
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Created: {new Date(task.creationDate).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Due: {new Date(task.dueDate).toLocaleDateString()}
-                        </div>
-                        {task.completionDate && (
-                          <div className="flex items-center text-green-600 dark:text-green-400">
-                            <Calendar className="w-3 h-3 mr-1" />
-                            Completed: {new Date(task.completionDate).toLocaleDateString()}
-                          </div>
-                        )}
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                      {task.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                      {task.description}
+                    </p>
+                    
+                    <div className="flex items-center space-x-1 mt-2">
+                      {task.links.folder && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
+                          onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                          title="Open Folder"
+                        >
+                          <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        </Button>
+                      )}
+                      {task.links.email && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
+                          onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                          title="Send Email"
+                        >
+                          <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
+                        </Button>
+                      )}
+                      {task.links.file && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
+                          onClick={(e) => handleLinkClick(task.links.file!, e)}
+                          title="Open File"
+                        >
+                          <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                        </Button>
+                      )}
+                      {task.links.oneNote && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
+                          onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                          title="Open OneNote"
+                        >
+                          <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                        </Button>
+                      )}
+                      {task.links.teams && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
+                          onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                          title="Open Teams"
+                        >
+                          <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="space-y-1">
+                    <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{task.scope}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
+                    <Badge variant="outline" className="text-xs">
+                      {task.taskType}
+                    </Badge>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="space-y-2">
+                    <Badge className={`text-xs ${getStatusColor(task.status)}`}>
+                      {task.status}
+                    </Badge>
+                    <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </Badge>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
+                  </div>
+                  {task.stakeholders.length > 0 && (
+                    <div className="flex items-center space-x-1 mt-1">
+                      <Users className="w-3 h-3 text-gray-400" />
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  )}
+                </td>
+                <td className="px-4 py-4">
+                  <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Created: {new Date(task.creationDate).toLocaleDateString()}
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />
+                      Due: {new Date(task.dueDate).toLocaleDateString()}
+                    </div>
+                    {task.completionDate && (
+                      <div className="flex items-center text-green-600 dark:text-green-400">
+                        <Calendar className="w-3 h-3 mr-1" />
+                        Completed: {new Date(task.completionDate).toLocaleDateString()}
                       </div>
-                    </td>
-                    <td 
-                      className="px-4 py-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors align-top"
-                      onClick={(e) => handleFollowUpClick(task, e)}
-                    >
-                      <div className="space-y-2">
-                        {task.followUps.length === 0 ? (
-                          <div className="text-xs text-gray-400 italic flex items-center">
-                            <MessageSquarePlus className="w-3 h-3 mr-1" />
-                            Click to add follow-up
-                          </div>
-                        ) : (
-                          task.followUps
-                            .slice(-3) // Get last 3 follow-ups
-                            .reverse() // Show most recent first
-                            .map((followUp, index) => (
-                              <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
-                                <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
-                                  {followUp.text}
-                                </div>
-                                <div className="text-xs text-gray-400 mt-1">
-                                  {new Date(followUp.timestamp).toLocaleDateString()}
-                                </div>
-                              </div>
-                            ))
-                        )}
-                        {task.followUps.length > 3 && (
-                          <div className="text-xs text-blue-600 dark:text-blue-400 italic">
-                            +{task.followUps.length - 3} more...
-                          </div>
-                        )}
+                    )}
+                  </div>
+                </td>
+                <td 
+                  className="px-4 py-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                  onClick={(e) => handleFollowUpClick(task, e)}
+                >
+                  <div className="space-y-2">
+                    {task.followUps.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic flex items-center">
+                        <MessageSquarePlus className="w-3 h-3 mr-1" />
+                        Click to add follow-up
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </ResizablePanelGroup>
+                    ) : (
+                      task.followUps
+                        .slice(-3) // Get last 3 follow-ups
+                        .reverse() // Show most recent first
+                        .map((followUp, index) => (
+                          <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                              {followUp.text}
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              {new Date(followUp.timestamp).toLocaleDateString()}
+                            </div>
+                          </div>
+                        ))
+                    )}
+                    {task.followUps.length > 3 && (
+                      <div className="text-xs text-blue-600 dark:text-blue-400 italic">
+                        +{task.followUps.length - 3} more...
+                      </div>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
       {filteredAndSortedTasks.length === 0 && (
         <div className="text-center py-12">
