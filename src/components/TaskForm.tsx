@@ -1,11 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface TaskFormProps {
@@ -30,69 +30,112 @@ interface TaskFormProps {
   onEditRelatedTask?: (task: Task) => void;
 }
 
-export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects, projectName, onEditRelatedTask }: TaskFormProps) => {
-  console.log('TaskForm render - task:', task, 'isOpen:', isOpen);
-  
-  const [formData, setFormData] = useState({
-    title: "",
-    project: "",
-    scope: "",
-    environment: "",
-    taskType: "",
-    status: "",
-    priority: "",
-    responsible: "",
-    startDate: new Date().toISOString().split('T')[0],
-    dueDate: new Date(),
-    description: "",
-    details: "",
-    dependencies: [] as string[],
-    links: {
-      oneNote: "",
-      teams: "",
-      email: "",
-      file: "",
-      folder: ""
-    },
-    stakeholders: [] as string[],
-    comments: [] as { text: string; timestamp: string }[]
-  });
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [availableEnvironments, setAvailableEnvironments] = useState<string[]>([]);
-  const [availableTaskTypes, setAvailableTaskTypes] = useState<string[]>([]);
-  const [availableStatuses, setAvailableStatuses] = useState<string[]>([]);
-  const [availablePriorities, setAvailablePriorities] = useState<string[]>([]);
-  const [projectScope, setProjectScope] = useState<string | null>(null);
-  const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+interface FormData {
+  title: string;
+  project: string;
+  scope: string;
+  environment: string;
+  taskType: string;
+  status: string;
+  priority: string;
+  responsible: string;
+  startDate: string;
+  dueDate: Date;
+  description: string;
+  details: string;
+  dependencies: string[];
+  links: {
+    oneNote: string;
+    teams: string;
+    email: string;
+    file: string;
+    folder: string;
+  };
+  stakeholders: string[];
+  comments: { text: string; timestamp: string }[];
+}
 
-  // Load parameters from localStorage
-  useEffect(() => {
-    const storedParameters = localStorage.getItem('parameters');
-    if (storedParameters) {
-      const params = JSON.parse(storedParameters);
-      setAvailableEnvironments(params.environments || []);
-      setAvailableTaskTypes(params.taskTypes || []);
-      setAvailableStatuses(params.statuses || []);
-      setAvailablePriorities(params.priorities || []);
+const DEFAULT_FORM_DATA: FormData = {
+  title: "",
+  project: "",
+  scope: "",
+  environment: "",
+  taskType: "",
+  status: "",
+  priority: "",
+  responsible: "",
+  startDate: new Date().toISOString().split('T')[0],
+  dueDate: new Date(),
+  description: "",
+  details: "",
+  dependencies: [],
+  links: {
+    oneNote: "",
+    teams: "",
+    email: "",
+    file: "",
+    folder: ""
+  },
+  stakeholders: [],
+  comments: []
+};
+
+export const TaskForm = React.memo(({ 
+  isOpen, 
+  onClose, 
+  onSave, 
+  task, 
+  allTasks, 
+  allProjects, 
+  projectName, 
+  onEditRelatedTask 
+}: TaskFormProps) => {
+  const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [projectScope, setProjectScope] = useState<string | null>(null);
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+
+  // Load parameters from localStorage with memoization
+  const parameters = useMemo(() => {
+    try {
+      const storedParameters = localStorage.getItem('parameters');
+      if (storedParameters) {
+        return JSON.parse(storedParameters);
+      } else {
+        // Initialize with default parameters if not found
+        const defaultParams = {
+          environments: ["Development", "Testing", "Staging", "Production", "Demo"],
+          taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
+          statuses: ["Open", "In Progress", "Completed", "On Hold"],
+          priorities: ["Low", "Medium", "High", "Critical"]
+        };
+        localStorage.setItem('parameters', JSON.stringify(defaultParams));
+        return defaultParams;
+      }
+    } catch {
+      return {
+        environments: ["Development", "Testing", "Staging", "Production", "Demo"],
+        taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
+        statuses: ["Open", "In Progress", "Completed", "On Hold"], 
+        priorities: ["Low", "Medium", "High", "Critical"]
+      };
     }
   }, []);
 
-  // Initialize form data when task or dialog state changes
+  const {
+    environments = [],
+    taskTypes = [],
+    statuses = [],
+    priorities = []
+  } = parameters;
+
+  // Initialize form data when task changes
   useEffect(() => {
-    console.log('TaskForm initialization useEffect - task:', task, 'isOpen:', isOpen);
-    
-    if (!isOpen) {
-      // Reset initialization when dialog closes
-      setIsInitialized(false);
-      return;
-    }
+    if (!isOpen) return;
 
     if (task) {
-      // Editing existing task - populate all fields
-      console.log('Loading existing task data for editing:', task);
-      
-      const newFormData = {
+      // Editing existing task
+      const newFormData: FormData = {
         title: task.title || "",
         project: task.project || "",
         scope: task.scope || "",
@@ -117,84 +160,58 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         comments: task.comments || []
       };
       
-      console.log('Setting form data for task:', task.id, newFormData);
       setFormData(newFormData);
       setDate(new Date(task.dueDate));
       setProjectScope(task.scope || null);
-      setIsInitialized(true);
-      
-      console.log('Form data populated for editing task:', task.id);
     } else {
-      // Creating new task - use defaults with optional project name
-      console.log('Setting up form for new task, projectName:', projectName);
-      
+      // Creating new task
       const newFormData = {
-        title: "",
+        ...DEFAULT_FORM_DATA,
         project: projectName || "",
-        scope: "",
-        environment: "",
-        taskType: "",
-        status: "",
-        priority: "",
-        responsible: "",
         startDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date(),
-        description: "",
-        details: "",
-        dependencies: [],
-        links: {
-          oneNote: "",
-          teams: "",
-          email: "",
-          file: "",
-          folder: ""
-        },
-        stakeholders: [],
-        comments: []
+        dueDate: new Date()
       };
       
       setFormData(newFormData);
       setDate(new Date());
       setProjectScope(null);
-      setIsInitialized(true);
-      
-      console.log('Form data set for new task');
     }
-  }, [isOpen, task?.id, projectName]); // Simplified dependencies
+  }, [isOpen, task, projectName]);
 
-  // Set project scope when project changes (but not during initial load when editing)
+  // Auto-set project scope for new tasks
   useEffect(() => {
-    if (!isInitialized || task) {
-      // Don't auto-update scope during initialization or when editing existing tasks
-      return;
-    }
-    
-    if (formData.project) {
-      const project = allProjects.find((p: Project) => p.name === formData.project);
+    if (!task && formData.project && allProjects.length > 0) {
+      const project = allProjects.find(p => p.name === formData.project);
       if (project && project.scope !== formData.scope) {
         setProjectScope(project.scope);
         setFormData(prev => ({ ...prev, scope: project.scope }));
       }
-    } else {
-      setProjectScope(null);
     }
-  }, [formData.project, allProjects, isInitialized, task]);
+  }, [formData.project, allProjects, task]);
 
-  // Load related tasks based on dependencies
-  useEffect(() => {
-    if (formData.dependencies && formData.dependencies.length > 0) {
-      const loadedTasks = allTasks.filter(t => formData.dependencies.includes(t.id));
-      setRelatedTasks(loadedTasks);
-    } else {
-      setRelatedTasks([]);
-    }
+  // Memoized related tasks
+  const relatedTasks = useMemo(() => {
+    if (!formData.dependencies.length) return [];
+    return allTasks.filter(t => formData.dependencies.includes(t.id));
   }, [formData.dependencies, allTasks]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Form field update handlers
+  const updateField = useCallback((field: keyof FormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const updateLinkField = useCallback((linkType: keyof FormData['links'], value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      links: { ...prev.links, [linkType]: value }
+    }));
+  }, []);
+
+  // Form submission
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (!formData.title) {
+    if (!formData.title.trim()) {
       toast({
         title: "Required Field Missing",
         description: "Please fill in the task title.",
@@ -203,7 +220,6 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       return;
     }
 
-    // Prepare task data for saving with proper type casting
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -211,23 +227,42 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       taskType: formData.taskType as TaskType,
       status: formData.status as TaskStatus,
       priority: formData.priority as TaskPriority,
-      ...(task && { id: task.id, creationDate: task.creationDate, followUps: task.followUps })
+      ...(task && { 
+        id: task.id, 
+        creationDate: task.creationDate, 
+        followUps: task.followUps 
+      })
     };
 
-    console.log('Saving task data:', taskData);
     onSave(taskData);
     onClose();
-  };
+  }, [formData, date, projectScope, task, onSave, onClose]);
 
-  const handleRelatedTaskClick = (relatedTask: Task) => {
+  const handleRelatedTaskClick = useCallback((relatedTask: Task) => {
     if (onEditRelatedTask) {
       onEditRelatedTask(relatedTask);
       onClose();
     }
-  };
+  }, [onEditRelatedTask, onClose]);
 
-  // Debug: Log current form data
-  console.log('Current form data state:', formData);
+  const handleFollowUpAdd = (text: string) => {
+    if (!task) return;
+    
+    const newFollowUp = {
+      id: `fu-${Date.now()}`,
+      text: text,
+      timestamp: new Date().toISOString(),
+      author: 'Current User'
+    };
+
+    const updatedTask = {
+      ...task,
+      followUps: [...task.followUps, newFollowUp]
+    };
+
+    onSave(updatedTask);
+    setFollowUpDialogOpen(false);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -253,7 +288,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Input
                       id="title"
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => updateField('title', e.target.value)}
                       placeholder="Task title"
                       required
                       className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
@@ -264,7 +299,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
                     <Select 
                       value={formData.project} 
-                      onValueChange={(value) => setFormData({...formData, project: value})}
+                      onValueChange={(value) => updateField('project', value)}
                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select project" />
@@ -291,7 +326,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                       id="scope"
                       value={projectScope || formData.scope}
                       readOnly={!!projectScope}
-                      onChange={(e) => !projectScope && setFormData({...formData, scope: e.target.value})}
+                      onChange={(e) => !projectScope && updateField('scope', e.target.value)}
                       placeholder={projectScope ? "Auto-filled from project" : "Task scope"}
                       className={`dark:bg-gray-800 dark:border-gray-600 dark:text-white ${
                         projectScope 
@@ -310,13 +345,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Label htmlFor="environment" className="text-gray-700 dark:text-gray-300">Environment</Label>
                     <Select 
                       value={formData.environment} 
-                      onValueChange={(value) => setFormData({...formData, environment: value})}
+                      onValueChange={(value) => updateField('environment', value)}
                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select environment" />
                       </SelectTrigger>
                       <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {availableEnvironments.map((env) => (
+                        {environments.map((env: string) => (
                           <SelectItem 
                             key={env} 
                             value={env}
@@ -335,13 +370,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Label htmlFor="taskType" className="text-gray-700 dark:text-gray-300">Type</Label>
                     <Select 
                       value={formData.taskType} 
-                      onValueChange={(value) => setFormData({...formData, taskType: value})}
+                      onValueChange={(value) => updateField('taskType', value)}
                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
                       <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {availableTaskTypes.map((type) => (
+                        {taskTypes.map((type: string) => (
                           <SelectItem 
                             key={type} 
                             value={type}
@@ -358,13 +393,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
                     <Select 
                       value={formData.status} 
-                      onValueChange={(value) => setFormData({...formData, status: value})}
+                      onValueChange={(value) => updateField('status', value)}
                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {availableStatuses.map((status) => (
+                        {statuses.map((status: string) => (
                           <SelectItem 
                             key={status} 
                             value={status}
@@ -383,13 +418,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Label htmlFor="priority" className="text-gray-700 dark:text-gray-300">Priority</Label>
                     <Select 
                       value={formData.priority} 
-                      onValueChange={(value) => setFormData({...formData, priority: value})}
+                      onValueChange={(value) => updateField('priority', value)}
                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select priority" />
                       </SelectTrigger>
                       <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {availablePriorities.map((priority) => (
+                        {priorities.map((priority: string) => (
                           <SelectItem 
                             key={priority} 
                             value={priority}
@@ -407,7 +442,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                     <Input
                       id="responsible"
                       value={formData.responsible}
-                      onChange={(e) => setFormData({...formData, responsible: e.target.value})}
+                      onChange={(e) => updateField('responsible', e.target.value)}
                       placeholder="Person responsible"
                       className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
@@ -421,7 +456,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                       id="startDate"
                       type="date"
                       value={formData.startDate}
-                      onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                      onChange={(e) => updateField('startDate', e.target.value)}
                       className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
@@ -446,10 +481,9 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                           mode="single"
                           selected={date}
                           onSelect={setDate}
-                          disabled={(date) =>
-                            date < new Date()
-                          }
+                          disabled={(date) => date < new Date("1900-01-01")}
                           initialFocus
+                          className="p-3 pointer-events-auto"
                         />
                       </PopoverContent>
                     </Popover>
@@ -457,68 +491,204 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
                 </div>
               </div>
 
-              {/* Task Description Section */}
+              {/* Description Section */}
               <div className="space-y-4">
-                <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Task description"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Description & Details
+                </h3>
+                
+                <div>
+                  <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => updateField('description', e.target.value)}
+                    placeholder="Task description"
+                    rows={3}
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="details" className="text-gray-700 dark:text-gray-300">Details</Label>
+                  <Textarea
+                    id="details"
+                    value={formData.details}
+                    onChange={(e) => updateField('details', e.target.value)}
+                    placeholder="Additional details"
+                    rows={3}
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
               </div>
 
-              {/* Task Details Section */}
+              {/* Follow-ups Section (only for existing tasks) */}
+              {task && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Follow-ups
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-300">
+                        {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFollowUpDialogOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <MessageSquarePlus className="w-4 h-4" />
+                        Add Follow-up
+                      </Button>
+                    </div>
+
+                    {task.followUps.length > 0 && (
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {task.followUps
+                          .slice(-5) // Show last 5 follow-ups in edit mode
+                          .reverse()
+                          .map((followUp) => (
+                            <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                              <div className="flex justify-between items-start mb-2">
+                                <div className="flex items-center gap-2">
+                                  <User className="w-3 h-3 text-gray-400" />
+                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                    {followUp.author}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                  <CalendarLucide className="w-3 h-3" />
+                                  {new Date(followUp.timestamp).toLocaleDateString()}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-700 dark:text-gray-300">{followUp.text}</p>
+                            </div>
+                          ))}
+                        
+                        {task.followUps.length > 5 && (
+                          <div className="text-xs text-blue-600 dark:text-blue-400 italic text-center">
+                            +{task.followUps.length - 5} more follow-ups...
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {task.followUps.length === 0 && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No follow-ups yet</p>
+                        <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Links Section */}
               <div className="space-y-4">
-                <Label htmlFor="details" className="text-gray-700 dark:text-gray-300">Details</Label>
-                <Textarea
-                  id="details"
-                  value={formData.details}
-                  onChange={(e) => setFormData({...formData, details: e.target.value})}
-                  placeholder="Additional task details"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Links & Resources
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-700 dark:text-gray-300">OneNote</Label>
+                    <Input
+                      value={formData.links.oneNote}
+                      onChange={(e) => updateLinkField('oneNote', e.target.value)}
+                      placeholder="OneNote link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 dark:text-gray-300">Teams</Label>
+                    <Input
+                      value={formData.links.teams}
+                      onChange={(e) => updateLinkField('teams', e.target.value)}
+                      placeholder="Teams link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 dark:text-gray-300">Email</Label>
+                    <Input
+                      value={formData.links.email}
+                      onChange={(e) => updateLinkField('email', e.target.value)}
+                      placeholder="Email"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-gray-700 dark:text-gray-300">File</Label>
+                    <Input
+                      value={formData.links.file}
+                      onChange={(e) => updateLinkField('file', e.target.value)}
+                      placeholder="File link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Related Tasks Section */}
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                  Related Tasks
-                </h3>
-                {relatedTasks.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {relatedTasks.map(relatedTask => (
-                      <Button
+              {relatedTasks.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Related Tasks
+                  </h3>
+                  <div className="space-y-2">
+                    {relatedTasks.map((relatedTask) => (
+                      <div 
                         key={relatedTask.id}
-                        variant="outline"
-                        className="justify-start text-sm dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                        className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
                         onClick={() => handleRelatedTaskClick(relatedTask)}
                       >
-                        {relatedTask.title}
-                      </Button>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{relatedTask.title}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-300">{relatedTask.id} - {relatedTask.status}</div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-gray-500 dark:text-gray-400">No related tasks selected.</p>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Form Actions */}
-          <div className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex justify-end gap-4">
-              <Button type="button" variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
-                Cancel
-              </Button>
-              <Button type="submit">
-                {task ? 'Update Task' : 'Create Task'}
-              </Button>
-            </div>
+          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              {task ? 'Update Task' : 'Create Task'}
+            </Button>
           </div>
         </form>
       </DialogContent>
+
+      {/* Follow-up Dialog */}
+      {task && (
+        <FollowUpDialog
+          isOpen={followUpDialogOpen}
+          onClose={() => setFollowUpDialogOpen(false)}
+          onAddFollowUp={handleFollowUpAdd}
+          task={task}
+        />
+      )}
     </Dialog>
   );
-};
+});
+
+TaskForm.displayName = 'TaskForm';
