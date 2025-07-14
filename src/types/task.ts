@@ -28,6 +28,7 @@ export interface Task {
   duration?: number; // in days
   dependencies?: string[]; // Task IDs that this task depends on
   followUps: FollowUp[];
+  comments?: { text: string; timestamp: string }[];
   details: string;
   links: {
     oneNote?: string;

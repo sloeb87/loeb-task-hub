@@ -41,6 +41,7 @@ interface DraggableTaskProps {
   allTasks: Task[];
   yPosition: number;
   isDragging?: boolean;
+  onAddComment?: (taskId: string, comment: string) => void;
 }
 
 const DraggableTask = ({ 
@@ -53,10 +54,13 @@ const DraggableTask = ({
   onRemoveDependency, 
   allTasks, 
   yPosition,
-  isDragging = false 
+  isDragging = false,
+  onAddComment 
 }: DraggableTaskProps) => {
   const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [commentText, setCommentText] = useState('');
   const taskRef = useRef<HTMLDivElement>(null);
   
   // Calculate task position and width
@@ -195,68 +199,146 @@ const DraggableTask = ({
         </div>
       </div>
 
-      {/* Dependency Lines */}
-      {task.dependencies?.map(depId => {
-        const depTask = allTasks.find(t => t.id === depId);
-        if (!depTask) return null;
-        
-        const depEndDate = new Date(depTask.dueDate);
-        const depDaysFromStart = differenceInDays(depEndDate, ganttStartDate);
-        const depLeft = (depDaysFromStart / ganttDuration) * 100;
-        const depYPosition = allTasks.findIndex(t => t.id === depId) * 60;
-        const currentYPosition = yPosition * 60;
-        
-        // Get arrow color based on dependency task status
-        const getArrowColor = (status: string) => {
-          switch (status) {
-            case 'Completed': return '#22c55e'; // green-500
-            case 'In Progress': return '#3b82f6'; // blue-500
-            case 'On Hold': return '#eab308'; // yellow-500
-            default: return '#6b7280'; // gray-500
-          }
-        };
+      {/* Comment Input */}
+      {showCommentInput && (
+        <div 
+          className="absolute top-12 left-0 bg-white border border-gray-300 rounded-lg shadow-lg p-3 z-50 min-w-64"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <textarea
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            placeholder="Add a comment..."
+            className="w-full p-2 border border-gray-200 rounded text-sm resize-none"
+            rows={3}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2 mt-2">
+            <button
+              onClick={() => {
+                setShowCommentInput(false);
+                setCommentText('');
+              }}
+              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-800"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (commentText.trim() && onAddComment) {
+                  onAddComment(task.id, commentText.trim());
+                }
+                setShowCommentInput(false);
+                setCommentText('');
+              }}
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      )}
 
-        const arrowColor = getArrowColor(depTask.status);
-        
-        return (
-          <svg
-            key={depId}
-            className="absolute pointer-events-none"
-            style={{
-              left: `${depLeft - taskLeft}%`,
-              top: `${Math.min(depYPosition, currentYPosition) - currentYPosition}px`,
-              width: `${Math.abs(taskLeft - depLeft) + 5}%`,
-              height: `${Math.abs(currentYPosition - depYPosition) + 50}px`,
-              zIndex: 5,
-            }}
-          >
-            <defs>
-              <marker
-                id={`arrowhead-${task.id}-${depId}`}
-                markerWidth="10"
-                markerHeight="8"
-                refX="9"
-                refY="4"
-                orient="auto"
-                fill={arrowColor}
-              >
-                <polygon points="0 0, 10 4, 0 8" />
-              </marker>
-            </defs>
-            <path
-              d={`M 0 ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 0 : Math.abs(currentYPosition - depYPosition) + 20)} 
-                  Q ${Math.abs(taskLeft - depLeft) * 0.3}% ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 10 : Math.abs(currentYPosition - depYPosition) + 10)}
-                  ${Math.abs(taskLeft - depLeft)}% ${currentYPosition === depYPosition ? 20 : (currentYPosition < depYPosition ? Math.abs(currentYPosition - depYPosition) + 20 : 20)}`}
-              stroke={arrowColor}
-              strokeWidth="2.5"
-              fill="none"
-              markerEnd={`url(#arrowhead-${task.id}-${depId})`}
-              className="drop-shadow-sm"
-            />
-          </svg>
-        );
-      })}
+      {/* Comment Button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowCommentInput(!showCommentInput);
+        }}
+        className="absolute -top-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 text-white text-xs px-2 py-1 rounded hover:bg-gray-800"
+        title="Add comment"
+      >
+        💬
+      </button>
+      
+      {/* Show existing comments count */}
+      {task.comments && task.comments.length > 0 && (
+        <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+          {task.comments.length} comment{task.comments.length > 1 ? 's' : ''}
+        </div>
+      )}
     </div>
+  );
+};
+
+// Dependency Arrow Component (rendered outside of task containers)
+const DependencyArrow = ({ 
+  fromTask, 
+  toTask, 
+  allTasks, 
+  ganttStartDate, 
+  ganttDuration 
+}: { 
+  fromTask: Task; 
+  toTask: Task; 
+  allTasks: Task[]; 
+  ganttStartDate: Date; 
+  ganttDuration: number; 
+}) => {
+  const fromIndex = allTasks.findIndex(t => t.id === fromTask.id);
+  const toIndex = allTasks.findIndex(t => t.id === toTask.id);
+  
+  const fromEndDate = new Date(fromTask.dueDate);
+  const toStartDate = new Date(toTask.startDate);
+  
+  const fromDaysFromStart = differenceInDays(fromEndDate, ganttStartDate);
+  const toDaysFromStart = differenceInDays(toStartDate, ganttStartDate);
+  
+  const fromLeft = (fromDaysFromStart / ganttDuration) * 100;
+  const toLeft = (toDaysFromStart / ganttDuration) * 100;
+  
+  const fromY = fromIndex * 60 + 30; // Center of task
+  const toY = toIndex * 60 + 30; // Center of task
+  
+  // Get arrow color based on dependency task status
+  const getArrowColor = (status: string) => {
+    switch (status) {
+      case 'Completed': return '#22c55e'; // green-500
+      case 'In Progress': return '#3b82f6'; // blue-500
+      case 'On Hold': return '#eab308'; // yellow-500
+      default: return '#6b7280'; // gray-500
+    }
+  };
+
+  const arrowColor = getArrowColor(fromTask.status);
+  
+  return (
+    <svg
+      className="absolute pointer-events-none"
+      style={{
+        left: 0,
+        top: 0,
+        width: '100%',
+        height: '100%',
+        zIndex: 1,
+      }}
+    >
+      <defs>
+        <marker
+          id={`arrowhead-${fromTask.id}-${toTask.id}`}
+          markerWidth="12"
+          markerHeight="10"
+          refX="11"
+          refY="5"
+          orient="auto"
+          fill={arrowColor}
+        >
+          <polygon points="0 0, 12 5, 0 10" />
+        </marker>
+      </defs>
+      <path
+        d={`M ${fromLeft}% ${fromY} 
+            L ${fromLeft + 2}% ${fromY}
+            Q ${(fromLeft + toLeft) / 2}% ${fromY < toY ? fromY - 20 : fromY + 20}
+            ${toLeft - 2}% ${toY}
+            L ${toLeft}% ${toY}`}
+        stroke={arrowColor}
+        strokeWidth="3"
+        fill="none"
+        markerEnd={`url(#arrowhead-${fromTask.id}-${toTask.id})`}
+        className="drop-shadow-sm"
+      />
+    </svg>
   );
 };
 
@@ -293,6 +375,15 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+
+  const handleAddComment = useCallback((taskId: string, comment: string) => {
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId 
+        ? { ...task, comments: [...(task.comments || []), { text: comment, timestamp: new Date().toISOString() }] }
+        : task
+    );
+    onTasksChange(updatedTasks);
+  }, [tasks, onTasksChange]);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -611,8 +702,26 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   allTasks={filteredTasks}
                   yPosition={index}
                   isDragging={draggedTask?.id === task.id}
+                  onAddComment={handleAddComment}
                 />
               ))}
+              
+              {/* Dependency Arrows - rendered after all tasks */}
+              {filteredTasks.map(task => 
+                task.dependencies?.map(depId => {
+                  const depTask = filteredTasks.find(t => t.id === depId);
+                  return depTask ? (
+                    <DependencyArrow
+                      key={`${task.id}-${depId}`}
+                      fromTask={depTask}
+                      toTask={task}
+                      allTasks={filteredTasks}
+                      ganttStartDate={ganttStartDate}
+                      ganttDuration={ganttDuration}
+                    />
+                  ) : null;
+                })
+              ).flat().filter(Boolean)}
               
               {/* Drag feedback overlay */}
               {draggedTask && (
