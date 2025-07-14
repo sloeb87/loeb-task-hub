@@ -66,13 +66,18 @@ const ProjectsPage = ({
   };
 
   const handleEditTask = (task: Task) => {
-    console.log('handleEditTask called with:', task.title, 'isTaskFormOpen:', isTaskFormOpen);
-    setSelectedTask(task);
-    // Use setTimeout to ensure state updates are processed
-    setTimeout(() => {
+    console.log('handleEditTask called with:', task.title, 'current isTaskFormOpen:', isTaskFormOpen);
+    
+    // Force state reset first, then set new values
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
+    
+    // Use requestAnimationFrame to ensure DOM updates
+    requestAnimationFrame(() => {
+      setSelectedTask(task);
       setIsTaskFormOpen(true);
-      console.log('setIsTaskFormOpen(true) called in timeout');
-    }, 0);
+      console.log('State updated - task:', task.title, 'opening modal');
+    });
   };
 
   const handleAddTaskToProject = (projectId: string) => {
@@ -273,8 +278,10 @@ Generated on: ${new Date().toLocaleDateString()}
 
       {/* Task Form Modal */}
       <TaskForm
+        key={selectedTask?.id || 'new'}
         isOpen={isTaskFormOpen}
         onClose={() => {
+          console.log('TaskForm onClose called');
           setIsTaskFormOpen(false);
           setSelectedTask(null);
           setTaskProjectId(null);
