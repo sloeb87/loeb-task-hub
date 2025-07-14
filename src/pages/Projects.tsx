@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -269,6 +268,7 @@ const ProjectsPage = ({
         onSave={handleSaveTask}
         task={selectedTask}
         allTasks={tasks}
+        allProjects={projects}
         projectName={taskProjectId}
         onEditRelatedTask={handleEditTask}
       />

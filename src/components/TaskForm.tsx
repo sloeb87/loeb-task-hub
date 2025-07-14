@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -15,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task, Project } from "@/types/task";
+import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
 import { CalendarIcon } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -90,7 +89,13 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         description: task.description,
         details: task.details,
         dependencies: task.dependencies || [],
-        links: task.links,
+        links: {
+          oneNote: task.links.oneNote || "",
+          teams: task.links.teams || "",
+          email: task.links.email || "",
+          file: task.links.file || "",
+          folder: task.links.folder || ""
+        },
         stakeholders: task.stakeholders,
         comments: task.comments || []
       });
@@ -161,11 +166,14 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
       return;
     }
 
-    // Prepare task data for saving
+    // Prepare task data for saving with proper type casting
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       scope: projectScope || formData.scope,
+      taskType: formData.taskType as TaskType,
+      status: formData.status as TaskStatus,
+      priority: formData.priority as TaskPriority,
     };
 
     // Save the task and close the form

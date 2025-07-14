@@ -367,6 +367,7 @@ export const ProjectDetailView = ({
         onSave={handleSaveTaskLocal}
         task={selectedTask}
         allTasks={allTasks}
+        allProjects={[]} // Add empty array for allProjects
         projectName={project.name}
         onEditRelatedTask={handleEditTaskLocal}
       />
