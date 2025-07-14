@@ -97,9 +97,26 @@ export const TaskFormOptimized = React.memo(({
   const parameters = useMemo(() => {
     try {
       const storedParameters = localStorage.getItem('parameters');
-      return storedParameters ? JSON.parse(storedParameters) : {};
+      if (storedParameters) {
+        return JSON.parse(storedParameters);
+      } else {
+        // Initialize with default parameters if not found
+        const defaultParams = {
+          environments: ["Development", "Testing", "Staging", "Production", "Demo"],
+          taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
+          statuses: ["Open", "In Progress", "Completed", "On Hold"],
+          priorities: ["Low", "Medium", "High", "Critical"]
+        };
+        localStorage.setItem('parameters', JSON.stringify(defaultParams));
+        return defaultParams;
+      }
     } catch {
-      return {};
+      return {
+        environments: ["Development", "Testing", "Staging", "Production", "Demo"],
+        taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
+        statuses: ["Open", "In Progress", "Completed", "On Hold"], 
+        priorities: ["Low", "Medium", "High", "Critical"]
+      };
     }
   }, []);
 
