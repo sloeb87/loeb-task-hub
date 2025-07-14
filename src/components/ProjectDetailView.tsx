@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -175,27 +174,19 @@ export const ProjectDetailView = ({
                 </Badge>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Owner</p>
-                <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.owner}</span>
-                </div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Scope</p>
+                <Badge variant="outline" className="text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                  {project.scope}
+                </Badge>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Start Date</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Owner</p>
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.startDate}</span>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">End Date</p>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.endDate}</span>
+                  <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.owner}</span>
                 </div>
               </div>
             </div>

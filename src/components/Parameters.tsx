@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -131,6 +130,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               handleAddItem(type, newValue, setter, () => setNewValue(""));
             }
           }}
+          className="dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         />
         <Button
           onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""))}
@@ -143,7 +143,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
       {/* Items list */}
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {items.map((item, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             {editingItem?.type === type && editingItem?.index === index ? (
               <div className="flex items-center gap-2 flex-1">
                 <Input
@@ -154,7 +154,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                     if (e.key === 'Escape') handleCancelEdit();
                   }}
                   autoFocus
-                  className="flex-1"
+                  className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
                 <Button size="sm" variant="outline" onClick={() => handleSaveEdit(setter)}>
                   <Check className="w-4 h-4" />
@@ -165,7 +165,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </div>
             ) : (
               <>
-                <Badge variant="outline" className="text-sm">
+                <Badge variant="outline" className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
                   {item}
                 </Badge>
                 <div className="flex items-center gap-2">
@@ -173,6 +173,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleEditItem(type, index, item)}
+                    className="dark:hover:bg-gray-700"
                   >
                     <Edit3 className="w-4 h-4" />
                   </Button>
@@ -180,7 +181,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                     size="sm"
                     variant="ghost"
                     onClick={() => handleRemoveItem(type, index, setter)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -195,13 +196,13 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-blue-600" />
+            <Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Parameters Management</h2>
-              <p className="text-gray-600">Manage dropdown values used throughout the application</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Parameters Management</h2>
+              <p className="text-gray-600 dark:text-gray-300">Manage dropdown values used throughout the application</p>
             </div>
           </div>
           <Button variant="ghost" onClick={onClose}>
@@ -211,18 +212,18 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
           <Tabs defaultValue="scopes" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="scopes">Scopes</TabsTrigger>
-              <TabsTrigger value="environments">Environments</TabsTrigger>
-              <TabsTrigger value="taskTypes">Task Types</TabsTrigger>
-              <TabsTrigger value="statuses">Statuses</TabsTrigger>
-              <TabsTrigger value="priorities">Priorities</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 dark:bg-gray-800">
+              <TabsTrigger value="scopes" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Scopes</TabsTrigger>
+              <TabsTrigger value="environments" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Environments</TabsTrigger>
+              <TabsTrigger value="taskTypes" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Task Types</TabsTrigger>
+              <TabsTrigger value="statuses" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Statuses</TabsTrigger>
+              <TabsTrigger value="priorities" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Priorities</TabsTrigger>
             </TabsList>
 
             <TabsContent value="scopes" className="mt-6">
-              <Card>
+              <Card className="dark:bg-gray-800 dark:border-gray-700">
                 <CardHeader>
-                  <CardTitle>Scope Options</CardTitle>
+                  <CardTitle className="dark:text-white">Scope Options</CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderItemList(
@@ -311,18 +312,18 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
           </Tabs>
         </div>
 
-        <div className="flex items-center justify-between p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           <Button
             variant="outline"
             onClick={handleResetToDefaults}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             <RefreshCw className="w-4 h-4" />
             Reset to Defaults
           </Button>
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               Cancel
             </Button>
             <Button onClick={handleSaveAll} className="flex items-center gap-2">
