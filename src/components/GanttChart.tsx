@@ -2,7 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Task } from "@/types/task";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import { 
   DndContext, 
   closestCorners, 
@@ -22,7 +26,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { GripVertical, Plus, Trash2, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -190,6 +194,8 @@ const SortableTask = ({
 
 export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, onEditTask }: GanttChartProps) => {
   const [taskOrder, setTaskOrder] = useState(tasks.map(t => t.id));
+  const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -198,10 +204,21 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     })
   );
 
-  // Calculate timeline
-  const ganttStartDate = new Date(projectStartDate);
-  const ganttEndDate = new Date(projectEndDate);
+  // Use custom dates if set, otherwise use project dates
+  const ganttStartDate = customStartDate ? customStartDate : new Date(projectStartDate);
+  const ganttEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
   const ganttDuration = Math.max(1, Math.ceil((ganttEndDate.getTime() - ganttStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+  // Filter tasks that fall within the selected timeline
+  const filteredTasks = tasks.filter(task => {
+    const taskStart = new Date(task.startDate);
+    const taskEnd = new Date(task.dueDate);
+    return taskStart <= ganttEndDate && taskEnd >= ganttStartDate;
+  });
+
+  const orderedTasks = taskOrder
+    .map(id => filteredTasks.find(t => t.id === id))
+    .filter(Boolean) as Task[];
 
   // Generate timeline markers
   const timelineMarkers = useMemo(() => {
@@ -224,7 +241,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     return markers;
   }, [ganttStartDate, ganttDuration]);
 
-  const orderedTasks = taskOrder.map(id => tasks.find(t => t.id === id)).filter(Boolean) as Task[];
+  const orderedTasksAfterFilter = taskOrder.map(id => filteredTasks.find(t => t.id === id)).filter(Boolean) as Task[];
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -254,6 +271,11 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
         : task
     );
     onTasksChange(updatedTasks);
+  };
+
+  const resetTimelineFilter = () => {
+    setCustomStartDate(undefined);
+    setCustomEndDate(undefined);
   };
 
   if (tasks.length === 0) {
@@ -293,10 +315,94 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Project Gantt Chart</CardTitle>
-        <p className="text-sm text-gray-600">
-          Single timeline view with dependencies. Drag tasks to reorder, click to edit.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Project Gantt Chart</CardTitle>
+            <p className="text-sm text-gray-600">
+              Single timeline view with dependencies. Drag tasks to reorder, click to edit.
+            </p>
+          </div>
+          
+          {/* Timeline Filter Controls */}
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Timeline:</span>
+              
+              {/* Start Date Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !customStartDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customStartDate ? format(customStartDate, "MMM dd") : format(ganttStartDate, "MMM dd")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customStartDate || ganttStartDate}
+                    onSelect={setCustomStartDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              <span className="text-gray-400">to</span>
+              
+              {/* End Date Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "justify-start text-left font-normal",
+                      !customEndDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {customEndDate ? format(customEndDate, "MMM dd") : format(ganttEndDate, "MMM dd")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customEndDate || ganttEndDate}
+                    onSelect={setCustomEndDate}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              {/* Reset Button */}
+              {(customStartDate || customEndDate) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetTimelineFilter}
+                  title="Reset to project timeline"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Timeline Info */}
+        {filteredTasks.length !== tasks.length && (
+          <div className="mt-2 text-sm text-amber-600">
+            Showing {filteredTasks.length} of {tasks.length} tasks in selected timeline
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         {/* Timeline Header */}
@@ -333,13 +439,13 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 minHeight: '200px' 
               }}
             >
-              {orderedTasks.map((task, index) => (
+              {orderedTasksAfterFilter.map((task, index) => (
                 <SortableTask
                   key={task.id}
                   task={task}
                   onAddDependency={handleAddDependency}
                   onRemoveDependency={handleRemoveDependency}
-                  allTasks={tasks}
+                  allTasks={filteredTasks}
                   ganttDuration={ganttDuration}
                   ganttStartDate={ganttStartDate}
                   onEditTask={onEditTask}
@@ -354,8 +460,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
         <div className="mt-6">
           <h4 className="text-sm font-medium mb-3">Task Dependencies</h4>
           <div className="space-y-2">
-            {orderedTasks.map(task => {
-              const availableDependencies = tasks.filter(t => 
+            {orderedTasksAfterFilter.map(task => {
+              const availableDependencies = filteredTasks.filter(t =>
                 t.id !== task.id && !task.dependencies?.includes(t.id)
               );
               
@@ -380,7 +486,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                       <div className="flex items-center space-x-1">
                         <span className="text-xs text-gray-500">Depends on:</span>
                         {task.dependencies.map(depId => {
-                          const depTask = tasks.find(t => t.id === depId);
+                          const depTask = filteredTasks.find(t => t.id === depId);
                           return depTask ? (
                             <Badge 
                               key={depId} 
