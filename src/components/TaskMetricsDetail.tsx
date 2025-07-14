@@ -57,7 +57,7 @@ export const TaskMetricsDetail = ({
     if (onEditTask) {
       console.log('Calling onEditTask with task:', task.id);
       onEditTask(task);
-      onClose(); // Close the metrics detail modal when opening task details
+      // Don't close the metrics detail modal - keep it open so user can return to the list
     } else {
       console.log('onEditTask is not available');
     }
