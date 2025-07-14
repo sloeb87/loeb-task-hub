@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart } from "lucide-rea
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
+import { TaskForm } from "@/components/TaskForm";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -20,6 +21,7 @@ interface ProjectDetailViewProps {
   onEditTask: (task: Task) => void;
   onGenerateReport: () => void;
   onUpdateTask?: (task: Task) => void;
+  onSaveTask?: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
 }
 
 export const ProjectDetailView = ({ 
@@ -31,8 +33,11 @@ export const ProjectDetailView = ({
   onCreateTask, 
   onEditTask,
   onGenerateReport,
-  onUpdateTask 
+  onUpdateTask,
+  onSaveTask 
 }: ProjectDetailViewProps) => {
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
   const totalTasks = projectTasks.length;
@@ -50,6 +55,22 @@ export const ProjectDetailView = ({
         }
       });
     }
+  };
+
+  const handleEditTaskLocal = (task: Task) => {
+    console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
+    setSelectedTask(task);
+    setIsTaskFormOpen(true);
+  };
+
+  const handleSaveTaskLocal = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    if (onSaveTask) {
+      onSaveTask(taskData);
+    } else if (onEditTask && 'id' in taskData) {
+      onEditTask(taskData as Task);
+    }
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -202,8 +223,8 @@ export const ProjectDetailView = ({
               {projectTasks.length > 0 ? (
                 <TaskTable 
                   tasks={projectTasks} 
-                  onEditTask={onEditTask}
-                  onFollowUp={onEditTask}
+                  onEditTask={handleEditTaskLocal}
+                  onFollowUp={handleEditTaskLocal}
                 />
               ) : (
                 <div className="text-center py-8 text-gray-500">
@@ -226,11 +247,25 @@ export const ProjectDetailView = ({
               onTasksChange={handleTasksChange}
               projectStartDate={project.startDate}
               projectEndDate={project.endDate}
-              onEditTask={onEditTask}
+              onEditTask={handleEditTaskLocal}
             />
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Task Form Modal - Local to ProjectDetailView */}
+      <TaskForm
+        key={selectedTask?.id || 'new'}
+        isOpen={isTaskFormOpen}
+        onClose={() => {
+          setIsTaskFormOpen(false);
+          setSelectedTask(null);
+        }}
+        onSave={handleSaveTaskLocal}
+        task={selectedTask}
+        allTasks={allTasks}
+        projectName={project.name}
+      />
     </div>
   );
 };

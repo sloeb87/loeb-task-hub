@@ -163,6 +163,7 @@ Generated on: ${new Date().toLocaleDateString()}
         onEditTask={handleEditTask}
         onGenerateReport={() => handleGenerateReport()}
         onUpdateTask={onUpdateTask}
+        onSaveTask={handleSaveTask}
       />
     );
   }
