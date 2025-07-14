@@ -1,5 +1,5 @@
 
-import { Task } from "@/types/task";
+import { Task, Project } from "@/types/task";
 
 export const mockTasks: Task[] = [
   {
@@ -14,6 +14,7 @@ export const mockTasks: Task[] = [
     priority: "High",
     responsible: "John Smith",
     creationDate: "2024-01-15",
+    startDate: "2024-01-16",
     dueDate: "2024-02-15",
     followUps: [
       {
@@ -51,6 +52,7 @@ export const mockTasks: Task[] = [
     priority: "Medium",
     responsible: "Alice Johnson",
     creationDate: "2024-01-18",
+    startDate: "2024-01-20",
     dueDate: "2024-02-01",
     followUps: [],
     details: "Focus on response times, memory usage, and concurrent user handling. Test with up to 1000 concurrent users.",
@@ -71,6 +73,7 @@ export const mockTasks: Task[] = [
     priority: "Critical",
     responsible: "Mike Wilson",
     creationDate: "2024-01-10",
+    startDate: "2024-01-12",
     dueDate: "2024-01-25",
     completionDate: "2024-01-24",
     followUps: [
@@ -100,6 +103,7 @@ export const mockTasks: Task[] = [
     priority: "High",
     responsible: "Sarah Davis",
     creationDate: "2024-01-20",
+    startDate: "2024-01-22",
     dueDate: "2024-01-30",
     followUps: [],
     details: "Review should cover accessibility, mobile responsiveness, and conversion optimization.",
@@ -120,6 +124,7 @@ export const mockTasks: Task[] = [
     priority: "Medium",
     responsible: "David Brown",
     creationDate: "2024-01-12",
+    startDate: "2024-01-15",
     dueDate: "2024-02-10",
     followUps: [
       {
@@ -148,6 +153,7 @@ export const mockTasks: Task[] = [
     priority: "Critical",
     responsible: "Robert Garcia",
     creationDate: "2024-01-05",
+    startDate: "2024-01-08",
     dueDate: "2024-01-28",
     followUps: [
       {
@@ -176,6 +182,7 @@ export const mockTasks: Task[] = [
     priority: "Critical",
     responsible: "Lisa Anderson",
     creationDate: "2024-01-22",
+    startDate: "2024-01-22",
     dueDate: "2024-01-25",
     completionDate: "2024-01-25",
     followUps: [
@@ -210,6 +217,7 @@ export const mockTasks: Task[] = [
     priority: "Medium",
     responsible: "James Taylor",
     creationDate: "2024-01-25",
+    startDate: "2024-01-30",
     dueDate: "2024-03-15",
     followUps: [],
     details: "Algorithm should consider website activity, email engagement, and company size factors.",
@@ -218,5 +226,74 @@ export const mockTasks: Task[] = [
       teams: "https://teams.microsoft.com/crm-development"
     },
     stakeholders: ["Sales Team", "Marketing Team", "Data Science Team"]
+  }
+];
+
+export const mockProjects: Project[] = [
+  {
+    id: "P1",
+    name: "E-Commerce Platform",
+    description: "Complete redesign and development of the company's e-commerce platform with modern UI/UX",
+    owner: "John Smith",
+    team: ["John Smith", "Alice Johnson", "Mike Wilson"],
+    startDate: "2024-01-01",
+    endDate: "2024-06-30",
+    status: "Active",
+    tasks: ["T1", "T2"]
+  },
+  {
+    id: "P2", 
+    name: "Mobile App",
+    description: "Native mobile application for iOS and Android with offline capabilities",
+    owner: "Mike Wilson",
+    team: ["Mike Wilson", "Lisa Anderson"],
+    startDate: "2024-01-10",
+    endDate: "2024-04-15",
+    status: "Active",
+    tasks: ["T3", "T7"]
+  },
+  {
+    id: "P3",
+    name: "Website Redesign", 
+    description: "Complete overhaul of the corporate website with focus on user experience",
+    owner: "Sarah Davis",
+    team: ["Sarah Davis"],
+    startDate: "2024-01-15",
+    endDate: "2024-03-30",
+    status: "Active",
+    tasks: ["T4"]
+  },
+  {
+    id: "P4",
+    name: "API Platform",
+    description: "RESTful API platform with comprehensive documentation and developer tools",
+    owner: "David Brown", 
+    team: ["David Brown"],
+    startDate: "2024-01-05",
+    endDate: "2024-05-01",
+    status: "Active",
+    tasks: ["T5"]
+  },
+  {
+    id: "P5",
+    name: "Cloud Migration",
+    description: "Migration of all services to cloud infrastructure with improved scalability",
+    owner: "Robert Garcia",
+    team: ["Robert Garcia"],
+    startDate: "2024-01-01",
+    endDate: "2024-08-31",
+    status: "On Hold",
+    tasks: ["T6"]
+  },
+  {
+    id: "P6",
+    name: "CRM System",
+    description: "Customer relationship management system with advanced analytics",
+    owner: "James Taylor",
+    team: ["James Taylor"],
+    startDate: "2024-01-25",
+    endDate: "2024-07-15",
+    status: "Active", 
+    tasks: ["T8"]
   }
 ];

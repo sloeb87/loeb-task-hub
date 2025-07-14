@@ -8,17 +8,19 @@ import { TaskTable } from "@/components/TaskTable";
 import { TaskForm } from "@/components/TaskForm";
 import { KPIDashboard } from "@/components/KPIDashboard";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
-import { Plus, Filter, Search, BarChart3 } from "lucide-react";
-import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
-import { mockTasks } from "@/data/mockData";
+import { Plus, Filter, Search, BarChart3, FolderKanban } from "lucide-react";
+import { Task, TaskStatus, TaskPriority, TaskType, Project } from "@/types/task";
+import { mockTasks, mockProjects } from "@/data/mockData";
+import ProjectsPage from "./Projects";
 
 const Index = () => {
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<"all" | "open" | "inprogress" | "onhold" | "critical">("all");
-  const [activeView, setActiveView] = useState<"tasks" | "dashboard">("tasks");
+  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
@@ -68,6 +70,18 @@ const Index = () => {
     setFollowUpTask(null);
   };
 
+  const handleCreateProject = (projectData: Omit<Project, 'id'>) => {
+    const newProject: Project = {
+      ...projectData,
+      id: `P${projects.length + 1}`,
+    };
+    setProjects([...projects, newProject]);
+  };
+
+  const handleUpdateProject = (updatedProject: Project) => {
+    setProjects(projects.map(project => project.id === updatedProject.id ? updatedProject : project));
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
@@ -100,6 +114,14 @@ const Index = () => {
                 <BarChart3 className="w-4 h-4 mr-2" />
                 KPIs
               </Button>
+              <Button
+                variant={activeView === "projects" ? "default" : "outline"}
+                onClick={() => setActiveView("projects")}
+                size="sm"
+              >
+                <FolderKanban className="w-4 h-4 mr-2" />
+                Projects
+              </Button>
             </div>
           </div>
         </div>
@@ -116,6 +138,8 @@ const Index = () => {
                 </div>
               </div>
             </div>
+
+            {/* ... keep existing task summary cards and table code ... */}
 
             {/* Task Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
@@ -218,8 +242,15 @@ const Index = () => {
               onFollowUp={setFollowUpTask}
             />
           </>
-        ) : (
+        ) : activeView === "dashboard" ? (
           <KPIDashboard tasks={tasks} />
+        ) : (
+          <ProjectsPage 
+            tasks={tasks} 
+            projects={projects}
+            onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+          />
         )}
 
         {/* Task Form Dialog */}

@@ -26,6 +26,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
     status: task?.status || 'Open' as TaskStatus,
     priority: task?.priority || 'Medium' as TaskPriority,
     responsible: task?.responsible || '',
+    startDate: task?.startDate || '',
     dueDate: task?.dueDate || '',
     completionDate: task?.completionDate || '',
     details: task?.details || '',
@@ -221,7 +222,17 @@ export const TaskForm = ({ isOpen, onClose, onSave, task }: TaskFormProps) => {
           </div>
 
           {/* Dates */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => handleInputChange('startDate', e.target.value)}
+                required
+              />
+            </div>
             <div>
               <Label htmlFor="dueDate">Due Date</Label>
               <Input

@@ -22,8 +22,11 @@ export interface Task {
   priority: TaskPriority;
   responsible: string;
   creationDate: string;
+  startDate: string;
   dueDate: string;
   completionDate?: string;
+  duration?: number; // in days
+  dependencies?: string[]; // Task IDs that this task depends on
   followUps: FollowUp[];
   details: string;
   links: {
