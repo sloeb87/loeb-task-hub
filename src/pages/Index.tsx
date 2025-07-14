@@ -8,12 +8,14 @@ import { TaskTable } from "@/components/TaskTable";
 import { TaskForm } from "@/components/TaskForm";
 import { KPIDashboard } from "@/components/KPIDashboard";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
-import { Plus, Filter, Search, BarChart3, FolderKanban } from "lucide-react";
+import { Plus, Filter, Search, BarChart3, FolderKanban, Calendar } from "lucide-react";
 import { Task, TaskStatus, TaskPriority, TaskType, Project } from "@/types/task";
 import { mockTasks, mockProjects } from "@/data/mockData";
+import { useNavigate } from "react-router-dom";
 import ProjectsPage from "./Projects";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [projects, setProjects] = useState<Project[]>(mockProjects);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
@@ -99,6 +101,15 @@ const Index = () => {
               </Button>
             </div>
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/gantt')}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                Gantt Chart
+              </Button>
               <Button
                 variant={activeView === "projects" ? "default" : "outline"}
                 onClick={() => setActiveView("projects")}
