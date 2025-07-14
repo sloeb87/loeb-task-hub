@@ -74,9 +74,9 @@ const Index = () => {
         case "onhold":
           return task.status === "On Hold";
         case "critical":
-          return task.priority === "Critical";
+          return task.priority === "Critical" && task.status !== "Completed";
         case "all":
-          return task.status === "Open" || task.status === "In Progress" || task.status === "On Hold";
+          return true; // Include ALL tasks, including completed ones
         default:
           return true;
       }
