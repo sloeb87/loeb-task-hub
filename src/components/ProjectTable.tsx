@@ -51,9 +51,10 @@ export const ProjectTable = ({
   // Close filter dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
       const clickedOutside = Object.keys(showFilters).every(filterType => {
         const ref = filterRefs.current[filterType];
-        return !ref || !ref.contains(event.target as Node);
+        return !ref || !ref.contains(target);
       });
       
       if (clickedOutside) {
@@ -61,8 +62,10 @@ export const ProjectTable = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (Object.values(showFilters).some(show => show)) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, [showFilters]);
 
   const getProjectStats = (project: Project) => {
@@ -102,11 +105,15 @@ export const ProjectTable = ({
   };
 
   const toggleFilterDropdown = (filterType: string, e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    setShowFilters(prev => ({
-      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
-      [filterType]: !prev[filterType]
-    }));
+    console.log('Filter button clicked:', filterType);
+    setShowFilters(prev => {
+      const newState = Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {});
+      newState[filterType] = !prev[filterType];
+      console.log('New filter state:', newState);
+      return newState;
+    });
   };
 
   const clearFilter = (filterType: keyof ProjectFilters) => {
@@ -166,13 +173,13 @@ export const ProjectTable = ({
     filterType: keyof ProjectFilters; 
     children: React.ReactNode;
   }) => (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between min-w-0">
       <SortableHeader field={field}>{children}</SortableHeader>
-      <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+      <div className="relative ml-2" ref={el => filterRefs.current[filterType] = el}>
         <Button
           size="sm"
           variant="ghost"
-          className={`p-1 h-6 w-6 ml-1 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+          className={`p-1 h-6 w-6 shrink-0 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
           onClick={(e) => toggleFilterDropdown(filterType, e)}
         >
           <Filter className="w-3 h-3" />
@@ -183,7 +190,7 @@ export const ProjectTable = ({
           )}
         </Button>
         {showFilters[filterType] && (
-          <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
+          <div className="absolute top-full right-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {getUniqueValues(filterType as keyof Project).map(value => (
                 <div key={value} className="flex items-center space-x-2">
@@ -261,22 +268,22 @@ export const ProjectTable = ({
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 dark:bg-gray-900">
-              <TableHead className="w-[5%]">
+              <TableHead style={{ minWidth: '50px' }}>
                 {/* Empty header for expand/collapse */}
               </TableHead>
-              <TableHead className="w-[35%]">
+              <TableHead style={{ minWidth: '300px' }}>
                 <SortableHeader field="name">Project Name</SortableHeader>
               </TableHead>
-              <TableHead className="w-[20%]">
+              <TableHead style={{ minWidth: '180px' }}>
                 <FilterableHeader field="owner" filterType="owner">Owner & Team</FilterableHeader>
               </TableHead>
-              <TableHead className="w-[25%]">
+              <TableHead style={{ minWidth: '220px' }}>
                 <FilterableHeader field="status" filterType="status">Status & Progress</FilterableHeader>
               </TableHead>
-              <TableHead className="w-[15%]">
+              <TableHead style={{ minWidth: '150px' }}>
                 <SortableHeader field="startDate">Timeline</SortableHeader>
               </TableHead>
-              <TableHead className="w-[10%]">Actions</TableHead>
+              <TableHead style={{ minWidth: '100px' }}>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
