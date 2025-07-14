@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Task } from "@/types/task";
-import { format } from "date-fns";
+import { format, addDays, differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { 
   DndContext, 
@@ -14,19 +14,13 @@ import {
   PointerSensor, 
   useSensor, 
   useSensors,
-  DragEndEvent
+  DragEndEvent,
+  DragStartEvent,
+  DragOverEvent,
+  useDraggable,
+  useDroppable
 } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Plus, Trash2, Calendar as CalendarIcon, RotateCcw } from 'lucide-react';
+import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -36,63 +30,84 @@ interface GanttChartProps {
   onEditTask?: (task: Task) => void;
 }
 
-interface SortableTaskProps {
+interface DraggableTaskProps {
   task: Task;
-  style?: React.CSSProperties;
+  ganttStartDate: Date;
+  ganttDuration: number;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+  onEditTask?: (task: Task) => void;
   onAddDependency: (taskId: string, dependencyId: string) => void;
   onRemoveDependency: (taskId: string, dependencyId: string) => void;
   allTasks: Task[];
-  ganttDuration: number;
-  ganttStartDate: Date;
-  onEditTask?: (task: Task) => void;
+  yPosition: number;
+  isDragging?: boolean;
 }
 
-const SortableTask = ({ 
+const DraggableTask = ({ 
   task, 
-  style, 
+  ganttStartDate, 
+  ganttDuration, 
+  onTaskUpdate, 
+  onEditTask, 
   onAddDependency, 
   onRemoveDependency, 
   allTasks, 
-  ganttDuration, 
-  ganttStartDate,
-  onEditTask,
-  yPosition = 0
-}: SortableTaskProps & { yPosition?: number }) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-  } = useSortable({ id: task.id });
-
-  const taskStyle = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    ...style,
-  };
-
+  yPosition,
+  isDragging = false 
+}: DraggableTaskProps) => {
+  const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
+  const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const taskRef = useRef<HTMLDivElement>(null);
+  
   // Calculate task position and width
   const taskStartDate = new Date(task.startDate);
   const taskEndDate = new Date(task.dueDate);
-  const taskDuration = Math.max(1, Math.ceil((taskEndDate.getTime() - taskStartDate.getTime()) / (1000 * 60 * 60 * 24)));
-  const daysFromStart = Math.max(0, Math.ceil((taskStartDate.getTime() - ganttStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+  const taskDuration = Math.max(1, differenceInDays(taskEndDate, taskStartDate) + 1);
+  const daysFromStart = Math.max(0, differenceInDays(taskStartDate, ganttStartDate));
   
   const taskLeft = (daysFromStart / ganttDuration) * 100;
   const taskWidth = (taskDuration / ganttDuration) * 100;
 
+  const {
+    attributes: moveAttributes,
+    listeners: moveListeners,
+    setNodeRef: setMoveRef,
+    transform: moveTransform,
+  } = useDraggable({
+    id: `move-${task.id}`,
+    data: { type: 'move', task }
+  });
+
+  const {
+    attributes: resizeStartAttributes,
+    listeners: resizeStartListeners,
+    setNodeRef: setResizeStartRef,
+  } = useDraggable({
+    id: `resize-start-${task.id}`,
+    data: { type: 'resize-start', task }
+  });
+
+  const {
+    attributes: resizeEndAttributes,
+    listeners: resizeEndListeners,
+    setNodeRef: setResizeEndRef,
+  } = useDraggable({
+    id: `resize-end-${task.id}`,
+    data: { type: 'resize-end', task }
+  });
+
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Completed': return 'bg-green-500';
-      case 'In Progress': return 'bg-blue-500';
-      case 'On Hold': return 'bg-yellow-500';
-      default: return 'bg-gray-400';
+      case 'Completed': return 'bg-green-500 border-green-600';
+      case 'In Progress': return 'bg-blue-500 border-blue-600';
+      case 'On Hold': return 'bg-yellow-500 border-yellow-600';
+      default: return 'bg-gray-500 border-gray-600';
     }
   };
 
   const getPriorityBorder = (priority: string) => {
     switch (priority) {
-      case 'Critical': return 'border-red-500 border-2';
+      case 'Critical': return 'border-red-500 border-4';
       case 'High': return 'border-orange-500 border-2';
       case 'Medium': return 'border-blue-500 border';
       case 'Low': return 'border-gray-300 border';
@@ -100,42 +115,84 @@ const SortableTask = ({
     }
   };
 
+  const moveTransformStyle = moveTransform ? {
+    transform: `translate(${moveTransform.x}px, ${moveTransform.y}px)`,
+  } : undefined;
+
   return (
     <div
-      ref={setNodeRef}
-      style={taskStyle}
-      className="absolute"
-      title={`${task.title} (${task.responsible}) - ${task.status}`}
+      className="absolute group"
+      style={{
+        left: `${taskLeft}%`,
+        width: `${Math.max(3, taskWidth)}%`,
+        top: `${yPosition * 60 + 10}px`,
+        height: '40px',
+        zIndex: isDragging ? 1000 : 10,
+        ...moveTransformStyle,
+      }}
     >
-      {/* Task Box on Timeline */}
+      {/* Main Task Bar */}
       <div
-        className={`absolute rounded ${getStatusColor(task.status)} ${getPriorityBorder(task.priority)} opacity-90 cursor-pointer hover:opacity-100 transition-all shadow-md hover:shadow-lg`}
-        style={{
-          left: `${taskLeft}%`,
-          width: `${Math.max(3, taskWidth)}%`,
-          height: '40px',
-          top: `${yPosition * 50}px`,
-          zIndex: 10,
-        }}
+        ref={setMoveRef}
+        className={`
+          relative h-full rounded-md shadow-md cursor-move transition-all duration-200
+          ${getStatusColor(task.status)} ${getPriorityBorder(task.priority)}
+          ${isDragging ? 'opacity-80 scale-105 shadow-lg' : 'hover:shadow-lg hover:scale-105'}
+          group-hover:brightness-110
+        `}
+        {...moveAttributes}
+        {...moveListeners}
         onClick={(e) => {
-          console.log('Gantt task box clicked:', task.title);
           e.stopPropagation();
           onEditTask?.(task);
         }}
-        {...attributes}
-        {...listeners}
+        title={`${task.title} (${task.responsible})\n${format(taskStartDate, 'MMM dd')} - ${format(taskEndDate, 'MMM dd')}\nStatus: ${task.status}\nPriority: ${task.priority}`}
       >
+        {/* Task Content */}
         <div className="px-2 py-1 text-xs text-white font-medium truncate h-full flex items-center">
           <span className="truncate">{task.id}: {task.title}</span>
         </div>
         
-        {/* Priority indicator */}
-        <div className={`absolute top-0 right-0 w-2 h-2 rounded-full ${
-          task.priority === 'Critical' ? 'bg-red-600' :
-          task.priority === 'High' ? 'bg-orange-500' :
-          task.priority === 'Medium' ? 'bg-blue-500' :
-          'bg-gray-400'
+        {/* Priority Indicator */}
+        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+          task.priority === 'Critical' ? 'bg-red-200' :
+          task.priority === 'High' ? 'bg-orange-200' :
+          task.priority === 'Medium' ? 'bg-blue-200' :
+          'bg-gray-200'
         }`} />
+
+        {/* Progress Indicator for In Progress tasks */}
+        {task.status === 'In Progress' && (
+          <div className="absolute bottom-0 left-0 h-1 bg-white opacity-50 rounded-b-md" style={{ width: '60%' }} />
+        )}
+
+        {/* Resize Handles */}
+        <div
+          ref={setResizeStartRef}
+          className="absolute left-0 top-0 w-2 h-full bg-white bg-opacity-0 hover:bg-opacity-30 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          {...resizeStartAttributes}
+          {...resizeStartListeners}
+          onClick={(e) => e.stopPropagation()}
+          title="Drag to change start date"
+        >
+          <div className="w-1 h-full bg-white rounded-l-md opacity-70" />
+        </div>
+        
+        <div
+          ref={setResizeEndRef}
+          className="absolute right-0 top-0 w-2 h-full bg-white bg-opacity-0 hover:bg-opacity-30 cursor-ew-resize opacity-0 group-hover:opacity-100 transition-opacity"
+          {...resizeEndAttributes}
+          {...resizeEndListeners}
+          onClick={(e) => e.stopPropagation()}
+          title="Drag to change end date"
+        >
+          <div className="w-1 h-full bg-white rounded-r-md opacity-70 ml-auto" />
+        </div>
+
+        {/* Move Handle */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+          <Move className="w-4 h-4 text-white drop-shadow-md" />
+        </div>
       </div>
 
       {/* Dependency Lines */}
@@ -144,46 +201,46 @@ const SortableTask = ({
         if (!depTask) return null;
         
         const depEndDate = new Date(depTask.dueDate);
-        const depDaysFromStart = Math.ceil((depEndDate.getTime() - ganttStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        const depDaysFromStart = differenceInDays(depEndDate, ganttStartDate);
         const depLeft = (depDaysFromStart / ganttDuration) * 100;
-        const depYPosition = allTasks.findIndex(t => t.id === depId) * 50;
-        const currentYPosition = yPosition * 50;
+        const depYPosition = allTasks.findIndex(t => t.id === depId) * 60;
+        const currentYPosition = yPosition * 60;
         
         return (
           <svg
             key={depId}
             className="absolute pointer-events-none"
             style={{
-              left: `${depLeft}%`,
-              top: `${Math.min(depYPosition, currentYPosition)}px`,
-              width: `${Math.abs(taskLeft - depLeft)}%`,
-              height: `${Math.abs(currentYPosition - depYPosition) + 40}px`,
+              left: `${depLeft - taskLeft}%`,
+              top: `${Math.min(depYPosition, currentYPosition) - currentYPosition}px`,
+              width: `${Math.abs(taskLeft - depLeft) + 5}%`,
+              height: `${Math.abs(currentYPosition - depYPosition) + 50}px`,
               zIndex: 5,
             }}
           >
             <defs>
               <marker
                 id={`arrowhead-${task.id}-${depId}`}
-                markerWidth="10"
-                markerHeight="7"
-                refX="9"
-                refY="3.5"
+                markerWidth="8"
+                markerHeight="6"
+                refX="7"
+                refY="3"
                 orient="auto"
+                className="fill-red-500"
               >
-                <polygon
-                  points="0 0, 10 3.5, 0 7"
-                  fill="#ef4444"
-                />
+                <polygon points="0 0, 8 3, 0 6" />
               </marker>
             </defs>
             <path
-              d={`M 0 ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 0 : Math.abs(currentYPosition - depYPosition))} 
-                  L ${Math.abs(taskLeft - depLeft)}% ${currentYPosition === depYPosition ? 20 : (currentYPosition < depYPosition ? Math.abs(currentYPosition - depYPosition) : 0)}`}
+              d={`M 0 ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 0 : Math.abs(currentYPosition - depYPosition) + 20)} 
+                  Q ${Math.abs(taskLeft - depLeft) * 0.3}% ${depYPosition === currentYPosition ? 20 : (depYPosition < currentYPosition ? 10 : Math.abs(currentYPosition - depYPosition) + 10)}
+                  ${Math.abs(taskLeft - depLeft)}% ${currentYPosition === depYPosition ? 20 : (currentYPosition < depYPosition ? Math.abs(currentYPosition - depYPosition) + 20 : 20)}`}
               stroke="#ef4444"
               strokeWidth="2"
               fill="none"
-              strokeDasharray="5,5"
+              strokeDasharray="4,4"
               markerEnd={`url(#arrowhead-${task.id}-${depId})`}
+              className="drop-shadow-sm"
             />
           </svg>
         );
@@ -192,22 +249,53 @@ const SortableTask = ({
   );
 };
 
+const TimelineDropZone = ({ 
+  children, 
+  ganttStartDate, 
+  ganttDuration, 
+  onTaskUpdate 
+}: { 
+  children: React.ReactNode;
+  ganttStartDate: Date;
+  ganttDuration: number;
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void;
+}) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'timeline-drop-zone',
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`relative transition-colors duration-200 ${
+        isOver ? 'bg-blue-50 border-2 border-dashed border-blue-300' : 'bg-gray-50'
+      }`}
+      style={{ minHeight: '400px' }}
+    >
+      {children}
+    </div>
+  );
+};
+
 export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, onEditTask }: GanttChartProps) => {
-  const [taskOrder, setTaskOrder] = useState(tasks.map(t => t.id));
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>();
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
   
   const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5, // 5px tolerance before drag starts
+      },
+    }),
+    useSensor(KeyboardSensor)
   );
 
   // Use custom dates if set, otherwise use project dates
   const ganttStartDate = customStartDate ? customStartDate : new Date(projectStartDate);
   const ganttEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
-  const ganttDuration = Math.max(1, Math.ceil((ganttEndDate.getTime() - ganttStartDate.getTime()) / (1000 * 60 * 60 * 24)));
+  const ganttDuration = Math.max(1, differenceInDays(ganttEndDate, ganttStartDate) + 1);
 
   // Filter tasks that fall within the selected timeline
   const filteredTasks = tasks.filter(task => {
@@ -216,24 +304,20 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     return taskStart <= ganttEndDate && taskEnd >= ganttStartDate;
   });
 
-  const orderedTasks = taskOrder
-    .map(id => filteredTasks.find(t => t.id === id))
-    .filter(Boolean) as Task[];
-
   // Generate timeline markers
   const timelineMarkers = useMemo(() => {
     const markers = [];
     const totalWeeks = Math.ceil(ganttDuration / 7);
     
     for (let week = 0; week <= totalWeeks; week++) {
-      const date = new Date(ganttStartDate);
-      date.setDate(date.getDate() + (week * 7));
+      const date = addDays(ganttStartDate, week * 7);
       const position = (week * 7 / ganttDuration) * 100;
       
       if (position <= 100) {
         markers.push({
-          date: date.toLocaleDateString(),
-          position
+          date: format(date, 'MMM dd'),
+          position,
+          fullDate: date
         });
       }
     }
@@ -241,18 +325,76 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     return markers;
   }, [ganttStartDate, ganttDuration]);
 
-  const orderedTasksAfterFilter = taskOrder.map(id => filteredTasks.find(t => t.id === id)).filter(Boolean) as Task[];
+  const onTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
+    const updatedTasks = tasks.map(task => 
+      task.id === taskId ? { ...task, ...updates } : task
+    );
+    onTasksChange(updatedTasks);
+  }, [tasks, onTasksChange]);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const data = active.data.current;
+    
+    if (data?.task) {
+      setDraggedTask(data.task);
+      setDragType(data.type);
+    }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = taskOrder.indexOf(active.id as string);
-      const newIndex = taskOrder.indexOf(over.id as string);
-      
-      const newTaskOrder = arrayMove(taskOrder, oldIndex, newIndex);
-      setTaskOrder(newTaskOrder);
+    const { active, over, delta } = event;
+    const data = active.data.current;
+    
+    if (!data?.task || !over) {
+      setDraggedTask(null);
+      setDragType(null);
+      return;
     }
+
+    const task = data.task as Task;
+    const pixelsToDays = ganttDuration / 100; // Convert percentage to days
+    const daysMoved = Math.round((delta.x / window.innerWidth) * 100 * pixelsToDays);
+
+    if (data.type === 'move') {
+      // Move entire task
+      const currentStart = new Date(task.startDate);
+      const currentEnd = new Date(task.dueDate);
+      const newStart = addDays(currentStart, daysMoved);
+      const newEnd = addDays(currentEnd, daysMoved);
+      
+      onTaskUpdate(task.id, {
+        startDate: format(newStart, 'yyyy-MM-dd'),
+        dueDate: format(newEnd, 'yyyy-MM-dd')
+      });
+    } else if (data.type === 'resize-start') {
+      // Resize start date
+      const currentStart = new Date(task.startDate);
+      const newStart = addDays(currentStart, daysMoved);
+      const currentEnd = new Date(task.dueDate);
+      
+      // Ensure start date doesn't go past end date
+      if (newStart < currentEnd) {
+        onTaskUpdate(task.id, {
+          startDate: format(newStart, 'yyyy-MM-dd')
+        });
+      }
+    } else if (data.type === 'resize-end') {
+      // Resize end date
+      const currentEnd = new Date(task.dueDate);
+      const newEnd = addDays(currentEnd, daysMoved);
+      const currentStart = new Date(task.startDate);
+      
+      // Ensure end date doesn't go before start date
+      if (newEnd > currentStart) {
+        onTaskUpdate(task.id, {
+          dueDate: format(newEnd, 'yyyy-MM-dd')
+        });
+      }
+    }
+
+    setDraggedTask(null);
+    setDragType(null);
   };
 
   const handleAddDependency = (taskId: string, dependencyId: string) => {
@@ -293,33 +435,14 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     );
   }
 
-  // Calculate task positions to avoid overlaps
-  const getTaskYPosition = (taskIndex: number, startDate: string, endDate: string) => {
-    let yPos = 0;
-    const currentStart = new Date(startDate);
-    const currentEnd = new Date(endDate);
-    
-    for (let i = 0; i < taskIndex; i++) {
-      const otherTask = orderedTasks[i];
-      const otherStart = new Date(otherTask.startDate);
-      const otherEnd = new Date(otherTask.dueDate);
-      
-      // Check for overlap
-      if (currentStart < otherEnd && currentEnd > otherStart) {
-        yPos = Math.max(yPos, i + 1);
-      }
-    }
-    return yPos;
-  };
-
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Project Gantt Chart</CardTitle>
+            <CardTitle>Interactive Project Gantt Chart</CardTitle>
             <p className="text-sm text-gray-600">
-              Single timeline view with dependencies. Drag tasks to reorder, click to edit.
+              Drag tasks to move or resize them. Click to edit. Hover to see resize handles.
             </p>
           </div>
           
@@ -407,102 +530,145 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
       <CardContent>
         {/* Timeline Header */}
         <div className="mb-6">
-          <div className="relative h-12 bg-gray-50 rounded border">
+          <div className="relative h-16 bg-gray-100 rounded border">
+            {/* Date markers */}
             {timelineMarkers.map((marker, index) => (
               <div
                 key={index}
-                className="absolute top-0 h-full border-l border-gray-300"
+                className="absolute top-0 h-full border-l border-gray-400"
                 style={{ left: `${marker.position}%` }}
               >
-                <div className="text-xs text-gray-600 mt-1 ml-1 whitespace-nowrap">
+                <div className="text-xs text-gray-700 mt-1 ml-1 whitespace-nowrap font-medium">
                   {marker.date}
+                </div>
+                <div className="text-xs text-gray-500 mt-1 ml-1 whitespace-nowrap">
+                  {format(marker.fullDate, 'yyyy')}
                 </div>
               </div>
             ))}
+            
+            {/* Today indicator */}
+            {(() => {
+              const today = new Date();
+              const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
+              if (todayPos >= 0 && todayPos <= 100) {
+                return (
+                  <div
+                    className="absolute top-0 h-full border-l-2 border-red-500 bg-red-500 bg-opacity-10"
+                    style={{ left: `${todayPos}%` }}
+                  >
+                    <div className="text-xs text-red-700 mt-1 ml-1 whitespace-nowrap font-bold">
+                      TODAY
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </div>
         </div>
 
-        {/* Single Timeline with All Tasks */}
+        {/* Interactive Gantt Timeline */}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <SortableContext
-            items={taskOrder}
-            strategy={verticalListSortingStrategy}
+          <TimelineDropZone
+            ganttStartDate={ganttStartDate}
+            ganttDuration={ganttDuration}
+            onTaskUpdate={onTaskUpdate}
           >
             <div 
-              className="relative bg-gray-50 rounded border p-4"
+              className="relative border border-gray-200 rounded-lg"
               style={{ 
-                height: `${Math.max(200, (orderedTasks.length * 50) + 100)}px`,
-                minHeight: '200px' 
+                height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
+                minHeight: '300px' 
               }}
             >
-              {orderedTasksAfterFilter.map((task, index) => (
-                <SortableTask
+              {filteredTasks.map((task, index) => (
+                <DraggableTask
                   key={task.id}
                   task={task}
+                  ganttStartDate={ganttStartDate}
+                  ganttDuration={ganttDuration}
+                  onTaskUpdate={onTaskUpdate}
+                  onEditTask={onEditTask}
                   onAddDependency={handleAddDependency}
                   onRemoveDependency={handleRemoveDependency}
                   allTasks={filteredTasks}
-                  ganttDuration={ganttDuration}
-                  ganttStartDate={ganttStartDate}
-                  onEditTask={onEditTask}
-                  yPosition={getTaskYPosition(index, task.startDate, task.dueDate)}
+                  yPosition={index}
+                  isDragging={draggedTask?.id === task.id}
                 />
               ))}
+              
+              {/* Drag feedback overlay */}
+              {draggedTask && (
+                <div className="absolute inset-0 bg-blue-50 bg-opacity-50 pointer-events-none flex items-center justify-center">
+                  <div className="text-blue-600 font-medium">
+                    {dragType === 'move' && 'Moving task...'}
+                    {dragType === 'resize-start' && 'Adjusting start date...'}
+                    {dragType === 'resize-end' && 'Adjusting end date...'}
+                  </div>
+                </div>
+              )}
             </div>
-          </SortableContext>
+          </TimelineDropZone>
         </DndContext>
 
-        {/* Task List Panel */}
-        <div className="mt-6">
-          <h4 className="text-sm font-medium mb-3">Task Dependencies</h4>
-          <div className="space-y-2">
-            {orderedTasksAfterFilter.map(task => {
-              const availableDependencies = filteredTasks.filter(t =>
+        {/* Task Dependencies Panel */}
+        <div className="mt-8">
+          <h4 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Edit3 className="w-5 h-5" />
+            Task Dependencies
+          </h4>
+          <div className="grid gap-3">
+            {filteredTasks.map(task => {
+              const availableDependencies = filteredTasks.filter(t => 
                 t.id !== task.id && !task.dependencies?.includes(t.id)
               );
               
               return (
-                <div key={task.id} className="flex items-center justify-between p-3 bg-white rounded border">
-                  <div className="flex items-center space-x-2">
-                    <Badge variant="outline" className="text-xs">
+                <div key={task.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center space-x-3">
+                    <Badge variant="outline" className="text-sm font-mono">
                       {task.id}
                     </Badge>
-                    <span className="font-medium text-sm">{task.title}</span>
+                    <span className="font-medium">{task.title}</span>
                     <Badge variant={
                       task.status === 'Completed' ? 'secondary' :
                       task.status === 'In Progress' ? 'default' : 'outline'
                     } className="text-xs">
                       {task.status}
                     </Badge>
+                    <span className="text-sm text-gray-500">
+                      {format(new Date(task.startDate), 'MMM dd')} - {format(new Date(task.dueDate), 'MMM dd')}
+                    </span>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     {/* Current Dependencies */}
                     {task.dependencies && task.dependencies.length > 0 && (
-                      <div className="flex items-center space-x-1">
-                        <span className="text-xs text-gray-500">Depends on:</span>
-                        {task.dependencies.map(depId => {
-                          const depTask = filteredTasks.find(t => t.id === depId);
-                          return depTask ? (
-                            <Badge 
-                              key={depId} 
-                              variant="secondary" 
-                              className="text-xs flex items-center gap-1"
-                            >
-                              {depTask.title.substring(0, 10)}...
-                              <button
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">Depends on:</span>
+                        <div className="flex gap-1">
+                          {task.dependencies.map(depId => {
+                            const depTask = filteredTasks.find(t => t.id === depId);
+                            return depTask ? (
+                              <Badge 
+                                key={depId} 
+                                variant="secondary" 
+                                className="text-xs flex items-center gap-1 hover:bg-red-100 transition-colors group cursor-pointer"
                                 onClick={() => handleRemoveDependency(task.id, depId)}
-                                className="text-red-500 hover:text-red-700"
+                                title={`Remove dependency on ${depTask.title}`}
                               >
-                                <Trash2 className="w-3 h-3" />
-                              </button>
-                            </Badge>
-                          ) : null;
-                        })}
+                                {depTask.id}
+                                <Trash2 className="w-3 h-3 text-red-500 group-hover:text-red-700" />
+                              </Badge>
+                            ) : null;
+                          })}
+                        </div>
                       </div>
                     )}
                     
@@ -515,13 +681,13 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                             e.target.value = '';
                           }
                         }}
-                        className="text-xs border rounded px-2 py-1"
+                        className="text-sm border border-gray-300 rounded px-3 py-1 bg-white hover:border-blue-400 focus:border-blue-500 focus:outline-none"
                         defaultValue=""
                       >
-                        <option value="">Add dependency...</option>
+                        <option value="">+ Add dependency</option>
                         {availableDependencies.map(dep => (
                           <option key={dep.id} value={dep.id}>
-                            {dep.title}
+                            {dep.id}: {dep.title}
                           </option>
                         ))}
                       </select>
@@ -531,6 +697,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
               );
             })}
           </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <h5 className="font-medium text-blue-900 mb-2">How to use the Gantt Chart:</h5>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• <strong>Move tasks:</strong> Drag the center of a task to move it along the timeline</li>
+            <li>• <strong>Resize tasks:</strong> Hover over a task and drag the left/right edges to change start/end dates</li>
+            <li>• <strong>Edit tasks:</strong> Click on any task to open the task editor</li>
+            <li>• <strong>Filter timeline:</strong> Use the date pickers above to focus on specific time periods</li>
+            <li>• <strong>Manage dependencies:</strong> Use the panel below to add/remove task dependencies</li>
+          </ul>
         </div>
       </CardContent>
     </Card>
