@@ -41,7 +41,7 @@ interface DraggableTaskProps {
   allTasks: Task[];
   yPosition: number;
   isDragging?: boolean;
-  onAddComment?: (taskId: string, comment: string) => void;
+  onTasksChange: (tasks: Task[]) => void;
 }
 
 const DraggableTask = ({ 
@@ -55,7 +55,7 @@ const DraggableTask = ({
   allTasks, 
   yPosition,
   isDragging = false,
-  onAddComment 
+  onTasksChange 
 }: DraggableTaskProps) => {
   const [isResizing, setIsResizing] = useState<'start' | 'end' | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
@@ -153,8 +153,21 @@ const DraggableTask = ({
         title={`${task.title} (${task.responsible})\n${format(taskStartDate, 'MMM dd')} - ${format(taskEndDate, 'MMM dd')}\nStatus: ${task.status}\nPriority: ${task.priority}`}
       >
         {/* Task Content */}
-        <div className="px-2 py-1 text-xs text-white font-medium truncate h-full flex items-center">
-          <span className="truncate">{task.id}: {task.title}</span>
+        <div className="px-2 py-1 text-xs text-white font-medium h-full flex flex-col justify-center">
+          <div className="truncate">{task.id}: {task.title}</div>
+          {task.comments && task.comments.length > 0 && (
+            <div 
+              className="text-xs text-white/80 truncate cursor-pointer hover:text-white mt-0.5"
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCommentInput(true);
+                setCommentText(task.comments?.[0]?.text || '');
+              }}
+              title={`Click to edit: ${task.comments[0]?.text}`}
+            >
+              💬 {task.comments[0]?.text}
+            </div>
+          )}
         </div>
         
         {/* Priority Indicator */}
@@ -208,7 +221,7 @@ const DraggableTask = ({
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            placeholder="Add a comment..."
+            placeholder={task.comments && task.comments.length > 0 ? "Edit comment..." : "Add a comment..."}
             className="w-full p-2 border border-gray-200 rounded text-sm resize-none"
             rows={3}
             autoFocus
@@ -225,37 +238,38 @@ const DraggableTask = ({
             </button>
             <button
               onClick={() => {
-                if (commentText.trim() && onAddComment) {
-                  onAddComment(task.id, commentText.trim());
-                }
+                 if (commentText.trim()) {
+                   // Replace existing comment or add new one
+                   const updatedTasks = allTasks.map(t => 
+                     t.id === task.id 
+                       ? { ...t, comments: [{ text: commentText.trim(), timestamp: new Date().toISOString() }] }
+                       : t
+                   );
+                   onTasksChange(updatedTasks);
+                 }
                 setShowCommentInput(false);
                 setCommentText('');
               }}
               className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              Add
+              {task.comments && task.comments.length > 0 ? 'Update' : 'Add'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Comment Button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setShowCommentInput(!showCommentInput);
-        }}
-        className="absolute -top-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 text-white text-xs px-2 py-1 rounded hover:bg-gray-800"
-        title="Add comment"
-      >
-        💬
-      </button>
-      
-      {/* Show existing comments count */}
-      {task.comments && task.comments.length > 0 && (
-        <div className="absolute -top-6 left-0 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-          {task.comments.length} comment{task.comments.length > 1 ? 's' : ''}
-        </div>
+      {/* Comment Button - only show if no comment exists */}
+      {(!task.comments || task.comments.length === 0) && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowCommentInput(!showCommentInput);
+          }}
+          className="absolute -top-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 text-white text-xs px-2 py-1 rounded hover:bg-gray-800"
+          title="Add comment"
+        >
+          💬
+        </button>
       )}
     </div>
   );
@@ -284,6 +298,10 @@ const DependencyArrow = ({
   const fromDaysFromStart = differenceInDays(fromEndDate, ganttStartDate);
   const toDaysFromStart = differenceInDays(toStartDate, ganttStartDate);
   
+  // Calculate task duration for from task to get its width
+  const fromTaskDuration = Math.max(1, differenceInDays(fromEndDate, new Date(fromTask.startDate)) + 1);
+  const fromTaskWidth = (fromTaskDuration / ganttDuration) * 100;
+  
   const fromLeft = (fromDaysFromStart / ganttDuration) * 100;
   const toLeft = (toDaysFromStart / ganttDuration) * 100;
   
@@ -310,30 +328,31 @@ const DependencyArrow = ({
         top: 0,
         width: '100%',
         height: '100%',
-        zIndex: 1,
+        zIndex: 5,
+        position: 'absolute'
       }}
     >
       <defs>
         <marker
           id={`arrowhead-${fromTask.id}-${toTask.id}`}
-          markerWidth="12"
-          markerHeight="10"
-          refX="11"
-          refY="5"
+          markerWidth="8"
+          markerHeight="8"
+          refX="7"
+          refY="4"
           orient="auto"
           fill={arrowColor}
         >
-          <polygon points="0 0, 12 5, 0 10" />
+          <polygon points="0 0, 8 4, 0 8" />
         </marker>
       </defs>
       <path
-        d={`M ${fromLeft}% ${fromY} 
-            L ${fromLeft + 2}% ${fromY}
-            Q ${(fromLeft + toLeft) / 2}% ${fromY < toY ? fromY - 20 : fromY + 20}
-            ${toLeft - 2}% ${toY}
+        d={`M ${fromLeft + fromTaskWidth}% ${fromY} 
+            L ${fromLeft + fromTaskWidth + 1}% ${fromY}
+            Q ${(fromLeft + toLeft) / 2 + 2}% ${fromY < toY ? fromY - 15 : fromY + 15}
+            ${toLeft - 1}% ${toY}
             L ${toLeft}% ${toY}`}
         stroke={arrowColor}
-        strokeWidth="3"
+        strokeWidth="2"
         fill="none"
         markerEnd={`url(#arrowhead-${fromTask.id}-${toTask.id})`}
         className="drop-shadow-sm"
@@ -376,14 +395,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
 
-  const handleAddComment = useCallback((taskId: string, comment: string) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === taskId 
-        ? { ...task, comments: [...(task.comments || []), { text: comment, timestamp: new Date().toISOString() }] }
-        : task
-    );
-    onTasksChange(updatedTasks);
-  }, [tasks, onTasksChange]);
+  // Remove this callback as we handle comments directly in the component
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -702,7 +714,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   allTasks={filteredTasks}
                   yPosition={index}
                   isDragging={draggedTask?.id === task.id}
-                  onAddComment={handleAddComment}
+                  onTasksChange={onTasksChange}
                 />
               ))}
               
