@@ -23,6 +23,8 @@ export const TaskMetricsDetail = ({
   metricType,
   onEditTask 
 }: TaskMetricsDetailProps) => {
+  console.log('TaskMetricsDetail rendered with onEditTask:', !!onEditTask);
+  
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Completed": return "bg-green-100 text-green-800";
@@ -49,9 +51,15 @@ export const TaskMetricsDetail = ({
   };
 
   const handleRowClick = (task: Task) => {
+    console.log('Row clicked for task:', task.id, task.title);
+    console.log('onEditTask available:', !!onEditTask);
+    
     if (onEditTask) {
+      console.log('Calling onEditTask with task:', task.id);
       onEditTask(task);
       onClose(); // Close the metrics detail modal when opening task details
+    } else {
+      console.log('onEditTask is not available');
     }
   };
 

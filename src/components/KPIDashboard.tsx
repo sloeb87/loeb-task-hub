@@ -18,6 +18,8 @@ interface KPIDashboardProps {
 }
 
 export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps) => {
+  console.log('KPIDashboard rendered with onEditTask:', !!onEditTask);
+  
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedScope, setSelectedScope] = useState<string>("all");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("all");
@@ -66,6 +68,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   const metrics = useKPIMetrics(filteredTasks);
 
   const handleMetricClick = (metricType: string, title: string, tasks: Task[]) => {
+    console.log('Metric clicked:', metricType, 'tasks:', tasks.length);
     setDetailModal({
       isOpen: true,
       title,
@@ -81,6 +84,16 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
       tasks: [],
       metricType: ''
     });
+  };
+
+  const handleEditTaskFromDetail = (task: Task) => {
+    console.log('handleEditTaskFromDetail called with task:', task.id);
+    if (onEditTask) {
+      console.log('Calling onEditTask from KPIDashboard');
+      onEditTask(task);
+    } else {
+      console.log('onEditTask not available in KPIDashboard');
+    }
   };
 
   const statusChartData = Object.entries(metrics.tasksByStatus).map(([status, count]) => ({
@@ -262,7 +275,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         title={detailModal.title}
         tasks={detailModal.tasks}
         metricType={detailModal.metricType as any}
-        onEditTask={onEditTask}
+        onEditTask={handleEditTaskFromDetail}
       />
     </div>
   );
