@@ -468,6 +468,8 @@ const GanttView = () => {
             }}
             onSave={selectedTask ? handleUpdateTask : handleCreateTask}
             task={selectedTask}
+            allTasks={tasks}
+            allProjects={projects}
           />
         )}
       </div>
