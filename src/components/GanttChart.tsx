@@ -20,7 +20,7 @@ import {
   useDraggable,
   useDroppable
 } from '@dnd-kit/core';
-import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink, ZoomIn, ZoomOut } from 'lucide-react';
+import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink, ZoomIn, ZoomOut, Target } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -634,6 +634,18 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     setZoomLevel(prev => Math.max(prev / 1.5, 0.25)); // Min zoom 0.25x
   };
 
+  const handleGoToToday = () => {
+    const today = new Date();
+    const tenDaysBefore = new Date(today);
+    tenDaysBefore.setDate(today.getDate() - 10);
+    const tenDaysAfter = new Date(today);
+    tenDaysAfter.setDate(today.getDate() + 10);
+    
+    setCustomStartDate(tenDaysBefore);
+    setCustomEndDate(tenDaysAfter);
+    setZoomLevel(1); // Reset zoom to normal when going to today
+  };
+
   if (tasks.length === 0) {
     return (
       <Card>
@@ -731,41 +743,54 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                 </Button>
               )}
               
-              {/* Open in New Window Button */}
+              {/* Go to Today Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoToToday}
+                title="Center view on today (±10 days)"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Target className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          
+          {/* Right side controls */}
+          <div className="flex items-center space-x-2">
+            {/* Open in New Window Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenInNewWindow}
+              title="Open Gantt chart in new window"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+            
+            {/* Zoom Controls */}
+            <div className="flex items-center space-x-1 border-l pl-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleOpenInNewWindow}
-                title="Open Gantt chart in new window"
-                className="ml-2"
+                onClick={handleZoomOut}
+                title="Zoom out (show more time)"
+                disabled={zoomLevel <= 0.25}
               >
-                <ExternalLink className="h-4 w-4" />
+                <ZoomOut className="h-4 w-4" />
               </Button>
-              
-              {/* Zoom Controls */}
-              <div className="flex items-center space-x-1 ml-2 border-l pl-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleZoomOut}
-                  title="Zoom out (show more time)"
-                  disabled={zoomLevel <= 0.25}
-                >
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <span className="text-xs text-gray-500 px-2">
-                  {Math.round(zoomLevel * 100)}%
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleZoomIn}
-                  title="Zoom in (show less time)"
-                  disabled={zoomLevel >= 4}
-                >
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-              </div>
+              <span className="text-xs text-gray-500 px-2">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleZoomIn}
+                title="Zoom in (show less time)"
+                disabled={zoomLevel >= 4}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
