@@ -3,10 +3,13 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Task } from "@/types/task";
 
 interface TaskChartsProps {
   statusChartData: Array<{ status: string; count: number; percentage: string }>;
   priorityChartData: Array<{ priority: string; count: number; percentage: string }>;
+  tasks?: Task[];
+  onMetricClick?: (metricType: string, title: string, tasks: Task[]) => void;
 }
 
 const STATUS_COLORS = {
@@ -23,7 +26,27 @@ const PRIORITY_COLORS = {
   'Critical': '#ef4444'
 };
 
-export const TaskCharts = ({ statusChartData, priorityChartData }: TaskChartsProps) => {
+export const TaskCharts = ({ statusChartData, priorityChartData, tasks = [], onMetricClick }: TaskChartsProps) => {
+  const handleStatusClick = (data: any) => {
+    if (!onMetricClick || !tasks.length) return;
+    
+    const status = data.status;
+    const filteredTasks = tasks.filter(task => task.status === status);
+    const metricType = status.toLowerCase().replace(' ', '');
+    
+    onMetricClick(metricType, `${status} Tasks`, filteredTasks);
+  };
+
+  const handlePriorityClick = (data: any) => {
+    if (!onMetricClick || !tasks.length) return;
+    
+    const priority = data.priority;
+    const filteredTasks = tasks.filter(task => task.priority === priority);
+    const metricType = priority.toLowerCase();
+    
+    onMetricClick(metricType, `${priority} Priority Tasks`, filteredTasks);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -45,6 +68,8 @@ export const TaskCharts = ({ statusChartData, priorityChartData }: TaskChartsPro
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="count"
+                onClick={handleStatusClick}
+                style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
               >
                 {statusChartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || '#3b82f6'} />
@@ -65,12 +90,16 @@ export const TaskCharts = ({ statusChartData, priorityChartData }: TaskChartsPro
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={priorityChartData}>
+            <BarChart data={priorityChartData} onClick={handlePriorityClick}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="priority" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="count">
+              <Bar 
+                dataKey="count" 
+                onClick={handlePriorityClick}
+                style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
+              >
                 {priorityChartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || '#3b82f6'} />
                 ))}

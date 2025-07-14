@@ -389,7 +389,12 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
       />
 
       {/* Charts Section */}
-      <TaskCharts statusChartData={statusChartData} priorityChartData={priorityChartData} />
+      <TaskCharts 
+        statusChartData={statusChartData} 
+        priorityChartData={priorityChartData}
+        tasks={filteredTasks}
+        onMetricClick={handleMetricClick}
+      />
       
       {/* New Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
