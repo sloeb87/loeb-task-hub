@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
 import { Task } from "@/types/task";
-import { useState } from "react";
+import React, { useState } from "react";
 
 interface TaskTableProps {
   tasks: Task[];
