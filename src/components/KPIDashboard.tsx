@@ -128,50 +128,80 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
     percentage: ((count / metrics.totalTasks) * 100).toFixed(1)
   }));
 
-  // Generate timeline data for status chart
+  // Generate timeline data for status chart - now respects the filtered tasks
   const generateTimelineData = () => {
     const now = new Date();
     const data = [];
     
-    // Generate data for the last 12 periods based on time range
-    for (let i = 11; i >= 0; i--) {
-      let periodStart = new Date();
-      let periodEnd = new Date();
-      let dateLabel = '';
+    // Use custom date range if set, otherwise use default periods
+    let startDate: Date;
+    let endDate: Date;
+    
+    if (selectedTimeRange === "custom" && customDateFrom && customDateTo) {
+      startDate = new Date(customDateFrom);
+      endDate = new Date(customDateTo);
       
-      switch (selectedTimeRange) {
-        case "week":
-          periodStart.setDate(now.getDate() - (i * 7) - 7);
-          periodEnd.setDate(now.getDate() - (i * 7));
-          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          break;
-        case "month":
-          periodStart.setMonth(now.getMonth() - i - 1);
-          periodEnd.setMonth(now.getMonth() - i);
-          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
-          break;
-        case "quarter":
-          periodStart.setMonth(now.getMonth() - (i * 3) - 3);
-          periodEnd.setMonth(now.getMonth() - (i * 3));
-          dateLabel = `Q${Math.floor(periodStart.getMonth() / 3) + 1} ${periodStart.getFullYear().toString().slice(-2)}`;
-          break;
-        default:
-          periodStart.setMonth(now.getMonth() - i - 1);
-          periodEnd.setMonth(now.getMonth() - i);
-          dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+      // Generate data based on the custom range
+      const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+      const periodsCount = Math.min(12, Math.max(1, daysDiff / 7)); // Weekly periods within the range
+      
+      for (let i = 0; i < periodsCount; i++) {
+        const periodStart = new Date(startDate.getTime() + (i * (daysDiff / periodsCount) * 24 * 60 * 60 * 1000));
+        const periodEnd = new Date(startDate.getTime() + ((i + 1) * (daysDiff / periodsCount) * 24 * 60 * 60 * 1000));
+        
+        const periodTasks = filteredTasks.filter(task => {
+          const taskDate = new Date(task.creationDate);
+          return taskDate >= periodStart && taskDate < periodEnd;
+        });
+        
+        data.push({
+          date: periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          open: periodTasks.filter(t => t.status === "Open").length,
+          inProgress: periodTasks.filter(t => t.status === "In Progress").length,
+          completed: periodTasks.filter(t => t.status === "Completed").length,
+        });
       }
-      
-      const periodTasks = filteredTasks.filter(task => {
-        const taskDate = new Date(task.creationDate);
-        return taskDate >= periodStart && taskDate < periodEnd;
-      });
-      
-      data.push({
-        date: dateLabel,
-        open: periodTasks.filter(t => t.status === "Open").length,
-        inProgress: periodTasks.filter(t => t.status === "In Progress").length,
-        completed: periodTasks.filter(t => t.status === "Completed").length,
-      });
+    } else {
+      // Generate data for the last 12 periods based on time range
+      for (let i = 11; i >= 0; i--) {
+        let periodStart = new Date();
+        let periodEnd = new Date();
+        let dateLabel = '';
+        
+        switch (selectedTimeRange) {
+          case "week":
+            periodStart.setDate(now.getDate() - (i * 7) - 7);
+            periodEnd.setDate(now.getDate() - (i * 7));
+            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            break;
+          case "month":
+            periodStart.setMonth(now.getMonth() - i - 1);
+            periodEnd.setMonth(now.getMonth() - i);
+            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+            break;
+          case "quarter":
+            periodStart.setMonth(now.getMonth() - (i * 3) - 3);
+            periodEnd.setMonth(now.getMonth() - (i * 3));
+            dateLabel = `Q${Math.floor(periodStart.getMonth() / 3) + 1} ${periodStart.getFullYear().toString().slice(-2)}`;
+            break;
+          default:
+            periodStart.setMonth(now.getMonth() - i - 1);
+            periodEnd.setMonth(now.getMonth() - i);
+            dateLabel = periodStart.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+        }
+        
+        const periodTasks = filteredTasks.filter(task => {
+          const taskDate = new Date(task.creationDate);
+          return taskDate >= periodStart && taskDate < periodEnd;
+        });
+        
+        data.push({
+          date: dateLabel,
+          open: periodTasks.filter(t => t.status === "Open").length,
+          inProgress: periodTasks.filter(t => t.status === "In Progress").length,
+          completed: periodTasks.filter(t => t.status === "Completed").length,
+        });
+      }
     }
     
     return data;
