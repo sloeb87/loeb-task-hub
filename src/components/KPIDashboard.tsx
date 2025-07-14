@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -15,9 +14,10 @@ import { useKPIMetrics } from "@/hooks/useKPIMetrics";
 interface KPIDashboardProps {
   tasks: Task[];
   projects: { id: string; name: string; startDate: string; endDate: string; }[];
+  onEditTask?: (task: Task) => void;
 }
 
-export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
+export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps) => {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedScope, setSelectedScope] = useState<string>("all");
   const [selectedTimeRange, setSelectedTimeRange] = useState<string>("all");
@@ -262,6 +262,7 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
         title={detailModal.title}
         tasks={detailModal.tasks}
         metricType={detailModal.metricType as any}
+        onEditTask={onEditTask}
       />
     </div>
   );

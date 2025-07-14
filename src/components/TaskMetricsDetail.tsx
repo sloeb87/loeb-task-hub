@@ -12,6 +12,7 @@ interface TaskMetricsDetailProps {
   title: string;
   tasks: Task[];
   metricType: 'created' | 'completed' | 'overdue' | 'inprogress' | 'onhold' | 'critical';
+  onEditTask?: (task: Task) => void;
 }
 
 export const TaskMetricsDetail = ({ 
@@ -19,7 +20,8 @@ export const TaskMetricsDetail = ({
   onClose, 
   title, 
   tasks, 
-  metricType 
+  metricType,
+  onEditTask 
 }: TaskMetricsDetailProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -44,6 +46,13 @@ export const TaskMetricsDetail = ({
   const isOverdue = (dueDate: string, status: string) => {
     if (status === "Completed") return false;
     return new Date(dueDate) < new Date();
+  };
+
+  const handleRowClick = (task: Task) => {
+    if (onEditTask) {
+      onEditTask(task);
+      onClose(); // Close the metrics detail modal when opening task details
+    }
   };
 
   return (
@@ -71,7 +80,11 @@ export const TaskMetricsDetail = ({
             </TableHeader>
             <TableBody>
               {tasks.map((task) => (
-                <TableRow key={task.id}>
+                <TableRow 
+                  key={task.id}
+                  className={`transition-colors ${onEditTask ? 'hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer' : ''}`}
+                  onClick={() => handleRowClick(task)}
+                >
                   <TableCell>
                     <div>
                       <div className="font-medium text-sm">{task.title}</div>
