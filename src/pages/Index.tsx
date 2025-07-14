@@ -46,7 +46,25 @@ const Index = () => {
   const getStoredTasks = (): Task[] => {
     try {
       const stored = localStorage.getItem('pmtask-tasks');
-      return stored ? JSON.parse(stored) : mockTasks;
+      let tasks = stored ? JSON.parse(stored) : mockTasks;
+      
+      // Migrate old task IDs to new format (T1, T2, T3...)
+      let needsMigration = false;
+      tasks = tasks.map((task: Task, index: number) => {
+        if (!task.id.startsWith('T') || task.id.includes('-')) {
+          needsMigration = true;
+          return { ...task, id: `T${index + 1}` };
+        }
+        return task;
+      });
+      
+      // Save migrated tasks back to localStorage
+      if (needsMigration) {
+        localStorage.setItem('pmtask-tasks', JSON.stringify(tasks));
+        console.log('Migrated task IDs to new format:', tasks.map(t => t.id));
+      }
+      
+      return tasks;
     } catch (error) {
       console.warn('Failed to load tasks from localStorage:', error);
       return mockTasks;
