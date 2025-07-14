@@ -1,11 +1,12 @@
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
-import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink, MessageSquare } from "lucide-react";
+import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink, MessageSquare, Filter } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
 interface ProjectTableProps {
@@ -21,6 +22,11 @@ interface ProjectTableProps {
 type SortField = 'name' | 'owner' | 'startDate' | 'endDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
+interface ProjectFilters {
+  owner: string[];
+  status: string[];
+}
+
 export const ProjectTable = ({
   projects,
   tasks,
@@ -33,6 +39,29 @@ export const ProjectTable = ({
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  const [filters, setFilters] = useState<ProjectFilters>({
+    owner: [],
+    status: []
+  });
+  const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
+  const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Close filter dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const clickedOutside = Object.keys(showFilters).every(filterType => {
+        const ref = filterRefs.current[filterType];
+        return !ref || !ref.contains(event.target as Node);
+      });
+      
+      if (clickedOutside) {
+        setShowFilters({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showFilters]);
 
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
@@ -57,11 +86,41 @@ export const ProjectTable = ({
     }
   };
 
+  const getUniqueValues = (field: keyof Project) => {
+    return [...new Set(projects.map(project => project[field] as string))].filter(Boolean).sort();
+  };
+
+  const handleFilterChange = (filterType: keyof ProjectFilters, value: string, checked: boolean) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterType]: checked 
+        ? [...prev[filterType], value]
+        : prev[filterType].filter(item => item !== value)
+    }));
+  };
+
+  const toggleFilterDropdown = (filterType: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowFilters(prev => ({
+      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
+      [filterType]: !prev[filterType]
+    }));
+  };
+
+  const clearFilter = (filterType: keyof ProjectFilters) => {
+    setFilters(prev => ({ ...prev, [filterType]: [] }));
+  };
+
   const filteredProjects = projects.filter(project => {
-    if (filter === 'all') return true;
-    if (filter === 'active') return project.status === 'Active';
-    if (filter === 'on-hold') return project.status === 'On Hold';
-    if (filter === 'completed') return project.status === 'Completed';
+    // Apply main filter
+    if (filter === 'active' && project.status !== 'Active') return false;
+    if (filter === 'on-hold' && project.status !== 'On Hold') return false;
+    if (filter === 'completed' && project.status !== 'Completed') return false;
+    
+    // Apply additional filters
+    if (filters.owner.length > 0 && !filters.owner.includes(project.owner)) return false;
+    if (filters.status.length > 0 && !filters.status.includes(project.status)) return false;
+    
     return true;
   });
 
@@ -84,10 +143,87 @@ export const ProjectTable = ({
     field: SortField;
     children: React.ReactNode;
   }) => (
-    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort(field)}>
+    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded" onClick={() => handleSort(field)}>
       <div className="flex items-center space-x-1">
         <span>{children}</span>
         {sortField === field && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
+      </div>
+    </div>
+  );
+
+  const FilterableHeader = ({ 
+    field, 
+    filterType, 
+    children 
+  }: { 
+    field: SortField; 
+    filterType: keyof ProjectFilters; 
+    children: React.ReactNode;
+  }) => (
+    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+      <div className="flex items-center justify-between">
+        <div 
+          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1 rounded px-1 py-1"
+          onClick={() => handleSort(field)}
+        >
+          <span>{children}</span>
+          {sortField === field && (
+            sortDirection === 'asc' ? 
+              <ChevronUp className="w-3 h-3" /> : 
+              <ChevronDown className="w-3 h-3" />
+          )}
+        </div>
+        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`p-1 h-6 w-6 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+            onClick={(e) => toggleFilterDropdown(filterType, e)}
+          >
+            <Filter className="w-3 h-3" />
+            {filters[filterType].length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {filters[filterType].length}
+              </span>
+            )}
+          </Button>
+          {showFilters[filterType] && (
+            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {getUniqueValues(filterType as keyof Project).map(value => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${filterType}-${value}`}
+                      checked={filters[filterType].includes(value)}
+                      onCheckedChange={(checked) => 
+                        handleFilterChange(filterType, value, checked as boolean)
+                      }
+                    />
+                    <label 
+                      htmlFor={`${filterType}-${value}`}
+                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      title={value}
+                    >
+                      {value}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {filters[filterType].length > 0 && (
+                <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => clearFilter(filterType)}
+                    className="w-full"
+                  >
+                    Clear All ({filters[filterType].length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -128,11 +264,11 @@ export const ProjectTable = ({
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-            <SortableHeader field="owner">Owner & Team</SortableHeader>
+            <FilterableHeader field="owner" filterType="owner">Owner & Team</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
-            <SortableHeader field="status">Status & Progress</SortableHeader>
+            <FilterableHeader field="status" filterType="status">Status & Progress</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>

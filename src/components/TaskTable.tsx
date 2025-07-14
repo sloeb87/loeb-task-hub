@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
 import { Task } from "@/types/task";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -36,6 +36,24 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     responsible: []
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
+  const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // Close filter dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const clickedOutside = Object.keys(showFilters).every(filterType => {
+        const ref = filterRefs.current[filterType];
+        return !ref || !ref.contains(event.target as Node);
+      });
+      
+      if (clickedOutside) {
+        setShowFilters({});
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showFilters]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -63,7 +81,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const getUniqueValues = (field: keyof Task) => {
-    return [...new Set(tasks.map(task => task[field] as string))].sort();
+    return [...new Set(tasks.map(task => task[field] as string))].filter(Boolean).sort();
   };
 
   const handleSort = (field: SortField) => {
@@ -84,11 +102,16 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }));
   };
 
-  const toggleFilterDropdown = (filterType: string) => {
+  const toggleFilterDropdown = (filterType: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     setShowFilters(prev => ({
-      ...prev,
+      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}),
       [filterType]: !prev[filterType]
     }));
+  };
+
+  const clearFilter = (filterType: keyof Filters) => {
+    setFilters(prev => ({ ...prev, [filterType]: [] }));
   };
 
   const filteredAndSortedTasks = tasks
@@ -146,7 +169,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
       <div className="flex items-center justify-between">
         <div 
-          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1"
+          className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-1 rounded px-1 py-1"
           onClick={() => handleSort(field)}
         >
           <span>{children}</span>
@@ -156,17 +179,22 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ChevronDown className="w-3 h-3" />
           )}
         </div>
-        <div className="relative">
+        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
           <Button
             size="sm"
             variant="ghost"
-            className="p-1 h-6 w-6"
-            onClick={() => toggleFilterDropdown(filterType)}
+            className={`p-1 h-6 w-6 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+            onClick={(e) => toggleFilterDropdown(filterType, e)}
           >
             <Filter className="w-3 h-3" />
+            {filters[filterType].length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                {filters[filterType].length}
+              </span>
+            )}
           </Button>
           {showFilters[filterType] && (
-            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px]">
+            <div className="absolute top-8 right-0 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {getUniqueValues(filterType as keyof Task).map(value => (
                   <div key={value} className="flex items-center space-x-2">
@@ -179,7 +207,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     />
                     <label 
                       htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white"
+                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      title={value}
                     >
                       {value}
                     </label>
@@ -191,10 +220,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setFilters(prev => ({ ...prev, [filterType]: [] }))}
+                    onClick={() => clearFilter(filterType)}
                     className="w-full"
                   >
-                    Clear All
+                    Clear All ({filters[filterType].length})
                   </Button>
                 </div>
               )}
@@ -236,7 +265,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               <div className="space-y-2">
                 <div 
-                  className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                  className="flex items-center space-x-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded px-1 py-1"
                   onClick={() => handleSort('title')}
                 >
                   <span>Task</span>
