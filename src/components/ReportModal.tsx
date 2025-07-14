@@ -310,14 +310,11 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
                               {lastThreeFollowUps.map((followUp) => (
                                 <div key={followUp.id} className="bg-blue-50 rounded-md p-3">
                                   <div className="flex justify-between items-start mb-1">
-                                    <span className="text-xs font-medium text-blue-900">
-                                      {followUp.author}
-                                    </span>
-                                    <span className="text-xs text-blue-600">
+                                    <p className="text-xs text-gray-700 flex-1 pr-2">{followUp.text}</p>
+                                    <span className="text-xs text-blue-600 whitespace-nowrap">
                                       {new Date(followUp.timestamp).toLocaleDateString()}
                                     </span>
                                   </div>
-                                  <p className="text-xs text-gray-700">{followUp.text}</p>
                                 </div>
                               ))}
                             </div>
