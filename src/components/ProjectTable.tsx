@@ -19,10 +19,11 @@ interface ProjectTableProps {
   filter?: 'all' | 'active' | 'on-hold' | 'completed';
 }
 
-type SortField = 'name' | 'owner' | 'startDate' | 'endDate' | 'status';
+type SortField = 'name' | 'scope' | 'owner' | 'startDate' | 'endDate' | 'status';
 type SortDirection = 'asc' | 'desc';
 
 interface ProjectFilters {
+  scope: string[];
   owner: string[];
   status: string[];
 }
@@ -41,6 +42,7 @@ export const ProjectTable = ({
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<ProjectFilters>({
+    scope: [],
     owner: [],
     status: []
   });
@@ -91,7 +93,19 @@ export const ProjectTable = ({
   };
 
   const getUniqueValues = (field: keyof Project) => {
-    return [...new Set(projects.map(project => project[field] as string))].filter(Boolean).sort();
+    const values = [...new Set(projects.map(project => project[field] as string))].filter(Boolean);
+    
+    // Add default scope values if filtering by scope
+    if (field === 'scope') {
+      const allScopes = ['Frontend', 'Backend', 'Database', 'Infrastructure', 'Mobile', 'API', 'UI/UX', 'DevOps'];
+      allScopes.forEach(scope => {
+        if (!values.includes(scope)) {
+          values.push(scope);
+        }
+      });
+    }
+    
+    return values.sort();
   };
 
   const handleFilterChange = (filterType: keyof ProjectFilters, value: string, checked: boolean) => {
@@ -132,6 +146,7 @@ export const ProjectTable = ({
     if (filter === 'completed' && project.status !== 'Completed') return false;
     
     // Apply additional filters
+    if (filters.scope.length > 0 && !filters.scope.includes(project.scope)) return false;
     if (filters.owner.length > 0 && !filters.owner.includes(project.owner)) return false;
     if (filters.status.length > 0 && !filters.status.includes(project.status)) return false;
     
@@ -189,8 +204,8 @@ export const ProjectTable = ({
           )}
         </Button>
         {showFilters[filterType] && (
-          <div className="absolute top-full right-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
+            <div className="space-y-2 max-h-80 overflow-y-auto">
               {getUniqueValues(filterType as keyof Project).map(value => (
                 <div key={value} className="flex items-center space-x-2">
                   <Checkbox
@@ -271,7 +286,7 @@ export const ProjectTable = ({
                 {/* Empty header for expand/collapse */}
               </TableHead>
               <TableHead style={{ minWidth: '120px' }}>
-                <SortableHeader field="name">Scope</SortableHeader>
+                <FilterableHeader field="scope" filterType="scope">Scope</FilterableHeader>
               </TableHead>
               <TableHead style={{ minWidth: '300px' }}>
                 <SortableHeader field="name">Project Name</SortableHeader>
