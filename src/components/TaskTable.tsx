@@ -273,7 +273,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
-            <SortableHeader field="dueDate">Dates</SortableHeader>
+            <SortableHeader field="dueDate">Due Date</SortableHeader>
           </ResizablePanel>
           <ResizableHandle />
           <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
@@ -291,11 +291,16 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
-                      {isOverdue(task.dueDate, task.status) && (
-                        <Badge variant="destructive" className="text-xs">Overdue</Badge>
-                      )}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
+                        {isOverdue(task.dueDate, task.status) && (
+                          <Badge variant="destructive" className="text-xs">Overdue</Badge>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Created: {new Date(task.creationDate).toLocaleDateString()}
+                      </div>
                     </div>
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
                       {task.title}
@@ -415,14 +420,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               </ResizablePanel>
               <ResizableHandle />
 
-              {/* Dates Column */}
+              {/* Due Date Column */}
               <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <Calendar className="w-3 h-3 mr-1" />
-                      Created: {new Date(task.creationDate).toLocaleDateString()}
-                    </div>
                     <div className="flex items-center">
                       <Calendar className="w-3 h-3 mr-1" />
                       Due: {new Date(task.dueDate).toLocaleDateString()}
