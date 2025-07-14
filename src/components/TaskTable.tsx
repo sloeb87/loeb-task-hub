@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -83,7 +82,26 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const getUniqueValues = (field: keyof Task) => {
-    return [...new Set(tasks.map(task => task[field] as string))].filter(Boolean).sort();
+    const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
+    
+    // Ensure all possible values are included for specific fields
+    if (field === 'status') {
+      const allStatuses = ['Open', 'In Progress', 'Completed', 'On Hold'];
+      allStatuses.forEach(status => {
+        if (!values.includes(status)) {
+          values.push(status);
+        }
+      });
+    } else if (field === 'priority') {
+      const allPriorities = ['Low', 'Medium', 'High', 'Critical'];
+      allPriorities.forEach(priority => {
+        if (!values.includes(priority)) {
+          values.push(priority);
+        }
+      });
+    }
+    
+    return values.sort();
   };
 
   const handleSort = (field: SortField) => {
