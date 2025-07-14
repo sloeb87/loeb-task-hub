@@ -1,11 +1,16 @@
+
 import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Task, KPIMetrics } from "@/types/task";
-import { BarChart3, TrendingUp, AlertTriangle, CheckCircle, Clock, Users, Calendar, Filter, MessageSquare } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
+import { Filter, Calendar } from "lucide-react";
+import { Task } from "@/types/task";
+import { MetricsCards } from "@/components/MetricsCards";
+import { TaskCharts } from "@/components/TaskCharts";
+import { TeamPerformanceChart } from "@/components/TeamPerformanceChart";
+import { ProjectPerformance } from "@/components/ProjectPerformance";
+import { FollowUpsSection } from "@/components/FollowUpsSection";
+import { useKPIMetrics } from "@/hooks/useKPIMetrics";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface KPIDashboardProps {
   tasks: Task[];
@@ -15,19 +20,16 @@ interface KPIDashboardProps {
 export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
   const [selectedProject, setSelectedProject] = useState<string>("all");
   
-  // Filter tasks based on selected project
   const filteredTasks = useMemo(() => {
     if (selectedProject === "all") return tasks;
     return tasks.filter(task => task.project === selectedProject);
   }, [tasks, selectedProject]);
 
-  // Get unique projects from tasks
   const availableProjects = useMemo(() => {
     const projectNames = [...new Set(tasks.map(task => task.project))];
     return projectNames.map(name => ({ name, value: name }));
   }, [tasks]);
 
-  // Get all follow-ups from filtered tasks
   const filteredFollowUps = useMemo(() => {
     const followUps = filteredTasks.flatMap(task => 
       task.followUps.map(followUp => ({
@@ -40,65 +42,12 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
     return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [filteredTasks]);
 
-  // Calculate KPI metrics
-  const calculateMetrics = (): KPIMetrics => {
-    const totalTasks = filteredTasks.length;
-    const completedTasks = filteredTasks.filter(t => t.status === "Completed").length;
-    const overdueTasks = filteredTasks.filter(t => {
-      const today = new Date();
-      const dueDate = new Date(t.dueDate);
-      return t.status !== "Completed" && dueDate < today;
-    }).length;
-
-    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-
-    // Calculate average task duration for completed tasks
-    const completedTasksWithDuration = filteredTasks.filter(t => t.status === "Completed" && t.completionDate);
-    const totalDuration = completedTasksWithDuration.reduce((sum, task) => {
-      const created = new Date(task.creationDate);
-      const completed = new Date(task.completionDate!);
-      return sum + (completed.getTime() - created.getTime()) / (1000 * 60 * 60 * 24); // days
-    }, 0);
-    const averageTaskDuration = completedTasksWithDuration.length > 0 ? totalDuration / completedTasksWithDuration.length : 0;
-
-    const tasksByStatus = filteredTasks.reduce((acc, task) => {
-      acc[task.status] = (acc[task.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const tasksByPriority = filteredTasks.reduce((acc, task) => {
-      acc[task.priority] = (acc[task.priority] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    const tasksByUser = filteredTasks.reduce((acc, task) => {
-      acc[task.responsible] = (acc[task.responsible] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    return {
-      totalTasks,
-      completedTasks,
-      overdueTasks,
-      completionRate,
-      averageTaskDuration,
-      tasksByStatus,
-      tasksByPriority,
-      tasksByUser
-    };
-  };
-
-  const metrics = calculateMetrics();
+  const metrics = useKPIMetrics(filteredTasks);
 
   const getProjectStats = () => {
     const projectStats = filteredTasks.reduce((acc, task) => {
       if (!acc[task.project]) {
-        acc[task.project] = {
-          total: 0,
-          completed: 0,
-          overdue: 0,
-          inProgress: 0
-        };
+        acc[task.project] = { total: 0, completed: 0, overdue: 0, inProgress: 0 };
       }
       acc[task.project].total++;
       if (task.status === "Completed") acc[task.project].completed++;
@@ -122,7 +71,6 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
 
   const projectStats = getProjectStats();
 
-  // Prepare chart data with colors
   const statusChartData = Object.entries(metrics.tasksByStatus).map(([status, count]) => ({
     status,
     count,
@@ -158,7 +106,6 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
       .map(task => {
         const startDate = new Date(task.creationDate);
         const dueDate = new Date(task.dueDate);
-        const today = new Date();
         const completionDate = task.completionDate ? new Date(task.completionDate) : null;
         
         return {
@@ -178,22 +125,15 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
       .sort((a, b) => a.start.getTime() - b.start.getTime());
   }, [filteredTasks, selectedProject]);
 
-  // Enhanced color schemes for charts
-  const STATUS_COLORS = {
-    'Open': '#f97316', // orange
-    'In Progress': '#3b82f6', // blue
-    'Completed': '#10b981', // green
-    'On Hold': '#6b7280' // gray
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Completed": return "bg-green-500";
+      case "In Progress": return "bg-blue-500";
+      case "Open": return "bg-orange-500";
+      case "On Hold": return "bg-gray-500";
+      default: return "bg-gray-400";
+    }
   };
-
-  const PRIORITY_COLORS = {
-    'Low': '#10b981', // green
-    'Medium': '#f59e0b', // amber
-    'High': '#f97316', // orange
-    'Critical': '#ef4444' // red
-  };
-
-  const PIE_COLORS = ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6', '#06b6d4'];
 
   return (
     <div className="space-y-6">
@@ -222,207 +162,10 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
         )}
       </div>
 
-      {/* Key Metrics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Completion Rate</p>
-                <p className="text-3xl font-bold text-green-600">
-                  {metrics.completionRate.toFixed(1)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {metrics.completedTasks} of {metrics.totalTasks} tasks
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Overdue Tasks</p>
-                <p className="text-3xl font-bold text-red-600">
-                  {metrics.overdueTasks}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {((metrics.overdueTasks / metrics.totalTasks) * 100).toFixed(1)}% of total
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Task Duration</p>
-                <p className="text-3xl font-bold text-blue-600">
-                  {metrics.averageTaskDuration.toFixed(1)}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">days to complete</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-3xl font-bold text-purple-600">
-                  {Object.keys(metrics.tasksByUser).length}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">team members</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section with Enhanced Colors */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5" />
-              <span>Tasks by Status</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={statusChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ status, percentage }) => `${status}: ${percentage}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="count"
-                >
-                  {statusChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || PIE_COLORS[index % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value, name) => [value, name]} />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
-              <TrendingUp className="h-5 w-5" />
-              <span>Tasks by Priority</span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={priorityChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="priority" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count">
-                  {priorityChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || '#3b82f6'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Team Performance Chart with Colors */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <Users className="h-5 w-5" />
-            <span>Team Performance</span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={userPerformanceData} layout="horizontal">
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" domain={[0, 100]} />
-              <YAxis dataKey="user" type="category" width={50} />
-              <Tooltip 
-                formatter={(value, name) => [
-                  name === 'completionRate' ? `${value}%` : value,
-                  name === 'completionRate' ? 'Completion Rate' : 
-                  name === 'completed' ? 'Completed Tasks' : 'Total Tasks'
-                ]}
-                labelFormatter={(label) => {
-                  const user = userPerformanceData.find(u => u.user === label);
-                  return user ? user.fullName : label;
-                }}
-              />
-              <Bar dataKey="completionRate" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Project Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Project Performance</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {projectStats.map((project) => (
-              <div key={project.name} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-medium text-gray-900">{project.name}</h4>
-                  <Badge variant={project.completionRate === 100 ? "default" : "secondary"}>
-                    {project.completionRate.toFixed(0)}% Complete
-                  </Badge>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Total</span>
-                    <p className="font-medium">{project.total}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Completed</span>
-                    <p className="font-medium text-green-600">{project.completed}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">In Progress</span>
-                    <p className="font-medium text-blue-600">{project.inProgress}</p>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">Overdue</span>
-                    <p className="font-medium text-red-600">{project.overdue}</p>
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${project.completionRate}%` }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <MetricsCards metrics={metrics} />
+      <TaskCharts statusChartData={statusChartData} priorityChartData={priorityChartData} />
+      <TeamPerformanceChart userPerformanceData={userPerformanceData} />
+      <ProjectPerformance projectStats={projectStats} />
 
       {/* Gantt Chart - Only show for specific project */}
       {selectedProject !== "all" && ganttData.length > 0 && (
@@ -435,22 +178,12 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {ganttData.map((task, index) => {
+              {ganttData.map((task) => {
                 const startDate = task.start;
                 const dueDate = task.due;
                 const totalDays = Math.ceil((dueDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                 const daysPassed = Math.ceil((new Date().getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                 const progressPercentage = Math.min(Math.max((daysPassed / totalDays) * 100, 0), 100);
-                
-                const getStatusColor = (status: string) => {
-                  switch (status) {
-                    case "Completed": return "bg-green-500";
-                    case "In Progress": return "bg-blue-500";
-                    case "Open": return "bg-orange-500";
-                    case "On Hold": return "bg-gray-500";
-                    default: return "bg-gray-400";
-                  }
-                };
 
                 return (
                   <div key={task.id} className="border rounded-lg p-4 space-y-3">
@@ -480,7 +213,6 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
                             style={{ width: `${task.progress}%` }}
                           ></div>
                         </div>
-                        {/* Timeline indicator */}
                         <div 
                           className="absolute top-0 w-0.5 h-2 bg-destructive"
                           style={{ left: `${Math.min(progressPercentage, 100)}%` }}
@@ -496,48 +228,7 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
         </Card>
       )}
 
-      {/* Follow-ups Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <MessageSquare className="h-5 w-5" />
-            <span>Follow-ups Created</span>
-            {selectedProject !== "all" && (
-              <Badge variant="outline" className="ml-2">
-                {selectedProject}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {filteredFollowUps.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">
-              No follow-ups found for the selected filter.
-            </p>
-          ) : (
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {filteredFollowUps.map((followUp) => (
-                <div key={followUp.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-1">
-                        <span className="font-medium text-foreground">{followUp.taskTitle}</span>
-                        <span>({followUp.taskId})</span>
-                      </div>
-                      <p className="text-sm">
-                        <span className="font-medium">
-                          {new Date(followUp.timestamp).toLocaleDateString()}:
-                        </span>{' '}
-                        {followUp.text}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <FollowUpsSection followUps={filteredFollowUps} selectedProject={selectedProject} />
     </div>
   );
 };
