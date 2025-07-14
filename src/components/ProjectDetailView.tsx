@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -116,10 +117,10 @@ export const ProjectDetailView = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'Completed': return 'bg-blue-100 text-blue-800';
-      case 'On Hold': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Active': return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'Completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      case 'On Hold': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
     }
   };
 
@@ -132,8 +133,8 @@ export const ProjectDetailView = ({
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{project.name}</h1>
-            <p className="text-gray-600 mt-1">{project.description}</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">{project.description}</p>
           </div>
         </div>
         <div className="flex space-x-2">
@@ -163,47 +164,47 @@ export const ProjectDetailView = ({
         {/* Project Details */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Project Details</CardTitle>
+            <CardTitle className="text-gray-900 dark:text-white">Project Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Status</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</p>
                 <Badge className={getStatusColor(project.status)}>
                   {project.status}
                 </Badge>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">Owner</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Owner</p>
                 <div className="flex items-center space-x-2">
-                  <Users className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">{project.owner}</span>
+                  <Users className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.owner}</span>
                 </div>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm font-medium text-gray-600">Start Date</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Start Date</p>
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">{project.startDate}</span>
+                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.startDate}</span>
                 </div>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600">End Date</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">End Date</p>
                 <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm">{project.endDate}</span>
+                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">{project.endDate}</span>
                 </div>
               </div>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-600 mb-2">Team Members</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Team Members</p>
               <div className="flex flex-wrap gap-2">
                 {project.team.map((member, index) => (
-                  <Badge key={index} variant="outline">
+                  <Badge key={index} variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
                     {member}
                   </Badge>
                 ))}
@@ -213,61 +214,61 @@ export const ProjectDetailView = ({
             {/* Project Links */}
             {project.links && Object.values(project.links).some(link => link) && (
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">Project Links</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Project Links</p>
                 <div className="flex items-center space-x-2">
                   {project.links.folder && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-blue-100"
+                      className="p-2 h-8 w-8 hover:bg-blue-100 dark:hover:bg-blue-900/30"
                       onClick={(e) => handleLinkClick(project.links.folder!, e)}
                       title="Open Project Folder"
                     >
-                      <FolderOpen className="w-4 h-4 text-blue-600" />
+                      <FolderOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     </Button>
                   )}
                   {project.links.email && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-green-100"
+                      className="p-2 h-8 w-8 hover:bg-green-100 dark:hover:bg-green-900/30"
                       onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
                       title="Send Project Email"
                     >
-                      <Mail className="w-4 h-4 text-green-600" />
+                      <Mail className="w-4 h-4 text-green-600 dark:text-green-400" />
                     </Button>
                   )}
                   {project.links.file && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-purple-100"
+                      className="p-2 h-8 w-8 hover:bg-purple-100 dark:hover:bg-purple-900/30"
                       onClick={(e) => handleLinkClick(project.links.file!, e)}
                       title="Open Project File"
                     >
-                      <FileText className="w-4 h-4 text-purple-600" />
+                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                     </Button>
                   )}
                   {project.links.oneNote && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-orange-100"
+                      className="p-2 h-8 w-8 hover:bg-orange-100 dark:hover:bg-orange-900/30"
                       onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
                       title="Open Project OneNote"
                     >
-                      <ExternalLink className="w-4 h-4 text-orange-600" />
+                      <ExternalLink className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                     </Button>
                   )}
                   {project.links.teams && (
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-indigo-100"
+                      className="p-2 h-8 w-8 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
                       onClick={(e) => handleLinkClick(project.links.teams!, e)}
                       title="Open Project Teams"
                     >
-                      <ExternalLink className="w-4 h-4 text-indigo-600" />
+                      <ExternalLink className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                     </Button>
                   )}
                 </div>
@@ -279,13 +280,13 @@ export const ProjectDetailView = ({
         {/* Project Stats */}
         <Card>
           <CardHeader>
-            <CardTitle>Progress Overview</CardTitle>
+            <CardTitle className="text-gray-900 dark:text-white">Progress Overview</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Completion</span>
-                <span className="text-sm text-gray-600">{Math.round(completionRate)}%</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Completion</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(completionRate)}%</span>
               </div>
               <Progress value={completionRate} className="h-2" />
             </div>
@@ -294,21 +295,21 @@ export const ProjectDetailView = ({
 
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Total Tasks</span>
-                <span className="text-sm font-medium">{totalTasks}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Total Tasks</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{totalTasks}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Completed</span>
-                <span className="text-sm font-medium text-green-600">{completedTasks}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Completed</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">{completedTasks}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Remaining</span>
-                <span className="text-sm font-medium text-blue-600">{totalTasks - completedTasks}</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Remaining</span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{totalTasks - completedTasks}</span>
               </div>
               {overdueTasks > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-600">Overdue</span>
-                  <span className="text-sm font-medium text-red-600">{overdueTasks}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-300">Overdue</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">{overdueTasks}</span>
                 </div>
               )}
             </div>
@@ -328,7 +329,7 @@ export const ProjectDetailView = ({
         <TabsContent value="tasks">
           <Card>
             <CardHeader>
-              <CardTitle>Project Tasks</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white">Project Tasks</CardTitle>
             </CardHeader>
             <CardContent>
               {projectTasks.length > 0 ? (
@@ -338,8 +339,8 @@ export const ProjectDetailView = ({
                   onFollowUp={handleEditTaskLocal}
                 />
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p className="text-lg font-medium mb-2">No tasks yet</p>
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No tasks yet</p>
                   <p className="mb-4">Create your first task for this project</p>
                   <Button onClick={onCreateTask}>
                     <Plus className="w-4 h-4 mr-2" />
