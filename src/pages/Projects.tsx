@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -138,10 +139,10 @@ const ProjectsPage = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-3">
-          <FolderKanban className="w-8 h-8 text-blue-600" />
+          <FolderKanban className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Project Management</h1>
-            <p className="text-gray-600 mt-1">Manage projects, assign tasks, and track progress</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Project Management</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">Manage projects, assign tasks, and track progress</p>
           </div>
         </div>
         <Button 
@@ -162,8 +163,8 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Total Projects</p>
-                <p className="text-2xl font-bold text-gray-900">{projects.length}</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Projects</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{projects.length}</p>
               </div>
             </div>
           </CardContent>
@@ -175,8 +176,8 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                <p className="text-2xl font-bold text-blue-600">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Projects</p>
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {projects.filter(p => p.status === 'Active').length}
                 </p>
               </div>
@@ -190,8 +191,8 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">On Hold</p>
-                <p className="text-2xl font-bold text-orange-600">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">On Hold</p>
+                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {projects.filter(p => p.status === 'On Hold').length}
                 </p>
               </div>
@@ -205,8 +206,8 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-2xl font-bold text-green-600">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Completed</p>
+                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {projects.filter(p => p.status === 'Completed').length}
                 </p>
               </div>
@@ -229,9 +230,9 @@ const ProjectsPage = ({
       ) : (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
-            <div className="text-center text-gray-500">
+            <div className="text-center text-gray-500 dark:text-gray-400">
               <FolderKanban className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No projects yet</p>
+              <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No projects yet</p>
               <p className="mb-4">Create your first project to start managing timelines</p>
               <Button onClick={() => setIsProjectFormOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
