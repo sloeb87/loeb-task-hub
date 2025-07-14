@@ -254,8 +254,14 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
   };
 
-  const handleRowClick = (task: Task) => {
-    console.log('Task row clicked:', task.title);
+  const handleRowClick = (task: Task, e: React.MouseEvent) => {
+    // Ensure we're not clicking on interactive elements within the row
+    const target = e.target as HTMLElement;
+    if (target.closest('button') || target.closest('a') || target.closest('.follow-up-section')) {
+      return;
+    }
+    
+    console.log('Task row clicked - calling onEditTask with:', task);
     onEditTask(task);
   };
 
@@ -333,7 +339,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableRow 
                   key={task.id} 
                   className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-                  onClick={() => handleRowClick(task)}
+                  onClick={(e) => handleRowClick(task, e)}
                 >
                   {/* Task Column */}
                   <TableCell>
@@ -471,7 +477,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
                   {/* Follow Ups Column */}
                   <TableCell>
-                    <div className="space-y-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors p-2 rounded" onClick={(e) => handleFollowUpClick(task, e)}>
+                    <div 
+                      className="follow-up-section space-y-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors p-2 rounded" 
+                      onClick={(e) => handleFollowUpClick(task, e)}
+                    >
                       {task.followUps.length === 0 ? (
                         <div className="text-xs text-gray-400 italic flex items-center">
                           <MessageSquarePlus className="w-3 h-3 mr-1" />

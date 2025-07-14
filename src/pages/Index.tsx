@@ -102,6 +102,7 @@ const Index = () => {
   };
 
   const handleUpdateTask = (updatedTask: Task) => {
+    console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
     setTasks(updatedTasks);
 
@@ -111,11 +112,13 @@ const Index = () => {
       console.warn('Failed to save tasks to localStorage:', error);
     }
     setSelectedTask(null);
+    setIsTaskFormOpen(false);
   };
 
   const handleEditTask = (task: Task) => {
-    console.log('handleEditTask called with task:', task.id);
+    console.log('Index - handleEditTask called with task:', task.id, task.title);
     setSelectedTask(task);
+    setIsTaskFormOpen(true);
   };
 
   const handleAddFollowUp = (taskId: string, followUpText: string) => {
@@ -137,6 +140,18 @@ const Index = () => {
     setFollowUpTask(null);
   };
 
+  const handleFollowUpTask = (updatedTask: Task) => {
+    console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
+    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
+    setTasks(updatedTasks);
+
+    try {
+      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
+    } catch (error) {
+      console.warn('Failed to save tasks to localStorage:', error);
+    }
+  };
+
   const handleCreateProject = (projectData: Omit<Project, 'id'>) => {
     const newProject: Project = {
       ...projectData,
@@ -147,6 +162,17 @@ const Index = () => {
 
   const handleUpdateProject = (updatedProject: Project) => {
     setProjects(projects.map(project => project.id === updatedProject.id ? updatedProject : project));
+  };
+
+  const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    console.log('Index - handleSaveTask called with:', taskData);
+    if ('id' in taskData) {
+      // Updating existing task
+      handleUpdateTask(taskData as Task);
+    } else {
+      // Creating new task
+      handleCreateTask(taskData);
+    }
   };
 
   return (
@@ -192,10 +218,18 @@ const Index = () => {
               onFilterChange={setActiveFilter}
             />
 
-            <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={setFollowUpTask} />
+            <TaskTable 
+              tasks={filteredTasks} 
+              onEditTask={handleEditTask} 
+              onFollowUp={handleFollowUpTask} 
+            />
           </>
         ) : activeView === "dashboard" ? (
-          <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} />
+          <KPIDashboard 
+            tasks={tasks} 
+            projects={projects} 
+            onEditTask={handleEditTask} 
+          />
         ) : (
           <ProjectsPage 
             tasks={tasks} 
@@ -210,19 +244,17 @@ const Index = () => {
         )}
 
         {/* Task Form Dialog */}
-        {(isTaskFormOpen || selectedTask) && (
-          <TaskForm 
-            isOpen={isTaskFormOpen || !!selectedTask} 
-            onClose={() => {
-              setIsTaskFormOpen(false);
-              setSelectedTask(null);
-            }} 
-            onSave={selectedTask ? handleUpdateTask : handleCreateTask} 
-            task={selectedTask} 
-            allTasks={tasks}
-            allProjects={projects}
-          />
-        )}
+        <TaskForm 
+          isOpen={isTaskFormOpen || !!selectedTask} 
+          onClose={() => {
+            setIsTaskFormOpen(false);
+            setSelectedTask(null);
+          }} 
+          onSave={handleSaveTask} 
+          task={selectedTask} 
+          allTasks={tasks}
+          allProjects={projects}
+        />
 
         {/* Follow Up Dialog */}
         {followUpTask && (
