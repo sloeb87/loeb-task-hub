@@ -25,6 +25,15 @@ interface Filters {
   responsible: string[];
 }
 
+interface PanelSizes {
+  task: number;
+  project: number;
+  status: number;
+  responsible: number;
+  dueDate: number;
+  followUps: number;
+}
+
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -37,6 +46,14 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [panelSizes, setPanelSizes] = useState<PanelSizes>({
+    task: 30,
+    project: 20,
+    status: 15,
+    responsible: 15,
+    dueDate: 15,
+    followUps: 20
+  });
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -235,7 +252,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   );
 
   const handleLinkClick = (url: string, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     if (url) {
       window.open(url, '_blank');
     }
@@ -247,21 +264,36 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     action();
   };
 
   const handleFollowUpClick = (task: Task, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     onFollowUp(task);
+  };
+
+  const handlePanelResize = (sizes: number[]) => {
+    setPanelSizes({
+      task: sizes[0],
+      project: sizes[1],
+      status: sizes[2],
+      responsible: sizes[3],
+      dueDate: sizes[4],
+      followUps: sizes[5]
+    });
   };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
       <div className="overflow-x-auto">
         {/* Headers */}
-        <ResizablePanelGroup direction="horizontal" className="min-w-full border-b border-gray-200 dark:border-gray-700">
-          <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
+        <ResizablePanelGroup 
+          direction="horizontal" 
+          className="min-w-full border-b border-gray-200 dark:border-gray-700"
+          onLayout={handlePanelResize}
+        >
+          <ResizablePanel defaultSize={panelSizes.task} minSize={25} maxSize={45}>
             <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
               <div className="space-y-2">
                 <div 
@@ -289,23 +321,23 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             </div>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ResizablePanel defaultSize={panelSizes.project} minSize={15} maxSize={30}>
             <FilterableHeader field="project" filterType="project">Project & Details</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+          <ResizablePanel defaultSize={panelSizes.status} minSize={10} maxSize={25}>
             <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+          <ResizablePanel defaultSize={panelSizes.responsible} minSize={10} maxSize={25}>
             <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+          <ResizablePanel defaultSize={panelSizes.dueDate} minSize={10} maxSize={25}>
             <SortableHeader field="dueDate">Due Date</SortableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ResizablePanel defaultSize={panelSizes.followUps} minSize={15} maxSize={30}>
             <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer">
               Follow Ups
             </div>
@@ -315,9 +347,14 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         {/* Rows */}
         <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {filteredAndSortedTasks.map((task) => (
-            <ResizablePanelGroup key={task.id} direction="horizontal" className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <ResizablePanelGroup 
+              key={task.id} 
+              direction="horizontal" 
+              className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              onLayout={() => {}} // Keep panels in sync but don't update state for each row
+            >
               {/* Task Column */}
-              <ResizablePanel defaultSize={30} minSize={20} maxSize={45}>
+              <ResizablePanel defaultSize={panelSizes.task} minSize={25} maxSize={45}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-1">
                     <div className="flex items-center space-x-2">
@@ -396,7 +433,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizableHandle />
 
               {/* Project & Details Column */}
-              <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <ResizablePanel defaultSize={panelSizes.project} minSize={15} maxSize={30}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-1">
                     <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
@@ -411,7 +448,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizableHandle />
 
               {/* Status & Priority Column */}
-              <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+              <ResizablePanel defaultSize={panelSizes.status} minSize={10} maxSize={25}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-2">
                     <Badge className={`text-xs ${getStatusColor(task.status)}`}>
@@ -426,7 +463,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizableHandle />
 
               {/* Responsible Column */}
-              <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+              <ResizablePanel defaultSize={panelSizes.responsible} minSize={10} maxSize={25}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-400" />
@@ -445,7 +482,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizableHandle />
 
               {/* Due Date Column */}
-              <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+              <ResizablePanel defaultSize={panelSizes.dueDate} minSize={10} maxSize={25}>
                 <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(task)}>
                   <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                     <div className="flex items-center">
@@ -464,7 +501,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <ResizableHandle />
 
               {/* Follow Ups Column */}
-              <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+              <ResizablePanel defaultSize={panelSizes.followUps} minSize={15} maxSize={30}>
                 <div className="px-4 py-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors" onClick={(e) => handleFollowUpClick(task, e)}>
                   <div className="space-y-2">
                     {task.followUps.length === 0 ? (
@@ -474,8 +511,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       </div>
                     ) : (
                       task.followUps
-                        .slice(-3) // Get last 3 follow-ups
-                        .reverse() // Show most recent first
+                        .slice(-3)
+                        .reverse()
                         .map((followUp, index) => (
                           <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
                             <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">

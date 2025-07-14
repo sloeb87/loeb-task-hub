@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,15 @@ interface ProjectFilters {
   status: string[];
 }
 
+interface PanelSizes {
+  expand: number;
+  name: number;
+  owner: number;
+  status: number;
+  timeline: number;
+  actions: number;
+}
+
 export const ProjectTable = ({
   projects,
   tasks,
@@ -45,6 +53,14 @@ export const ProjectTable = ({
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const [panelSizes, setPanelSizes] = useState<PanelSizes>({
+    expand: 5,
+    name: 35,
+    owner: 20,
+    status: 25,
+    timeline: 15,
+    actions: 15
+  });
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -248,34 +264,49 @@ export const ProjectTable = ({
     window.open(url, '_blank');
   };
 
+  const handlePanelResize = (sizes: number[]) => {
+    setPanelSizes({
+      expand: sizes[0],
+      name: sizes[1],
+      owner: sizes[2],
+      status: sizes[3],
+      timeline: sizes[4],
+      actions: sizes[5]
+    });
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
       <div className="overflow-x-auto">
         {/* Headers */}
-        <ResizablePanelGroup direction="horizontal" className="min-w-full border-b border-gray-200 dark:border-gray-700">
-          <ResizablePanel defaultSize={5} minSize={3} maxSize={8}>
+        <ResizablePanelGroup 
+          direction="horizontal" 
+          className="min-w-full border-b border-gray-200 dark:border-gray-700"
+          onLayout={handlePanelResize}
+        >
+          <ResizablePanel defaultSize={panelSizes.expand} minSize={4} maxSize={8}>
             <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider h-full flex items-center">
               {/* Empty header for expand/collapse */}
             </div>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+          <ResizablePanel defaultSize={panelSizes.name} minSize={25} maxSize={50}>
             <SortableHeader field="name">Project Name</SortableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+          <ResizablePanel defaultSize={panelSizes.owner} minSize={15} maxSize={30}>
             <FilterableHeader field="owner" filterType="owner">Owner & Team</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <ResizablePanel defaultSize={panelSizes.status} minSize={20} maxSize={35}>
             <FilterableHeader field="status" filterType="status">Status & Progress</FilterableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+          <ResizablePanel defaultSize={panelSizes.timeline} minSize={10} maxSize={25}>
             <SortableHeader field="startDate">Timeline</SortableHeader>
           </ResizablePanel>
           <ResizableHandle />
-          <ResizablePanel defaultSize={15} minSize={10} maxSize={20}>
+          <ResizablePanel defaultSize={panelSizes.actions} minSize={10} maxSize={20}>
             <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider h-full flex items-center">
               Actions
             </div>
@@ -289,9 +320,13 @@ export const ProjectTable = ({
             const isExpanded = expandedProject === project.id;
             return (
               <React.Fragment key={project.id}>
-                <ResizablePanelGroup direction="horizontal" className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <ResizablePanelGroup 
+                  direction="horizontal" 
+                  className="min-w-full hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  onLayout={() => {}} // Keep panels in sync but don't update state for each row
+                >
                   {/* Expand/Collapse Column */}
-                  <ResizablePanel defaultSize={5} minSize={3} maxSize={8}>
+                  <ResizablePanel defaultSize={panelSizes.expand} minSize={4} maxSize={8}>
                     <div className="px-4 py-4 cursor-pointer h-full flex items-center" onClick={e => toggleExpanded(project.id, e)}>
                       <Button size="sm" variant="ghost" className="p-1 h-6 w-6">
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -301,7 +336,7 @@ export const ProjectTable = ({
                   <ResizableHandle />
 
                   {/* Project Name Column */}
-                  <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+                  <ResizablePanel defaultSize={panelSizes.name} minSize={25} maxSize={50}>
                     <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
                       <div className="space-y-1">
                         <h3 className="text-sm font-medium text-gray-900 dark:text-white">{project.name}</h3>
@@ -371,7 +406,7 @@ export const ProjectTable = ({
                   <ResizableHandle />
 
                   {/* Owner & Team Column */}
-                  <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+                  <ResizablePanel defaultSize={panelSizes.owner} minSize={15} maxSize={30}>
                     <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
@@ -385,7 +420,7 @@ export const ProjectTable = ({
                   <ResizableHandle />
 
                   {/* Status & Progress Column */}
-                  <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+                  <ResizablePanel defaultSize={panelSizes.status} minSize={20} maxSize={35}>
                     <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
@@ -407,7 +442,7 @@ export const ProjectTable = ({
                   <ResizableHandle />
 
                   {/* Timeline Column */}
-                  <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+                  <ResizablePanel defaultSize={panelSizes.timeline} minSize={10} maxSize={25}>
                     <div className="px-4 py-4 cursor-pointer" onClick={() => handleRowClick(project)}>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
@@ -423,7 +458,7 @@ export const ProjectTable = ({
                   <ResizableHandle />
 
                   {/* Actions Column */}
-                  <ResizablePanel defaultSize={15} minSize={10} maxSize={20}>
+                  <ResizablePanel defaultSize={panelSizes.actions} minSize={10} maxSize={20}>
                     <div className="px-4 py-4">
                       <div className="flex space-x-1">
                         <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900" onClick={e => handleActionClick(e, () => onCreateTask(project.id))} title="Create New Task">
