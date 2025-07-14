@@ -64,6 +64,7 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
   const [availablePriorities, setAvailablePriorities] = useState<string[]>([]);
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [relatedTasks, setRelatedTasks] = useState<Task[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Load parameters from localStorage
   useEffect(() => {
@@ -110,6 +111,8 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         comments: task.comments || []
       });
       setDate(new Date(task.dueDate));
+      setProjectScope(task.scope || null);
+      setIsInitialized(true);
       
       console.log('Form data populated for editing task:', task.id);
     } else if (isOpen && !task) {
@@ -141,23 +144,29 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         comments: []
       });
       setDate(new Date());
+      setProjectScope(null);
+      setIsInitialized(true);
       
       console.log('Form data set for new task');
+    } else if (!isOpen) {
+      // Reset initialization when dialog closes
+      setIsInitialized(false);
     }
   }, [task?.id, isOpen, projectName]); // Use task?.id instead of task to prevent unnecessary re-renders
 
-  // Set project scope when project changes
+  // Set project scope when project changes (but not during initial load when editing)
   useEffect(() => {
-    if (formData.project) {
+    if (isInitialized && formData.project && !task) {
+      // Only auto-set scope for new tasks, not when editing existing tasks
       const project = allProjects.find((p: Project) => p.name === formData.project);
       if (project) {
         setProjectScope(project.scope);
         setFormData(prev => ({ ...prev, scope: project.scope }));
       }
-    } else {
+    } else if (isInitialized && !formData.project) {
       setProjectScope(null);
     }
-  }, [formData.project, allProjects]);
+  }, [formData.project, allProjects, isInitialized, task]);
 
   // Load related tasks based on dependencies
   useEffect(() => {
