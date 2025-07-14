@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
-import { X, Plus, Clock, FolderOpen, ExternalLink, Edit, Calendar } from "lucide-react";
+import { X, Plus, Clock, FolderOpen, ExternalLink, Edit, Calendar, MessageSquare } from "lucide-react";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -51,6 +51,8 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
   );
 
   const [newStakeholder, setNewStakeholder] = useState('');
+  const [newFollowUp, setNewFollowUp] = useState('');
+  const [showFollowUpInput, setShowFollowUpInput] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -84,6 +86,26 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
       ...prev,
       stakeholders: prev.stakeholders.filter((_, i) => i !== index)
     }));
+  };
+
+  const addFollowUp = () => {
+    if (newFollowUp.trim() && task) {
+      const updatedTask = {
+        ...task,
+        followUps: [
+          ...task.followUps,
+          {
+            id: `${task.id}-F${task.followUps.length + 1}`,
+            text: newFollowUp.trim(),
+            timestamp: new Date().toISOString(),
+            author: 'Current User'
+          }
+        ]
+      };
+      onSave(updatedTask);
+      setNewFollowUp('');
+      setShowFollowUpInput(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -293,6 +315,86 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
               rows={3}
             />
           </div>
+
+          {/* Follow-ups Section */}
+          {task && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Follow-ups
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFollowUpInput(!showFollowUpInput)}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Follow-up
+                </Button>
+              </div>
+
+              {/* Existing Follow-ups */}
+              {task.followUps.length > 0 && (
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {task.followUps.map((followUp) => (
+                    <div key={followUp.id} className="bg-muted/30 rounded-lg p-3 border">
+                      <div className="flex items-center space-x-2 text-muted-foreground mb-2">
+                        <span className="font-medium text-sm">
+                          {new Date(followUp.timestamp).toLocaleDateString()}
+                        </span>
+                        <span>•</span>
+                        <span className="text-sm">{followUp.author}</span>
+                      </div>
+                      <p className="text-foreground text-sm leading-relaxed">{followUp.text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add New Follow-up Input */}
+              {showFollowUpInput && (
+                <div className="space-y-2">
+                  <Textarea
+                    value={newFollowUp}
+                    onChange={(e) => setNewFollowUp(e.target.value)}
+                    placeholder="Enter your follow-up note..."
+                    rows={3}
+                    className="w-full"
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={addFollowUp}
+                      disabled={!newFollowUp.trim()}
+                    >
+                      Add Follow-up
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowFollowUpInput(false);
+                        setNewFollowUp('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {task.followUps.length === 0 && !showFollowUpInput && (
+                <p className="text-muted-foreground text-sm text-center py-4">
+                  No follow-ups yet. Click "Add Follow-up" to get started.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Links */}
           <div className="space-y-3">
