@@ -131,65 +131,63 @@ export const ProjectTable = ({
                         <p className="text-xs text-gray-500 line-clamp-2">{project.description}</p>
                         
                         {/* Project Links */}
-                        {project.links && Object.values(project.links).some(link => link) && (
-                          <div className="flex items-center space-x-1 mt-2">
-                            {project.links.folder && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="p-1 h-5 w-5 hover:bg-blue-100"
-                                onClick={(e) => handleLinkClick(project.links.folder!, e)}
-                                title="Open Project Folder"
-                              >
-                                <FolderOpen className="w-3 h-3 text-blue-600" />
-                              </Button>
-                            )}
-                            {project.links.email && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="p-1 h-5 w-5 hover:bg-green-100"
-                                onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
-                                title="Send Project Email"
-                              >
-                                <Mail className="w-3 h-3 text-green-600" />
-                              </Button>
-                            )}
-                            {project.links.file && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="p-1 h-5 w-5 hover:bg-purple-100"
-                                onClick={(e) => handleLinkClick(project.links.file!, e)}
-                                title="Open Project File"
-                              >
-                                <FileText className="w-3 h-3 text-purple-600" />
-                              </Button>
-                            )}
-                            {project.links.oneNote && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="p-1 h-5 w-5 hover:bg-orange-100"
-                                onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
-                                title="Open Project OneNote"
-                              >
-                                <ExternalLink className="w-3 h-3 text-orange-600" />
-                              </Button>
-                            )}
-                            {project.links.teams && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="p-1 h-5 w-5 hover:bg-indigo-100"
-                                onClick={(e) => handleLinkClick(project.links.teams!, e)}
-                                title="Open Project Teams"
-                              >
-                                <ExternalLink className="w-3 h-3 text-indigo-600" />
-                              </Button>
-                            )}
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-1 mt-2">
+                          {project.links?.folder && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 hover:bg-blue-100"
+                              onClick={(e) => handleLinkClick(project.links.folder!, e)}
+                              title="Open Project Folder"
+                            >
+                              <FolderOpen className="w-3 h-3 text-blue-600" />
+                            </Button>
+                          )}
+                          {project.links?.email && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 hover:bg-green-100"
+                              onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
+                              title="Send Project Email"
+                            >
+                              <Mail className="w-3 h-3 text-green-600" />
+                            </Button>
+                          )}
+                          {project.links?.file && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 hover:bg-purple-100"
+                              onClick={(e) => handleLinkClick(project.links.file!, e)}
+                              title="Open Project File"
+                            >
+                              <FileText className="w-3 h-3 text-purple-600" />
+                            </Button>
+                          )}
+                          {project.links?.oneNote && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 hover:bg-orange-100"
+                              onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
+                              title="Open Project OneNote"
+                            >
+                              <ExternalLink className="w-3 h-3 text-orange-600" />
+                            </Button>
+                          )}
+                          {project.links?.teams && (
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 hover:bg-indigo-100"
+                              onClick={(e) => handleLinkClick(project.links.teams!, e)}
+                              title="Open Project Teams"
+                            >
+                              <ExternalLink className="w-3 h-3 text-indigo-600" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </td>
 
