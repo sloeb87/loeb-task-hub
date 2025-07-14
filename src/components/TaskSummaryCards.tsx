@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Task } from "@/types/task";
@@ -20,7 +21,7 @@ export const TaskSummaryCards = ({ tasks, activeFilter, onFilterChange }: TaskSu
       case "onhold":
         return tasks.filter(t => t.status === "On Hold").length;
       case "critical":
-        return tasks.filter(t => t.priority === "Critical").length;
+        return tasks.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
       default:
         return 0;
     }
