@@ -10,6 +10,7 @@ import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
 import { TaskForm } from "@/components/TaskForm";
+import { ProjectForm } from "@/components/ProjectForm";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -17,6 +18,7 @@ interface ProjectDetailViewProps {
   allTasks: Task[];
   onBack: () => void;
   onEditProject: () => void;
+  onUpdateProject?: (project: Project) => void;
   onCreateTask: () => void;
   onEditTask: (task: Task) => void;
   onGenerateReport: () => void;
@@ -30,6 +32,7 @@ export const ProjectDetailView = ({
   allTasks,
   onBack, 
   onEditProject, 
+  onUpdateProject,
   onCreateTask, 
   onEditTask,
   onGenerateReport,
@@ -38,6 +41,7 @@ export const ProjectDetailView = ({
 }: ProjectDetailViewProps) => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
   const totalTasks = projectTasks.length;
@@ -94,6 +98,17 @@ export const ProjectDetailView = ({
     window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
   };
 
+  const handleEditProjectLocal = () => {
+    setIsProjectFormOpen(true);
+  };
+
+  const handleSaveProjectLocal = (projectData: Project | Omit<Project, 'id'>) => {
+    if (onUpdateProject && 'id' in projectData) {
+      onUpdateProject(projectData);
+    }
+    setIsProjectFormOpen(false);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
@@ -117,7 +132,7 @@ export const ProjectDetailView = ({
           </div>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={onEditProject}>
+          <Button variant="outline" onClick={handleEditProjectLocal}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Project
           </Button>
@@ -293,6 +308,18 @@ export const ProjectDetailView = ({
         allTasks={allTasks}
         projectName={project.name}
         onEditRelatedTask={handleEditTaskLocal}
+      />
+
+      {/* Project Form Modal - Local to ProjectDetailView */}
+      <ProjectForm
+        isOpen={isProjectFormOpen}
+        onClose={() => {
+          setIsProjectFormOpen(false);
+        }}
+        onSave={handleSaveProjectLocal}
+        project={project}
+        allTasks={allTasks}
+        onUpdateTask={onUpdateTask}
       />
     </div>
   );

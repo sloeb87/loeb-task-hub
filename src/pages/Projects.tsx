@@ -123,6 +123,7 @@ const ProjectsPage = ({
         allTasks={tasks}
         onBack={() => setViewMode('list')}
         onEditProject={handleEditProjectForm}
+        onUpdateProject={onUpdateProject}
         onCreateTask={() => handleCreateTaskForProject()}
         onEditTask={handleEditTask}
         onGenerateReport={() => handleGenerateReport()}
