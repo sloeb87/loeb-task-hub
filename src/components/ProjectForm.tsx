@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { GanttChart } from "./GanttChart";
@@ -209,16 +211,16 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
               </div>
               <div>
                 <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="Active">Active</option>
-                  <option value="On Hold">On Hold</option>
-                  <option value="Completed">Completed</option>
-                </select>
+                <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="On Hold">On Hold</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
