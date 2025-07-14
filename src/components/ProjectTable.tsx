@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { Calendar, Users, ChevronUp, ChevronDown, Plus, Edit, FileBarChart, FolderOpen, Mail, FileText, ExternalLink } from "lucide-react";
 import { Project, Task } from "@/types/task";
 
@@ -81,12 +82,14 @@ export const ProjectTable = ({
   }: {
     field: SortField;
     children: React.ReactNode;
-  }) => <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort(field)}>
+  }) => (
+    <div className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" onClick={() => handleSort(field)}>
       <div className="flex items-center space-x-1">
         <span>{children}</span>
         {sortField === field && (sortDirection === 'asc' ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />)}
       </div>
-    </th>;
+    </div>
+  );
 
   const toggleExpanded = (projectId: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -108,185 +111,302 @@ export const ProjectTable = ({
     window.open(url, '_blank');
   };
 
-  return <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-10">
-                {/* Expand/Collapse */}
-              </th>
+        <ResizablePanelGroup direction="horizontal" className="min-w-full">
+          {/* Expand/Collapse Column */}
+          <ResizablePanel defaultSize={5} minSize={3} maxSize={8}>
+            <div className="h-full">
+              <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                {/* Header for expand/collapse */}
+              </div>
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        {/* Empty space for expand button */}
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          {/* Expanded content spacer */}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* Project Name Column */}
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            <div className="h-full">
               <SortableHeader field="name">Project Name</SortableHeader>
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        <div className="space-y-1">
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-white">{project.name}</h3>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{project.description}</p>
+                          
+                          {/* Project Links */}
+                          <div className="flex items-center space-x-1 mt-2">
+                            {project.links?.folder && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                onClick={(e) => handleLinkClick(project.links.folder!, e)}
+                                title="Open Project Folder"
+                              >
+                                <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                              </Button>
+                            )}
+                            {project.links?.email && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
+                                onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
+                                title="Send Project Email"
+                              >
+                                <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
+                              </Button>
+                            )}
+                            {project.links?.file && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
+                                onClick={(e) => handleLinkClick(project.links.file!, e)}
+                                title="Open Project File"
+                              >
+                                <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                              </Button>
+                            )}
+                            {project.links?.oneNote && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
+                                onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
+                                title="Open Project OneNote"
+                              >
+                                <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                              </Button>
+                            )}
+                            {project.links?.teams && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
+                                onClick={(e) => handleLinkClick(project.links.teams!, e)}
+                                title="Open Project Teams"
+                              >
+                                <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          <Card className="dark:bg-gray-800 dark:border-gray-700">
+                            <CardContent className="p-4">
+                              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Project Tasks</h4>
+                              {stats.projectTasks.length > 0 ? (
+                                <div className="space-y-2">
+                                  {stats.projectTasks.map(task => (
+                                    <div key={task.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
+                                      <div className="flex items-center space-x-3">
+                                        <Badge variant="outline" className="text-xs">
+                                          {task.id}
+                                        </Badge>
+                                        <span className="text-sm text-gray-900 dark:text-white">{task.title}</span>
+                                        <Badge variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'} className="text-xs">
+                                          {task.status}
+                                        </Badge>
+                                      </div>
+                                      <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <span>{task.responsible}</span>
+                                        <span>Due: {task.dueDate}</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned to this project yet.</p>
+                              )}
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* Owner & Team Column */}
+          <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+            <div className="h-full">
               <SortableHeader field="owner">Owner & Team</SortableHeader>
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Users className="w-3 h-3 text-gray-400" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">{project.owner}</span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{project.team.length} team members</p>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          {/* Empty space for alignment */}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* Status & Progress Column */}
+          <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+            <div className="h-full">
               <SortableHeader field="status">Status & Progress</SortableHeader>
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Badge variant={project.status === 'Active' ? 'default' : project.status === 'Completed' ? 'secondary' : 'outline'}>
+                              {project.status}
+                            </Badge>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {stats.completionRate.toFixed(0)}%
+                            </span>
+                          </div>
+                          <Progress value={stats.completionRate} className="h-2" />
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {stats.completedTasks}/{stats.totalTasks} tasks
+                            {stats.overdueTasks > 0 && <span className="text-red-600 dark:text-red-400 ml-1">({stats.overdueTasks} overdue)</span>}
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          {/* Empty space for alignment */}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* Timeline Column */}
+          <ResizablePanel defaultSize={15} minSize={10} maxSize={25}>
+            <div className="h-full">
               <SortableHeader field="startDate">Timeline</SortableHeader>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
+                            <Calendar className="w-3 h-3" />
+                            <span>{project.startDate}</span>
+                          </div>
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            to {project.endDate}
+                          </div>
+                        </div>
+                      </div>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          {/* Empty space for alignment */}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+
+          <ResizableHandle />
+
+          {/* Actions Column */}
+          <ResizablePanel defaultSize={15} minSize={10} maxSize={20}>
+            <div className="h-full">
+              <div className="bg-gray-50 dark:bg-gray-900 px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            {sortedProjects.map(project => {
-            const stats = getProjectStats(project);
-            const isExpanded = expandedProject === project.id;
-            return <React.Fragment key={project.id}>
-                  <tr className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => {
-                console.log('TR clicked:', e.target);
-                handleRowClick(project);
-              }}>
-                     <td className="px-4 py-4">
-                     </td>
-                    
-                    <td className="px-4 py-4">
-                      <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">{project.name}</h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{project.description}</p>
-                        
-                        {/* Project Links */}
-                        <div className="flex items-center space-x-1 mt-2">
-                          {project.links?.folder && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
-                              onClick={(e) => handleLinkClick(project.links.folder!, e)}
-                              title="Open Project Folder"
-                            >
-                              <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            </Button>
-                          )}
-                          {project.links?.email && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
-                              onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
-                              title="Send Project Email"
-                            >
-                              <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
-                            </Button>
-                          )}
-                          {project.links?.file && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
-                              onClick={(e) => handleLinkClick(project.links.file!, e)}
-                              title="Open Project File"
-                            >
-                              <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                            </Button>
-                          )}
-                          {project.links?.oneNote && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
-                              onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
-                              title="Open Project OneNote"
-                            >
-                              <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
-                            </Button>
-                          )}
-                          {project.links?.teams && (
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
-                              onClick={(e) => handleLinkClick(project.links.teams!, e)}
-                              title="Open Project Teams"
-                            >
-                              <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                {sortedProjects.map(project => {
+                  const stats = getProjectStats(project);
+                  const isExpanded = expandedProject === project.id;
+                  return (
+                    <React.Fragment key={project.id}>
+                      <div className="px-4 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={e => handleRowClick(project)}>
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900" onClick={e => handleActionClick(e, () => onCreateTask(project.id))} title="Create New Task">
+                            <Plus className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                          </Button>
+                          
+                          {onGenerateReport && (
+                            <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900" onClick={e => handleActionClick(e, () => onGenerateReport(project))} title="Generate Report">
+                              <FileBarChart className="w-3 h-3 text-purple-600 dark:text-purple-400" />
                             </Button>
                           )}
                         </div>
                       </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Users className="w-3 h-3 text-gray-400" />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{project.owner}</span>
+                      {isExpanded && (
+                        <div className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
+                          {/* Empty space for alignment */}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">{project.team.length} team members</p>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <Badge variant={project.status === 'Active' ? 'default' : project.status === 'Completed' ? 'secondary' : 'outline'}>
-                            {project.status}
-                          </Badge>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {stats.completionRate.toFixed(0)}%
-                          </span>
-                        </div>
-                        <Progress value={stats.completionRate} className="h-2" />
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {stats.completedTasks}/{stats.totalTasks} tasks
-                          {stats.overdueTasks > 0 && <span className="text-red-600 dark:text-red-400 ml-1">({stats.overdueTasks} overdue)</span>}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-300">
-                          <Calendar className="w-3 h-3" />
-                          <span>{project.startDate}</span>
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          to {project.endDate}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-4 py-4">
-                      <div className="flex space-x-1">
-                        <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900" onClick={e => handleActionClick(e, () => onCreateTask(project.id))} title="Create New Task">
-                          <Plus className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                        </Button>
-                        
-                        {onGenerateReport && <Button size="sm" variant="ghost" className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900" onClick={e => handleActionClick(e, () => onGenerateReport(project))} title="Generate Report">
-                            <FileBarChart className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                          </Button>}
-                      </div>
-                    </td>
-                  </tr>
-
-                  {/* Expanded Row - Task List */}
-                  {isExpanded && <tr>
-                      <td colSpan={6} className="px-4 py-4 bg-gray-50 dark:bg-gray-900">
-                        <Card className="dark:bg-gray-800 dark:border-gray-700">
-                          <CardContent className="p-4">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Project Tasks</h4>
-                            {stats.projectTasks.length > 0 ? <div className="space-y-2">
-                                {stats.projectTasks.map(task => <div key={task.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-700 rounded border dark:border-gray-600">
-                                    <div className="flex items-center space-x-3">
-                                      <Badge variant="outline" className="text-xs">
-                                        {task.id}
-                                      </Badge>
-                                      <span className="text-sm text-gray-900 dark:text-white">{task.title}</span>
-                                      <Badge variant={task.status === 'Completed' ? 'secondary' : task.status === 'In Progress' ? 'default' : 'outline'} className="text-xs">
-                                        {task.status}
-                                      </Badge>
-                                    </div>
-                                    <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                                      <span>{task.responsible}</span>
-                                      <span>Due: {task.dueDate}</span>
-                                    </div>
-                                  </div>)}
-                              </div> : <p className="text-sm text-gray-500 dark:text-gray-400">No tasks assigned to this project yet.</p>}
-                          </CardContent>
-                        </Card>
-                      </td>
-                    </tr>}
-                </React.Fragment>;
-          })}
-          </tbody>
-        </table>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
-    </div>;
+    </div>
+  );
 };
