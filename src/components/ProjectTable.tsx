@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -271,6 +270,9 @@ export const ProjectTable = ({
               <TableHead style={{ minWidth: '50px' }}>
                 {/* Empty header for expand/collapse */}
               </TableHead>
+              <TableHead style={{ minWidth: '120px' }}>
+                <SortableHeader field="name">Scope</SortableHeader>
+              </TableHead>
               <TableHead style={{ minWidth: '300px' }}>
                 <SortableHeader field="name">Project Name</SortableHeader>
               </TableHead>
@@ -298,6 +300,13 @@ export const ProjectTable = ({
                       <Button size="sm" variant="ghost" className="p-1 h-6 w-6" onClick={e => toggleExpanded(project.id, e)}>
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                       </Button>
+                    </TableCell>
+
+                    {/* Scope Column */}
+                    <TableCell>
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {project.scope}
+                      </div>
                     </TableCell>
 
                     {/* Project Name Column */}
@@ -429,7 +438,7 @@ export const ProjectTable = ({
                   {/* Expanded Content */}
                   {isExpanded && (
                     <TableRow className="bg-gray-50 dark:bg-gray-900">
-                      <TableCell colSpan={6}>
+                      <TableCell colSpan={7}>
                         <Card className="dark:bg-gray-800 dark:border-gray-700">
                           <CardContent className="p-4">
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3">Project Tasks</h4>

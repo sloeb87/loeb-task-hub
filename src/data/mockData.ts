@@ -1,314 +1,427 @@
-
-import { Task, Project } from "@/types/task";
+import { Task, Project, KPIMetrics } from "@/types/task";
 
 export const mockTasks: Task[] = [
   {
-    id: "T1",
-    scope: "Customer Portal",
-    project: "E-Commerce Platform",
-    environment: "Production",
+    id: "TSK-001",
+    scope: "Frontend",
+    project: "Customer Portal Redesign",
+    environment: "Development",
     taskType: "Development",
-    title: "Implement User Authentication System",
-    description: "Design and implement secure user authentication with multi-factor authentication support",
+    title: "Implement User Authentication",
+    description: "Develop secure user login and registration functionality",
     status: "In Progress",
     priority: "High",
     responsible: "John Smith",
     creationDate: "2024-01-15",
-    startDate: "2024-01-16",
-    dueDate: "2024-02-15",
+    startDate: "2024-01-22",
+    dueDate: "2024-02-05",
+    completionDate: "2024-02-05",
+    duration: 14,
+    dependencies: [],
     followUps: [
       {
-        id: "T1-F1",
-        text: "Initial research completed. OAuth2 integration preferred approach.",
-        timestamp: "2024-01-20T10:30:00Z",
+        id: "FU-001",
+        text: "Discussed approach with Sarah",
+        timestamp: "2024-01-22",
         author: "John Smith"
-      },
-      {
-        id: "T1-F2",
-        text: "Need to clarify MFA requirements with security team.",
-        timestamp: "2024-01-22T14:15:00Z",
-        author: "Jane Doe"
       }
     ],
-    details: "This task involves implementing a comprehensive authentication system including social login options, password reset functionality, and session management.",
+    comments: [{ text: "Initial design review passed", timestamp: "2024-01-22" }],
+    details: "Utilize OAuth 2.0 for secure authentication",
     links: {
-      oneNote: "https://onenote.com/auth-specs",
+      oneNote: "https://onenote.com/auth-spec",
       teams: "https://teams.microsoft.com/auth-channel",
-      email: "mailto:team@company.com?subject=Auth%20Task",
-      file: "https://sharepoint.com/auth-requirements.pdf",
-      folder: "https://sharepoint.com/projects/auth"
+      email: "john.smith@company.com",
+      file: "https://sharepoint.com/auth-design.pdf",
+      folder: "https://sharepoint.com/auth-docs"
     },
-    stakeholders: ["Security Team", "UX Design", "Product Manager"]
+    stakeholders: ["Sarah Connor", "Emily Davis"]
   },
   {
-    id: "T2",
-    scope: "Admin Dashboard",
-    project: "E-Commerce Platform",
+    id: "TSK-002",
+    scope: "Frontend",
+    project: "Customer Portal Redesign",
     environment: "Testing",
     taskType: "Testing",
-    title: "Performance Testing for Dashboard",
-    description: "Conduct comprehensive performance testing for the admin dashboard under various load conditions",
-    status: "Open",
-    priority: "Medium",
-    responsible: "Alice Johnson",
-    creationDate: "2024-01-18",
-    startDate: "2024-01-20",
-    dueDate: "2024-02-01",
-    followUps: [],
-    details: "Focus on response times, memory usage, and concurrent user handling. Test with up to 1000 concurrent users.",
-    links: {
-      folder: "https://sharepoint.com/testing/performance"
-    },
-    stakeholders: ["DevOps Team", "Product Manager"]
-  },
-  {
-    id: "T3",
-    scope: "API Integration",
-    project: "Mobile App",
-    environment: "Development",
-    taskType: "Development",
-    title: "Integrate Payment Gateway API",
-    description: "Integrate Stripe payment gateway for mobile app purchases",
+    title: "Test User Authentication",
+    description: "Test secure user login and registration functionality",
     status: "Completed",
-    priority: "Critical",
-    responsible: "Mike Wilson",
-    creationDate: "2024-01-10",
-    startDate: "2024-01-12",
-    dueDate: "2024-01-25",
-    completionDate: "2024-01-24",
+    priority: "High",
+    responsible: "Emily Davis",
+    creationDate: "2024-01-15",
+    startDate: "2024-02-05",
+    dueDate: "2024-02-12",
+    completionDate: "2024-02-12",
+    duration: 7,
+    dependencies: ["TSK-001"],
     followUps: [
       {
-        id: "T3-F1",
-        text: "Integration completed successfully. All tests passing.",
-        timestamp: "2024-01-24T16:00:00Z",
-        author: "Mike Wilson"
+        id: "FU-002",
+        text: "Completed testing, no issues found",
+        timestamp: "2024-02-12",
+        author: "Emily Davis"
       }
     ],
-    details: "Implementation includes error handling, webhook processing, and refund capabilities.",
+    comments: [{ text: "All tests passed", timestamp: "2024-02-12" }],
+    details: "Execute test cases for user authentication",
     links: {
-      teams: "https://teams.microsoft.com/payments-channel",
-      file: "https://sharepoint.com/stripe-integration-guide.pdf"
+      teams: "https://teams.microsoft.com/testing-channel",
+      file: "https://sharepoint.com/test-results.xlsx"
     },
-    stakeholders: ["Finance Team", "Mobile Team Lead"]
+    stakeholders: ["Sarah Connor", "John Smith"]
   },
   {
-    id: "T4",
-    scope: "User Experience",
-    project: "Website Redesign",
-    environment: "Staging",
-    taskType: "Review",
-    title: "UX Review for Homepage",
-    description: "Conduct comprehensive UX review of the new homepage design",
-    status: "Open",
-    priority: "High",
-    responsible: "Sarah Davis",
-    creationDate: "2024-01-20",
-    startDate: "2024-01-22",
-    dueDate: "2024-01-30",
-    followUps: [],
-    details: "Review should cover accessibility, mobile responsiveness, and conversion optimization.",
-    links: {
-      oneNote: "https://onenote.com/ux-review-notes"
-    },
-    stakeholders: ["Design Team", "Marketing Team", "Accessibility Expert"]
-  },
-  {
-    id: "T5",
-    scope: "Documentation",
-    project: "API Platform",
-    environment: "Production",
-    taskType: "Documentation",
-    title: "Update API Documentation",
-    description: "Update REST API documentation with new endpoints and authentication changes",
+    id: "TSK-003",
+    scope: "Frontend",
+    project: "Customer Portal Redesign",
+    environment: "Development",
+    taskType: "Development",
+    title: "Implement Dashboard UI",
+    description: "Develop the main dashboard interface with key metrics",
     status: "In Progress",
     priority: "Medium",
-    responsible: "David Brown",
-    creationDate: "2024-01-12",
-    startDate: "2024-01-15",
-    dueDate: "2024-02-10",
+    responsible: "John Smith",
+    creationDate: "2024-01-15",
+    startDate: "2024-02-12",
+    dueDate: "2024-02-26",
+    duration: 14,
+    dependencies: [],
     followUps: [
       {
-        id: "T5-F1",
-        text: "Started documenting new authentication endpoints. 60% complete.",
-        timestamp: "2024-01-25T11:00:00Z",
-        author: "David Brown"
+        id: "FU-003",
+        text: "Working on chart integrations",
+        timestamp: "2024-02-19",
+        author: "John Smith"
       }
     ],
-    details: "Include code examples, error responses, and rate limiting information.",
+    comments: [{ text: "UI design approved", timestamp: "2024-02-12" }],
+    details: "Use React and Material-UI for the dashboard",
     links: {
-      file: "https://sharepoint.com/api-docs-template.docx",
-      folder: "https://sharepoint.com/documentation"
+      oneNote: "https://onenote.com/dashboard-spec",
+      teams: "https://teams.microsoft.com/dashboard-channel",
+      email: "john.smith@company.com",
+      file: "https://sharepoint.com/dashboard-design.pdf",
+      folder: "https://sharepoint.com/dashboard-components"
     },
-    stakeholders: ["Developer Relations", "Support Team"]
+    stakeholders: ["Sarah Connor", "Emily Davis"]
   },
   {
-    id: "T6",
-    scope: "Infrastructure",
-    project: "Cloud Migration",
-    environment: "Production",
-    taskType: "Development",
-    title: "Database Migration to Cloud",
-    description: "Migrate on-premise database to AWS RDS with minimal downtime",
-    status: "On Hold",
-    priority: "Critical",
-    responsible: "Robert Garcia",
-    creationDate: "2024-01-05",
-    startDate: "2024-01-08",
-    dueDate: "2024-01-28",
-    followUps: [
-      {
-        id: "T6-F1",
-        text: "Waiting for budget approval and security clearance.",
-        timestamp: "2024-01-26T09:00:00Z",
-        author: "Robert Garcia"
-      }
-    ],
-    details: "Requires careful planning for data synchronization and rollback procedures.",
-    links: {
-      teams: "https://teams.microsoft.com/cloud-migration",
-      folder: "https://sharepoint.com/migration-plans"
-    },
-    stakeholders: ["DevOps Team", "Database Admin", "Security Team", "Finance"]
-  },
-  {
-    id: "T7",
-    scope: "Bug Fix",
-    project: "Mobile App",
-    environment: "Production",
-    taskType: "Development",
-    title: "Fix Cart Calculation Bug",
-    description: "Resolve issue where tax calculations are incorrect for international orders",
-    status: "Completed",
-    priority: "Critical",
-    responsible: "Lisa Anderson",
-    creationDate: "2024-01-22",
-    startDate: "2024-01-22",
-    dueDate: "2024-01-25",
-    completionDate: "2024-01-25",
-    followUps: [
-      {
-        id: "T7-F1",
-        text: "Bug identified in tax calculation logic for non-US addresses.",
-        timestamp: "2024-01-23T13:30:00Z",
-        author: "Lisa Anderson"
-      },
-      {
-        id: "T7-F2",
-        text: "Fix deployed and verified in production. All tests passing.",
-        timestamp: "2024-01-25T17:45:00Z",
-        author: "Lisa Anderson"
-      }
-    ],
-    details: "Critical bug affecting international customers during checkout process.",
-    links: {
-      email: "mailto:support@company.com?subject=Cart%20Bug%20Update"
-    },
-    stakeholders: ["Support Team", "International Sales"]
-  },
-  {
-    id: "T8",
-    scope: "Feature Development",
-    project: "CRM System",
-    environment: "Development",
-    taskType: "Development",
-    title: "Implement Lead Scoring Algorithm",
-    description: "Develop automated lead scoring system based on customer behavior and demographics",
+    id: "TSK-004",
+    scope: "Frontend",
+    project: "Customer Portal Redesign",
+    environment: "Review",
+    taskType: "Review",
+    title: "Review Dashboard UI",
+    description: "Review the main dashboard interface and provide feedback",
     status: "Open",
     priority: "Medium",
-    responsible: "James Taylor",
-    creationDate: "2024-01-25",
-    startDate: "2024-01-30",
-    dueDate: "2024-03-15",
+    responsible: "Emily Davis",
+    creationDate: "2024-01-15",
+    startDate: "2024-02-26",
+    dueDate: "2024-03-05",
+    duration: 7,
+    dependencies: ["TSK-003"],
     followUps: [],
-    details: "Algorithm should consider website activity, email engagement, and company size factors.",
+    comments: [],
+    details: "Check for usability and visual consistency",
     links: {
-      oneNote: "https://onenote.com/lead-scoring-requirements",
-      teams: "https://teams.microsoft.com/crm-development"
+      teams: "https://teams.microsoft.com/review-channel"
     },
-    stakeholders: ["Sales Team", "Marketing Team", "Data Science Team"]
+    stakeholders: ["Sarah Connor", "John Smith"]
+  },
+  {
+    id: "TSK-005",
+    scope: "Backend",
+    project: "API Integration Platform",
+    environment: "Development",
+    taskType: "Development",
+    title: "Implement API Gateway",
+    description: "Develop a secure API gateway for managing third-party integrations",
+    status: "In Progress",
+    priority: "High",
+    responsible: "Lisa Wang",
+    creationDate: "2024-02-01",
+    startDate: "2024-02-08",
+    dueDate: "2024-02-22",
+    duration: 14,
+    dependencies: [],
+    followUps: [
+      {
+        id: "FU-004",
+        text: "Configuring rate limiting",
+        timestamp: "2024-02-15",
+        author: "Lisa Wang"
+      }
+    ],
+    comments: [{ text: "Security protocols defined", timestamp: "2024-02-08" }],
+    details: "Use Kong API Gateway for security and rate limiting",
+    links: {
+      oneNote: "https://onenote.com/api-gateway-spec",
+      teams: "https://teams.microsoft.com/api-gateway-channel",
+      email: "lisa.wang@company.com",
+      file: "https://sharepoint.com/api-gateway-design.pdf",
+      folder: "https://sharepoint.com/api-gateway-docs"
+    },
+    stakeholders: ["Michael Rodriguez", "David Kim"]
+  },
+  {
+    id: "TSK-006",
+    scope: "Backend",
+    project: "API Integration Platform",
+    environment: "Testing",
+    taskType: "Testing",
+    title: "Test API Gateway",
+    description: "Test the API gateway for security and performance",
+    status: "Open",
+    priority: "High",
+    responsible: "David Kim",
+    creationDate: "2024-02-01",
+    startDate: "2024-02-22",
+    dueDate: "2024-03-01",
+    duration: 7,
+    dependencies: ["TSK-005"],
+    followUps: [],
+    comments: [],
+    details: "Execute performance and security tests",
+    links: {
+      teams: "https://teams.microsoft.com/testing-channel"
+    },
+    stakeholders: ["Michael Rodriguez", "Lisa Wang"]
+  },
+  {
+    id: "TSK-007",
+    scope: "Mobile",
+    project: "Mobile App Launch",
+    environment: "Development",
+    taskType: "Development",
+    title: "Develop iOS App",
+    description: "Develop the native iOS application",
+    status: "In Progress",
+    priority: "High",
+    responsible: "Alex Thompson",
+    creationDate: "2024-03-01",
+    startDate: "2024-03-08",
+    dueDate: "2024-03-22",
+    duration: 14,
+    dependencies: [],
+    followUps: [
+      {
+        id: "FU-005",
+        text: "Implementing UI components",
+        timestamp: "2024-03-15",
+        author: "Alex Thompson"
+      }
+    ],
+    comments: [{ text: "Initial setup complete", timestamp: "2024-03-08" }],
+    details: "Use Swift and SwiftUI for the iOS app",
+    links: {
+      oneNote: "https://onenote.com/ios-app-spec",
+      teams: "https://teams.microsoft.com/ios-app-channel",
+      email: "alex.thompson@company.com",
+      file: "https://sharepoint.com/ios-app-design.pdf",
+      folder: "https://sharepoint.com/ios-app-components"
+    },
+    stakeholders: ["Jennifer Park", "Maria Gonzalez"]
+  },
+  {
+    id: "TSK-008",
+    scope: "Mobile",
+    project: "Mobile App Launch",
+    environment: "Development",
+    taskType: "Development",
+    title: "Develop Android App",
+    description: "Develop the native Android application",
+    status: "Open",
+    priority: "High",
+    responsible: "Maria Gonzalez",
+    creationDate: "2024-03-01",
+    startDate: "2024-03-22",
+    dueDate: "2024-04-05",
+    duration: 14,
+    dependencies: [],
+    followUps: [],
+    comments: [],
+    details: "Use Kotlin and Jetpack Compose for the Android app",
+    links: {
+      oneNote: "https://onenote.com/android-app-spec",
+      teams: "https://teams.microsoft.com/android-app-channel",
+      email: "maria.gonzalez@company.com",
+      file: "https://sharepoint.com/android-app-design.pdf",
+      folder: "https://sharepoint.com/android-app-components"
+    },
+    stakeholders: ["Jennifer Park", "Alex Thompson"]
+  },
+  {
+    id: "TSK-009",
+    scope: "Analytics",
+    project: "Data Analytics Dashboard",
+    environment: "Development",
+    taskType: "Development",
+    title: "Implement Data Ingestion",
+    description: "Implement data ingestion from various sources",
+    status: "In Progress",
+    priority: "High",
+    responsible: "Robert Chen",
+    creationDate: "2024-04-01",
+    startDate: "2024-04-08",
+    dueDate: "2024-04-22",
+    duration: 14,
+    dependencies: [],
+    followUps: [
+      {
+        id: "FU-006",
+        text: "Connecting to database",
+        timestamp: "2024-04-15",
+        author: "Robert Chen"
+      }
+    ],
+    comments: [{ text: "Data sources identified", timestamp: "2024-04-08" }],
+    details: "Use Apache Kafka for data ingestion",
+    links: {
+      oneNote: "https://onenote.com/data-ingestion-spec",
+      teams: "https://teams.microsoft.com/data-ingestion-channel",
+      email: "robert.chen@company.com",
+      file: "https://sharepoint.com/data-ingestion-design.pdf",
+      folder: "https://sharepoint.com/data-ingestion-scripts"
+    },
+    stakeholders: ["Amanda White"]
+  },
+  {
+    id: "TSK-010",
+    scope: "Analytics",
+    project: "Data Analytics Dashboard",
+    environment: "Development",
+    taskType: "Development",
+    title: "Develop Dashboard Visualizations",
+    description: "Develop interactive dashboard visualizations",
+    status: "Open",
+    priority: "High",
+    responsible: "Amanda White",
+    creationDate: "2024-04-01",
+    startDate: "2024-04-22",
+    dueDate: "2024-05-06",
+    duration: 14,
+    dependencies: [],
+    followUps: [],
+    comments: [],
+    details: "Use Tableau for dashboard visualizations",
+    links: {
+      oneNote: "https://onenote.com/dashboard-viz-spec",
+      teams: "https://teams.microsoft.com/dashboard-viz-channel",
+      email: "amanda.white@company.com",
+      file: "https://sharepoint.com/dashboard-viz-design.pdf",
+      folder: "https://sharepoint.com/dashboard-viz-templates"
+    },
+    stakeholders: ["Robert Chen"]
   }
 ];
 
 export const mockProjects: Project[] = [
   {
-    id: "P1",
-    name: "E-Commerce Platform",
-    description: "Complete redesign and development of the company's e-commerce platform with modern UI/UX",
-    owner: "John Smith",
-    team: ["John Smith", "Alice Johnson", "Mike Wilson"],
-    startDate: "2024-01-01",
-    endDate: "2024-06-30",
-    status: "Active",
-    tasks: ["T1", "T2"],
-    links: {
-      oneNote: "https://onenote.com/ecommerce-project",
-      teams: "https://teams.microsoft.com/ecommerce-channel",
-      email: "ecommerce-team@company.com",
-      file: "https://sharepoint.com/ecommerce-specs.pdf",
-      folder: "https://sharepoint.com/projects/ecommerce"
-    }
-  },
-  {
-    id: "P2", 
-    name: "Mobile App",
-    description: "Native mobile application for iOS and Android with offline capabilities",
-    owner: "Mike Wilson",
-    team: ["Mike Wilson", "Lisa Anderson"],
-    startDate: "2024-01-10",
-    endDate: "2024-04-15",
-    status: "Active",
-    tasks: ["T3", "T7"],
-    links: {
-      teams: "https://teams.microsoft.com/mobile-dev",
-      folder: "https://sharepoint.com/projects/mobile-app"
-    }
-  },
-  {
-    id: "P3",
-    name: "Website Redesign", 
-    description: "Complete overhaul of the corporate website with focus on user experience",
-    owner: "Sarah Davis",
-    team: ["Sarah Davis"],
+    id: "PRJ-001",
+    name: "Customer Portal Redesign",
+    description: "Complete overhaul of the customer-facing portal interface with modern UI/UX",
+    owner: "Sarah Connor",
+    team: ["Sarah Connor", "John Smith", "Emily Davis"],
     startDate: "2024-01-15",
-    endDate: "2024-03-30",
+    endDate: "2024-04-30",
     status: "Active",
-    tasks: ["T4"],
+    scope: "Frontend",
+    tasks: ["TSK-001", "TSK-002", "TSK-003", "TSK-004"],
     links: {
-      oneNote: "https://onenote.com/website-redesign",
-      email: "design-team@company.com"
+      oneNote: "https://onenote.com/customer-portal",
+      teams: "https://teams.microsoft.com/customer-portal",
+      email: "sarah.connor@company.com",
+      file: "https://sharepoint.com/customer-portal-specs.docx",
+      folder: "https://sharepoint.com/sites/customer-portal"
     }
   },
   {
-    id: "P4",
-    name: "API Platform",
-    description: "RESTful API platform with comprehensive documentation and developer tools",
-    owner: "David Brown", 
-    team: ["David Brown"],
-    startDate: "2024-01-05",
-    endDate: "2024-05-01",
+    id: "PRJ-002",
+    name: "API Integration Platform",
+    description: "Development of a unified API platform for third-party integrations",
+    owner: "Michael Rodriguez",
+    team: ["Michael Rodriguez", "Lisa Wang", "David Kim"],
+    startDate: "2024-02-01",
+    endDate: "2024-06-15",
     status: "Active",
-    tasks: ["T5"]
+    scope: "Backend",
+    tasks: ["TSK-005", "TSK-006"],
+    links: {
+      teams: "https://teams.microsoft.com/api-platform",
+      folder: "https://sharepoint.com/sites/api-platform"
+    }
   },
   {
-    id: "P5",
-    name: "Cloud Migration",
-    description: "Migration of all services to cloud infrastructure with improved scalability",
-    owner: "Robert Garcia",
-    team: ["Robert Garcia"],
+    id: "PRJ-003",
+    name: "Mobile App Launch",
+    description: "Native mobile application for iOS and Android platforms",
+    owner: "Jennifer Park",
+    team: ["Jennifer Park", "Alex Thompson", "Maria Gonzalez"],
+    startDate: "2024-03-01",
+    endDate: "2024-08-30",
+    status: "Active",
+    scope: "Mobile",
+    tasks: ["TSK-007", "TSK-008"],
+    links: {
+      oneNote: "https://onenote.com/mobile-app",
+      email: "jennifer.park@company.com"
+    }
+  },
+  {
+    id: "PRJ-004",
+    name: "Data Analytics Dashboard",
+    description: "Business intelligence dashboard for real-time analytics",
+    owner: "Robert Chen",
+    team: ["Robert Chen", "Amanda White"],
+    startDate: "2024-04-01",
+    endDate: "2024-07-31",
+    status: "Active",
+    scope: "Analytics",
+    tasks: ["TSK-009", "TSK-010"]
+  },
+  {
+    id: "PRJ-005",
+    name: "Security Audit & Compliance",
+    description: "Comprehensive security review and compliance implementation",
+    owner: "Thomas Anderson",
+    team: ["Thomas Anderson", "Linda Johnson"],
     startDate: "2024-01-01",
-    endDate: "2024-08-31",
+    endDate: "2024-03-31",
     status: "On Hold",
-    tasks: ["T6"]
+    scope: "Security",
+    tasks: []
   },
   {
-    id: "P6",
-    name: "CRM System",
-    description: "Customer relationship management system with advanced analytics",
-    owner: "James Taylor",
-    team: ["James Taylor"],
-    startDate: "2024-01-25",
-    endDate: "2024-07-15",
-    status: "Active", 
-    tasks: ["T8"]
+    id: "PRJ-006",
+    name: "Database Migration",
+    description: "Migration from legacy database to modern cloud solution",
+    owner: "Kevin Liu",
+    team: ["Kevin Liu", "Susan Brown"],
+    startDate: "2024-05-01",
+    endDate: "2024-09-30",
+    status: "Active",
+    scope: "Infrastructure",
+    tasks: []
   }
 ];
+
+export const kpiMetrics: KPIMetrics = {
+  totalTasks: mockTasks.length,
+  completedTasks: mockTasks.filter(task => task.status === "Completed").length,
+  overdueTasks: mockTasks.filter(task => task.status !== "Completed" && new Date(task.dueDate) < new Date()).length,
+  completionRate: (mockTasks.filter(task => task.status === "Completed").length / mockTasks.length) * 100,
+  averageTaskDuration: mockTasks.reduce((acc, task) => acc + (task.duration || 0), 0) / mockTasks.length,
+  tasksByStatus: mockTasks.reduce((acc, task) => {
+    acc[task.status] = (acc[task.status] || 0) + 1;
+    return acc;
+  }, { "Open": 0, "In Progress": 0, "Completed": 0, "On Hold": 0 }),
+  tasksByPriority: mockTasks.reduce((acc, task) => {
+    acc[task.priority] = (acc[task.priority] || 0) + 1;
+    return acc;
+  }, { "Low": 0, "Medium": 0, "High": 0, "Critical": 0 }),
+  tasksByUser: mockTasks.reduce((acc, task) => {
+    acc[task.responsible] = (acc[task.responsible] || 0) + 1;
+    return acc;
+  }, {})
+};
