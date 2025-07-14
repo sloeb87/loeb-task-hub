@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,17 +26,20 @@ const defaultEnvironments = ["Development", "Testing", "Staging", "Production", 
 const defaultTaskTypes = ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"];
 const defaultStatuses = ["Open", "In Progress", "Completed", "On Hold"];
 const defaultPriorities = ["Low", "Medium", "High", "Critical"];
+const defaultScopes = ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
 
 export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const [environments, setEnvironments] = useState<string[]>(defaultEnvironments);
   const [taskTypes, setTaskTypes] = useState<string[]>(defaultTaskTypes);
   const [statuses, setStatuses] = useState<string[]>(defaultStatuses);
   const [priorities, setPriorities] = useState<string[]>(defaultPriorities);
+  const [scopes, setScopes] = useState<string[]>(defaultScopes);
 
   const [newEnvironment, setNewEnvironment] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [newPriority, setNewPriority] = useState("");
+  const [newScope, setNewScope] = useState("");
 
   const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string} | null>(null);
 
@@ -84,6 +88,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     setTaskTypes(defaultTaskTypes);
     setStatuses(defaultStatuses);
     setPriorities(defaultPriorities);
+    setScopes(defaultScopes);
     toast({
       title: "Reset Complete",
       description: "All parameters have been reset to default values.",
@@ -96,7 +101,8 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
       environments,
       taskTypes,
       statuses,
-      priorities
+      priorities,
+      scopes
     }));
     toast({
       title: "Parameters Saved",
@@ -204,13 +210,32 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         </div>
 
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
-          <Tabs defaultValue="environments" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+          <Tabs defaultValue="scopes" className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="scopes">Scopes</TabsTrigger>
               <TabsTrigger value="environments">Environments</TabsTrigger>
               <TabsTrigger value="taskTypes">Task Types</TabsTrigger>
               <TabsTrigger value="statuses">Statuses</TabsTrigger>
               <TabsTrigger value="priorities">Priorities</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="scopes" className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Scope Options</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {renderItemList(
+                    scopes,
+                    setScopes,
+                    "Scopes",
+                    newScope,
+                    setNewScope,
+                    "Add new scope..."
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
 
             <TabsContent value="environments" className="mt-6">
               <Card>

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
+import { Task, TaskStatus, TaskPriority, TaskType, Project } from "@/types/task";
 import { X, Plus, Clock, FolderOpen, ExternalLink, Edit, Calendar, MessageSquare } from "lucide-react";
 
 interface TaskFormProps {
@@ -17,14 +17,22 @@ interface TaskFormProps {
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   task?: Task | null;
   allTasks?: Task[];
+  allProjects?: Project[];
   projectName?: string;
   onEditRelatedTask?: (task: Task) => void;
 }
 
-export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], projectName, onEditRelatedTask }: TaskFormProps) => {
+export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], allProjects = [], projectName, onEditRelatedTask }: TaskFormProps) => {
   console.log('TaskForm render - isOpen:', isOpen, 'task:', task?.title);
+  
+  // Find the project scope based on the selected project
+  const getProjectScope = (projectName: string): string => {
+    const project = allProjects.find(p => p.name === projectName);
+    return project?.scope || '';
+  };
+
   const [formData, setFormData] = useState({
-    scope: task?.scope || '',
+    scope: task?.scope || getProjectScope(task?.project || projectName || ''),
     project: task?.project || projectName || '',
     environment: task?.environment || 'Production',
     taskType: task?.taskType || 'Development' as TaskType,
@@ -46,6 +54,17 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
     },
     stakeholders: task?.stakeholders || []
   });
+
+  // Update scope when project changes
+  useEffect(() => {
+    if (formData.project) {
+      const projectScope = getProjectScope(formData.project);
+      setFormData(prev => ({
+        ...prev,
+        scope: projectScope
+      }));
+    }
+  }, [formData.project, allProjects]);
 
   // Get related tasks from the same project
   const relatedTasks = allTasks.filter(t => 
@@ -122,6 +141,12 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
     }
   };
 
+  // Get unique project names for the dropdown
+  const availableProjects = Array.from(new Set([
+    ...allProjects.map(p => p.name),
+    ...allTasks.map(t => t.project)
+  ])).filter(Boolean);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       console.log('Dialog onOpenChange called with:', open);
@@ -155,20 +180,24 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
               <Input
                 id="scope"
                 value={formData.scope}
-                onChange={(e) => handleInputChange('scope', e.target.value)}
-                placeholder="Project scope..."
-                required
+                placeholder="Auto-populated from project..."
+                readOnly
+                className="bg-gray-50 cursor-not-allowed"
+                title="Scope is automatically set based on the selected project"
               />
             </div>
             <div>
               <Label htmlFor="project">Project</Label>
-              <Input
-                id="project"
-                value={formData.project}
-                onChange={(e) => handleInputChange('project', e.target.value)}
-                placeholder="Project name..."
-                required
-              />
+              <Select value={formData.project} onValueChange={(value) => handleInputChange('project', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select project" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableProjects.map((projectName) => (
+                    <SelectItem key={projectName} value={projectName}>{projectName}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

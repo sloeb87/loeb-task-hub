@@ -21,6 +21,20 @@ interface ProjectFormProps {
   onUpdateTask?: (task: Task) => void;
 }
 
+// Get scopes from localStorage or use defaults
+const getAvailableScopes = (): string[] => {
+  try {
+    const stored = localStorage.getItem('parameters');
+    if (stored) {
+      const params = JSON.parse(stored);
+      return params.scopes || ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
+    }
+  } catch (error) {
+    console.warn('Failed to load scopes from localStorage:', error);
+  }
+  return ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
+};
+
 export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
   const [formData, setFormData] = useState({
     name: project?.name || '',
@@ -31,6 +45,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
     status: project?.status || 'Active' as Project['status'],
     team: project?.team || [] as string[],
     tasks: project?.tasks || [] as string[],
+    scope: project?.scope || '',
     links: {
       oneNote: project?.links?.oneNote || '',
       teams: project?.links?.teams || '',
@@ -41,6 +56,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
   });
 
   const [newTeamMember, setNewTeamMember] = useState('');
+  const availableScopes = getAvailableScopes();
   
   // Get project tasks
   const projectTasks = allTasks.filter(task => 
@@ -116,6 +132,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
         status: project.status,
         team: project.team,
         tasks: project.tasks,
+        scope: project.scope || '',
         links: {
           oneNote: project.links?.oneNote || '',
           teams: project.links?.teams || '',
@@ -170,6 +187,23 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
                   required
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="scope">Scope</Label>
+                <Select value={formData.scope} onValueChange={(value) => handleInputChange('scope', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select project scope" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableScopes.map((scope) => (
+                      <SelectItem key={scope} value={scope}>{scope}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div></div>
             </div>
 
             <div>

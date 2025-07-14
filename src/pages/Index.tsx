@@ -55,7 +55,7 @@ const Index = () => {
   };
 
   const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
-  const [projects, setProjects] = useState<Project[]>(mockProjects);
+  const [projects, setProjects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
@@ -219,6 +219,8 @@ const Index = () => {
             }} 
             onSave={selectedTask ? handleUpdateTask : handleCreateTask} 
             task={selectedTask} 
+            allTasks={tasks}
+            allProjects={projects}
           />
         )}
 
