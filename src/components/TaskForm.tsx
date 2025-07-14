@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Task, TaskStatus, TaskPriority, TaskType } from "@/types/task";
-import { X, Plus, Clock, FolderOpen, ExternalLink, Edit } from "lucide-react";
+import { X, Plus, Clock, FolderOpen, ExternalLink, Edit, Calendar } from "lucide-react";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -111,9 +110,17 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks = [], project
         }}
       >
         <DialogHeader>
-          <DialogTitle>
-            {task ? `Edit Task ${task.id}` : 'Create New Task'}
-          </DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>
+              {task ? `Edit Task ${task.id}` : 'Create New Task'}
+            </DialogTitle>
+            {task && (
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <Calendar className="w-4 h-4" />
+                <span>Created: {new Date(task.creationDate).toLocaleDateString()}</span>
+              </div>
+            )}
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
