@@ -113,6 +113,11 @@ const Index = () => {
     setSelectedTask(null);
   };
 
+  const handleEditTask = (task: Task) => {
+    console.log('handleEditTask called with task:', task.id);
+    setSelectedTask(task);
+  };
+
   const handleAddFollowUp = (taskId: string, followUpText: string) => {
     setTasks(tasks.map(task => {
       if (task.id === taskId) {
@@ -187,10 +192,10 @@ const Index = () => {
               onFilterChange={setActiveFilter}
             />
 
-            <TaskTable tasks={filteredTasks} onEditTask={setSelectedTask} onFollowUp={setFollowUpTask} />
+            <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={setFollowUpTask} />
           </>
         ) : activeView === "dashboard" ? (
-          <KPIDashboard tasks={tasks} projects={projects} />
+          <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} />
         ) : (
           <ProjectsPage 
             tasks={tasks} 
