@@ -20,7 +20,7 @@ import {
   useDraggable,
   useDroppable
 } from '@dnd-kit/core';
-import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink } from 'lucide-react';
+import { Calendar as CalendarIcon, RotateCcw, Trash2, Plus, Edit3, Move, GripHorizontal, ExternalLink, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface GanttChartProps {
   tasks: Task[];
@@ -272,37 +272,33 @@ const DraggableTask = ({
         </button>
       )}
       
-      {/* Dependency Text Display */}
+      {/* Dependency Text Display - Single Line */}
       {task.dependencies && task.dependencies.length > 0 && (
         <div 
-          className="absolute left-full ml-2 top-0 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 shadow-sm z-20 whitespace-nowrap"
+          className="absolute left-full ml-2 top-1/2 transform -translate-y-1/2 bg-white border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 shadow-sm z-20 whitespace-nowrap"
           style={{ minWidth: 'max-content' }}
         >
-          <span className="font-medium text-blue-600">Depends on:</span>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {task.dependencies.map(depId => {
-              const depTask = allTasks.find(t => t.id === depId);
-              return depTask ? (
+          <span className="font-medium text-blue-600">Depends on: </span>
+          {task.dependencies.map((depId, index) => {
+            const depTask = allTasks.find(t => t.id === depId);
+            return (
+              <span key={depId}>
+                {index > 0 && ', '}
                 <span 
-                  key={depId} 
-                  className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium
-                    ${depTask.status === 'Completed' ? 'bg-green-100 text-green-700' :
-                      depTask.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                      depTask.status === 'On Hold' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
+                  className={`inline font-medium
+                    ${depTask?.status === 'Completed' ? 'text-green-700' :
+                      depTask?.status === 'In Progress' ? 'text-blue-700' :
+                      depTask?.status === 'On Hold' ? 'text-yellow-700' :
+                      depTask ? 'text-gray-700' : 'text-red-700'
                     }
                   `}
-                  title={`${depTask.title} (${depTask.status})`}
+                  title={depTask ? `${depTask.title} (${depTask.status})` : `${depId} (missing)`}
                 >
-                  {depTask.id}
+                  {depId}
                 </span>
-              ) : (
-                <span key={depId} className="inline-block px-1.5 py-0.5 rounded text-xs bg-red-100 text-red-700">
-                  {depId} (missing)
-                </span>
-              );
-            })}
-          </div>
+              </span>
+            );
+          })}
         </div>
       )}
     </div>
@@ -470,6 +466,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>();
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragType, setDragType] = useState<'move' | 'resize-start' | 'resize-end' | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1); // 1 = normal, 2 = zoom in, 0.5 = zoom out
 
   // Remove this callback as we handle comments directly in the component
   
@@ -483,8 +480,15 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
   );
 
   // Use custom dates if set, otherwise use project dates
-  const ganttStartDate = customStartDate ? customStartDate : new Date(projectStartDate);
-  const ganttEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
+  const baseStartDate = customStartDate ? customStartDate : new Date(projectStartDate);
+  const baseEndDate = customEndDate ? customEndDate : new Date(projectEndDate);
+  const baseDuration = Math.max(1, differenceInDays(baseEndDate, baseStartDate) + 1);
+  
+  // Apply zoom level to date range
+  const centerDate = new Date(baseStartDate.getTime() + (baseDuration * 24 * 60 * 60 * 1000) / 2);
+  const zoomedDuration = Math.max(7, Math.round(baseDuration / zoomLevel)); // Minimum 1 week view
+  const ganttStartDate = new Date(centerDate.getTime() - (zoomedDuration * 24 * 60 * 60 * 1000) / 2);
+  const ganttEndDate = new Date(centerDate.getTime() + (zoomedDuration * 24 * 60 * 60 * 1000) / 2);
   const ganttDuration = Math.max(1, differenceInDays(ganttEndDate, ganttStartDate) + 1);
 
   // Filter tasks that fall within the selected timeline
@@ -622,6 +626,14 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
     window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
   };
 
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev * 1.5, 4)); // Max zoom 4x
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev / 1.5, 0.25)); // Min zoom 0.25x
+  };
+
   if (tasks.length === 0) {
     return (
       <Card>
@@ -729,6 +741,31 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
               >
                 <ExternalLink className="h-4 w-4" />
               </Button>
+              
+              {/* Zoom Controls */}
+              <div className="flex items-center space-x-1 ml-2 border-l pl-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleZoomOut}
+                  title="Zoom out (show more time)"
+                  disabled={zoomLevel <= 0.25}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-xs text-gray-500 px-2">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleZoomIn}
+                  title="Zoom in (show less time)"
+                  disabled={zoomLevel >= 4}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -770,7 +807,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                     className="absolute top-0 h-full border-l-2 border-red-500 bg-red-500 bg-opacity-10"
                     style={{ left: `${todayPos}%` }}
                   >
-                    <div className="text-xs text-red-700 mt-1 ml-1 whitespace-nowrap font-bold">
+                    <div className="text-xs text-red-700 mt-6 ml-1 whitespace-nowrap font-bold">
                       TODAY
                     </div>
                   </div>
