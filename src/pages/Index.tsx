@@ -17,15 +17,21 @@ const Index = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
-  const [statusFilter, setStatusFilter] = useState<TaskStatus | "ALL">("ALL");
+  const [activeFilter, setActiveFilter] = useState<"all" | "open" | "inprogress" | "onhold" | "critical">("all");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard">("tasks");
 
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
-      const matchesStatus = statusFilter === "ALL" || task.status === statusFilter;
-      return matchesStatus;
+      switch (activeFilter) {
+        case "open": return task.status === "Open";
+        case "inprogress": return task.status === "In Progress";
+        case "onhold": return task.status === "On Hold";
+        case "critical": return task.priority === "Critical";
+        case "all": return task.status === "Open" || task.status === "In Progress" || task.status === "On Hold";
+        default: return true;
+      }
     });
-  }, [tasks, statusFilter]);
+  }, [tasks, activeFilter]);
 
   const handleCreateTask = (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     const newTask: Task = {
@@ -73,6 +79,10 @@ const Index = () => {
               <Badge variant="secondary" className="text-xs">
                 Loeb Consulting
               </Badge>
+              <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2 ml-4">
+                <Plus className="w-4 h-4" />
+                New Task
+              </Button>
             </div>
             <div className="flex items-center space-x-2">
               <Button
@@ -101,29 +111,18 @@ const Index = () => {
             {/* Controls */}
             <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex flex-1 gap-4 items-center">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as TaskStatus | "ALL")}
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="ALL">All Status</option>
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Completed">Completed</option>
-                    <option value="On Hold">On Hold</option>
-                  </select>
+                <div className="text-sm text-gray-600">
+                  Showing {filteredTasks.length} of {tasks.length} tasks
                 </div>
-                <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  New Task
-                </Button>
               </div>
             </div>
 
             {/* Task Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-              <Card>
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "all" ? "ring-2 ring-blue-500" : ""}`}
+                onClick={() => setActiveFilter("all")}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -138,7 +137,10 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "open" ? "ring-2 ring-orange-500" : ""}`}
+                onClick={() => setActiveFilter("open")}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -153,7 +155,10 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "inprogress" ? "ring-2 ring-blue-500" : ""}`}
+                onClick={() => setActiveFilter("inprogress")}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -168,7 +173,10 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "onhold" ? "ring-2 ring-gray-500" : ""}`}
+                onClick={() => setActiveFilter("onhold")}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -183,7 +191,10 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card 
+                className={`cursor-pointer transition-all hover:shadow-md ${activeFilter === "critical" ? "ring-2 ring-red-500" : ""}`}
+                onClick={() => setActiveFilter("critical")}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
