@@ -211,8 +211,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           )}
         </Button>
         {showFilters[filterType] && (
-          <div className="absolute top-full right-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 min-w-[200px] max-w-[250px]">
-            <div className="space-y-2 max-h-60 overflow-y-auto">
+          <div className="absolute top-full right-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
+            <div className="space-y-2 max-h-80 overflow-y-auto">
               {getUniqueValues(filterType as keyof Task).map(value => (
                 <div key={value} className="flex items-center space-x-2">
                   <Checkbox
