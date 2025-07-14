@@ -833,8 +833,8 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
           </div>
         )}
       </CardHeader>
-      <CardContent className="max-h-[600px] overflow-auto">
-        {/* Timeline Header */}
+      <CardContent className="space-y-6">
+        {/* Timeline Header - Fixed at top */}
         <div className="mb-6">
           <div className="relative h-16 bg-gray-100 rounded border">
             {/* Date markers */}
@@ -874,82 +874,84 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
           </div>
         </div>
 
-        {/* Interactive Gantt Timeline */}
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <TimelineDropZone
-            ganttStartDate={ganttStartDate}
-            ganttDuration={ganttDuration}
-            onTaskUpdate={onTaskUpdate}
+        {/* Interactive Gantt Timeline - Scrollable Container */}
+        <div className="max-h-[600px] overflow-auto border border-gray-300 rounded-lg">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
           >
-            <div 
-              className="relative border border-gray-200 rounded-lg"
-              style={{ 
-                height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
-                minHeight: '300px' 
-              }}
+            <TimelineDropZone
+              ganttStartDate={ganttStartDate}
+              ganttDuration={ganttDuration}
+              onTaskUpdate={onTaskUpdate}
             >
-              {/* Vertical Grid Lines for Date Separation */}
-              {timelineMarkers.map((marker, index) => (
-                <div
-                  key={`grid-${index}`}
-                  className="absolute top-0 h-full border-l border-gray-200 pointer-events-none"
-                  style={{ left: `${marker.position}%` }}
-                />
-              ))}
-              
-              {/* Today Grid Line */}
-              {(() => {
-                const today = new Date();
-                const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
-                if (todayPos >= 0 && todayPos <= 100) {
-                  return (
-                    <div
-                      className="absolute top-0 h-full border-l-2 border-red-400 pointer-events-none opacity-50"
-                      style={{ left: `${todayPos}%` }}
-                    />
-                  );
-                }
-                return null;
-              })()}
+              <div 
+                className="relative border border-gray-200 rounded-lg"
+                style={{ 
+                  height: `${Math.max(300, (filteredTasks.length * 60) + 100)}px`,
+                  minHeight: '300px' 
+                }}
+              >
+                {/* Vertical Grid Lines for Date Separation */}
+                {timelineMarkers.map((marker, index) => (
+                  <div
+                    key={`grid-${index}`}
+                    className="absolute top-0 h-full border-l border-gray-200 pointer-events-none"
+                    style={{ left: `${marker.position}%` }}
+                  />
+                ))}
+                
+                {/* Today Grid Line */}
+                {(() => {
+                  const today = new Date();
+                  const todayPos = ((differenceInDays(today, ganttStartDate) / ganttDuration) * 100);
+                  if (todayPos >= 0 && todayPos <= 100) {
+                    return (
+                      <div
+                        className="absolute top-0 h-full border-l-2 border-red-400 pointer-events-none opacity-50"
+                        style={{ left: `${todayPos}%` }}
+                      />
+                    );
+                  }
+                  return null;
+                })()}
 
-              {filteredTasks.map((task, index) => (
-                <DraggableTask
-                  key={task.id}
-                  task={task}
-                  ganttStartDate={ganttStartDate}
-                  ganttDuration={ganttDuration}
-                  onTaskUpdate={onTaskUpdate}
-                  onEditTask={onEditTask}
-                  onAddDependency={handleAddDependency}
-                  onRemoveDependency={handleRemoveDependency}
-                  allTasks={filteredTasks}
-                  yPosition={index}
-                  isDragging={draggedTask?.id === task.id}
-                  onTasksChange={onTasksChange}
-                />
-              ))}
-              
-              {/* Dependency Arrows/Lines - REMOVED - Now using text labels instead */}
-              {/* The dependency visualization is now handled by text labels next to each task */}
-              
-              {/* Drag feedback overlay */}
-              {draggedTask && (
-                <div className="absolute inset-0 bg-blue-50 bg-opacity-50 pointer-events-none flex items-center justify-center">
-                  <div className="text-blue-600 font-medium">
-                    {dragType === 'move' && 'Moving task...'}
-                    {dragType === 'resize-start' && 'Adjusting start date...'}
-                    {dragType === 'resize-end' && 'Adjusting end date...'}
+                {filteredTasks.map((task, index) => (
+                  <DraggableTask
+                    key={task.id}
+                    task={task}
+                    ganttStartDate={ganttStartDate}
+                    ganttDuration={ganttDuration}
+                    onTaskUpdate={onTaskUpdate}
+                    onEditTask={onEditTask}
+                    onAddDependency={handleAddDependency}
+                    onRemoveDependency={handleRemoveDependency}
+                    allTasks={filteredTasks}
+                    yPosition={index}
+                    isDragging={draggedTask?.id === task.id}
+                    onTasksChange={onTasksChange}
+                  />
+                ))}
+                
+                {/* Dependency Arrows/Lines - REMOVED - Now using text labels instead */}
+                {/* The dependency visualization is now handled by text labels next to each task */}
+                
+                {/* Drag feedback overlay */}
+                {draggedTask && (
+                  <div className="absolute inset-0 bg-blue-50 bg-opacity-50 pointer-events-none flex items-center justify-center">
+                    <div className="text-blue-600 font-medium">
+                      {dragType === 'move' && 'Moving task...'}
+                      {dragType === 'resize-start' && 'Adjusting start date...'}
+                      {dragType === 'resize-end' && 'Adjusting end date...'}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
-          </TimelineDropZone>
-        </DndContext>
+                )}
+              </div>
+            </TimelineDropZone>
+          </DndContext>
+        </div>
 
         {/* Color Legend - Moved Below */}
         <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
