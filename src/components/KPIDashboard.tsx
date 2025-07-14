@@ -1,11 +1,10 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Task, KPIMetrics } from "@/types/task";
-import { BarChart3, TrendingUp, AlertTriangle, CheckCircle, Clock, Users, Calendar, Filter } from "lucide-react";
+import { BarChart3, TrendingUp, AlertTriangle, CheckCircle, Clock, Users, Calendar, Filter, MessageSquare } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Area, AreaChart } from 'recharts';
 
 interface KPIDashboardProps {
@@ -27,6 +26,20 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
     const projectNames = [...new Set(tasks.map(task => task.project))];
     return projectNames.map(name => ({ name, value: name }));
   }, [tasks]);
+
+  // Get all follow-ups from filtered tasks
+  const filteredFollowUps = useMemo(() => {
+    const followUps = filteredTasks.flatMap(task => 
+      task.followUps.map(followUp => ({
+        ...followUp,
+        taskId: task.id,
+        taskTitle: task.title,
+        project: task.project
+      }))
+    );
+    return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  }, [filteredTasks]);
+
   // Calculate KPI metrics
   const calculateMetrics = (): KPIMetrics => {
     const totalTasks = filteredTasks.length;
@@ -109,7 +122,7 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
 
   const projectStats = getProjectStats();
 
-  // Prepare chart data
+  // Prepare chart data with colors
   const statusChartData = Object.entries(metrics.tasksByStatus).map(([status, count]) => ({
     status,
     count,
@@ -165,7 +178,22 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
       .sort((a, b) => a.start.getTime() - b.start.getTime());
   }, [filteredTasks, selectedProject]);
 
-  const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+  // Enhanced color schemes for charts
+  const STATUS_COLORS = {
+    'Open': '#f97316', // orange
+    'In Progress': '#3b82f6', // blue
+    'Completed': '#10b981', // green
+    'On Hold': '#6b7280' // gray
+  };
+
+  const PRIORITY_COLORS = {
+    'Low': '#10b981', // green
+    'Medium': '#f59e0b', // amber
+    'High': '#f97316', // orange
+    'Critical': '#ef4444' // red
+  };
+
+  const PIE_COLORS = ['#3b82f6', '#10b981', '#f97316', '#ef4444', '#8b5cf6', '#06b6d4'];
 
   return (
     <div className="space-y-6">
@@ -261,7 +289,7 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
         </Card>
       </div>
 
-      {/* Charts Section */}
+      {/* Charts Section with Enhanced Colors */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
@@ -284,10 +312,10 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
                   dataKey="count"
                 >
                   {statusChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value, name) => [value, name]} />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
@@ -307,14 +335,18 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
                 <XAxis dataKey="priority" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="count" fill="hsl(var(--primary))" />
+                <Bar dataKey="count">
+                  {priorityChartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || '#3b82f6'} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Team Performance Chart */}
+      {/* Team Performance Chart with Colors */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -339,7 +371,7 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
                   return user ? user.fullName : label;
                 }}
               />
-              <Bar dataKey="completionRate" fill="hsl(var(--primary))" />
+              <Bar dataKey="completionRate" fill="#3b82f6" />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -463,6 +495,49 @@ export const KPIDashboard = ({ tasks, projects }: KPIDashboardProps) => {
           </CardContent>
         </Card>
       )}
+
+      {/* Follow-ups Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MessageSquare className="h-5 w-5" />
+            <span>Follow-ups Created</span>
+            {selectedProject !== "all" && (
+              <Badge variant="outline" className="ml-2">
+                {selectedProject}
+              </Badge>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {filteredFollowUps.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              No follow-ups found for the selected filter.
+            </p>
+          ) : (
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {filteredFollowUps.map((followUp) => (
+                <div key={followUp.id} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground mb-1">
+                        <span className="font-medium text-foreground">{followUp.taskTitle}</span>
+                        <span>({followUp.taskId})</span>
+                      </div>
+                      <p className="text-sm">
+                        <span className="font-medium">
+                          {new Date(followUp.timestamp).toLocaleDateString()}:
+                        </span>{' '}
+                        {followUp.text}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
