@@ -29,6 +29,7 @@ interface GanttChartProps {
   onTasksChange: (tasks: Task[]) => void;
   projectStartDate: string;
   projectEndDate: string;
+  onEditTask?: (task: Task) => void;
 }
 
 interface SortableTaskProps {
@@ -39,6 +40,7 @@ interface SortableTaskProps {
   allTasks: Task[];
   ganttDuration: number;
   ganttStartDate: Date;
+  onEditTask?: (task: Task) => void;
 }
 
 const SortableTask = ({ 
@@ -48,7 +50,8 @@ const SortableTask = ({
   onRemoveDependency, 
   allTasks, 
   ganttDuration, 
-  ganttStartDate 
+  ganttStartDate,
+  onEditTask 
 }: SortableTaskProps) => {
   const {
     attributes,
@@ -90,7 +93,10 @@ const SortableTask = ({
     <div ref={setNodeRef} style={taskStyle} className="space-y-2 border-b pb-4">
       {/* Task Info Row */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2 min-w-[200px]">
+        <div 
+          className="flex items-center space-x-2 min-w-[200px] cursor-pointer hover:bg-gray-50 p-2 rounded"
+          onClick={() => onEditTask?.(task)}
+        >
           <div {...attributes} {...listeners} className="cursor-grab">
             <GripVertical className="w-4 h-4 text-gray-400" />
           </div>
@@ -154,11 +160,12 @@ const SortableTask = ({
       {/* Gantt Bar */}
       <div className="relative h-6 bg-gray-100 rounded">
         <div
-          className={`absolute h-full rounded ${getStatusColor(task.status)} opacity-80`}
+          className={`absolute h-full rounded ${getStatusColor(task.status)} opacity-80 cursor-pointer hover:opacity-100 transition-opacity`}
           style={{
             left: `${taskLeft}%`,
             width: `${Math.max(2, taskWidth)}%`,
           }}
+          onClick={() => onEditTask?.(task)}
         >
           <div className="px-2 py-1 text-xs text-white truncate">
             {task.title}
@@ -187,7 +194,7 @@ const SortableTask = ({
   );
 };
 
-export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate }: GanttChartProps) => {
+export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, onEditTask }: GanttChartProps) => {
   const [taskOrder, setTaskOrder] = useState(tasks.map(t => t.id));
   
   const sensors = useSensors(
@@ -316,6 +323,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
                   allTasks={tasks}
                   ganttDuration={ganttDuration}
                   ganttStartDate={ganttStartDate}
+                  onEditTask={onEditTask}
                 />
               ))}
             </div>

@@ -226,6 +226,7 @@ export const ProjectDetailView = ({
               onTasksChange={handleTasksChange}
               projectStartDate={project.startDate}
               projectEndDate={project.endDate}
+              onEditTask={onEditTask}
             />
           </TabsContent>
         )}

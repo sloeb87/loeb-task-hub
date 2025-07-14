@@ -252,6 +252,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
                 onTasksChange={handleTasksChange}
                 projectStartDate={formData.startDate}
                 projectEndDate={formData.endDate}
+                onEditTask={onUpdateTask}
               />
             </TabsContent>
           )}
