@@ -802,7 +802,7 @@ export const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndD
           </div>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="max-h-[600px] overflow-auto">
         {/* Timeline Header */}
         <div className="mb-6">
           <div className="relative h-16 bg-gray-100 rounded border">
