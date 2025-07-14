@@ -82,11 +82,17 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
   useEffect(() => {
     console.log('TaskForm initialization useEffect - task:', task, 'isOpen:', isOpen);
     
-    if (isOpen && task) {
+    if (!isOpen) {
+      // Reset initialization when dialog closes
+      setIsInitialized(false);
+      return;
+    }
+
+    if (task) {
       // Editing existing task - populate all fields
       console.log('Loading existing task data for editing:', task);
       
-      setFormData({
+      const newFormData = {
         title: task.title || "",
         project: task.project || "",
         scope: task.scope || "",
@@ -109,17 +115,20 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         },
         stakeholders: task.stakeholders || [],
         comments: task.comments || []
-      });
+      };
+      
+      console.log('Setting form data for task:', task.id, newFormData);
+      setFormData(newFormData);
       setDate(new Date(task.dueDate));
       setProjectScope(task.scope || null);
       setIsInitialized(true);
       
       console.log('Form data populated for editing task:', task.id);
-    } else if (isOpen && !task) {
+    } else {
       // Creating new task - use defaults with optional project name
       console.log('Setting up form for new task, projectName:', projectName);
       
-      setFormData({
+      const newFormData = {
         title: "",
         project: projectName || "",
         scope: "",
@@ -142,28 +151,31 @@ export const TaskForm = ({ isOpen, onClose, onSave, task, allTasks, allProjects,
         },
         stakeholders: [],
         comments: []
-      });
+      };
+      
+      setFormData(newFormData);
       setDate(new Date());
       setProjectScope(null);
       setIsInitialized(true);
       
       console.log('Form data set for new task');
-    } else if (!isOpen) {
-      // Reset initialization when dialog closes
-      setIsInitialized(false);
     }
-  }, [task?.id, isOpen, projectName]); // Use task?.id instead of task to prevent unnecessary re-renders
+  }, [isOpen, task?.id, projectName]); // Simplified dependencies
 
   // Set project scope when project changes (but not during initial load when editing)
   useEffect(() => {
-    if (isInitialized && formData.project && !task) {
-      // Only auto-set scope for new tasks, not when editing existing tasks
+    if (!isInitialized || task) {
+      // Don't auto-update scope during initialization or when editing existing tasks
+      return;
+    }
+    
+    if (formData.project) {
       const project = allProjects.find((p: Project) => p.name === formData.project);
-      if (project) {
+      if (project && project.scope !== formData.scope) {
         setProjectScope(project.scope);
         setFormData(prev => ({ ...prev, scope: project.scope }));
       }
-    } else if (isInitialized && !formData.project) {
+    } else {
       setProjectScope(null);
     }
   }, [formData.project, allProjects, isInitialized, task]);
