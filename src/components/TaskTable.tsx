@@ -295,7 +295,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               <TableHead style={{ minWidth: '120px' }}>
                 <SortableHeader field="dueDate">Due Date</SortableHeader>
               </TableHead>
-              <TableHead style={{ minWidth: '150px' }}>Follow Ups</TableHead>
+              <TableHead style={{ minWidth: '200px' }}>Follow Ups</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -453,7 +453,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         .reverse()
                         .map((followUp, index) => (
                           <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
-                            <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-300">
                               {followUp.text}
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
