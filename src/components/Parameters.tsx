@@ -28,16 +28,16 @@ interface ColoredItem {
 }
 
 const predefinedColors = [
-  "#3b82f6", // blue
-  "#10b981", // emerald
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#8b5cf6", // violet
-  "#06b6d4", // cyan
-  "#f97316", // orange
-  "#84cc16", // lime
-  "#ec4899", // pink
-  "#6b7280", // gray
+  { name: "Blue", value: "#3b82f6" },
+  { name: "Emerald", value: "#10b981" },
+  { name: "Amber", value: "#f59e0b" },
+  { name: "Red", value: "#ef4444" },
+  { name: "Violet", value: "#8b5cf6" },
+  { name: "Cyan", value: "#06b6d4" },
+  { name: "Orange", value: "#f97316" },
+  { name: "Lime", value: "#84cc16" },
+  { name: "Pink", value: "#ec4899" },
+  { name: "Gray", value: "#6b7280" },
 ];
 
 const defaultEnvironments: ColoredItem[] = [
@@ -85,9 +85,9 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const [newPriority, setNewPriority] = useState("");
   const [newScope, setNewScope] = useState("");
 
-  const [newEnvironmentColor, setNewEnvironmentColor] = useState(predefinedColors[0]);
-  const [newTaskTypeColor, setNewTaskTypeColor] = useState(predefinedColors[0]);
-  const [newScopeColor, setNewScopeColor] = useState(predefinedColors[0]);
+  const [newEnvironmentColor, setNewEnvironmentColor] = useState(predefinedColors[0].value);
+  const [newTaskTypeColor, setNewTaskTypeColor] = useState(predefinedColors[0].value);
+  const [newScopeColor, setNewScopeColor] = useState(predefinedColors[0].value);
 
   const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string, color?: string} | null>(null);
 
@@ -185,16 +185,34 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
           }}
           className="flex-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
         />
-        <div className="flex items-center gap-1">
-          {predefinedColors.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={`w-6 h-6 rounded-full border-2 ${newColor === color ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
-              style={{ backgroundColor: color }}
-              onClick={() => setNewColor(color)}
-            />
-          ))}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+            <Palette className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-2" />
+            <div className="flex items-center gap-1">
+              {predefinedColors.map((color) => (
+                <button
+                  key={color.value}
+                  type="button"
+                  title={color.name}
+                  className={`
+                    relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg
+                    ${newColor === color.value 
+                      ? 'border-gray-900 dark:border-white shadow-md ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500' 
+                      : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400'
+                    }
+                  `}
+                  style={{ backgroundColor: color.value }}
+                  onClick={() => setNewColor(color.value)}
+                >
+                  {newColor === color.value && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-white drop-shadow-sm" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <Button
           onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""), newColor)}
@@ -220,16 +238,32 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   autoFocus
                   className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 />
-                <div className="flex items-center gap-1">
-                  {predefinedColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className={`w-6 h-6 rounded-full border-2 ${editingItem.color === color ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
-                      style={{ backgroundColor: color }}
-                      onClick={() => setEditingItem({...editingItem, color})}
-                    />
-                  ))}
+                <div className="flex items-center p-2 bg-gray-100 dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
+                  <Palette className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-2" />
+                  <div className="flex items-center gap-1">
+                    {predefinedColors.map((color) => (
+                      <button
+                        key={color.value}
+                        type="button"
+                        title={color.name}
+                        className={`
+                          relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg
+                          ${editingItem.color === color.value 
+                            ? 'border-gray-900 dark:border-white shadow-md ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500' 
+                            : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400'
+                          }
+                        `}
+                        style={{ backgroundColor: color.value }}
+                        onClick={() => setEditingItem({...editingItem, color: color.value})}
+                      >
+                        {editingItem.color === color.value && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Check className="w-4 h-4 text-white drop-shadow-sm" />
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <Button size="sm" variant="outline" onClick={() => handleSaveEdit(setter)}>
                   <Check className="w-4 h-4" />
@@ -240,12 +274,16 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div 
-                    className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600"
+                    className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-500 shadow-sm"
                     style={{ backgroundColor: item.color }}
                   />
-                  <Badge variant="outline" className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                  <Badge 
+                    variant="outline" 
+                    className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
+                    style={{ borderLeftColor: item.color, borderLeftWidth: '3px' }}
+                  >
                     {item.name}
                   </Badge>
                 </div>
