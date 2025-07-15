@@ -13,7 +13,6 @@ import { AppHeader } from "@/components/AppHeader";
 import ProjectsPage from "./Projects";
 import Parameters from "@/components/Parameters";
 import { useTaskStorage } from "@/hooks/useTaskStorage";
-import { useProjectStorage } from "@/hooks/useProjectStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 
 const Index = () => {
@@ -23,23 +22,13 @@ const Index = () => {
   // Custom hooks for optimized data management
   const { 
     tasks, 
-    isLoading: tasksLoading, 
-    error: tasksError, 
+    isLoading, 
+    error, 
     createTask, 
     updateTask, 
     addFollowUp,
     deleteTask 
   } = useTaskStorage();
-
-  // Use project storage hook
-  const {
-    projects,
-    isLoading: projectsLoading,
-    error: projectsError,
-    createProject,
-    updateProject,
-    deleteProject
-  } = useProjectStorage();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -68,6 +57,7 @@ const Index = () => {
   }, [isDarkMode]);
 
   // State management
+  const [projects, setProjects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
@@ -109,79 +99,67 @@ const Index = () => {
     updateTask(updatedTask);
   }, [updateTask]);
 
-  const handleCreateProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
-    try {
-      await createProject(projectData);
-    } catch (error) {
-      console.error('Failed to create project:', error);
-    }
-  }, [createProject]);
+  const handleCreateProject = useCallback((projectData: Omit<Project, 'id'>) => {
+    const newProject: Project = {
+      ...projectData,
+      id: `P${projects.length + 1}`
+    };
+    setProjects(prev => [...prev, newProject]);
+    console.log('Created new project:', newProject.name);
+  }, [projects.length]);
 
-  const handleUpdateProject = useCallback(async (updatedProject: Project) => {
-    try {
-      await updateProject(updatedProject);
-    } catch (error) {
-      console.error('Failed to update project:', error);
-    }
-  }, [updateProject]);
+  const handleUpdateProject = useCallback((updatedProject: Project) => {
+    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+    console.log('Updated project:', updatedProject.name);
+  }, []);
 
-  const handleDeleteProject = useCallback(async (projectId: string) => {
-    try {
-      const project = projects.find(p => p.id === projectId);
-      if (!project) return;
-      
-      // Delete all tasks associated with this project first
-      const tasksToDelete = tasks.filter(task => task.project === project.name);
-      for (const task of tasksToDelete) {
-        await deleteTask(task.id);
-      }
-      
-      // Delete the project
-      await deleteProject(projectId);
-    } catch (error) {
-      console.error('Failed to delete project:', error);
-    }
-  }, [projects, tasks, deleteTask, deleteProject]);
+  const handleDeleteProject = useCallback((projectId: string) => {
+    // Find the project to get its name
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // Delete all tasks associated with this project
+    const tasksToDelete = tasks.filter(task => task.project === project.name);
+    tasksToDelete.forEach(task => deleteTask(task.id));
+    
+    // Remove the project from the projects list
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+    console.log('Deleted project:', projectId, 'and', tasksToDelete.length, 'associated tasks');
+  }, [projects, tasks, deleteTask]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
   }, [deleteTask]);
 
-  const handleSaveTask = useCallback(async (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    try {
-      console.log('Index - handleSaveTask called with:', taskData);
-      if ('id' in taskData) {
-        // Updating existing task
-        await updateTask(taskData as Task);
-      } else {
-        // Creating new task
-        await createTask(taskData);
-      }
-      setIsTaskFormOpen(false);
-      setSelectedTask(null);
-    } catch (error) {
-      console.error('Failed to save task:', error);
+  const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    console.log('Index - handleSaveTask called with:', taskData);
+    if ('id' in taskData) {
+      // Updating existing task
+      handleUpdateTask(taskData as Task);
+    } else {
+      // Creating new task
+      handleCreateTask(taskData);
     }
-  }, [updateTask, createTask]);
+  }, [handleUpdateTask, handleCreateTask]);
 
   // Show loading state
-  if (tasksLoading || projectsLoading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading data...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading tasks...</p>
         </div>
       </div>
     );
   }
 
   // Show error state
-  if (tasksError || projectsError) {
+  if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
-          <p className="text-red-600 dark:text-red-400">Error: {tasksError || projectsError}</p>
+          <p className="text-red-600 dark:text-red-400">Error: {error}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
             Retry
           </Button>
