@@ -23,6 +23,7 @@ interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
+  onDelete?: (taskId: string) => void;
   task?: Task | null;
   allTasks: Task[];
   allProjects: Project[];
@@ -84,6 +85,7 @@ export const TaskFormOptimized = React.memo(({
   isOpen, 
   onClose, 
   onSave, 
+  onDelete,
   task, 
   allTasks, 
   allProjects, 
@@ -262,6 +264,13 @@ export const TaskFormOptimized = React.memo(({
 
     onSave(updatedTask);
     setFollowUpDialogOpen(false);
+  };
+
+  const handleDelete = () => {
+    if (task && onDelete && window.confirm('Are you sure you want to delete this task?')) {
+      onDelete(task.id);
+      onClose();
+    }
   };
 
   return (
@@ -663,18 +672,29 @@ export const TaskFormOptimized = React.memo(({
           </div>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose}
-              className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-            >
-              Cancel
-            </Button>
-            <Button type="submit">
-              {task ? 'Update Task' : 'Create Task'}
-            </Button>
+          <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {task && onDelete && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDelete}
+              >
+                Delete Task
+              </Button>
+            )}
+            <div className="flex space-x-2 ml-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button type="submit">
+                {task ? 'Update Task' : 'Create Task'}
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>

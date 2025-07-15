@@ -243,6 +243,7 @@ const Index = () => {
             setSelectedTask(null);
           }} 
           onSave={handleSaveTask} 
+          onDelete={handleDeleteTask}
           task={selectedTask} 
           allTasks={tasks}
           allProjects={projects}
