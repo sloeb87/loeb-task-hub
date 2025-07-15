@@ -12,6 +12,8 @@ export const useTaskStorage = () => {
     const loadTasks = () => {
       try {
         const stored = localStorage.getItem('pmtask-tasks');
+        console.log('Stored tasks from localStorage:', stored);
+        console.log('Mock tasks available:', mockTasks.length);
         let loadedTasks = stored ? JSON.parse(stored) : mockTasks;
         
         // Migrate old task IDs to new format (T1, T2, T3...)
