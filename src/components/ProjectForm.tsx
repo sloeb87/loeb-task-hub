@@ -229,7 +229,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
           {/* Timeline */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Timeline</h4>
+            <h4 className="text-sm font-medium text-foreground">Timeline</h4>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label htmlFor="startDate">Start Date</Label>
@@ -269,7 +269,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
           {/* Team Members */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Team Members</h4>
+            <h4 className="text-sm font-medium text-foreground">Team Members</h4>
             
             <div className="flex gap-2">
               <Input
@@ -291,7 +291,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                     <button
                       type="button"
                       onClick={() => removeTeamMember(member)}
-                      className="ml-1 text-gray-500 hover:text-gray-700"
+                      className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -303,7 +303,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
           {/* Project Links */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Project Links</h4>
+            <h4 className="text-sm font-medium text-foreground">Project Links</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="oneNote">OneNote</Label>
