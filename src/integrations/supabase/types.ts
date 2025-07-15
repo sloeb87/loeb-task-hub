@@ -14,38 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      comments: {
-        Row: {
-          author: string
-          created_at: string
-          id: string
-          task_id: string
-          text: string
-        }
-        Insert: {
-          author: string
-          created_at?: string
-          id?: string
-          task_id: string
-          text: string
-        }
-        Update: {
-          author?: string
-          created_at?: string
-          id?: string
-          task_id?: string
-          text?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comments_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       follow_ups: {
         Row: {
           author: string

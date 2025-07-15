@@ -482,15 +482,15 @@ export const ProjectTable = ({
                             )}
                             
                             {/* Recent Comments Section */}
-                            {stats.projectTasks.some(task => task.comments && task.comments.length > 0) && (
+                            {stats.projectTasks.some(task => task.followUps && task.followUps.length > 0) && (
                               <div className="mt-6">
                                 <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
                                   <MessageSquare className="w-4 h-4 mr-2" />
-                                  Recent Comments
+                                  Recent Follow-ups
                                 </h4>
                                 <div className="space-y-3">
                                   {stats.projectTasks
-                                    .filter(task => task.comments && task.comments.length > 0)
+                                    .filter(task => task.followUps && task.followUps.length > 0)
                                     .slice(0, 3)
                                     .map(task => (
                                       <div key={task.id} className="bg-white dark:bg-gray-700 rounded border dark:border-gray-600 p-3">
@@ -501,16 +501,16 @@ export const ProjectTable = ({
                                           <span className="text-sm font-medium text-gray-900 dark:text-white">{task.title}</span>
                                         </div>
                                         <div className="space-y-2">
-                                          {task.comments!
+                                          {task.followUps!
                                             .slice(-3)
                                             .reverse()
-                                            .map((comment, index) => (
+                                            .map((followUp, index) => (
                                               <div key={index} className="border-l-2 border-blue-200 dark:border-blue-700 pl-3">
                                                 <div className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
-                                                  {comment.text}
+                                                  {followUp.text}
                                                 </div>
                                                 <div className="text-xs text-gray-400 mt-1">
-                                                  {new Date(comment.timestamp).toLocaleDateString()}
+                                                  {new Date(followUp.timestamp).toLocaleDateString()}
                                                 </div>
                                               </div>
                                             ))}

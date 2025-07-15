@@ -53,7 +53,6 @@ interface FormData {
     folder: string;
   };
   stakeholders: string[];
-  comments: { text: string; timestamp: string }[];
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -77,8 +76,7 @@ const DEFAULT_FORM_DATA: FormData = {
     file: "",
     folder: ""
   },
-  stakeholders: [],
-  comments: []
+  stakeholders: []
 };
 
 export const TaskFormOptimized = React.memo(({ 
@@ -142,8 +140,7 @@ export const TaskFormOptimized = React.memo(({
           file: task.links?.file || "",
           folder: task.links?.folder || ""
         },
-        stakeholders: task.stakeholders || [],
-        comments: task.comments || []
+        stakeholders: task.stakeholders || []
       };
       
       setFormData(newFormData);

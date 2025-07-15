@@ -58,23 +58,11 @@ export function useSupabaseStorage() {
       .eq('task_id', supabaseTask.id)
       .order('created_at', { ascending: true });
 
-    // Fetch comments for this task
-    const { data: commentsData } = await supabase
-      .from('comments')
-      .select('*')
-      .eq('task_id', supabaseTask.id)
-      .order('created_at', { ascending: true });
-
     const followUps: FollowUp[] = followUpsData?.map(fu => ({
       id: fu.id,
       text: fu.text,
       timestamp: fu.created_at,
       author: fu.author
-    })) || [];
-
-    const comments = commentsData?.map(comment => ({
-      text: comment.text,
-      timestamp: comment.created_at
     })) || [];
 
     return {
@@ -95,7 +83,6 @@ export function useSupabaseStorage() {
       duration: supabaseTask.duration || undefined,
       dependencies: supabaseTask.dependencies || [],
       followUps,
-      comments,
       details: supabaseTask.details || '',
       links: supabaseTask.links || {},
       stakeholders: supabaseTask.stakeholders || []

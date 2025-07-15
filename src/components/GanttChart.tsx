@@ -155,17 +155,17 @@ const DraggableTask = ({
         {/* Task Content */}
         <div className="px-2 py-1 text-xs text-white font-medium h-full flex flex-col justify-center">
           <div className="truncate">{task.id}: {task.title}</div>
-          {task.comments && task.comments.length > 0 && (
+          {task.followUps && task.followUps.length > 0 && (
             <div 
               className="text-xs text-white/80 truncate cursor-pointer hover:text-white mt-0.5"
               onClick={(e) => {
                 e.stopPropagation();
                 setShowCommentInput(true);
-                setCommentText(task.comments?.[0]?.text || '');
+                setCommentText(task.followUps?.[0]?.text || '');
               }}
-              title={`Click to edit: ${task.comments[0]?.text}`}
+              title={`Click to edit: ${task.followUps[0]?.text}`}
             >
-              💬 {task.comments[0]?.text}
+              💬 {task.followUps[0]?.text}
             </div>
           )}
         </div>
@@ -221,7 +221,7 @@ const DraggableTask = ({
           <textarea
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
-            placeholder={task.comments && task.comments.length > 0 ? "Edit comment..." : "Add a comment..."}
+            placeholder={task.followUps && task.followUps.length > 0 ? "Edit follow-up..." : "Add a follow-up..."}
             className="w-full p-2 border border-gray-200 rounded text-sm resize-none"
             rows={3}
             autoFocus
@@ -239,34 +239,29 @@ const DraggableTask = ({
             <button
               onClick={() => {
                  if (commentText.trim()) {
-                   // Replace existing comment or add new one
-                   const updatedTasks = allTasks.map(t => 
-                     t.id === task.id 
-                       ? { ...t, comments: [{ text: commentText.trim(), timestamp: new Date().toISOString() }] }
-                       : t
-                   );
-                   onTasksChange(updatedTasks);
+                   // Add follow-up (we'll implement this properly later)
+                   console.log('Adding follow-up:', commentText.trim());
                  }
                 setShowCommentInput(false);
                 setCommentText('');
               }}
               className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              {task.comments && task.comments.length > 0 ? 'Update' : 'Add'}
+              {task.followUps && task.followUps.length > 0 ? 'Update' : 'Add'}
             </button>
           </div>
         </div>
       )}
 
-      {/* Comment Button - only show if no comment exists */}
-      {(!task.comments || task.comments.length === 0) && (
+      {/* Follow-up Button - only show if no follow-up exists */}
+      {(!task.followUps || task.followUps.length === 0) && (
         <button
           onClick={(e) => {
             e.stopPropagation();
             setShowCommentInput(!showCommentInput);
           }}
           className="absolute -top-6 right-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gray-700 text-white text-xs px-2 py-1 rounded hover:bg-gray-800"
-          title="Add comment"
+          title="Add follow-up"
         >
           💬
         </button>
