@@ -97,31 +97,15 @@ export const TaskFormOptimized = React.memo(({
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
 
-  // Load parameters from localStorage with memoization
+  // Default parameters
   const parameters = useMemo(() => {
-    try {
-      const storedParameters = localStorage.getItem('parameters');
-      if (storedParameters) {
-        return JSON.parse(storedParameters);
-      } else {
-        // Initialize with default parameters if not found
-        const defaultParams = {
-          environments: ["Development", "Testing", "Staging", "Production", "Demo"],
-          taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
-          statuses: ["Open", "In Progress", "Completed", "On Hold"],
-          priorities: ["Low", "Medium", "High", "Critical"]
-        };
-        localStorage.setItem('parameters', JSON.stringify(defaultParams));
-        return defaultParams;
-      }
-    } catch {
-      return {
-        environments: ["Development", "Testing", "Staging", "Production", "Demo"],
-        taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
-        statuses: ["Open", "In Progress", "Completed", "On Hold"], 
-        priorities: ["Low", "Medium", "High", "Critical"]
-      };
-    }
+    return {
+      environments: ["Development", "Testing", "Staging", "Production", "Demo"],
+      taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
+      statuses: ["Open", "In Progress", "Completed", "On Hold"], 
+      priorities: ["Low", "Medium", "High", "Critical"],
+      scopes: ["Personal", "Small Team", "Department", "Organization", "External"]
+    };
   }, []);
 
   const {

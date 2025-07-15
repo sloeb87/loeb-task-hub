@@ -29,21 +29,14 @@ import { Task, TaskStatus, TaskPriority, Project } from "@/types/task";
 import { mockProjects } from "@/data/mockData";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
-import { useTaskStorage } from "@/hooks/useTaskStorage";
+import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
 const GanttView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Use the centralized task storage hook for consistency
-  const { tasks: storedTasks } = useTaskStorage();
-  const [tasks, setTasks] = useState<Task[]>(storedTasks);
-  const [projects] = useState<Project[]>(mockProjects);
-  
-  // Sync with central task storage
-  useEffect(() => {
-    setTasks(storedTasks);
-  }, [storedTasks]);
+  // Use Supabase storage
+  const { tasks, projects, createTask, updateTask } = useSupabaseStorage();
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");
@@ -102,61 +95,55 @@ const GanttView = () => {
     };
   }, [selectedProject, projects, filteredTasks]);
 
-  const handleCreateTask = (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: `T${tasks.length + 1}`,
-      creationDate: new Date().toISOString().split('T')[0],
-      followUps: []
-    };
-    setTasks([...tasks, newTask]);
-    setIsTaskFormOpen(false);
-    toast({
-      title: "Task Created",
-      description: `Task "${newTask.title}" has been created successfully.`,
-    });
-  };
-
-  const handleUpdateTask = (updatedTask: Task) => {
-    const updatedTasks = tasks.map(task => task.id === updatedTask.id ? updatedTask : task);
-    setTasks(updatedTasks);
-    setSelectedTask(null);
-    
-    // Sync to localStorage
+  const handleCreateTask = async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-    } catch (error) {
-      console.warn('Failed to save tasks to localStorage:', error);
-    }
-    
-    toast({
-      title: "Task Updated",
-      description: `Task "${updatedTask.title}" has been updated successfully.`,
-    });
-  };
-
-  const handleTasksChange = (updatedTasks: Task[]) => {
-    setTasks(updatedTasks);
-    
-    // Sync to localStorage for cross-component synchronization
-    try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-    } catch (error) {
-      console.warn('Failed to save tasks to localStorage:', error);
-    }
-    
-    // Add toast notification for dependency changes
-    const hasUpdatedDependencies = updatedTasks.some(task => {
-      const originalTask = tasks.find(t => t.id === task.id);
-      return originalTask && 
-        JSON.stringify(originalTask.dependencies || []) !== 
-        JSON.stringify(task.dependencies || []);
-    });
-    
-    if (hasUpdatedDependencies) {
+      await createTask(taskData);
+      setIsTaskFormOpen(false);
       toast({
-        title: "Dependencies Updated",
-        description: "Task dependencies have been synchronized across all views.",
+        title: "Task Created",
+        description: `Task "${taskData.title}" has been created successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateTask = async (updatedTask: Task) => {
+    try {
+      await updateTask(updatedTask);
+      setSelectedTask(null);
+      toast({
+        title: "Task Updated",
+        description: `Task "${updatedTask.title}" has been updated successfully.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTasksChange = async (updatedTasks: Task[]) => {
+    // Update tasks via Supabase storage
+    try {
+      for (const task of updatedTasks) {
+        await updateTask(task);
+      }
+      toast({
+        title: "Tasks Updated",
+        description: "Tasks have been synchronized successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update tasks. Please try again.",
+        variant: "destructive",
       });
     }
   };

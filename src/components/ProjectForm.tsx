@@ -22,17 +22,8 @@ interface ProjectFormProps {
   onUpdateTask?: (task: Task) => void;
 }
 
-// Get scopes from localStorage or use defaults
+// Default scopes
 const getAvailableScopes = (): string[] => {
-  try {
-    const stored = localStorage.getItem('parameters');
-    if (stored) {
-      const params = JSON.parse(stored);
-      return params.scopes || ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
-    }
-  } catch (error) {
-    console.warn('Failed to load scopes from localStorage:', error);
-  }
   return ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
 };
 
