@@ -305,6 +305,79 @@ export function useSupabaseStorage() {
     setTasks(prev => prev.filter(task => task.id !== taskId));
   };
 
+  const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        name: projectData.name,
+        description: projectData.description,
+        owner_id: user.id,
+        scope: projectData.scope,
+        start_date: projectData.startDate,
+        end_date: projectData.endDate,
+        status: projectData.status,
+        links: projectData.links || {}
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    const newProject = convertSupabaseProjectToProject(data);
+    setProjects(prev => [newProject, ...prev]);
+    return newProject;
+  };
+
+  const updateProject = async (updatedProject: Project): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        name: updatedProject.name,
+        description: updatedProject.description,
+        scope: updatedProject.scope,
+        start_date: updatedProject.startDate,
+        end_date: updatedProject.endDate,
+        status: updatedProject.status,
+        links: updatedProject.links || {}
+      })
+      .eq('id', updatedProject.id)
+      .eq('owner_id', user.id);
+
+    if (error) throw error;
+
+    setProjects(prev => prev.map(project => project.id === updatedProject.id ? updatedProject : project));
+  };
+
+  const deleteProject = async (projectId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    // First delete all tasks associated with this project
+    const { error: tasksError } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('project_id', projectId)
+      .eq('user_id', user.id);
+
+    if (tasksError) throw tasksError;
+
+    // Then delete the project
+    const { error } = await supabase
+      .from('projects')
+      .delete()
+      .eq('id', projectId)
+      .eq('owner_id', user.id);
+
+    if (error) throw error;
+
+    setProjects(prev => prev.filter(project => project.id !== projectId));
+    // Refresh tasks to remove deleted project tasks from UI
+    loadTasks();
+  };
+
   const refreshTasks = () => {
     loadTasks();
     loadProjects();
@@ -319,6 +392,9 @@ export function useSupabaseStorage() {
     updateTask,
     addFollowUp,
     deleteTask,
+    createProject,
+    updateProject,
+    deleteProject,
     refreshTasks
   };
 }
