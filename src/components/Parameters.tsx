@@ -12,7 +12,8 @@ import {
   RefreshCw,
   Check,
   X,
-  Edit3
+  Edit3,
+  Palette
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -21,19 +22,62 @@ interface ParametersProps {
   onClose: () => void;
 }
 
-const defaultEnvironments = ["Development", "Testing", "Staging", "Production", "Demo"];
-const defaultTaskTypes = ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"];
+interface ColoredItem {
+  name: string;
+  color: string;
+}
+
+const predefinedColors = [
+  "#3b82f6", // blue
+  "#10b981", // emerald
+  "#f59e0b", // amber
+  "#ef4444", // red
+  "#8b5cf6", // violet
+  "#06b6d4", // cyan
+  "#f97316", // orange
+  "#84cc16", // lime
+  "#ec4899", // pink
+  "#6b7280", // gray
+];
+
+const defaultEnvironments: ColoredItem[] = [
+  { name: "Development", color: "#3b82f6" },
+  { name: "Testing", color: "#f59e0b" },
+  { name: "Staging", color: "#8b5cf6" },
+  { name: "Production", color: "#ef4444" },
+  { name: "Demo", color: "#10b981" }
+];
+
+const defaultTaskTypes: ColoredItem[] = [
+  { name: "Development", color: "#3b82f6" },
+  { name: "Testing", color: "#f59e0b" },
+  { name: "Documentation", color: "#10b981" },
+  { name: "Review", color: "#8b5cf6" },
+  { name: "Meeting", color: "#ec4899" },
+  { name: "Research", color: "#06b6d4" }
+];
+
 const defaultStatuses = ["Open", "In Progress", "Completed", "On Hold"];
 const defaultPriorities = ["Low", "Medium", "High", "Critical"];
-const defaultScopes = ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
+
+const defaultScopes: ColoredItem[] = [
+  { name: "Frontend", color: "#3b82f6" },
+  { name: "Backend", color: "#10b981" },
+  { name: "Database", color: "#f59e0b" },
+  { name: "Infrastructure", color: "#ef4444" },
+  { name: "Mobile", color: "#8b5cf6" },
+  { name: "API", color: "#06b6d4" },
+  { name: "UI/UX", color: "#ec4899" },
+  { name: "DevOps", color: "#84cc16" }
+];
 
 export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   // Use default parameters
-  const [environments, setEnvironments] = useState<string[]>(defaultEnvironments);
-  const [taskTypes, setTaskTypes] = useState<string[]>(defaultTaskTypes);
+  const [environments, setEnvironments] = useState<ColoredItem[]>(defaultEnvironments);
+  const [taskTypes, setTaskTypes] = useState<ColoredItem[]>(defaultTaskTypes);
   const [statuses, setStatuses] = useState<string[]>(defaultStatuses);
   const [priorities, setPriorities] = useState<string[]>(defaultPriorities);
-  const [scopes, setScopes] = useState<string[]>(defaultScopes);
+  const [scopes, setScopes] = useState<ColoredItem[]>(defaultScopes);
 
   const [newEnvironment, setNewEnvironment] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
@@ -41,13 +85,21 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const [newPriority, setNewPriority] = useState("");
   const [newScope, setNewScope] = useState("");
 
-  const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string} | null>(null);
+  const [newEnvironmentColor, setNewEnvironmentColor] = useState(predefinedColors[0]);
+  const [newTaskTypeColor, setNewTaskTypeColor] = useState(predefinedColors[0]);
+  const [newScopeColor, setNewScopeColor] = useState(predefinedColors[0]);
+
+  const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string, color?: string} | null>(null);
 
   if (!isOpen) return null;
 
-  const handleAddItem = (type: string, value: string, setter: React.Dispatch<React.SetStateAction<string[]>>, resetInput: () => void) => {
+  const handleAddItem = (type: string, value: string, setter: React.Dispatch<React.SetStateAction<any[]>>, resetInput: () => void, color?: string) => {
     if (value.trim()) {
-      setter(prev => [...prev, value.trim()]);
+      if (color) {
+        setter(prev => [...prev, { name: value.trim(), color }]);
+      } else {
+        setter(prev => [...prev, value.trim()]);
+      }
       resetInput();
       toast({
         title: "Item Added",
@@ -56,7 +108,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     }
   };
 
-  const handleRemoveItem = (type: string, index: number, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+  const handleRemoveItem = (type: string, index: number, setter: React.Dispatch<React.SetStateAction<any[]>>) => {
     setter(prev => prev.filter((_, i) => i !== index));
     toast({
       title: "Item Removed", 
@@ -64,13 +116,22 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     });
   };
 
-  const handleEditItem = (type: string, index: number, currentValue: string) => {
-    setEditingItem({ type, index, value: currentValue });
+  const handleEditItem = (type: string, index: number, currentValue: string, currentColor?: string) => {
+    setEditingItem({ type, index, value: currentValue, color: currentColor });
   };
 
-  const handleSaveEdit = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
+  const handleSaveEdit = (setter: React.Dispatch<React.SetStateAction<any[]>>) => {
     if (editingItem && editingItem.value.trim()) {
-      setter(prev => prev.map((item, i) => i === editingItem.index ? editingItem.value.trim() : item));
+      setter(prev => prev.map((item, i) => {
+        if (i === editingItem.index) {
+          if (editingItem.color !== undefined) {
+            return { name: editingItem.value.trim(), color: editingItem.color };
+          } else {
+            return editingItem.value.trim();
+          }
+        }
+        return item;
+      }));
       setEditingItem(null);
       toast({
         title: "Item Updated",
@@ -99,6 +160,120 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     // Parameters are now managed in-memory only
     onClose();
   };
+
+  const renderColoredItemList = (
+    items: ColoredItem[], 
+    setter: React.Dispatch<React.SetStateAction<ColoredItem[]>>, 
+    type: string,
+    newValue: string,
+    setNewValue: React.Dispatch<React.SetStateAction<string>>,
+    placeholder: string,
+    newColor: string,
+    setNewColor: React.Dispatch<React.SetStateAction<string>>
+  ) => (
+    <div className="space-y-4">
+      {/* Add new item */}
+      <div className="flex gap-2">
+        <Input
+          placeholder={placeholder}
+          value={newValue}
+          onChange={(e) => setNewValue(e.target.value)}
+          onKeyPress={(e) => {
+            if (e.key === 'Enter') {
+              handleAddItem(type, newValue, setter, () => setNewValue(""), newColor);
+            }
+          }}
+          className="flex-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+        />
+        <div className="flex items-center gap-1">
+          {predefinedColors.map((color) => (
+            <button
+              key={color}
+              type="button"
+              className={`w-6 h-6 rounded-full border-2 ${newColor === color ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
+              style={{ backgroundColor: color }}
+              onClick={() => setNewColor(color)}
+            />
+          ))}
+        </div>
+        <Button
+          onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""), newColor)}
+          size="sm"
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Items list */}
+      <div className="space-y-2 max-h-64 overflow-y-auto">
+        {items.map((item, index) => (
+          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            {editingItem?.type === type && editingItem?.index === index ? (
+              <div className="flex items-center gap-2 flex-1">
+                <Input
+                  value={editingItem.value}
+                  onChange={(e) => setEditingItem({...editingItem, value: e.target.value})}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') handleSaveEdit(setter);
+                    if (e.key === 'Escape') handleCancelEdit();
+                  }}
+                  autoFocus
+                  className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+                <div className="flex items-center gap-1">
+                  {predefinedColors.map((color) => (
+                    <button
+                      key={color}
+                      type="button"
+                      className={`w-6 h-6 rounded-full border-2 ${editingItem.color === color ? 'border-gray-900 dark:border-white' : 'border-gray-300 dark:border-gray-600'}`}
+                      style={{ backgroundColor: color }}
+                      onClick={() => setEditingItem({...editingItem, color})}
+                    />
+                  ))}
+                </div>
+                <Button size="sm" variant="outline" onClick={() => handleSaveEdit(setter)}>
+                  <Check className="w-4 h-4" />
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-600"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <Badge variant="outline" className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
+                    {item.name}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleEditItem(type, index, item.name, item.color)}
+                    className="dark:hover:bg-gray-700"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleRemoveItem(type, index, setter)}
+                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderItemList = (
     items: string[], 
@@ -216,13 +391,15 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   <CardTitle className="dark:text-white">Scope Options</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderItemList(
+                  {renderColoredItemList(
                     scopes,
                     setScopes,
                     "Scopes",
                     newScope,
                     setNewScope,
-                    "Add new scope..."
+                    "Add new scope...",
+                    newScopeColor,
+                    setNewScopeColor
                   )}
                 </CardContent>
               </Card>
@@ -234,13 +411,15 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   <CardTitle>Environment Options</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderItemList(
+                  {renderColoredItemList(
                     environments,
                     setEnvironments,
                     "Environments",
                     newEnvironment,
                     setNewEnvironment,
-                    "Add new environment..."
+                    "Add new environment...",
+                    newEnvironmentColor,
+                    setNewEnvironmentColor
                   )}
                 </CardContent>
               </Card>
@@ -252,13 +431,15 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   <CardTitle>Task Type Options</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderItemList(
+                  {renderColoredItemList(
                     taskTypes,
                     setTaskTypes,
                     "Task Types",
                     newTaskType,
                     setNewTaskType,
-                    "Add new task type..."
+                    "Add new task type...",
+                    newTaskTypeColor,
+                    setNewTaskTypeColor
                   )}
                 </CardContent>
               </Card>
