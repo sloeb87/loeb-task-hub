@@ -306,25 +306,41 @@ export const TaskFormOptimized = React.memo(({
 
                   <div>
                     <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
-                    <Select 
-                      value={formData.project} 
-                      onValueChange={(value) => updateField('project', value)}
-                    >
-                      <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {allProjects.map((project) => (
-                          <SelectItem 
-                            key={project.id} 
-                            value={project.name}
-                            className="dark:text-white dark:focus:bg-gray-700"
-                          >
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {task ? (
+                      // Read-only when editing existing task
+                      <Input
+                        id="project"
+                        value={formData.project}
+                        readOnly
+                        className="dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
+                      />
+                    ) : (
+                      // Editable when creating new task
+                      <Select 
+                        value={formData.project} 
+                        onValueChange={(value) => updateField('project', value)}
+                      >
+                        <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                          <SelectValue placeholder="Select project" />
+                        </SelectTrigger>
+                        <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                          {allProjects.map((project) => (
+                            <SelectItem 
+                              key={project.id} 
+                              value={project.name}
+                              className="dark:text-white dark:focus:bg-gray-700"
+                            >
+                              {project.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    {task && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Project cannot be changed when editing task
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -334,18 +350,18 @@ export const TaskFormOptimized = React.memo(({
                     <Input
                       id="scope"
                       value={projectScope || formData.scope}
-                      readOnly={!!projectScope}
-                      onChange={(e) => !projectScope && updateField('scope', e.target.value)}
-                      placeholder={projectScope ? "Auto-filled from project" : "Task scope"}
+                      readOnly={!!projectScope || !!task}
+                      onChange={(e) => !projectScope && !task && updateField('scope', e.target.value)}
+                      placeholder={projectScope ? "Auto-filled from project" : task ? "Scope from original project" : "Task scope"}
                       className={`dark:bg-gray-800 dark:border-gray-600 dark:text-white ${
-                        projectScope 
+                        (projectScope || task)
                           ? 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed' 
                           : ''
                       }`}
                     />
-                    {projectScope && (
+                    {(projectScope || task) && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Scope automatically set from project
+                        {task ? "Scope cannot be changed when editing task" : "Scope automatically set from project"}
                       </p>
                     )}
                   </div>
