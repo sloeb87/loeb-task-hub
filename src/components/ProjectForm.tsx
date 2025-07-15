@@ -154,19 +154,19 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto dark:bg-gray-900 dark:border-gray-700">
         <DialogHeader>
-          <DialogTitle>{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-gray-900 dark:text-white">{project ? 'Edit Project' : 'Create New Project'}</DialogTitle>
+          <DialogDescription className="text-gray-600 dark:text-gray-300">
             {project ? 'Update project details, team members, and manage task dependencies.' : 'Create a new project with team members and timeline.'}
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="details" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="details">Project Details</TabsTrigger>
+          <TabsList className="dark:bg-gray-800 dark:border-gray-700">
+            <TabsTrigger value="details" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Project Details</TabsTrigger>
             {project && projectTasks.length > 0 && (
-              <TabsTrigger value="gantt">Gantt & Dependencies</TabsTrigger>
+              <TabsTrigger value="gantt" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Gantt & Dependencies</TabsTrigger>
             )}
           </TabsList>
 
@@ -176,37 +176,39 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="name">Project Name</Label>
+                <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">Project Name</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="Enter project name..."
                   required
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="owner">Project Owner</Label>
+                <Label htmlFor="owner" className="text-gray-700 dark:text-gray-300">Project Owner</Label>
                 <Input
                   id="owner"
                   value={formData.owner}
                   onChange={(e) => handleInputChange('owner', e.target.value)}
                   placeholder="Project owner name..."
                   required
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="scope">Scope</Label>
+                <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
                 <Select value={formData.scope} onValueChange={(value) => handleInputChange('scope', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                     <SelectValue placeholder="Select project scope" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
                     {availableScopes.map((scope) => (
-                      <SelectItem key={scope} value={scope}>{scope}</SelectItem>
+                      <SelectItem key={scope} value={scope} className="dark:text-white dark:focus:bg-gray-700">{scope}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -215,7 +217,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-gray-700 dark:text-gray-300">Description</Label>
               <Textarea
                 id="description"
                 value={formData.description}
@@ -223,44 +225,47 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                 placeholder="Project description..."
                 rows={3}
                 required
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               />
             </div>
           </div>
 
           {/* Timeline */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground">Timeline</h4>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 pb-2">Timeline</h4>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label htmlFor="startDate">Start Date</Label>
+                <Label htmlFor="startDate" className="text-gray-700 dark:text-gray-300">Start Date</Label>
                 <Input
                   id="startDate"
                   type="date"
                   value={formData.startDate}
                   onChange={(e) => handleInputChange('startDate', e.target.value)}
                   required
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="endDate">End Date</Label>
+                <Label htmlFor="endDate" className="text-gray-700 dark:text-gray-300">End Date</Label>
                 <Input
                   id="endDate"
                   type="date"
                   value={formData.endDate}
                   onChange={(e) => handleInputChange('endDate', e.target.value)}
                   required
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
                 <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                  <SelectTrigger>
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="On Hold">On Hold</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="Active" className="dark:text-white dark:focus:bg-gray-700">Active</SelectItem>
+                    <SelectItem value="On Hold" className="dark:text-white dark:focus:bg-gray-700">On Hold</SelectItem>
+                    <SelectItem value="Completed" className="dark:text-white dark:focus:bg-gray-700">Completed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -269,7 +274,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
           {/* Team Members */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground">Team Members</h4>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 pb-2">Team Members</h4>
             
             <div className="flex gap-2">
               <Input
@@ -277,6 +282,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                 onChange={(e) => setNewTeamMember(e.target.value)}
                 placeholder="Add team member..."
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTeamMember())}
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               />
               <Button type="button" onClick={addTeamMember} size="sm">
                 Add
@@ -303,58 +309,63 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
           {/* Project Links */}
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-foreground">Project Links</h4>
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 pb-2">Project Links</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="oneNote">OneNote</Label>
+                <Label htmlFor="oneNote" className="text-gray-700 dark:text-gray-300">OneNote</Label>
                 <Input
                   id="oneNote"
                   value={formData.links.oneNote}
                   onChange={(e) => handleLinkChange('oneNote', e.target.value)}
                   placeholder="OneNote link..."
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="teams">Teams</Label>
+                <Label htmlFor="teams" className="text-gray-700 dark:text-gray-300">Teams</Label>
                 <Input
                   id="teams"
                   value={formData.links.teams}
                   onChange={(e) => handleLinkChange('teams', e.target.value)}
                   placeholder="Teams link..."
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
                 <Input
                   id="email"
                   value={formData.links.email}
                   onChange={(e) => handleLinkChange('email', e.target.value)}
                   placeholder="project@example.com"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
               <div>
-                <Label htmlFor="file">File</Label>
+                <Label htmlFor="file" className="text-gray-700 dark:text-gray-300">File</Label>
                 <Input
                   id="file"
                   value={formData.links.file}
                   onChange={(e) => handleLinkChange('file', e.target.value)}
                   placeholder="File link..."
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="folder">Folder</Label>
+              <Label htmlFor="folder" className="text-gray-700 dark:text-gray-300">Folder</Label>
               <Input
                 id="folder"
                 value={formData.links.folder}
                 onChange={(e) => handleLinkChange('folder', e.target.value)}
                 placeholder="Folder/SharePoint link..."
+                className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
               />
             </div>
           </div>
 
               {/* Form Actions */}
-              <div className="flex justify-between pt-4 border-t">
+              <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-600">
                 {project && onDelete && (
                   <Button type="button" variant="destructive" onClick={handleDelete}>
                     Delete Project
