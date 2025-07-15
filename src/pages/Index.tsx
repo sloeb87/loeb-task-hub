@@ -26,7 +26,8 @@ const Index = () => {
     error, 
     createTask, 
     updateTask, 
-    addFollowUp 
+    addFollowUp,
+    deleteTask 
   } = useTaskStorage();
 
   // Initialize dark mode from localStorage
@@ -109,6 +110,23 @@ const Index = () => {
   const handleUpdateProject = useCallback((updatedProject: Project) => {
     // Note: Projects are currently static, consider adding project persistence if needed
   }, []);
+
+  const handleDeleteProject = useCallback((projectId: string) => {
+    // Find the project to get its name
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // Delete all tasks associated with this project
+    const tasksToDelete = tasks.filter(task => task.project === project.name);
+    tasksToDelete.forEach(task => deleteTask(task.id));
+    
+    // Note: Projects are currently static, consider adding project persistence if needed
+    console.log('Delete project:', projectId, 'and', tasksToDelete.length, 'associated tasks');
+  }, [projects, tasks, deleteTask]);
+
+  const handleDeleteTask = useCallback((taskId: string) => {
+    deleteTask(taskId);
+  }, [deleteTask]);
 
   const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('Index - handleSaveTask called with:', taskData);
@@ -208,8 +226,10 @@ const Index = () => {
             projects={projects} 
             onCreateProject={handleCreateProject} 
             onUpdateProject={handleUpdateProject} 
+            onDeleteProject={handleDeleteProject}
             onCreateTask={handleCreateTask} 
             onUpdateTask={handleUpdateTask} 
+            onDeleteTask={handleDeleteTask}
             projectFilter={projectFilter} 
             setProjectFilter={setProjectFilter} 
           />

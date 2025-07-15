@@ -19,10 +19,12 @@ interface ProjectDetailViewProps {
   onBack: () => void;
   onEditProject: () => void;
   onUpdateProject?: (project: Project) => void;
+  onDeleteProject?: (projectId: string) => void;
   onCreateTask: () => void;
   onEditTask: (task: Task) => void;
   onGenerateReport: () => void;
   onUpdateTask?: (task: Task) => void;
+  onDeleteTask?: (taskId: string) => void;
   onSaveTask?: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
 }
 
@@ -33,10 +35,12 @@ export const ProjectDetailView = ({
   onBack, 
   onEditProject, 
   onUpdateProject,
+  onDeleteProject,
   onCreateTask, 
   onEditTask,
   onGenerateReport,
   onUpdateTask,
+  onDeleteTask,
   onSaveTask 
 }: ProjectDetailViewProps) => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
@@ -114,6 +118,13 @@ export const ProjectDetailView = ({
       onUpdateProject(projectData);
     }
     setIsProjectFormOpen(false);
+  };
+
+  const handleDeleteProjectLocal = (projectId: string) => {
+    if (onDeleteProject) {
+      onDeleteProject(projectId);
+    }
+    onBack(); // Go back to projects list after deletion
   };
 
   const handleLinkClick = (url: string, e: React.MouseEvent) => {
@@ -372,6 +383,7 @@ export const ProjectDetailView = ({
           setSelectedTask(null);
         }}
         onSave={handleSaveTaskLocal}
+        onDelete={onDeleteTask}
         task={selectedTask}
         allTasks={allTasks}
         allProjects={[]} // Add empty array for allProjects
@@ -386,6 +398,7 @@ export const ProjectDetailView = ({
           setIsProjectFormOpen(false);
         }}
         onSave={handleSaveProjectLocal}
+        onDelete={handleDeleteProjectLocal}
         project={project}
         allTasks={allTasks}
         onUpdateTask={onUpdateTask}

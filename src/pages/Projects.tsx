@@ -14,8 +14,10 @@ interface ProjectsPageProps {
   projects: Project[];
   onCreateProject: (project: Omit<Project, 'id'>) => void;
   onUpdateProject: (project: Project) => void;
+  onDeleteProject: (projectId: string) => void;
   onCreateTask: (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onUpdateTask: (task: Task) => void;
+  onDeleteTask: (taskId: string) => void;
   projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
 }
@@ -25,8 +27,10 @@ const ProjectsPage = ({
   projects, 
   onCreateProject, 
   onUpdateProject,
+  onDeleteProject,
   onCreateTask,
   onUpdateTask,
+  onDeleteTask,
   projectFilter = 'all',
   setProjectFilter
 }: ProjectsPageProps) => {
@@ -129,10 +133,12 @@ const ProjectsPage = ({
         onBack={() => setViewMode('list')}
         onEditProject={handleEditProjectForm}
         onUpdateProject={onUpdateProject}
+        onDeleteProject={onDeleteProject}
         onCreateTask={() => handleCreateTaskForProject()}
         onEditTask={handleEditTask}
         onGenerateReport={() => handleGenerateReport()}
         onUpdateTask={onUpdateTask}
+        onDeleteTask={onDeleteTask}
         onSaveTask={handleSaveTask}
       />
     );
@@ -255,6 +261,7 @@ const ProjectsPage = ({
           setSelectedProject(null);
         }}
         onSave={handleSaveProject}
+        onDelete={onDeleteProject}
         project={selectedProject}
         allTasks={tasks}
         onUpdateTask={onUpdateTask}
@@ -271,6 +278,7 @@ const ProjectsPage = ({
           setTaskProjectId(null);
         }}
         onSave={handleSaveTask}
+        onDelete={onDeleteTask}
         task={selectedTask}
         allTasks={tasks}
         allProjects={projects}

@@ -16,6 +16,7 @@ interface ProjectFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (project: Project | Omit<Project, 'id'>) => void;
+  onDelete?: (projectId: string) => void;
   project?: Project | null;
   allTasks?: Task[];
   onUpdateTask?: (task: Task) => void;
@@ -35,7 +36,7 @@ const getAvailableScopes = (): string[] => {
   return ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
 };
 
-export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
+export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
   const [formData, setFormData] = useState({
     name: project?.name || '',
     description: project?.description || '',
@@ -107,6 +108,13 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
       });
     } else {
       onSave(formData);
+    }
+  };
+
+  const handleDelete = () => {
+    if (project && onDelete && window.confirm('Are you sure you want to delete this project? This will also delete all associated tasks.')) {
+      onDelete(project.id);
+      onClose();
     }
   };
 
@@ -346,13 +354,20 @@ export const ProjectForm = ({ isOpen, onClose, onSave, project, allTasks = [], o
           </div>
 
               {/* Form Actions */}
-              <div className="flex justify-end space-x-2 pt-4 border-t">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {project ? 'Update Project' : 'Create Project'}
-                </Button>
+              <div className="flex justify-between pt-4 border-t">
+                {project && onDelete && (
+                  <Button type="button" variant="destructive" onClick={handleDelete}>
+                    Delete Project
+                  </Button>
+                )}
+                <div className="flex space-x-2 ml-auto">
+                  <Button type="button" variant="outline" onClick={onClose}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {project ? 'Update Project' : 'Create Project'}
+                  </Button>
+                </div>
               </div>
             </form>
           </TabsContent>

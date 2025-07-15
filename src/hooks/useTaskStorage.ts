@@ -112,6 +112,13 @@ export const useTaskStorage = () => {
     saveTasks(updatedTasks);
   }, [tasks, saveTasks]);
 
+  // Delete task
+  const deleteTask = useCallback((taskId: string) => {
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    setTasks(updatedTasks);
+    saveTasks(updatedTasks);
+  }, [tasks, saveTasks]);
+
   return {
     tasks,
     isLoading,
@@ -119,6 +126,7 @@ export const useTaskStorage = () => {
     createTask,
     updateTask,
     addFollowUp,
+    deleteTask,
     refreshTasks: () => setTasks([...tasks]) // Force re-render if needed
   };
 };
