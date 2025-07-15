@@ -28,7 +28,10 @@ const Index = () => {
     createTask, 
     updateTask, 
     addFollowUp,
-    deleteTask 
+    deleteTask,
+    createProject,
+    updateProject,
+    deleteProject
   } = useSupabaseStorage();
 
   // Initialize dark mode from localStorage
@@ -57,8 +60,8 @@ const Index = () => {
     }
   }, [isDarkMode]);
 
-  // Use Supabase projects, fallback to mock projects for compatibility
-  const projects = supabaseProjects.length > 0 ? supabaseProjects : mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' }));
+  // Use only Supabase projects (no fallback to mock data)
+  const projects = supabaseProjects;
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
@@ -100,20 +103,29 @@ const Index = () => {
     updateTask(updatedTask);
   }, [updateTask]);
 
-  const handleCreateProject = useCallback((projectData: Omit<Project, 'id'>) => {
-    // TODO: Implement project creation in Supabase
-    console.log('Project creation not yet implemented for Supabase:', projectData.name);
-  }, []);
+  const handleCreateProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
+    try {
+      await createProject(projectData);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+    }
+  }, [createProject]);
 
-  const handleUpdateProject = useCallback((updatedProject: Project) => {
-    // TODO: Implement project update in Supabase
-    console.log('Project update not yet implemented for Supabase:', updatedProject.name);
-  }, []);
+  const handleUpdateProject = useCallback(async (updatedProject: Project) => {
+    try {
+      await updateProject(updatedProject);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+    }
+  }, [updateProject]);
 
-  const handleDeleteProject = useCallback((projectId: string) => {
-    // TODO: Implement project deletion in Supabase
-    console.log('Project deletion not yet implemented for Supabase:', projectId);
-  }, []);
+  const handleDeleteProject = useCallback(async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+    }
+  }, [deleteProject]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
