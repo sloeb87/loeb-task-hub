@@ -1,58 +1,50 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Task } from '@/types/task';
-import { mockTasks } from '@/data/mockData';
+import { tasksApi } from '@/services/api';
+import { useToast } from '@/hooks/use-toast';
 
 export const useTaskStorage = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Initialize tasks from localStorage
+  const { toast } = useToast();
+
+  // Initialize tasks from API
   useEffect(() => {
-    const loadTasks = () => {
+    const loadTasks = async () => {
       try {
-        const stored = localStorage.getItem('pmtask-tasks');
-        let loadedTasks = stored ? JSON.parse(stored) : mockTasks;
-        
-        // Migrate old task IDs to new format (T1, T2, T3...)
-        let needsMigration = false;
-        loadedTasks = loadedTasks.map((task: Task, index: number) => {
-          if (!task.id.startsWith('T') || task.id.includes('-')) {
-            needsMigration = true;
-            return { ...task, id: `T${index + 1}` };
-          }
-          return task;
-        });
-        
-        if (needsMigration) {
-          localStorage.setItem('pmtask-tasks', JSON.stringify(loadedTasks));
-          console.log('Migrated task IDs to new format');
-        }
-        
+        setIsLoading(true);
+        const loadedTasks = await tasksApi.getTasks();
         setTasks(loadedTasks);
         setError(null);
       } catch (err) {
-        console.error('Failed to load tasks from localStorage:', err);
-        setTasks(mockTasks);
-        setError('Failed to load tasks from storage');
+        console.error('Failed to load tasks from API:', err);
+        setError('Failed to load tasks from server');
+        toast({
+          title: "Error",
+          description: "Failed to load tasks from server",
+          variant: "destructive"
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadTasks();
-  }, []);
+  }, [toast]);
 
-  // Save tasks to localStorage
-  const saveTasks = useCallback((updatedTasks: Task[]) => {
-    try {
-      localStorage.setItem('pmtask-tasks', JSON.stringify(updatedTasks));
-      setError(null);
-    } catch (err) {
-      console.error('Failed to save tasks to localStorage:', err);
-      setError('Failed to save tasks to storage');
-    }
-  }, []);
+  // Handle API errors
+  const handleApiError = useCallback((error: any, action: string) => {
+    console.error(`Failed to ${action}:`, error);
+    const message = `Failed to ${action}`;
+    setError(message);
+    toast({
+      title: "Error",
+      description: message,
+      variant: "destructive"
+    });
+  }, [toast]);
 
   // Generate next sequential task ID
   const getNextTaskId = useCallback((): string => {
@@ -67,57 +59,98 @@ export const useTaskStorage = () => {
   }, [tasks]);
 
   // Create new task
-  const createTask = useCallback((taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: getNextTaskId(),
-      creationDate: new Date().toISOString().split('T')[0],
-      followUps: []
-    };
-    
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-    return newTask;
-  }, [tasks, getNextTaskId, saveTasks]);
+  const createTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    try {
+      setIsLoading(true);
+      const taskToCreate = {
+        ...taskData,
+        creationDate: new Date().toISOString().split('T')[0],
+        followUps: []
+      };
+      
+      const newTask = await tasksApi.createTask(taskToCreate);
+      setTasks(prev => [...prev, newTask]);
+      setError(null);
+      
+      toast({
+        title: "Success",
+        description: "Task created successfully"
+      });
+      
+      return newTask;
+    } catch (err) {
+      handleApiError(err, 'create task');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleApiError, toast]);
 
   // Update existing task
-  const updateTask = useCallback((updatedTask: Task) => {
-    const updatedTasks = tasks.map(task => 
-      task.id === updatedTask.id ? updatedTask : task
-    );
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  }, [tasks, saveTasks]);
+  const updateTask = useCallback(async (updatedTask: Task) => {
+    try {
+      setIsLoading(true);
+      const updated = await tasksApi.updateTask(updatedTask);
+      setTasks(prev => prev.map(task => 
+        task.id === updated.id ? updated : task
+      ));
+      setError(null);
+      
+      toast({
+        title: "Success",
+        description: "Task updated successfully"
+      });
+    } catch (err) {
+      handleApiError(err, 'update task');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleApiError, toast]);
 
   // Add follow-up to task
-  const addFollowUp = useCallback((taskId: string, followUpText: string) => {
-    const updatedTasks = tasks.map(task => {
-      if (task.id === taskId) {
-        const newFollowUp = {
-          id: `${taskId}-F${task.followUps.length + 1}`,
-          text: followUpText,
-          timestamp: new Date().toISOString(),
-          author: 'Current User'
-        };
-        return {
-          ...task,
-          followUps: [...task.followUps, newFollowUp]
-        };
-      }
-      return task;
-    });
-    
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  }, [tasks, saveTasks]);
+  const addFollowUp = useCallback(async (taskId: string, followUpText: string) => {
+    try {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const newFollowUp = {
+        id: `${taskId}-F${task.followUps.length + 1}`,
+        text: followUpText,
+        timestamp: new Date().toISOString(),
+        author: 'Current User'
+      };
+
+      const updatedTask = {
+        ...task,
+        followUps: [...task.followUps, newFollowUp]
+      };
+
+      await updateTask(updatedTask);
+    } catch (err) {
+      handleApiError(err, 'add follow-up');
+    }
+  }, [tasks, updateTask, handleApiError]);
 
   // Delete task
-  const deleteTask = useCallback((taskId: string) => {
-    const updatedTasks = tasks.filter(task => task.id !== taskId);
-    setTasks(updatedTasks);
-    saveTasks(updatedTasks);
-  }, [tasks, saveTasks]);
+  const deleteTask = useCallback(async (taskId: string) => {
+    try {
+      setIsLoading(true);
+      await tasksApi.deleteTask(taskId);
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      setError(null);
+      
+      toast({
+        title: "Success",
+        description: "Task deleted successfully"
+      });
+    } catch (err) {
+      handleApiError(err, 'delete task');
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [handleApiError, toast]);
 
   return {
     tasks,
