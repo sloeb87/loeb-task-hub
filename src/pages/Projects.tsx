@@ -130,6 +130,7 @@ const ProjectsPage = ({
         project={detailProject}
         tasks={tasks}
         allTasks={tasks}
+        allProjects={projects} // Pass the projects list
         onBack={() => setViewMode('list')}
         onEditProject={handleEditProjectForm}
         onUpdateProject={onUpdateProject}

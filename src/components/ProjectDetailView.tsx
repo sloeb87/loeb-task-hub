@@ -16,6 +16,7 @@ interface ProjectDetailViewProps {
   project: Project;
   tasks: Task[];
   allTasks: Task[];
+  allProjects?: Project[]; // Add allProjects prop
   onBack: () => void;
   onEditProject: () => void;
   onUpdateProject?: (project: Project) => void;
@@ -32,6 +33,7 @@ export const ProjectDetailView = ({
   project, 
   tasks, 
   allTasks,
+  allProjects = [], // Default to empty array if not provided
   onBack, 
   onEditProject, 
   onUpdateProject,
@@ -392,7 +394,7 @@ export const ProjectDetailView = ({
         onDelete={onDeleteTask}
         task={selectedTask}
         allTasks={allTasks}
-        allProjects={[]} // Add empty array for allProjects
+        allProjects={allProjects} // Pass the actual projects list
         projectName={project.name}
         onEditRelatedTask={handleEditTaskLocal}
       />
