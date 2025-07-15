@@ -109,6 +109,12 @@ export const ProjectDetailView = ({
     window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
   };
 
+  const handleCreateTaskForProject = () => {
+    // Open task form with project pre-selected
+    setSelectedTask(null); // Ensure we're creating a new task
+    setIsTaskFormOpen(true);
+  };
+
   const handleEditProjectLocal = () => {
     setIsProjectFormOpen(true);
   };
@@ -169,7 +175,7 @@ export const ProjectDetailView = ({
               Open Gantt
             </Button>
           )}
-          <Button onClick={onCreateTask}>
+          <Button onClick={handleCreateTaskForProject}>
             <Plus className="w-4 h-4 mr-2" />
             Add Task
           </Button>
@@ -351,7 +357,7 @@ export const ProjectDetailView = ({
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No tasks yet</p>
                   <p className="mb-4">Create your first task for this project</p>
-                  <Button onClick={onCreateTask}>
+                  <Button onClick={handleCreateTaskForProject}>
                     <Plus className="w-4 h-4 mr-2" />
                     Add Task
                   </Button>
