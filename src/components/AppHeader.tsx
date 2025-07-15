@@ -2,7 +2,9 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface AppHeaderProps {
   activeView: "tasks" | "dashboard" | "projects";
@@ -19,6 +21,25 @@ export const AppHeader = ({
   onToggleDarkMode, 
   onOpenParameters 
 }: AppHeaderProps) => {
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast({
+        title: "Signed out successfully",
+        description: "You have been logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error signing out",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,6 +49,11 @@ export const AppHeader = ({
             <Badge variant="secondary" className="text-xs">
               Loeb Consulting
             </Badge>
+            {user && (
+              <Badge variant="outline" className="text-xs">
+                {user.email}
+              </Badge>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             <Button 
@@ -69,6 +95,14 @@ export const AppHeader = ({
               className="flex items-center gap-2"
             >
               {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleSignOut} 
+              size="sm" 
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
             </Button>
           </div>
         </div>

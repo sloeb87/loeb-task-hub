@@ -14,13 +14,241 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      comments: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          task_id: string
+          text: string
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          id?: string
+          task_id: string
+          text: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      follow_ups: {
+        Row: {
+          author: string
+          created_at: string
+          id: string
+          task_id: string
+          text: string
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          id?: string
+          task_id: string
+          text: string
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string
+          id: string
+          links: Json | null
+          name: string
+          owner_id: string
+          scope: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date: string
+          id?: string
+          links?: Json | null
+          name: string
+          owner_id: string
+          scope: string
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          links?: Json | null
+          name?: string
+          owner_id?: string
+          scope?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completion_date: string | null
+          created_at: string
+          creation_date: string
+          dependencies: string[] | null
+          description: string | null
+          details: string | null
+          due_date: string
+          duration: number | null
+          environment: string
+          id: string
+          links: Json | null
+          priority: string
+          project_id: string | null
+          responsible: string
+          scope: string
+          stakeholders: string[] | null
+          start_date: string
+          status: string
+          task_number: string
+          task_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completion_date?: string | null
+          created_at?: string
+          creation_date?: string
+          dependencies?: string[] | null
+          description?: string | null
+          details?: string | null
+          due_date: string
+          duration?: number | null
+          environment: string
+          id?: string
+          links?: Json | null
+          priority?: string
+          project_id?: string | null
+          responsible: string
+          scope: string
+          stakeholders?: string[] | null
+          start_date: string
+          status?: string
+          task_number: string
+          task_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completion_date?: string | null
+          created_at?: string
+          creation_date?: string
+          dependencies?: string[] | null
+          description?: string | null
+          details?: string | null
+          due_date?: string
+          duration?: number | null
+          environment?: string
+          id?: string
+          links?: Json | null
+          priority?: string
+          project_id?: string | null
+          responsible?: string
+          scope?: string
+          stakeholders?: string[] | null
+          start_date?: string
+          status?: string
+          task_number?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_profile: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

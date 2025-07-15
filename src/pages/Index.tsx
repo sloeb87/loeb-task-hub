@@ -12,7 +12,7 @@ import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimize
 import { AppHeader } from "@/components/AppHeader";
 import ProjectsPage from "./Projects";
 import Parameters from "@/components/Parameters";
-import { useTaskStorage } from "@/hooks/useTaskStorage";
+import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 
 const Index = () => {
@@ -22,13 +22,14 @@ const Index = () => {
   // Custom hooks for optimized data management
   const { 
     tasks, 
+    projects: supabaseProjects,
     isLoading, 
     error, 
     createTask, 
     updateTask, 
     addFollowUp,
     deleteTask 
-  } = useTaskStorage();
+  } = useSupabaseStorage();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -56,8 +57,8 @@ const Index = () => {
     }
   }, [isDarkMode]);
 
-  // State management
-  const [projects, setProjects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
+  // Use Supabase projects, fallback to mock projects for compatibility
+  const projects = supabaseProjects.length > 0 ? supabaseProjects : mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' }));
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
@@ -100,32 +101,19 @@ const Index = () => {
   }, [updateTask]);
 
   const handleCreateProject = useCallback((projectData: Omit<Project, 'id'>) => {
-    const newProject: Project = {
-      ...projectData,
-      id: `P${projects.length + 1}`
-    };
-    setProjects(prev => [...prev, newProject]);
-    console.log('Created new project:', newProject.name);
-  }, [projects.length]);
+    // TODO: Implement project creation in Supabase
+    console.log('Project creation not yet implemented for Supabase:', projectData.name);
+  }, []);
 
   const handleUpdateProject = useCallback((updatedProject: Project) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-    console.log('Updated project:', updatedProject.name);
+    // TODO: Implement project update in Supabase
+    console.log('Project update not yet implemented for Supabase:', updatedProject.name);
   }, []);
 
   const handleDeleteProject = useCallback((projectId: string) => {
-    // Find the project to get its name
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-    
-    // Delete all tasks associated with this project
-    const tasksToDelete = tasks.filter(task => task.project === project.name);
-    tasksToDelete.forEach(task => deleteTask(task.id));
-    
-    // Remove the project from the projects list
-    setProjects(prev => prev.filter(p => p.id !== projectId));
-    console.log('Deleted project:', projectId, 'and', tasksToDelete.length, 'associated tasks');
-  }, [projects, tasks, deleteTask]);
+    // TODO: Implement project deletion in Supabase
+    console.log('Project deletion not yet implemented for Supabase:', projectId);
+  }, []);
 
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
