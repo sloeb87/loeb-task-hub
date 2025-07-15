@@ -442,9 +442,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     <div className="space-y-1">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
-                      <Badge variant="outline" className="text-xs">
-                        {task.taskType}
-                      </Badge>
                     </div>
                   </TableCell>
 
