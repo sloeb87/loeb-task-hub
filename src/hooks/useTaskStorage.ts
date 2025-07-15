@@ -11,10 +11,8 @@ export const useTaskStorage = () => {
   useEffect(() => {
     const loadTasks = () => {
       try {
-        // For deployment: start with empty data instead of loading from localStorage
-        // Remove the next line and uncomment the line after to restore localStorage loading
-        let loadedTasks = mockTasks; // Force empty data for deployment
-        // let loadedTasks = stored ? JSON.parse(stored) : mockTasks; // Restore this for normal operation
+        const stored = localStorage.getItem('pmtask-tasks');
+        let loadedTasks = stored ? JSON.parse(stored) : mockTasks;
         
         // Migrate old task IDs to new format (T1, T2, T3...)
         let needsMigration = false;
