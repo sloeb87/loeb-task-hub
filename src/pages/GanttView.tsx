@@ -26,27 +26,24 @@ import {
   Minimize2
 } from "lucide-react";
 import { Task, TaskStatus, TaskPriority, Project } from "@/types/task";
-import { mockTasks, mockProjects } from "@/data/mockData";
+import { mockProjects } from "@/data/mockData";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { useTaskStorage } from "@/hooks/useTaskStorage";
 
 const GanttView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Use localStorage to sync tasks between views
-  const getStoredTasks = (): Task[] => {
-    try {
-      const stored = localStorage.getItem('pmtask-tasks');
-      return stored ? JSON.parse(stored) : mockTasks;
-    } catch (error) {
-      console.warn('Failed to load tasks from localStorage:', error);
-      return mockTasks;
-    }
-  };
-  
-  const [tasks, setTasks] = useState<Task[]>(getStoredTasks());
+  // Use the centralized task storage hook for consistency
+  const { tasks: storedTasks } = useTaskStorage();
+  const [tasks, setTasks] = useState<Task[]>(storedTasks);
   const [projects] = useState<Project[]>(mockProjects);
+  
+  // Sync with central task storage
+  useEffect(() => {
+    setTasks(storedTasks);
+  }, [storedTasks]);
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
   const [priorityFilter, setPriorityFilter] = useState<TaskPriority | "all">("all");

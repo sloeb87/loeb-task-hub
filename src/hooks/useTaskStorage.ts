@@ -11,10 +11,8 @@ export const useTaskStorage = () => {
   useEffect(() => {
     const loadTasks = () => {
       try {
-        // Clear localStorage to fix project association issues and force fresh data
-        localStorage.removeItem('pmtask-tasks');
-        console.log('Cleared localStorage to ensure fresh data with correct project associations');
-        let loadedTasks = mockTasks;
+        const stored = localStorage.getItem('pmtask-tasks');
+        let loadedTasks = stored ? JSON.parse(stored) : mockTasks;
         
         // Migrate old task IDs to new format (T1, T2, T3...)
         let needsMigration = false;
