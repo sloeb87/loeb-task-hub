@@ -275,14 +275,14 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
             ) : (
               <>
                 <div className="flex items-center gap-3">
-                  <div 
-                    className="w-5 h-5 rounded-full border-2 border-gray-300 dark:border-gray-500 shadow-sm"
-                    style={{ backgroundColor: item.color }}
-                  />
                   <Badge 
                     variant="outline" 
-                    className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700"
-                    style={{ borderLeftColor: item.color, borderLeftWidth: '3px' }}
+                    className="text-sm border-2 font-medium px-3 py-1"
+                    style={{ 
+                      backgroundColor: `${item.color}20`, 
+                      borderColor: item.color, 
+                      color: item.color 
+                    }}
                   >
                     {item.name}
                   </Badge>
