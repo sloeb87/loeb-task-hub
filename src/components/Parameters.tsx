@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,8 @@ import {
   Palette
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ParametersProps {
   isOpen: boolean;
@@ -72,7 +74,10 @@ const defaultScopes: ColoredItem[] = [
 ];
 
 export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
-  // Use default parameters
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+  
+  // Use default parameters initially, then load from database
   const [environments, setEnvironments] = useState<ColoredItem[]>(defaultEnvironments);
   const [taskTypes, setTaskTypes] = useState<ColoredItem[]>(defaultTaskTypes);
   const [statuses, setStatuses] = useState<string[]>(defaultStatuses);
@@ -90,6 +95,12 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const [newScopeColor, setNewScopeColor] = useState(predefinedColors[0].value);
 
   const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string, color?: string} | null>(null);
+
+  useEffect(() => {
+    if (isOpen && user) {
+      loadParameters();
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -156,9 +167,131 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     });
   };
 
-  const handleSaveAll = () => {
-    // Parameters are now managed in-memory only
-    onClose();
+  const loadParameters = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('parameters')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error loading parameters:', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        // Group parameters by category
+        const groupedParams = data.reduce((acc, param) => {
+          if (!acc[param.category]) {
+            acc[param.category] = [];
+          }
+          acc[param.category].push(param);
+          return acc;
+        }, {} as Record<string, any[]>);
+
+        // Update state with loaded parameters
+        if (groupedParams.scopes) {
+          setScopes(groupedParams.scopes.map(p => ({ name: p.name, color: p.color })));
+        }
+        if (groupedParams.environments) {
+          setEnvironments(groupedParams.environments.map(p => ({ name: p.name, color: p.color })));
+        }
+        if (groupedParams.taskTypes) {
+          setTaskTypes(groupedParams.taskTypes.map(p => ({ name: p.name, color: p.color })));
+        }
+        if (groupedParams.statuses) {
+          setStatuses(groupedParams.statuses.map(p => p.name));
+        }
+        if (groupedParams.priorities) {
+          setPriorities(groupedParams.priorities.map(p => p.name));
+        }
+      }
+    } catch (error) {
+      console.error('Error loading parameters:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveAll = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Delete existing parameters for this user
+      await supabase
+        .from('parameters')
+        .delete()
+        .eq('user_id', user.id);
+
+      // Prepare new parameters data
+      const allParameters = [
+        ...scopes.map(scope => ({
+          user_id: user.id,
+          name: scope.name,
+          color: scope.color,
+          category: 'scopes'
+        })),
+        ...environments.map(env => ({
+          user_id: user.id,
+          name: env.name,
+          color: env.color,
+          category: 'environments'
+        })),
+        ...taskTypes.map(type => ({
+          user_id: user.id,
+          name: type.name,
+          color: type.color,
+          category: 'taskTypes'
+        })),
+        ...statuses.map(status => ({
+          user_id: user.id,
+          name: status,
+          color: '#6b7280', // Default color for statuses
+          category: 'statuses'
+        })),
+        ...priorities.map(priority => ({
+          user_id: user.id,
+          name: priority,
+          color: '#6b7280', // Default color for priorities
+          category: 'priorities'
+        }))
+      ];
+
+      // Insert new parameters
+      const { error } = await supabase
+        .from('parameters')
+        .insert(allParameters);
+
+      if (error) {
+        console.error('Error saving parameters:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save parameters. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Parameters Saved",
+        description: "All parameters have been saved successfully.",
+      });
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving parameters:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save parameters. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderColoredItemList = (
@@ -532,9 +665,9 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
             <Button variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
               Cancel
             </Button>
-            <Button onClick={handleSaveAll} className="flex items-center gap-2">
+            <Button onClick={handleSaveAll} disabled={loading} className="flex items-center gap-2">
               <Save className="w-4 h-4" />
-              Save Changes
+              {loading ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>

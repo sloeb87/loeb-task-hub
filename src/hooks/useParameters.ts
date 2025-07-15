@@ -80,10 +80,16 @@ export const useParameters = () => {
       if (data && data.length > 0) {
         // Group parameters by category
         const groupedParams = data.reduce((acc, param) => {
-          if (!acc[param.category]) {
-            acc[param.category] = [];
+          const category = param.category as 'scopes' | 'environments' | 'taskTypes' | 'statuses' | 'priorities';
+          if (!acc[category]) {
+            acc[category] = [];
           }
-          acc[param.category].push(param);
+          acc[category].push({
+            id: param.id,
+            name: param.name,
+            color: param.color,
+            category: category
+          });
           return acc;
         }, {} as Record<string, Parameter[]>);
 

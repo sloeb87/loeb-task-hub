@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
 import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useParameters } from "@/hooks/useParameters";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -94,24 +95,25 @@ export const TaskFormOptimized = React.memo(({
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  
+  // Get parameters from the useParameters hook
+  const { parameters, loading: parametersLoading } = useParameters();
 
-  // Default parameters
-  const parameters = useMemo(() => {
-    return {
-      environments: ["Development", "Testing", "Staging", "Production", "Demo"],
-      taskTypes: ["Development", "Testing", "Documentation", "Review", "Meeting", "Research"],
-      statuses: ["Open", "In Progress", "Completed", "On Hold"], 
-      priorities: ["Low", "Medium", "High", "Critical"],
-      scopes: ["Personal", "Small Team", "Department", "Organization", "External"]
-    };
-  }, []);
+  // Dropdown options - now coming from the database
+  const dropdownOptions = useMemo(() => ({
+    scopes: parameters.scopes.map(scope => scope.name),
+    environments: parameters.environments.map(env => env.name),
+    taskTypes: parameters.taskTypes.map(type => type.name),
+    statuses: parameters.statuses.map(status => status.name),
+    priorities: parameters.priorities.map(priority => priority.name),
+  }), [parameters]);
 
   const {
     environments = [],
     taskTypes = [],
     statuses = [],
     priorities = []
-  } = parameters;
+  } = dropdownOptions;
 
   // Initialize form data when task changes
   useEffect(() => {

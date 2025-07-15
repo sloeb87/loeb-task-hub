@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { GanttChart } from "./GanttChart";
+import { useParameters } from "@/hooks/useParameters";
 
 interface ProjectFormProps {
   isOpen: boolean;
@@ -22,12 +23,8 @@ interface ProjectFormProps {
   onUpdateTask?: (task: Task) => void;
 }
 
-// Default scopes
-const getAvailableScopes = (): string[] => {
-  return ["Frontend", "Backend", "Database", "Infrastructure", "Mobile", "API", "UI/UX", "DevOps"];
-};
-
 export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
+  const { parameters } = useParameters();
   const [formData, setFormData] = useState({
     name: project?.name || '',
     description: project?.description || '',
@@ -48,7 +45,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
   });
 
   const [newTeamMember, setNewTeamMember] = useState('');
-  const availableScopes = getAvailableScopes();
+  const availableScopes = parameters.scopes.map(scope => scope.name);
   
   // Get project tasks
   const projectTasks = allTasks.filter(task => 
