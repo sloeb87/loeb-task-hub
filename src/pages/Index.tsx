@@ -57,7 +57,7 @@ const Index = () => {
   }, [isDarkMode]);
 
   // State management
-  const [projects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
+  const [projects, setProjects] = useState<Project[]>(mockProjects.map(p => ({ ...p, scope: p.scope || 'Frontend' })));
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
@@ -104,11 +104,13 @@ const Index = () => {
       ...projectData,
       id: `P${projects.length + 1}`
     };
-    // Note: Projects are currently static, consider adding project persistence if needed
+    setProjects(prev => [...prev, newProject]);
+    console.log('Created new project:', newProject.name);
   }, [projects.length]);
 
   const handleUpdateProject = useCallback((updatedProject: Project) => {
-    // Note: Projects are currently static, consider adding project persistence if needed
+    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+    console.log('Updated project:', updatedProject.name);
   }, []);
 
   const handleDeleteProject = useCallback((projectId: string) => {
@@ -120,8 +122,9 @@ const Index = () => {
     const tasksToDelete = tasks.filter(task => task.project === project.name);
     tasksToDelete.forEach(task => deleteTask(task.id));
     
-    // Note: Projects are currently static, consider adding project persistence if needed
-    console.log('Delete project:', projectId, 'and', tasksToDelete.length, 'associated tasks');
+    // Remove the project from the projects list
+    setProjects(prev => prev.filter(p => p.id !== projectId));
+    console.log('Deleted project:', projectId, 'and', tasksToDelete.length, 'associated tasks');
   }, [projects, tasks, deleteTask]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
