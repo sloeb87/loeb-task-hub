@@ -270,6 +270,182 @@ export const mockTasks: Task[] = [
       folder: "https://sharepoint.com/load-test-results"
     },
     stakeholders: ["Quality Team", "DevOps", "Performance Team"]
+  },
+  {
+    id: "T13",
+    scope: "Development",
+    project: "Website Redesign",
+    environment: "Development",
+    taskType: "Development",
+    title: "SEO optimization",
+    description: "Implement SEO best practices and meta tags",
+    status: "Open",
+    priority: "Medium",
+    responsible: "Sarah Wilson",
+    creationDate: "2024-01-25",
+    startDate: "2024-02-05",
+    dueDate: "2024-02-18",
+    duration: 13,
+    followUps: [],
+    details: "Add structured data, optimize page titles, and improve site performance",
+    links: {
+      file: "https://example.com/seo-guidelines.pdf"
+    },
+    stakeholders: ["Sarah Wilson", "Marketing Team", "Content Team"]
+  },
+  {
+    id: "T14",
+    scope: "Testing",
+    project: "Website Redesign",
+    environment: "Production",
+    taskType: "Review",
+    title: "Content review and approval",
+    description: "Review all website content for accuracy and brand compliance",
+    status: "Open",
+    priority: "Medium",
+    responsible: "Content Team",
+    creationDate: "2024-01-28",
+    startDate: "2024-02-10",
+    dueDate: "2024-02-20",
+    duration: 10,
+    followUps: [],
+    details: "Review copy, images, and brand messaging across all pages",
+    links: {
+      teams: "https://teams.microsoft.com/content-review"
+    },
+    stakeholders: ["Content Team", "Marketing", "Legal"]
+  },
+  {
+    id: "T15",
+    scope: "Development",
+    project: "Mobile App",
+    environment: "Development",
+    taskType: "Development",
+    title: "Offline functionality",
+    description: "Implement offline data caching and sync",
+    status: "Open",
+    priority: "High",
+    responsible: "David Lee",
+    creationDate: "2024-01-26",
+    startDate: "2024-02-08",
+    dueDate: "2024-02-28",
+    duration: 20,
+    followUps: [],
+    details: "Enable app functionality without internet connection",
+    links: {
+      oneNote: "https://example.com/offline-specs"
+    },
+    stakeholders: ["David Lee", "Mobile Team", "Backend Team"]
+  },
+  {
+    id: "T16",
+    scope: "Documentation",
+    project: "Mobile App",
+    environment: "Production",
+    taskType: "Documentation",
+    title: "App store submission prep",
+    description: "Prepare documentation and assets for app store submission",
+    status: "On Hold",
+    priority: "Low",
+    responsible: "Jane Smith",
+    creationDate: "2024-01-29",
+    startDate: "2024-03-01",
+    dueDate: "2024-03-15",
+    duration: 14,
+    followUps: [],
+    details: "Screenshots, descriptions, and compliance documentation",
+    links: {
+      folder: "https://sharepoint.com/app-store-assets"
+    },
+    stakeholders: ["Jane Smith", "Marketing", "Legal"]
+  },
+  {
+    id: "T17",
+    scope: "Development",
+    project: "Internal Tools",
+    environment: "Development",
+    taskType: "Development",
+    title: "Report generation system",
+    description: "Build automated report generation for management",
+    status: "In Progress",
+    priority: "Medium",
+    responsible: "Tom Anderson",
+    creationDate: "2024-01-24",
+    startDate: "2024-01-30",
+    dueDate: "2024-02-22",
+    duration: 23,
+    followUps: [],
+    details: "Generate PDF and Excel reports with charts and KPIs",
+    links: {
+      teams: "https://teams.microsoft.com/reporting-system"
+    },
+    stakeholders: ["Tom Anderson", "Management", "Finance"]
+  },
+  {
+    id: "T18",
+    scope: "Testing",
+    project: "Internal Tools",
+    environment: "Staging",
+    taskType: "Testing",
+    title: "User acceptance testing",
+    description: "Conduct UAT with end users",
+    status: "Open",
+    priority: "High",
+    responsible: "Lisa Garcia",
+    creationDate: "2024-01-30",
+    startDate: "2024-02-15",
+    dueDate: "2024-02-28",
+    duration: 13,
+    followUps: [],
+    details: "Test with actual users and gather feedback",
+    links: {
+      oneNote: "https://example.com/uat-feedback"
+    },
+    stakeholders: ["Lisa Garcia", "End Users", "Product Team"]
+  },
+  {
+    id: "T19",
+    scope: "Development",
+    project: "E-commerce Platform",
+    environment: "Development",
+    taskType: "Development",
+    title: "Inventory management",
+    description: "Build inventory tracking and management system",
+    status: "Open",
+    priority: "High",
+    responsible: "Chris Martin",
+    creationDate: "2024-01-28",
+    startDate: "2024-02-12",
+    dueDate: "2024-03-05",
+    duration: 21,
+    followUps: [],
+    details: "Track stock levels, manage suppliers, and automate reordering",
+    links: {
+      file: "https://example.com/inventory-requirements.pdf"
+    },
+    stakeholders: ["Chris Martin", "Operations", "Supply Chain"]
+  },
+  {
+    id: "T20",
+    scope: "Development",
+    project: "E-commerce Platform",
+    environment: "Production",
+    taskType: "Development",
+    title: "Customer support chat",
+    description: "Integrate live chat support system",
+    status: "Open",
+    priority: "Medium",
+    responsible: "Emma Davis",
+    creationDate: "2024-02-01",
+    startDate: "2024-02-18",
+    dueDate: "2024-03-08",
+    duration: 18,
+    followUps: [],
+    details: "Real-time customer support with chat history and file sharing",
+    links: {
+      teams: "https://teams.microsoft.com/support-integration"
+    },
+    stakeholders: ["Emma Davis", "Customer Support", "UX Team"]
   }
 ];
 
@@ -283,7 +459,7 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-10",
     endDate: "2024-03-15",
     status: "Active",
-    tasks: ["T1", "T2", "T3"],
+    tasks: ["T1", "T2", "T3", "T13", "T14"],
     scope: "Development",
     links: {
       oneNote: "https://example.com/website-project-notes",
@@ -300,7 +476,7 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-18",
     endDate: "2024-04-30",
     status: "Active",
-    tasks: ["T4", "T5", "T6"],
+    tasks: ["T4", "T5", "T6", "T15", "T16"],
     scope: "Development",
     links: {
       teams: "https://teams.microsoft.com/mobile-dev",
@@ -316,7 +492,7 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-08",
     endDate: "2024-03-01",
     status: "Active",
-    tasks: ["T7", "T8", "T9"],
+    tasks: ["T7", "T8", "T9", "T17", "T18"],
     scope: "Development",
     links: {
       oneNote: "https://example.com/internal-tools-notes",
@@ -332,7 +508,7 @@ export const mockProjects: Project[] = [
     startDate: "2024-01-14",
     endDate: "2024-05-15",
     status: "Active",
-    tasks: ["T10", "T11", "T12"],
+    tasks: ["T10", "T11", "T12", "T19", "T20"],
     scope: "Development",
     links: {
       teams: "https://teams.microsoft.com/ecommerce-platform",
