@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GanttChart } from "@/components/GanttChart";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { 
   ArrowLeft, 
   Plus, 
@@ -460,7 +460,7 @@ const GanttView = () => {
 
         {/* Task Form Dialog */}
         {(isTaskFormOpen || selectedTask) && (
-          <TaskForm
+          <TaskFormOptimized
             isOpen={isTaskFormOpen || !!selectedTask}
             onClose={() => {
               setIsTaskFormOpen(false);

@@ -5,7 +5,7 @@ import { Plus, FolderKanban } from "lucide-react";
 import { Task, Project } from "@/types/task";
 import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { ProjectDetailView } from "@/components/ProjectDetailView";
 import { ReportModal } from "@/components/ReportModal";
 
@@ -268,7 +268,7 @@ const ProjectsPage = ({
       />
 
       {/* Task Form Modal */}
-      <TaskForm
+      <TaskFormOptimized
         key={selectedTask?.id || 'new'}
         isOpen={isTaskFormOpen}
         onClose={() => {

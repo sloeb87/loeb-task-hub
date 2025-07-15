@@ -9,7 +9,7 @@ import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, Fol
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
-import { TaskForm } from "@/components/TaskForm";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { ProjectForm } from "@/components/ProjectForm";
 
 interface ProjectDetailViewProps {
@@ -375,7 +375,7 @@ export const ProjectDetailView = ({
       </Tabs>
 
       {/* Task Form Modal - Local to ProjectDetailView */}
-      <TaskForm
+      <TaskFormOptimized
         key={selectedTask?.id || 'new'}
         isOpen={isTaskFormOpen}
         onClose={() => {
