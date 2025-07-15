@@ -515,6 +515,70 @@ export const mockProjects: Project[] = [
       folder: "https://sharepoint.com/ecommerce-docs",
       oneNote: "https://example.com/ecommerce-planning"
     }
+  },
+  {
+    id: "P5",
+    name: "Customer Portal Redesign",
+    description: "Redesign of the customer portal with enhanced user experience and security",
+    owner: "Sarah Connor",
+    team: ["John Smith", "Emily Davis", "Sarah Connor"],
+    startDate: "2024-01-15",
+    endDate: "2024-03-31",
+    status: "Active",
+    tasks: [],
+    scope: "Frontend",
+    links: {
+      oneNote: "https://onenote.com/customer-portal",
+      teams: "https://teams.microsoft.com/portal-redesign"
+    }
+  },
+  {
+    id: "P6",
+    name: "API Integration Platform",
+    description: "Secure API gateway and integration platform for third-party services",
+    owner: "Michael Rodriguez",
+    team: ["Lisa Wang", "David Kim", "Michael Rodriguez"],
+    startDate: "2024-02-01",
+    endDate: "2024-04-30",
+    status: "Active",
+    tasks: [],
+    scope: "Backend",
+    links: {
+      oneNote: "https://onenote.com/api-platform",
+      teams: "https://teams.microsoft.com/api-integration"
+    }
+  },
+  {
+    id: "P7",
+    name: "Mobile App Launch",
+    description: "Native mobile applications for iOS and Android platforms",
+    owner: "Jennifer Park",
+    team: ["Alex Thompson", "Maria Gonzalez", "Jennifer Park"],
+    startDate: "2024-03-01",
+    endDate: "2024-06-30",
+    status: "Active",
+    tasks: [],
+    scope: "Mobile",
+    links: {
+      oneNote: "https://onenote.com/mobile-launch",
+      teams: "https://teams.microsoft.com/mobile-launch"
+    }
+  },
+  {
+    id: "P8",
+    name: "Data Analytics Dashboard",
+    description: "Advanced analytics dashboard with data ingestion and visualization",
+    owner: "Robert Chen",
+    team: ["Robert Chen", "Amanda White"],
+    startDate: "2024-04-01",
+    endDate: "2024-07-31",
+    status: "Active",
+    tasks: [],
+    scope: "Analytics",
+    links: {
+      oneNote: "https://onenote.com/analytics-dashboard",
+      teams: "https://teams.microsoft.com/analytics"
+    }
   }
 ];
 
