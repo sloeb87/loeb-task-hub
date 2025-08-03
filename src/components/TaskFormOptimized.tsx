@@ -258,15 +258,15 @@ export const TaskFormOptimized = React.memo(({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             {task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-hidden flex gap-6">
+        <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex gap-6 overflow-hidden">
             {/* Left Side - Main Form */}
             <div className="flex-1 overflow-y-auto pr-2">
             <div className="space-y-6">
