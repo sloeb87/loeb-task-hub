@@ -65,10 +65,22 @@ export function useSupabaseStorage() {
       author: fu.author
     })) || [];
 
+    // Get project name from project_id
+    let projectName = '';
+    if (supabaseTask.project_id) {
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', supabaseTask.project_id)
+        .single();
+      
+      projectName = projectData?.name || '';
+    }
+
     return {
       id: supabaseTask.task_number, // Use task_number as the ID for compatibility
       scope: supabaseTask.scope,
-      project: supabaseTask.project_id || '',
+      project: projectName,
       environment: supabaseTask.environment,
       taskType: supabaseTask.task_type as any,
       title: supabaseTask.title,
@@ -173,37 +185,69 @@ export function useSupabaseStorage() {
   const createTask = async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>): Promise<Task> => {
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
-      .from('tasks')
-      .insert({
-        task_number: 'temp', // Will be replaced by trigger
-        scope: taskData.scope,
-        project_id: taskData.project || null,
-        environment: taskData.environment,
-        task_type: taskData.taskType,
-        title: taskData.title,
-        description: taskData.description,
-        status: taskData.status,
-        priority: taskData.priority,
-        responsible: taskData.responsible,
-        start_date: taskData.startDate,
-        due_date: taskData.dueDate,
-        completion_date: taskData.completionDate || null,
-        duration: taskData.duration || null,
-        dependencies: taskData.dependencies || [],
-        details: taskData.details,
-        links: taskData.links || {},
-        stakeholders: taskData.stakeholders || [],
-        user_id: user.id
-      })
-      .select()
-      .single();
+    console.log('Creating task with data:', taskData);
+    console.log('User:', user);
 
-    if (error) throw error;
+    try {
+      // Find the project ID from the project name
+      let projectId = null;
+      if (taskData.project) {
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('name', taskData.project)
+          .eq('owner_id', user.id)
+          .single();
+        
+        if (projectError) {
+          console.error('Error finding project:', projectError);
+        } else {
+          projectId = projectData?.id;
+        }
+      }
 
-    const newTask = await convertSupabaseTaskToTask(data);
-    setTasks(prev => [newTask, ...prev]);
-    return newTask;
+      console.log('Found project ID:', projectId, 'for project name:', taskData.project);
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert({
+          task_number: 'temp', // Will be replaced by trigger
+          scope: taskData.scope,
+          project_id: projectId,
+          environment: taskData.environment,
+          task_type: taskData.taskType,
+          title: taskData.title,
+          description: taskData.description,
+          status: taskData.status,
+          priority: taskData.priority,
+          responsible: taskData.responsible,
+          start_date: taskData.startDate,
+          due_date: taskData.dueDate,
+          completion_date: taskData.completionDate || null,
+          duration: taskData.duration || null,
+          dependencies: taskData.dependencies || [],
+          details: taskData.details,
+          links: taskData.links || {},
+          stakeholders: taskData.stakeholders || [],
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error creating task:', error);
+        throw error;
+      }
+
+      console.log('Task created successfully:', data);
+
+      const newTask = await convertSupabaseTaskToTask(data);
+      setTasks(prev => [newTask, ...prev]);
+      return newTask;
+    } catch (err) {
+      console.error('Error in createTask:', err);
+      throw err;
+    }
   };
 
   const updateTask = async (updatedTask: Task): Promise<void> => {
