@@ -16,9 +16,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide } from "lucide-react";
+import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide, Play } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
+import { useTimeTracking } from "@/hooks/useTimeTracking";
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -93,11 +94,10 @@ export const TaskFormOptimized = React.memo(({
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
-  
-  // Get parameters from the useParameters hook
-  const { parameters, loading: parametersLoading } = useParameters();
+  const { startTimer } = useTimeTracking();
 
   // Dropdown options - now coming from the database
   const dropdownOptions = useMemo(() => ({
@@ -247,6 +247,16 @@ export const TaskFormOptimized = React.memo(({
 
     onSave(updatedTask);
     setFollowUpDialogOpen(false);
+  };
+
+  const handleStartTimer = () => {
+    if (task) {
+      startTimer(task.id, task.title, task.project, task.responsible);
+      toast({
+        title: "Timer Started",
+        description: `Time tracking started for task: ${task.title}`,
+      });
+    }
   };
 
   const handleDelete = () => {
@@ -612,9 +622,21 @@ export const TaskFormOptimized = React.memo(({
             {task && (
               <div className="w-80 border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0">
                 <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                    Follow-ups
-                  </h3>
+                  <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Follow-ups
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleStartTimer}
+                      className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                      title="Start time tracking"
+                    >
+                      <Play className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <div className="flex items-center justify-between mt-3">
                     <span className="text-sm text-gray-600 dark:text-gray-300">
                       {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
