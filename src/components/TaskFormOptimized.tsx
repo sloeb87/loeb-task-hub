@@ -274,29 +274,7 @@ export const TaskFormOptimized = React.memo(({
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto">
-            <div className="flex gap-6 min-h-full relative">
-              {/* Toggle Button */}
-              {task && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsTaskDetailsCollapsed(!isTaskDetailsCollapsed)}
-                  className={cn(
-                    "absolute top-4 z-10 transition-all duration-200",
-                    isTaskDetailsCollapsed 
-                      ? "left-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md" 
-                      : "left-1/2 transform -translate-x-1/2"
-                  )}
-                  title={isTaskDetailsCollapsed ? "Show Task Details" : "Hide Task Details"}
-                >
-                  {isTaskDetailsCollapsed ? (
-                    <ChevronRight className="w-4 h-4" />
-                  ) : (
-                    <ChevronLeft className="w-4 h-4" />
-                  )}
-                </Button>
-              )}
+            <div className="flex gap-6 min-h-full">
               
               {/* Left Side - Main Form */}
               {!isTaskDetailsCollapsed && (
@@ -304,9 +282,23 @@ export const TaskFormOptimized = React.memo(({
             <div className="space-y-6">
               {/* Task Details Section */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                  Task Details
-                </h3>
+                <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Task Details
+                  </h3>
+                  {task && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setIsTaskDetailsCollapsed(!isTaskDetailsCollapsed)}
+                      className="flex items-center gap-1 text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
+                      title="Hide Task Details"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -640,11 +632,28 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               )}
 
+              {/* Collapsed state - Show button to expand Task Details */}
+              {isTaskDetailsCollapsed && task && (
+                <div className="flex items-center">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsTaskDetailsCollapsed(false)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
+                    title="Show Task Details"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                    Show Task Details
+                  </Button>
+                </div>
+              )}
+
               {/* Right Side - Follow-ups Panel (only for existing tasks) */}
               {task && (
                 <div className={cn(
                   "border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0 transition-all duration-200",
-                  isTaskDetailsCollapsed ? "w-full" : "w-80"
+                  isTaskDetailsCollapsed ? "w-full border-l-0 pl-0" : "w-80"
                 )}>
                   <div className="mb-4">
                   <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
