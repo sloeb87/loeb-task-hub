@@ -241,6 +241,7 @@ const Index = () => {
             onCreateTask={handleCreateTask} 
             onUpdateTask={handleUpdateTask} 
             onDeleteTask={handleDeleteTask}
+            onAddFollowUp={addFollowUp}
             projectFilter={projectFilter} 
             setProjectFilter={setProjectFilter} 
           />
@@ -255,6 +256,7 @@ const Index = () => {
           }} 
           onSave={handleSaveTask} 
           onDelete={handleDeleteTask}
+          onAddFollowUp={addFollowUp}
           task={selectedTask} 
           allTasks={tasks}
           allProjects={projects}

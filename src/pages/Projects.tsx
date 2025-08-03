@@ -19,6 +19,7 @@ interface ProjectsPageProps {
   onCreateTask: (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onUpdateTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
+  onAddFollowUp: (taskId: string, followUpText: string) => void;
   projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
 }
@@ -32,6 +33,7 @@ const ProjectsPage = ({
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
+  onAddFollowUp,
   projectFilter = 'all',
   setProjectFilter
 }: ProjectsPageProps) => {
@@ -285,6 +287,7 @@ const ProjectsPage = ({
         }}
         onSave={handleSaveTask}
         onDelete={onDeleteTask}
+        onAddFollowUp={onAddFollowUp}
         task={selectedTask}
         allTasks={tasks}
         allProjects={projects}

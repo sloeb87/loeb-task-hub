@@ -26,6 +26,7 @@ interface TaskFormProps {
   onClose: () => void;
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onDelete?: (taskId: string) => void;
+  onAddFollowUp?: (taskId: string, followUpText: string) => void;
   task?: Task | null;
   allTasks: Task[];
   allProjects: Project[];
@@ -86,6 +87,7 @@ export const TaskFormOptimized = React.memo(({
   onClose, 
   onSave, 
   onDelete,
+  onAddFollowUp,
   task, 
   allTasks, 
   allProjects, 
@@ -231,21 +233,10 @@ export const TaskFormOptimized = React.memo(({
   }, [onEditRelatedTask, onClose]);
 
   const handleFollowUpAdd = (text: string) => {
-    if (!task) return;
+    if (!task || !onAddFollowUp) return;
     
-    const newFollowUp = {
-      id: `fu-${Date.now()}`,
-      text: text,
-      timestamp: new Date().toISOString(),
-      author: 'Current User'
-    };
-
-    const updatedTask = {
-      ...task,
-      followUps: [...task.followUps, newFollowUp]
-    };
-
-    onSave(updatedTask);
+    // Use the proper Supabase addFollowUp function
+    onAddFollowUp(task.id, text);
     setFollowUpDialogOpen(false);
   };
 
