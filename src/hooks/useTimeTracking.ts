@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface TimeEntry {
   id: string;
@@ -22,7 +23,7 @@ export interface TaskTimeData {
 export function useTimeTracking() {
   const { user } = useAuth();
   const [taskTimers, setTaskTimers] = useState<Map<string, TaskTimeData>>(new Map());
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load existing time data
   useEffect(() => {
@@ -70,7 +71,7 @@ export function useTimeTracking() {
     
     try {
       setIsLoading(true);
-      // Temporary implementation - will use localStorage until migration is approved
+      // Temporary localStorage implementation until types are updated
       const savedTimers = localStorage.getItem(`timers_${user.id}`);
       if (savedTimers) {
         const parsed = JSON.parse(savedTimers);
@@ -104,7 +105,7 @@ export function useTimeTracking() {
         await stopTimer(runningTaskId);
       }
 
-      // Temporary localStorage implementation until migration is approved
+      // Temporary localStorage implementation
       const startTime = new Date().toISOString();
       
       // Update local state
@@ -144,8 +145,6 @@ export function useTimeTracking() {
       const startTime = new Date(taskData.currentSessionStart);
       const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 
-      // Temporary localStorage implementation until migration is approved
-      
       // Update local state
       setTaskTimers(prev => {
         const newMap = new Map(prev);
