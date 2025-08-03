@@ -195,8 +195,10 @@ export const TaskFormOptimized = React.memo(({
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submission started', { formData });
 
     if (!formData.title.trim()) {
+      console.log('Validation failed: Missing title');
       toast({
         title: "Required Field Missing",
         description: "Please fill in the task title.",
@@ -205,6 +207,7 @@ export const TaskFormOptimized = React.memo(({
       return;
     }
 
+    console.log('Validation passed, creating task data');
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -219,7 +222,9 @@ export const TaskFormOptimized = React.memo(({
       })
     };
 
+    console.log('Calling onSave with task data:', taskData);
     onSave(taskData);
+    console.log('Closing dialog');
     onClose();
   }, [formData, date, projectScope, task, onSave, onClose]);
 
