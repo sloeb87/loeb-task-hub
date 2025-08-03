@@ -16,19 +16,18 @@ import TimeTrackingPage from "./TimeTracking";
 import Parameters from "@/components/Parameters";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
-
 const Index = () => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Custom hooks for optimized data management
-  const { 
-    tasks, 
+  const {
+    tasks,
     projects: supabaseProjects,
-    isLoading, 
-    error, 
-    createTask, 
-    updateTask, 
+    isLoading,
+    error,
+    createTask,
+    updateTask,
     addFollowUp,
     deleteTask,
     createProject,
@@ -41,7 +40,6 @@ const Index = () => {
     const savedDarkMode = localStorage.getItem('dark-mode');
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldUseDark = savedDarkMode ? JSON.parse(savedDarkMode) : prefersDark;
-    
     setIsDarkMode(shouldUseDark);
     if (shouldUseDark) {
       document.documentElement.classList.add('dark');
@@ -49,12 +47,10 @@ const Index = () => {
       document.documentElement.classList.remove('dark');
     }
   }, []);
-
   const toggleDarkMode = useCallback(() => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
     localStorage.setItem('dark-mode', JSON.stringify(newDarkMode));
-    
     if (newDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -73,38 +69,36 @@ const Index = () => {
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
 
   // Use optimized filtering hook
-  const { filteredTasks, taskCounts } = useTaskFilters(tasks, activeFilter);
+  const {
+    filteredTasks,
+    taskCounts
+  } = useTaskFilters(tasks, activeFilter);
 
   // Event handlers using useCallback for optimization
   const handleCreateTask = useCallback((taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     createTask(taskData);
     setIsTaskFormOpen(false);
   }, [createTask]);
-
   const handleUpdateTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     updateTask(updatedTask);
     setSelectedTask(null);
     setIsTaskFormOpen(false);
   }, [updateTask]);
-
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
     setIsTaskFormOpen(true);
   }, []);
-
   const handleAddFollowUpWrapper = useCallback((taskId: string, followUpText: string) => {
     addFollowUp(taskId, followUpText);
     setFollowUpTask(null);
   }, [addFollowUp]);
-
   const handleFollowUpTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
     updateTask(updatedTask);
   }, [updateTask]);
-
   const handleCreateProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
     try {
       await createProject(projectData);
@@ -112,7 +106,6 @@ const Index = () => {
       console.error('Failed to create project:', error);
     }
   }, [createProject]);
-
   const handleUpdateProject = useCallback(async (updatedProject: Project) => {
     try {
       await updateProject(updatedProject);
@@ -120,7 +113,6 @@ const Index = () => {
       console.error('Failed to update project:', error);
     }
   }, [updateProject]);
-
   const handleDeleteProject = useCallback(async (projectId: string) => {
     try {
       await deleteProject(projectId);
@@ -128,11 +120,9 @@ const Index = () => {
       console.error('Failed to delete project:', error);
     }
   }, [deleteProject]);
-
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
   }, [deleteTask]);
-
   const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('Index - handleSaveTask called with:', taskData);
     if ('id' in taskData) {
@@ -146,43 +136,30 @@ const Index = () => {
 
   // Show loading state
   if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">Loading tasks...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
 
   // Show error state
   if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400">Error: {error}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
             Retry
           </Button>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <AppHeader 
-        activeView={activeView}
-        onViewChange={setActiveView}
-        isDarkMode={isDarkMode}
-        onToggleDarkMode={toggleDarkMode}
-        onOpenParameters={() => setIsParametersOpen(true)}
-      />
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <AppHeader activeView={activeView} onViewChange={setActiveView} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} onOpenParameters={() => setIsParametersOpen(true)} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeView === "tasks" ? (
-          <>
+        {activeView === "tasks" ? <>
             {/* Task Management Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
               <div className="flex items-center space-x-3">
@@ -203,77 +180,25 @@ const Index = () => {
             </div>
 
             {/* Controls */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border p-4 mb-6">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              </div>
-            </div>
+            
 
-            <TaskSummaryCardsOptimized 
-              tasks={tasks}
-              activeFilter={activeFilter}
-              onFilterChange={setActiveFilter}
-            />
+            <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-            <TaskTable 
-              tasks={filteredTasks} 
-              onEditTask={handleEditTask} 
-              onFollowUp={handleFollowUpTask} 
-            />
-          </>
-        ) : activeView === "dashboard" ? (
-          <KPIDashboard 
-            tasks={tasks} 
-            projects={projects} 
-            onEditTask={handleEditTask} 
-          />
-        ) : activeView === "timetracking" ? (
-          <TimeTrackingPage tasks={tasks} projects={projects} />
-        ) : (
-          <ProjectsPage 
-            tasks={tasks} 
-            projects={projects} 
-            onCreateProject={handleCreateProject} 
-            onUpdateProject={handleUpdateProject} 
-            onDeleteProject={handleDeleteProject}
-            onCreateTask={handleCreateTask} 
-            onUpdateTask={handleUpdateTask} 
-            onDeleteTask={handleDeleteTask}
-            onAddFollowUp={addFollowUp}
-            projectFilter={projectFilter} 
-            setProjectFilter={setProjectFilter} 
-          />
-        )}
+            <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} />}
 
         {/* Task Form Dialog */}
-        <TaskFormOptimized 
-          isOpen={isTaskFormOpen} 
-          onClose={() => {
-            setIsTaskFormOpen(false);
-            setSelectedTask(null);
-          }} 
-          onSave={handleSaveTask} 
-          onDelete={handleDeleteTask}
-          onAddFollowUp={addFollowUp}
-          task={selectedTask} 
-          allTasks={tasks}
-          allProjects={projects}
-        />
+        <TaskFormOptimized isOpen={isTaskFormOpen} onClose={() => {
+        setIsTaskFormOpen(false);
+        setSelectedTask(null);
+      }} onSave={handleSaveTask} onDelete={handleDeleteTask} task={selectedTask} allTasks={tasks} allProjects={projects} />
 
         {/* Follow Up Dialog */}
-        {followUpTask && (
-          <FollowUpDialog 
-            isOpen={!!followUpTask} 
-            onClose={() => setFollowUpTask(null)} 
-            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-            task={followUpTask} 
-          />
-        )}
+        {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} task={followUpTask} />}
 
         {/* Parameters Dialog */}
         <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
