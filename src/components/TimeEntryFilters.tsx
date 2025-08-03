@@ -85,27 +85,6 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
             </Select>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <Select 
-              value={filters.isRunning === undefined ? "all" : filters.isRunning ? "running" : "completed"} 
-              onValueChange={(value) => onFiltersChange({ 
-                ...filters, 
-                isRunning: value === "all" ? undefined : value === "running" 
-              })}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Entries</SelectItem>
-                <SelectItem value="running">Running Only</SelectItem>
-                <SelectItem value="completed">Completed Only</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
           {hasActiveFilters && (
             <Button 

@@ -253,7 +253,6 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
                   <TableHead>Duration</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -312,19 +311,6 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                       <TableCell>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
                           {entry.duration ? formatDetailedTime(entry.duration) : '-'}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {entry.isRunning ? (
-                            <div className="flex items-center text-red-600 dark:text-red-400">
-                              <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
-                              <span className="text-sm font-medium">Running</span>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Completed</span>
-                          )}
                         </div>
                       </TableCell>
                       
