@@ -86,7 +86,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
   }, [tasks]);
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-5 gap-4 mb-6">
       {stats.map((stat) => {
         const Icon = stat.icon;
         const isActive = activeFilter === stat.filter;

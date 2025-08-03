@@ -205,9 +205,6 @@ const Index = () => {
             {/* Controls */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Showing {filteredTasks.length} of {taskCounts.total} tasks
-                </div>
               </div>
             </div>
 
