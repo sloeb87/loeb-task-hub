@@ -11,21 +11,28 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useScopeColor } from "@/hooks/useScopeColor";
 import { Task } from "@/types/task";
+import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 
 interface TimeTrackingPageProps {
   tasks: Task[];
+  projects: Project[];
 }
 
-export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
+export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
   const { getScopeStyle } = useScopeColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
     year: new Date().getFullYear()
   });
+
+  // Task editing state
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
@@ -134,6 +141,19 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
     }
     
     setEditFormData(newFormData);
+  };
+
+  const handleRowClick = (entry: TimeEntry) => {
+    const task = tasks.find(t => t.id === entry.taskId);
+    if (task) {
+      setSelectedTask(task);
+      setIsTaskFormOpen(true);
+    }
+  };
+
+  const handleTaskFormClose = () => {
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -265,7 +285,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                    const task = tasks.find(t => t.id === entry.taskId);
                    
                    return (
-                     <TableRow key={entry.id}>
+                     <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
                        <TableCell>
                          <div className="font-medium text-gray-900 dark:text-white truncate">
                            {entry.taskId}_{entry.taskTitle}
@@ -317,8 +337,8 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                          </div>
                        </TableCell>
                       
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
+                       <TableCell>
+                         <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                           
                           <Button
                             size="sm"
@@ -429,6 +449,20 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Task Edit Dialog */}
+      <TaskFormOptimized
+        task={selectedTask}
+        isOpen={isTaskFormOpen}
+        onClose={handleTaskFormClose}
+        onSave={() => {
+          // Task save logic would be handled by the TaskFormOptimized component
+          setIsTaskFormOpen(false);
+          setSelectedTask(null);
+        }}
+        allTasks={tasks}
+        allProjects={projects}
+      />
     </div>
   );
 };

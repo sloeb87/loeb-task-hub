@@ -230,7 +230,7 @@ const Index = () => {
             onEditTask={handleEditTask} 
           />
         ) : activeView === "timetracking" ? (
-          <TimeTrackingPage tasks={tasks} />
+          <TimeTrackingPage tasks={tasks} projects={projects} />
         ) : (
           <ProjectsPage 
             tasks={tasks} 
