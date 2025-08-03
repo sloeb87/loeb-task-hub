@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
+import { useScopeColor } from "@/hooks/useScopeColor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -37,6 +38,7 @@ export const ProjectTable = ({
   onGenerateReport,
   filter = 'all'
 }: ProjectTableProps) => {
+  const { getScopeStyle } = useScopeColor();
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
@@ -319,9 +321,12 @@ export const ProjectTable = ({
 
                     {/* Scope Column */}
                     <TableCell>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <Badge 
+                        className="text-sm font-medium border"
+                        style={getScopeStyle(project.scope)}
+                      >
                         {project.scope}
-                      </div>
+                      </Badge>
                     </TableCell>
 
                     {/* Project Name Column */}

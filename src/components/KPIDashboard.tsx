@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useScopeColor } from '@/hooks/useScopeColor';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -23,6 +24,7 @@ interface KPIDashboardProps {
 }
 
 export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps) => {
+  const { getScopeStyle } = useScopeColor();
   console.log('KPIDashboard rendered with onEditTask:', !!onEditTask);
   
   const [selectedProject, setSelectedProject] = useState<string>("all");
@@ -285,7 +287,13 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
               <SelectItem value="all">All Scopes</SelectItem>
               {availableScopes.map((scope) => (
                 <SelectItem key={scope.value} value={scope.value}>
-                  {scope.name}
+                  <div className="flex items-center">
+                    <div 
+                      className="w-3 h-3 rounded-full mr-2" 
+                      style={{ backgroundColor: getScopeStyle(scope.name).color }}
+                    ></div>
+                    {scope.name}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -364,7 +372,10 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
             </Badge>
           )}
           {selectedScope !== "all" && (
-            <Badge variant="secondary" className="text-sm">
+            <Badge 
+              className="border"
+              style={getScopeStyle(selectedScope)}
+            >
               Scope: {selectedScope}
             </Badge>
           )}

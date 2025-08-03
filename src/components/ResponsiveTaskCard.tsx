@@ -1,4 +1,5 @@
 import React from 'react';
+import { useScopeColor } from '@/hooks/useScopeColor';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export const ResponsiveTaskCard = ({
   isTimerRunning = false,
   timeSpent = 0
 }: ResponsiveTaskCardProps) => {
+  const { getScopeStyle } = useScopeColor();
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100';
@@ -83,7 +85,12 @@ export const ResponsiveTaskCard = ({
           </div>
           <div className="flex items-center text-gray-600 dark:text-gray-300">
             <span className="w-3 h-3 mr-1 flex-shrink-0 bg-blue-500 rounded-full"></span>
-            <span className="truncate">{task.scope}</span>
+            <Badge 
+              className="text-xs border"
+              style={getScopeStyle(task.scope)}
+            >
+              {task.scope}
+            </Badge>
           </div>
         </div>
 

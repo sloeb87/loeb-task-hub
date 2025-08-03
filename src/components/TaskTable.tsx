@@ -8,6 +8,7 @@ import { Task } from "@/types/task";
 import React, { useState, useRef, useEffect } from "react";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { useScopeColor } from "@/hooks/useScopeColor";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -42,6 +43,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
+  const { getScopeStyle } = useScopeColor();
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -375,9 +377,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 >
                   {/* Scope Column */}
                   <TableCell>
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <Badge 
+                      className="text-sm font-medium border"
+                      style={getScopeStyle(task.scope)}
+                    >
                       {task.scope}
-                    </div>
+                    </Badge>
                   </TableCell>
 
                   {/* Task Column */}

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useScopeColor } from '@/hooks/useScopeColor';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ export const ProjectDetailView = ({
   onDeleteTask,
   onSaveTask 
 }: ProjectDetailViewProps) => {
+  const { getScopeStyle } = useScopeColor();
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
@@ -201,7 +203,10 @@ export const ProjectDetailView = ({
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Scope</p>
-                <Badge variant="outline" className="text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                <Badge 
+                  className="text-sm font-medium border"
+                  style={getScopeStyle(project.scope)}
+                >
                   {project.scope}
                 </Badge>
               </div>
