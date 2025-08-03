@@ -198,100 +198,123 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                 <TableRow>
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
                   <TableHead>Responsible</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Start Time</TableHead>
+                  <TableHead>End Time</TableHead>
                   <TableHead>Time Logged</TableHead>
                   <TableHead>Timer Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="font-medium text-gray-900 dark:text-white">
-                          {task.title}
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {task.id}
-                        </div>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {task.project}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </Badge>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="text-sm text-gray-900 dark:text-white">
-                        {task.responsible}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {formatDetailedTime(task.timeData.totalTime)}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {task.timeData.isRunning ? (
-                          <div className="flex items-center text-red-600 dark:text-red-400">
-                            <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
-                            <span className="text-sm font-medium">Running</span>
+                {filteredTasks.map((task) => {
+                  const currentSessionStart = task.timeData.currentSessionStart;
+                  const sessionDate = currentSessionStart ? new Date(currentSessionStart) : new Date();
+                  
+                  return (
+                    <TableRow key={task.id}>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="font-medium text-gray-900 dark:text-white">
+                            {task.title}
                           </div>
-                        ) : (
-                          <span className="text-sm text-gray-500 dark:text-gray-400">Stopped</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          size="sm"
-                          variant={task.timeData.isRunning ? "destructive" : "outline"}
-                          onClick={() => handleTimerToggle(task.id)}
-                          title={task.timeData.isRunning ? "Stop Timer" : "Start Timer"}
-                        >
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {task.id}
+                          </div>
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {task.project}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {task.responsible}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {sessionDate.toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm text-gray-900 dark:text-white">
+                          {currentSessionStart ? new Date(currentSessionStart).toLocaleTimeString() : '-'}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm text-gray-900 dark:text-white">
                           {task.timeData.isRunning ? (
-                            <Pause className="w-4 h-4" />
+                            <span className="text-green-600 dark:text-green-400">In Progress</span>
                           ) : (
-                            <Play className="w-4 h-4" />
+                            currentSessionStart ? new Date().toLocaleTimeString() : '-'
                           )}
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          title="Edit Time Entry"
-                          disabled
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          title="Delete Time Entry"
-                          disabled
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                          {formatDetailedTime(task.timeData.totalTime)}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {task.timeData.isRunning ? (
+                            <div className="flex items-center text-red-600 dark:text-red-400">
+                              <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
+                              <span className="text-sm font-medium">Running</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Stopped</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            size="sm"
+                            variant={task.timeData.isRunning ? "destructive" : "outline"}
+                            onClick={() => handleTimerToggle(task.id)}
+                            title={task.timeData.isRunning ? "Stop Timer" : "Start Timer"}
+                          >
+                            {task.timeData.isRunning ? (
+                              <Pause className="w-4 h-4" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Edit Time Entry"
+                            disabled
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            title="Delete Time Entry"
+                            disabled
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
