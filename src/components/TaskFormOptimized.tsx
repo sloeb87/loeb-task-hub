@@ -289,8 +289,8 @@ export const TaskFormOptimized = React.memo(({
 
                   <div>
                     <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
-                    {task ? (
-                      // Read-only when editing existing task
+                    {task || projectName ? (
+                      // Read-only when editing existing task or creating task from project context
                       <Input
                         id="project"
                         value={formData.project}
@@ -298,7 +298,7 @@ export const TaskFormOptimized = React.memo(({
                         className="dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
                       />
                     ) : (
-                      // Editable when creating new task
+                      // Editable when creating new task from general context
                       <Select 
                         value={formData.project} 
                         onValueChange={(value) => updateField('project', value)}
@@ -319,9 +319,9 @@ export const TaskFormOptimized = React.memo(({
                         </SelectContent>
                       </Select>
                     )}
-                    {task && (
+                    {(task || projectName) && (
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Project cannot be changed when editing task
+                        {task ? "Project cannot be changed when editing task" : "Project auto-selected from current project"}
                       </p>
                     )}
                   </div>
