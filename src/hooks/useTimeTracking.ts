@@ -267,6 +267,21 @@ export function useTimeTracking() {
     };
   }, []);
 
+  const deleteTimeEntry = useCallback(async (entryId: string) => {
+    if (!user) return;
+
+    try {
+      // Remove from time entries
+      setTimeEntries(prev => {
+        const updated = prev.filter(entry => entry.id !== entryId);
+        localStorage.setItem(`timeEntries_${user.id}`, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (error) {
+      console.error('Error deleting time entry:', error);
+    }
+  }, [user]);
+
   return {
     taskTimers,
     timeEntries,
@@ -277,6 +292,7 @@ export function useTimeTracking() {
     getTotalTimeForAllTasks,
     getFilteredTimeEntries,
     getTimeEntryStats,
-    loadTimeData
+    loadTimeData,
+    deleteTimeEntry
   };
 }

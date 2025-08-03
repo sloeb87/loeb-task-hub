@@ -19,7 +19,7 @@ interface TimeTrackingPageProps {
 }
 
 export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
-  const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats } = useTimeTracking();
+  const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
     year: new Date().getFullYear()
@@ -364,8 +364,8 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => deleteTimeEntry(entry.id)}
                             title="Delete Time Entry"
-                            disabled
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
