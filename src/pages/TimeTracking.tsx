@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +20,14 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
   const { taskTimers, startTimer, stopTimer, getTaskTime, getTotalTimeForAllTasks } = useTimeTracking();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    date: "",
+    startTime: "",
+    endTime: "",
+    totalMinutes: 0
+  });
 
   // Get all tasks with time data
   const tasksWithTime = useMemo(() => {
@@ -89,6 +99,56 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
     } else {
       startTimer(taskId);
     }
+  };
+
+  const handleEditTimeEntry = (task: Task) => {
+    const taskTime = getTaskTime(task.id);
+    const currentSessionStart = taskTime.currentSessionStart;
+    const sessionDate = currentSessionStart ? new Date(currentSessionStart) : new Date();
+    
+    setEditingTask(task);
+    setEditFormData({
+      date: sessionDate.toISOString().split('T')[0],
+      startTime: currentSessionStart ? new Date(currentSessionStart).toTimeString().slice(0, 5) : "",
+      endTime: taskTime.isRunning ? "" : new Date().toTimeString().slice(0, 5),
+      totalMinutes: taskTime.totalTime
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveTimeEntry = () => {
+    // For now, just close the dialog
+    // In a full implementation, this would save the changes to the database
+    console.log('Saving time entry:', editFormData);
+    setEditDialogOpen(false);
+    setEditingTask(null);
+  };
+
+  const calculateDuration = (startTime: string, endTime: string) => {
+    if (!startTime || !endTime) return 0;
+    
+    const start = new Date(`1970-01-01T${startTime}`);
+    const end = new Date(`1970-01-01T${endTime}`);
+    
+    if (end <= start) {
+      // Handle next day scenario
+      end.setDate(end.getDate() + 1);
+    }
+    
+    return Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
+  };
+
+  const handleFormChange = (field: string, value: string) => {
+    const newFormData = { ...editFormData, [field]: value };
+    
+    // Auto-calculate duration when both start and end times are set
+    if (field === 'startTime' || field === 'endTime') {
+      if (newFormData.startTime && newFormData.endTime) {
+        newFormData.totalMinutes = calculateDuration(newFormData.startTime, newFormData.endTime);
+      }
+    }
+    
+    setEditFormData(newFormData);
   };
 
   const getStatusColor = (status: string) => {
@@ -294,8 +354,8 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                           <Button
                             size="sm"
                             variant="ghost"
+                            onClick={() => handleEditTimeEntry(task)}
                             title="Edit Time Entry"
-                            disabled
                           >
                             <Edit3 className="w-4 h-4" />
                           </Button>
@@ -330,6 +390,77 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Time Entry Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Time Entry</DialogTitle>
+            <DialogDescription>
+              Modify the time entry for: {editingTask?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="date" className="text-right">
+                Date
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                value={editFormData.date}
+                onChange={(e) => handleFormChange('date', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="start-time" className="text-right">
+                Start Time
+              </Label>
+              <Input
+                id="start-time"
+                type="time"
+                value={editFormData.startTime}
+                onChange={(e) => handleFormChange('startTime', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="end-time" className="text-right">
+                End Time
+              </Label>
+              <Input
+                id="end-time"
+                type="time"
+                value={editFormData.endTime}
+                onChange={(e) => handleFormChange('endTime', e.target.value)}
+                className="col-span-3"
+              />
+            </div>
+            
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="duration" className="text-right">
+                Duration
+              </Label>
+              <div className="col-span-3 text-sm text-gray-600 dark:text-gray-400 py-2">
+                {formatDetailedTime(editFormData.totalMinutes)}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTimeEntry}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
