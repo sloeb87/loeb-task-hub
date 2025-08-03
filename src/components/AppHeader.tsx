@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 interface AppHeaderProps {
-  activeView: "tasks" | "dashboard" | "projects";
-  onViewChange: (view: "tasks" | "dashboard" | "projects") => void;
+  activeView: "tasks" | "dashboard" | "projects" | "timetracking";
+  onViewChange: (view: "tasks" | "dashboard" | "projects" | "timetracking") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
@@ -45,6 +45,7 @@ export const AppHeader = ({
   const navigationItems = [
     { key: 'projects', label: 'Projects', icon: FolderKanban },
     { key: 'tasks', label: 'Tasks', icon: ListTodo },
+    { key: 'timetracking', label: 'Time Tracking', icon: Clock },
     { key: 'dashboard', label: 'KPIs', icon: BarChart3 }
   ];
 

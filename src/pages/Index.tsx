@@ -11,6 +11,7 @@ import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
 import ProjectsPage from "./Projects";
+import TimeTrackingPage from "./TimeTracking";
 import Parameters from "@/components/Parameters";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
@@ -66,7 +67,7 @@ const Index = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("all");
-  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects">("tasks");
+  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking">("tasks");
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('all');
 
@@ -223,6 +224,8 @@ const Index = () => {
             projects={projects} 
             onEditTask={handleEditTask} 
           />
+        ) : activeView === "timetracking" ? (
+          <TimeTrackingPage tasks={tasks} />
         ) : (
           <ProjectsPage 
             tasks={tasks} 

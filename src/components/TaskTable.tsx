@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock } from "lucide-react";
 import { Task } from "@/types/task";
 import React, { useState, useRef, useEffect } from "react";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
+import { useTimeTracking } from "@/hooks/useTimeTracking";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -40,6 +41,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
+  const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -306,6 +308,22 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     setSelectedTaskForFollowUp(null);
   };
 
+  const handleTimerToggle = (task: Task, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const taskTime = getTaskTime(task.id);
+    if (taskTime.isRunning) {
+      stopTimer(task.id);
+    } else {
+      startTimer(task.id);
+    }
+  };
+
+  const formatTime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
   return (
     <>
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-border">
@@ -344,6 +362,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableHead style={{ minWidth: '120px' }}>
                   <SortableHeader field="dueDate">Due Date</SortableHeader>
                 </TableHead>
+                <TableHead style={{ minWidth: '120px' }}>Time Tracking</TableHead>
                 <TableHead style={{ minWidth: '200px' }}>Follow Ups</TableHead>
               </TableRow>
             </TableHeader>
@@ -492,6 +511,44 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         </div>
                       )}
                     </div>
+                  </TableCell>
+
+                  {/* Time Tracking Column */}
+                  <TableCell>
+                    {(() => {
+                      const taskTime = getTaskTime(task.id);
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              size="sm"
+                              variant={taskTime.isRunning ? "destructive" : "outline"}
+                              onClick={(e) => handleTimerToggle(task, e)}
+                              className="h-8 w-8 p-0"
+                              title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
+                            >
+                              {taskTime.isRunning ? (
+                                <Pause className="w-4 h-4" />
+                              ) : (
+                                <Play className="w-4 h-4" />
+                              )}
+                            </Button>
+                            {taskTime.isRunning && (
+                              <div className="flex items-center text-red-600 dark:text-red-400">
+                                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
+                                <span className="text-xs font-medium">Live</span>
+                              </div>
+                            )}
+                          </div>
+                          {taskTime.totalTime > 0 && (
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                              <Clock className="w-3 h-3 mr-1" />
+                              <span>{formatTime(taskTime.totalTime)}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
 
                   {/* Follow Ups Column */}
