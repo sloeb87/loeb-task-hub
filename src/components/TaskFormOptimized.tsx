@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide, Play } from "lucide-react";
+import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -99,6 +99,7 @@ export const TaskFormOptimized = React.memo(({
   const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
   const { startTimer } = useTimeTracking();
 
   // Dropdown options - now coming from the database
@@ -273,9 +274,33 @@ export const TaskFormOptimized = React.memo(({
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 overflow-y-auto">
-            <div className="flex gap-6 min-h-full">
+            <div className="flex gap-6 min-h-full relative">
+              {/* Toggle Button */}
+              {task && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsTaskDetailsCollapsed(!isTaskDetailsCollapsed)}
+                  className={cn(
+                    "absolute top-4 z-10 transition-all duration-200",
+                    isTaskDetailsCollapsed 
+                      ? "left-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md" 
+                      : "left-1/2 transform -translate-x-1/2"
+                  )}
+                  title={isTaskDetailsCollapsed ? "Show Task Details" : "Hide Task Details"}
+                >
+                  {isTaskDetailsCollapsed ? (
+                    <ChevronRight className="w-4 h-4" />
+                  ) : (
+                    <ChevronLeft className="w-4 h-4" />
+                  )}
+                </Button>
+              )}
+              
               {/* Left Side - Main Form */}
-              <div className="flex-1">
+              {!isTaskDetailsCollapsed && (
+                <div className="flex-1">
             <div className="space-y-6">
               {/* Task Details Section */}
               <div className="space-y-4">
@@ -612,12 +637,16 @@ export const TaskFormOptimized = React.memo(({
               )}
 
             </div>
-            </div>
+                </div>
+              )}
 
-            {/* Right Side - Follow-ups Panel (only for existing tasks) */}
-            {task && (
-              <div className="w-80 border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0">
-                <div className="mb-4">
+              {/* Right Side - Follow-ups Panel (only for existing tasks) */}
+              {task && (
+                <div className={cn(
+                  "border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0 transition-all duration-200",
+                  isTaskDetailsCollapsed ? "w-full" : "w-80"
+                )}>
+                  <div className="mb-4">
                   <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Follow-ups
