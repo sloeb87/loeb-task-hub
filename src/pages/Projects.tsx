@@ -102,30 +102,19 @@ const ProjectsPage = ({
   };
 
   const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    try {
-      console.log('handleSaveTask called with:', taskData);
-      console.log('Has id?', 'id' in taskData);
-      console.log('taskProjectId:', taskProjectId);
-      
-      if ('id' in taskData) {
-        console.log('Updating existing task');
-        onUpdateTask(taskData);
-      } else {
-        console.log('Creating new task');
-        // Set the project name if creating task for specific project
-        const finalTaskData = {
-          ...taskData,
-          project: taskProjectId || taskData.project
-        };
-        console.log('Calling onCreateTask with:', finalTaskData);
-        onCreateTask(finalTaskData);
-      }
-      setIsTaskFormOpen(false);
-      setSelectedTask(null);
-      setTaskProjectId(null);
-    } catch (error) {
-      console.error('Error in handleSaveTask:', error);
+    if ('id' in taskData) {
+      onUpdateTask(taskData);
+    } else {
+      // Set the project name if creating task for specific project
+      const finalTaskData = {
+        ...taskData,
+        project: taskProjectId || taskData.project
+      };
+      onCreateTask(finalTaskData);
     }
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
+    setTaskProjectId(null);
   };
 
   const handleGenerateReport = (project?: Project) => {
