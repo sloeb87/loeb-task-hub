@@ -316,27 +316,6 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                       
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <Button
-                            size="sm"
-                            variant={entry.isRunning ? "destructive" : "outline"}
-                            onClick={() => {
-                              if (entry.isRunning) {
-                                stopTimer(entry.taskId);
-                              } else {
-                                const task = tasks.find(t => t.id === entry.taskId);
-                                if (task) {
-                                  startTimer(entry.taskId, task.title, task.project, task.responsible);
-                                }
-                              }
-                            }}
-                            title={entry.isRunning ? "Stop Timer" : "Start Timer"}
-                          >
-                            {entry.isRunning ? (
-                              <Pause className="w-4 h-4" />
-                            ) : (
-                              <Play className="w-4 h-4" />
-                            )}
-                          </Button>
                           
                           <Button
                             size="sm"
