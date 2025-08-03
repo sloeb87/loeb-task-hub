@@ -11,6 +11,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
+import { useScopeColor } from "@/hooks/useScopeColor";
 import { Task } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 
@@ -20,6 +21,7 @@ interface TimeTrackingPageProps {
 
 export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
+  const { getScopeStyle } = useScopeColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
     year: new Date().getFullYear()
@@ -246,9 +248,9 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Entry ID</TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
+                  <TableHead>Scope</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
@@ -257,62 +259,63 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredEntries.map((entry) => {
-                  const startDate = new Date(entry.startTime);
-                  const endDate = entry.endTime ? new Date(entry.endTime) : null;
-                  
-                  return (
-                    <TableRow key={entry.id}>
-                      <TableCell>
-                        <div className="text-sm font-mono text-gray-600 dark:text-gray-400">
-                          {entry.id.split('_')[1]}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {entry.taskTitle}
-                          </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {entry.taskId}
-                          </div>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {entry.projectName}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {startDate.toLocaleDateString()}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {startDate.toLocaleTimeString()}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {entry.isRunning ? (
-                            <span className="text-green-600 dark:text-green-400">In Progress</span>
-                          ) : (
-                            endDate ? endDate.toLocaleTimeString() : '-'
-                          )}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {entry.duration ? formatDetailedTime(entry.duration) : '-'}
-                        </div>
-                      </TableCell>
+                 {filteredEntries.map((entry) => {
+                   const startDate = new Date(entry.startTime);
+                   const endDate = entry.endTime ? new Date(entry.endTime) : null;
+                   const task = tasks.find(t => t.id === entry.taskId);
+                   
+                   return (
+                     <TableRow key={entry.id}>
+                       <TableCell>
+                         <div className="font-medium text-gray-900 dark:text-white truncate">
+                           {entry.taskTitle} ({entry.taskId})
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="text-sm text-gray-900 dark:text-white truncate">
+                           {entry.projectName}
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="flex items-center">
+                           <Badge 
+                             style={getScopeStyle(task?.scope || '')}
+                             className="text-xs"
+                           >
+                             {task?.scope || '-'}
+                           </Badge>
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="text-sm text-gray-900 dark:text-white">
+                           {startDate.toLocaleDateString()}
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="text-sm text-gray-900 dark:text-white">
+                           {startDate.toLocaleTimeString()}
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="text-sm text-gray-900 dark:text-white">
+                           {entry.isRunning ? (
+                             <span className="text-green-600 dark:text-green-400">In Progress</span>
+                           ) : (
+                             endDate ? endDate.toLocaleTimeString() : '-'
+                           )}
+                         </div>
+                       </TableCell>
+                       
+                       <TableCell>
+                         <div className="text-sm font-medium text-gray-900 dark:text-white">
+                           {entry.duration ? formatDetailedTime(entry.duration) : '-'}
+                         </div>
+                       </TableCell>
                       
                       <TableCell>
                         <div className="flex items-center space-x-2">
