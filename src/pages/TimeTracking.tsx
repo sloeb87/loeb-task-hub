@@ -214,7 +214,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
       <TimeEntryFiltersComponent
         filters={filters}
         onFiltersChange={setFilters}
-        onClearFilters={() => setFilters({ year: new Date().getFullYear() })}
+        onClearFilters={() => setFilters({})}
       />
 
       {/* Export */}

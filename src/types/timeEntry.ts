@@ -14,6 +14,10 @@ export interface TimeEntry {
 }
 
 export interface TimeEntryFilters {
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
   month?: string;
   year?: number;
   taskId?: string;

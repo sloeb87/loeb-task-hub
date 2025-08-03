@@ -223,16 +223,26 @@ export function useTimeTracking() {
 
   const getFilteredTimeEntries = useCallback((filters: TimeEntryFilters): TimeEntry[] => {
     return timeEntries.filter(entry => {
-      // Month filter
-      if (filters.month) {
-        const entryMonth = new Date(entry.startTime).getMonth() + 1;
-        if (entryMonth.toString().padStart(2, '0') !== filters.month) return false;
-      }
+      const entryDate = new Date(entry.startTime);
       
-      // Year filter
-      if (filters.year) {
-        const entryYear = new Date(entry.startTime).getFullYear();
-        if (entryYear !== filters.year) return false;
+      // Date range filter (takes priority over year/month)
+      if (filters.dateRange?.from && filters.dateRange?.to) {
+        const from = new Date(filters.dateRange.from);
+        const to = new Date(filters.dateRange.to);
+        to.setHours(23, 59, 59, 999); // Include the entire end date
+        
+        if (entryDate < from || entryDate > to) {
+          return false;
+        }
+      } else {
+        // Fallback to year/month filtering
+        if (filters.year && entryDate.getFullYear() !== filters.year) {
+          return false;
+        }
+        
+        if (filters.month && (entryDate.getMonth() + 1).toString().padStart(2, '0') !== filters.month) {
+          return false;
+        }
       }
       
       // Task filter
