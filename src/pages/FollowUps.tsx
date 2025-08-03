@@ -5,7 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { MessageSquare, Search, Calendar as CalendarIcon, Filter, X } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
+import { MessageSquare, Search, Calendar as CalendarIcon, Filter, X, ChevronDown, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Task, FollowUp } from "@/types/task";
 import { useScopeColor } from "@/hooks/useScopeColor";
@@ -23,6 +25,10 @@ interface FollowUpFilters {
   dateRange?: { from: Date; to: Date };
   year?: number;
   month?: number;
+  projects?: string[];
+  scopes?: string[];
+  taskTypes?: string[];
+  environments?: string[];
 }
 
 interface FollowUpWithTask extends FollowUp {
@@ -63,27 +69,49 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [tasks]);
 
-  // Apply date filters
+  // Apply date and column filters
   const dateFilteredFollowUps = useMemo(() => {
-    if (!filters.dateRange && !filters.year && !filters.month) return allFollowUps;
-    
-    return allFollowUps.filter(followUp => {
-      const followUpDate = new Date(followUp.timestamp);
-      
-      if (filters.dateRange) {
-        return followUpDate >= filters.dateRange.from && followUpDate <= filters.dateRange.to;
-      }
-      
-      if (filters.year && filters.month) {
-        return followUpDate.getFullYear() === filters.year && followUpDate.getMonth() === filters.month - 1;
-      }
-      
-      if (filters.year) {
-        return followUpDate.getFullYear() === filters.year;
-      }
-      
-      return true;
-    });
+    let filtered = allFollowUps;
+
+    // Apply date filters
+    if (filters.dateRange || filters.year || filters.month) {
+      filtered = filtered.filter(followUp => {
+        const followUpDate = new Date(followUp.timestamp);
+        
+        if (filters.dateRange) {
+          return followUpDate >= filters.dateRange.from && followUpDate <= filters.dateRange.to;
+        }
+        
+        if (filters.year && filters.month) {
+          return followUpDate.getFullYear() === filters.year && followUpDate.getMonth() === filters.month - 1;
+        }
+        
+        if (filters.year) {
+          return followUpDate.getFullYear() === filters.year;
+        }
+        
+        return true;
+      });
+    }
+
+    // Apply column filters
+    if (filters.projects && filters.projects.length > 0) {
+      filtered = filtered.filter(followUp => filters.projects!.includes(followUp.projectName));
+    }
+
+    if (filters.scopes && filters.scopes.length > 0) {
+      filtered = filtered.filter(followUp => filters.scopes!.includes(followUp.taskScope));
+    }
+
+    if (filters.taskTypes && filters.taskTypes.length > 0) {
+      filtered = filtered.filter(followUp => filters.taskTypes!.includes(followUp.taskType));
+    }
+
+    if (filters.environments && filters.environments.length > 0) {
+      filtered = filtered.filter(followUp => filters.environments!.includes(followUp.taskEnvironment));
+    }
+
+    return filtered;
   }, [allFollowUps, filters]);
 
   // Filter follow-ups based on search term
@@ -99,6 +127,16 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
       followUp.taskEnvironment.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [dateFilteredFollowUps, searchTerm]);
+
+  // Get unique values for filters
+  const uniqueValues = useMemo(() => {
+    return {
+      projects: [...new Set(allFollowUps.map(f => f.projectName))].sort(),
+      scopes: [...new Set(allFollowUps.map(f => f.taskScope))].sort(),
+      taskTypes: [...new Set(allFollowUps.map(f => f.taskType))].sort(),
+      environments: [...new Set(allFollowUps.map(f => f.taskEnvironment))].sort()
+    };
+  }, [allFollowUps]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -179,6 +217,89 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
   const clearFilters = () => {
     setFilters({});
     setDateRange(undefined);
+  };
+
+  const updateColumnFilter = (column: keyof Pick<FollowUpFilters, 'projects' | 'scopes' | 'taskTypes' | 'environments'>, values: string[]) => {
+    setFilters(prev => ({
+      ...prev,
+      [column]: values.length > 0 ? values : undefined
+    }));
+  };
+
+  const MultiSelectFilter = ({ 
+    title, 
+    options, 
+    selectedValues = [], 
+    onSelectionChange,
+    colorFunction 
+  }: {
+    title: string;
+    options: string[];
+    selectedValues: string[];
+    onSelectionChange: (values: string[]) => void;
+    colorFunction?: (value: string) => any;
+  }) => {
+    const [open, setOpen] = useState(false);
+
+    const toggleSelection = (value: string) => {
+      const newValues = selectedValues.includes(value)
+        ? selectedValues.filter(v => v !== value)
+        : [...selectedValues, value];
+      onSelectionChange(newValues);
+    };
+
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 border-dashed border border-gray-300 dark:border-gray-600"
+          >
+            <Filter className="mr-2 h-3 w-3" />
+            {title}
+            {selectedValues.length > 0 && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1 text-xs">
+                {selectedValues.length}
+              </Badge>
+            )}
+            <ChevronDown className="ml-2 h-3 w-3" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 p-0" align="start">
+          <Command>
+            <CommandInput placeholder={`Search ${title.toLowerCase()}...`} />
+            <CommandEmpty>No {title.toLowerCase()} found.</CommandEmpty>
+            <CommandGroup className="max-h-64 overflow-auto">
+              {options.map((option) => (
+                <CommandItem
+                  key={option}
+                  onSelect={() => toggleSelection(option)}
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2 w-full">
+                    <Checkbox
+                      checked={selectedValues.includes(option)}
+                      onChange={() => toggleSelection(option)}
+                    />
+                    {colorFunction ? (
+                      <Badge 
+                        style={colorFunction(option)}
+                        className="text-xs"
+                      >
+                        {option}
+                      </Badge>
+                    ) : (
+                      <span>{option}</span>
+                    )}
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
   };
 
   const formatDate = (dateString: string) => {
@@ -325,7 +446,9 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
               </PopoverContent>
             </Popover>
 
-            {(filters.dateRange || filters.year || filters.month) && (
+            {(filters.dateRange || filters.year || filters.month || 
+              filters.projects?.length || filters.scopes?.length || 
+              filters.taskTypes?.length || filters.environments?.length) && (
               <Button
                 size="sm"
                 variant="ghost"
@@ -333,7 +456,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                 className="flex items-center gap-2"
               >
                 <X className="w-4 h-4" />
-                Clear Filters
+                Clear All Filters
               </Button>
             )}
           </div>
@@ -344,7 +467,14 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
       <Card>
         <CardHeader>
           <CardTitle>All Follow-Ups</CardTitle>
-          <CardDescription>Complete history of task follow-ups and comments</CardDescription>
+          <CardDescription>
+            Complete history of task follow-ups and comments
+            {(filters.projects?.length || filters.scopes?.length || filters.taskTypes?.length || filters.environments?.length) && (
+              <span className="ml-2 text-blue-600 dark:text-blue-400">
+                (Filtered by column selections)
+              </span>
+            )}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -365,10 +495,53 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Scope</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Environment</TableHead>
+                  <TableHead>
+                    <div className="flex items-center space-x-2">
+                      <span>Project</span>
+                      <MultiSelectFilter
+                        title="Filter"
+                        options={uniqueValues.projects}
+                        selectedValues={filters.projects || []}
+                        onSelectionChange={(values) => updateColumnFilter('projects', values)}
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center space-x-2">
+                      <span>Scope</span>
+                      <MultiSelectFilter
+                        title="Filter"
+                        options={uniqueValues.scopes}
+                        selectedValues={filters.scopes || []}
+                        onSelectionChange={(values) => updateColumnFilter('scopes', values)}
+                        colorFunction={getScopeStyle}
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center space-x-2">
+                      <span>Type</span>
+                      <MultiSelectFilter
+                        title="Filter"
+                        options={uniqueValues.taskTypes}
+                        selectedValues={filters.taskTypes || []}
+                        onSelectionChange={(values) => updateColumnFilter('taskTypes', values)}
+                        colorFunction={getTaskTypeStyle}
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead>
+                    <div className="flex items-center space-x-2">
+                      <span>Environment</span>
+                      <MultiSelectFilter
+                        title="Filter"
+                        options={uniqueValues.environments}
+                        selectedValues={filters.environments || []}
+                        onSelectionChange={(values) => updateColumnFilter('environments', values)}
+                        colorFunction={getEnvironmentStyle}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Follow-Up</TableHead>
                 </TableRow>
               </TableHeader>
