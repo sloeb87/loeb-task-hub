@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task } from "@/types/task";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
@@ -103,13 +104,17 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div className="flex items-center space-x-3">
           <Clock className="w-8 h-8 text-blue-600" />
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Time Tracking</h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">Monitor and manage task time entries</p>
           </div>
+        </div>
+        
+        <div className="flex items-center">
+          <RunningTimerDisplay tasks={tasks} />
         </div>
       </div>
 

@@ -35,7 +35,6 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
           <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
-          <span className="text-sm font-medium text-red-700 dark:text-red-300">Timer Running:</span>
         </div>
         <div className="flex flex-col">
           <span className="text-sm font-semibold text-red-800 dark:text-red-200 truncate max-w-48">
