@@ -283,7 +283,7 @@ export const ProjectTable = ({
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50 dark:bg-gray-900">
+            <TableRow className="bg-muted/50">
               <TableHead style={{ minWidth: '50px' }}>
                 {/* Empty header for expand/collapse */}
               </TableHead>
@@ -311,7 +311,7 @@ export const ProjectTable = ({
               const isExpanded = expandedProject === project.id;
               return (
                 <React.Fragment key={project.id}>
-                  <TableRow className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
+                  <TableRow className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Expand/Collapse Column */}
                     <TableCell>
                       <Button size="sm" variant="ghost" className="p-1 h-6 w-6" onClick={e => toggleExpanded(project.id, e)}>
@@ -457,7 +457,7 @@ export const ProjectTable = ({
 
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <TableRow className="bg-gray-50 dark:bg-gray-900">
+                    <TableRow className="bg-muted/50">
                       <TableCell colSpan={7}>
                         <Card className="dark:bg-gray-800 dark:border-gray-700">
                           <CardContent className="p-4">

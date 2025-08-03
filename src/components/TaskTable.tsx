@@ -349,7 +349,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50 dark:bg-gray-900">
+              <TableRow className="bg-muted/50">
                 <TableHead style={{ minWidth: '130px' }}>
                   <FilterableHeader field="scope" filterType="scope">Scope</FilterableHeader>
                 </TableHead>
@@ -376,7 +376,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
               {filteredAndSortedTasks.map((task) => (
                 <TableRow 
                   key={task.id} 
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+                  className="hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={(e) => handleRowClick(task, e)}
                 >
                   {/* Scope Column */}
