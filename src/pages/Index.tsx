@@ -10,6 +10,7 @@ import { KPIDashboard } from "@/components/KPIDashboard";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import ProjectsPage from "./Projects";
 import TimeTrackingPage from "./TimeTracking";
 import Parameters from "@/components/Parameters";
@@ -183,7 +184,7 @@ const Index = () => {
         {activeView === "tasks" ? (
           <>
             {/* Task Management Header */}
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
               <div className="flex items-center space-x-3">
                 <ListTodo className="w-8 h-8 text-blue-600" />
                 <div>
@@ -191,10 +192,14 @@ const Index = () => {
                   <p className="text-gray-600 dark:text-gray-300 mt-1">Create, assign, and track individual tasks</p>
                 </div>
               </div>
-              <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                New Task
-              </Button>
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <RunningTimerDisplay tasks={tasks} />
+                <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  New Task
+                </Button>
+              </div>
             </div>
 
             {/* Controls */}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, FolderKanban } from "lucide-react";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task, Project } from "@/types/task";
 import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
@@ -148,7 +149,7 @@ const ProjectsPage = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div className="flex items-center space-x-3">
           <FolderKanban className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           <div>
@@ -156,13 +157,17 @@ const ProjectsPage = ({
             <p className="text-gray-600 dark:text-gray-300 mt-1">Manage projects, assign tasks, and track progress</p>
           </div>
         </div>
-        <Button 
-          onClick={() => setIsProjectFormOpen(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          New Project
-        </Button>
+        
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <RunningTimerDisplay tasks={tasks} />
+          <Button 
+            onClick={() => setIsProjectFormOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Project
+          </Button>
+        </div>
       </div>
 
       {/* Project Statistics */}
