@@ -196,6 +196,7 @@ export const TaskFormOptimized = React.memo(({
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     console.log('Form submission started', { formData });
+    console.log('Event details:', e.type, e.target);
 
     if (!formData.title.trim()) {
       console.log('Validation failed: Missing title');
@@ -206,6 +207,8 @@ export const TaskFormOptimized = React.memo(({
       });
       return;
     }
+
+    console.log('Title validation passed');
 
     console.log('Validation passed, creating task data');
     const taskData = {
