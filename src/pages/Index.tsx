@@ -137,7 +137,7 @@ const Index = () => {
 
   // Show loading state
   if (isLoading) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
           <p className="mt-4 text-gray-600 dark:text-gray-300">Loading tasks...</p>
@@ -147,7 +147,7 @@ const Index = () => {
 
   // Show error state
   if (error) {
-    return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+    return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400">Error: {error}</p>
           <Button onClick={() => window.location.reload()} className="mt-4">
@@ -156,11 +156,12 @@ const Index = () => {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+  return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AppHeader activeView={activeView} onViewChange={setActiveView} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} onOpenParameters={() => setIsParametersOpen(true)} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {activeView === "tasks" ? <>
+        <div className="space-y-6">
+          {activeView === "tasks" ? <>
             {/* Task Management Header */}
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
               <div className="flex items-center space-x-3">
@@ -187,6 +188,7 @@ const Index = () => {
 
             <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
           </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} />}
+        </div>
 
         {/* Task Form Dialog */}
         <TaskFormOptimized isOpen={isTaskFormOpen} onClose={() => {
