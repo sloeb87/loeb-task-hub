@@ -310,7 +310,7 @@ export const ProjectTable = ({
               const stats = getProjectStats(project);
               const isExpanded = expandedProject === project.id;
               return (
-                <React.Fragment key={project.id}>
+                <React.Fragment key={`project-${project.id}`}>
                   <TableRow className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Expand/Collapse Column */}
                     <TableCell>
