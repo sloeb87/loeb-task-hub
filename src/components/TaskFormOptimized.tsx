@@ -609,7 +609,7 @@ export const TaskFormOptimized = React.memo(({
 
             {/* Right Side - Follow-ups Panel (only for existing tasks) */}
             {task && (
-              <div className="w-1/3 border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col">
+              <div className="w-80 border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0">
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
                     Follow-ups
