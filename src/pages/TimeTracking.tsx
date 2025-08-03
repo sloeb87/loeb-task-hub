@@ -268,7 +268,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                      <TableRow key={entry.id}>
                        <TableCell>
                          <div className="font-medium text-gray-900 dark:text-white truncate">
-                           {entry.taskTitle} ({entry.taskId})
+                           {entry.taskId}_{entry.taskTitle}
                          </div>
                        </TableCell>
                        
