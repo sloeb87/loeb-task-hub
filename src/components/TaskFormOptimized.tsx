@@ -698,7 +698,13 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button 
+                type="submit"
+                onClick={(e) => {
+                  console.log('Button clicked!', e);
+                  // Let the form submission handle the rest
+                }}
+              >
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
