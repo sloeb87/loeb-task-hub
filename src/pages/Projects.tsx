@@ -103,6 +103,9 @@ const ProjectsPage = ({
 
   const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('handleSaveTask called with:', taskData);
+    console.log('Has id?', 'id' in taskData);
+    console.log('taskProjectId:', taskProjectId);
+    
     if ('id' in taskData) {
       console.log('Updating existing task');
       onUpdateTask(taskData);
