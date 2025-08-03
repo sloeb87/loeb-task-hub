@@ -198,7 +198,6 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                 <TableRow>
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
-                  <TableHead>Responsible</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
@@ -228,12 +227,6 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                       <TableCell>
                         <div className="text-sm text-gray-900 dark:text-white">
                           {task.project}
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <div className="text-sm text-gray-900 dark:text-white">
-                          {task.responsible}
                         </div>
                       </TableCell>
                       
