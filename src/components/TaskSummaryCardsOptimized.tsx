@@ -101,17 +101,19 @@ export const TaskSummaryCardsOptimized = React.memo(({
             }`}
             onClick={() => onFilterChange(stat.filter)}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                {stat.title}
-              </CardTitle>
-              <div className={`p-2 rounded-full ${stat.bgColor}`}>
-                <Icon className={`h-4 w-4 ${stat.color}`} />
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                  {stat.title}
+                </CardTitle>
+                <div className={`p-2 rounded-full ${stat.bgColor}`}>
+                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-2xl font-bold text-gray-900 dark:text-white">
+            <CardContent className="pt-0">
+              <div className="flex items-baseline space-x-2">
+                <div className={`text-3xl font-bold ${stat.color}`}>
                   {stat.count}
                 </div>
                 {isActive && (
