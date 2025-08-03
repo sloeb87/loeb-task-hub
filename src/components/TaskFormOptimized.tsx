@@ -665,8 +665,9 @@ export const TaskFormOptimized = React.memo(({
                                   month: '2-digit', 
                                   day: '2-digit', 
                                   year: '2-digit' 
-                                })} : {followUp.text}
+                                })}
                               </span>
+                              <span className="text-sm text-gray-900 dark:text-white">: {followUp.text}</span>
                             </div>
                           </div>
                         ))}
