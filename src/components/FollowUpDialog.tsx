@@ -21,6 +21,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, task }: FollowU
     if (followUpText.trim()) {
       onAddFollowUp(followUpText.trim());
       setFollowUpText('');
+      onClose();
     }
   };
 
