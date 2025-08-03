@@ -653,19 +653,16 @@ export const TaskFormOptimized = React.memo(({
                         .reverse() // Show most recent first
                         .map((followUp) => (
                           <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                            <div className="flex justify-between items-start mb-2">
-                              <div className="flex items-center gap-2">
-                                <User className="w-3 h-3 text-gray-400" />
-                                <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {followUp.author}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                <CalendarLucide className="w-3 h-3" />
-                                {new Date(followUp.timestamp).toLocaleDateString()}
-                              </div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <CalendarLucide className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
+                                  month: '2-digit', 
+                                  day: '2-digit', 
+                                  year: '2-digit' 
+                                })} : {followUp.text}
+                              </span>
                             </div>
-                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{followUp.text}</p>
                           </div>
                         ))}
                     </div>
