@@ -2,15 +2,27 @@ import React, { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Search, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { MessageSquare, Search, Calendar as CalendarIcon, Filter, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Task, FollowUp } from "@/types/task";
 import { useScopeColor } from "@/hooks/useScopeColor";
 import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
 import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
+import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 interface FollowUpsPageProps {
   tasks: Task[];
+}
+
+interface FollowUpFilters {
+  dateRange?: { from: Date; to: Date };
+  year?: number;
+  month?: number;
 }
 
 interface FollowUpWithTask extends FollowUp {
@@ -27,6 +39,8 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
   const { getTaskTypeStyle } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<FollowUpFilters>({});
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   // Get all follow-ups with task information
   const allFollowUps = useMemo(() => {
@@ -49,26 +63,47 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [tasks]);
 
+  // Apply date filters
+  const dateFilteredFollowUps = useMemo(() => {
+    if (!filters.dateRange && !filters.year && !filters.month) return allFollowUps;
+    
+    return allFollowUps.filter(followUp => {
+      const followUpDate = new Date(followUp.timestamp);
+      
+      if (filters.dateRange) {
+        return followUpDate >= filters.dateRange.from && followUpDate <= filters.dateRange.to;
+      }
+      
+      if (filters.year && filters.month) {
+        return followUpDate.getFullYear() === filters.year && followUpDate.getMonth() === filters.month - 1;
+      }
+      
+      if (filters.year) {
+        return followUpDate.getFullYear() === filters.year;
+      }
+      
+      return true;
+    });
+  }, [allFollowUps, filters]);
+
   // Filter follow-ups based on search term
   const filteredFollowUps = useMemo(() => {
-    if (!searchTerm) return allFollowUps;
+    if (!searchTerm) return dateFilteredFollowUps;
     
-    return allFollowUps.filter(followUp => 
+    return dateFilteredFollowUps.filter(followUp => 
       followUp.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
       followUp.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      followUp.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
       followUp.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       followUp.taskScope.toLowerCase().includes(searchTerm.toLowerCase()) ||
       followUp.taskType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       followUp.taskEnvironment.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [allFollowUps, searchTerm]);
+  }, [dateFilteredFollowUps, searchTerm]);
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const uniqueTasks = new Set(allFollowUps.map(f => f.taskId));
-    const uniqueAuthors = new Set(allFollowUps.map(f => f.author));
-    const recentFollowUps = allFollowUps.filter(f => {
+    const uniqueTasks = new Set(filteredFollowUps.map(f => f.taskId));
+    const recentFollowUps = filteredFollowUps.filter(f => {
       const followUpDate = new Date(f.timestamp);
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -76,12 +111,75 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     });
 
     return {
-      totalFollowUps: allFollowUps.length,
+      totalFollowUps: filteredFollowUps.length,
       tasksWithFollowUps: uniqueTasks.size,
-      contributors: uniqueAuthors.size,
       recentFollowUps: recentFollowUps.length
     };
-  }, [allFollowUps]);
+  }, [filteredFollowUps]);
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range);
+    if (range?.from && range?.to) {
+      setFilters({
+        ...filters,
+        dateRange: { from: range.from, to: range.to },
+        year: undefined,
+        month: undefined
+      });
+    } else {
+      setFilters({
+        ...filters,
+        dateRange: undefined
+      });
+    }
+  };
+
+  const handlePresetSelection = (preset: string) => {
+    const now = new Date();
+    let from: Date, to: Date;
+
+    switch (preset) {
+      case 'thisMonth':
+        from = startOfMonth(now);
+        to = endOfMonth(now);
+        break;
+      case 'lastMonth':
+        from = startOfMonth(subMonths(now, 1));
+        to = endOfMonth(subMonths(now, 1));
+        break;
+      case 'thisYear':
+        from = startOfYear(now);
+        to = endOfYear(now);
+        break;
+      case 'lastYear':
+        from = startOfYear(subYears(now, 1));
+        to = endOfYear(subYears(now, 1));
+        break;
+      case 'last30Days':
+        from = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        to = now;
+        break;
+      case 'last90Days':
+        from = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        to = now;
+        break;
+      default:
+        return;
+    }
+
+    setDateRange({ from, to });
+    setFilters({
+      ...filters,
+      dateRange: { from, to },
+      year: undefined,
+      month: undefined
+    });
+  };
+
+  const clearFilters = () => {
+    setFilters({});
+    setDateRange(undefined);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -100,7 +198,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Follow-Ups</CardTitle>
@@ -125,17 +223,6 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Contributors</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {stats.contributors}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Recent (7 days)</CardTitle>
           </CardHeader>
           <CardContent>
@@ -145,6 +232,113 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Period Filters */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Filter className="w-4 h-4" />
+            Period Selection
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2 mb-4">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('thisMonth')}
+            >
+              This Month
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('lastMonth')}
+            >
+              Last Month
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('thisYear')}
+            >
+              This Year
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('lastYear')}
+            >
+              Last Year
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('last30Days')}
+            >
+              Last 30 Days
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handlePresetSelection('last90Days')}
+            >
+              Last 90 Days
+            </Button>
+          </div>
+
+          <div className="flex flex-wrap gap-4 items-center">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={handleDateRangeChange}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {(filters.dateRange || filters.year || filters.month) && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={clearFilters}
+                className="flex items-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Clear Filters
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Follow-Ups Table */}
       <Card>
@@ -169,22 +363,24 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Follow-Up</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
                   <TableHead>Scope</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Environment</TableHead>
-                  <TableHead>Author</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Follow-Up</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFollowUps.map((followUp) => (
                   <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                     <TableCell>
-                      <div className="font-medium text-gray-900 dark:text-white max-w-xs">
-                        <p className="line-clamp-2">{followUp.text}</p>
+                      <div className="flex items-center space-x-2">
+                        <CalendarIcon className="w-4 h-4 text-gray-400" />
+                        <span className="text-sm text-gray-900 dark:text-white">
+                          {formatDate(followUp.timestamp)}
+                        </span>
                       </div>
                     </TableCell>
                     
@@ -234,20 +430,8 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                     </TableCell>
                     
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900 dark:text-white">
-                          {followUp.author}
-                        </span>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        <Calendar className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-900 dark:text-white">
-                          {formatDate(followUp.timestamp)}
-                        </span>
+                      <div className="font-medium text-gray-900 dark:text-white max-w-xs">
+                        <p className="line-clamp-2">{followUp.text}</p>
                       </div>
                     </TableCell>
                   </TableRow>
