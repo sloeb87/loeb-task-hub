@@ -258,7 +258,7 @@ export const TaskFormOptimized = React.memo(({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white">
             {task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}
@@ -266,7 +266,9 @@ export const TaskFormOptimized = React.memo(({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex-1 overflow-hidden flex gap-6">
+            {/* Left Side - Main Form */}
+            <div className="flex-1 overflow-y-auto pr-2">
             <div className="space-y-6">
               {/* Task Details Section */}
               <div className="space-y-4">
@@ -530,71 +532,6 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              {/* Follow-ups Section (only for existing tasks) */}
-              {task && (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
-                    Follow-ups
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 dark:text-gray-300">
-                        {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setFollowUpDialogOpen(true)}
-                        className="flex items-center gap-2"
-                      >
-                        <MessageSquarePlus className="w-4 h-4" />
-                        Add Follow-up
-                      </Button>
-                    </div>
-
-                    {task.followUps.length > 0 && (
-                      <div className="space-y-3 max-h-60 overflow-y-auto">
-                        {task.followUps
-                          .slice(-5) // Show last 5 follow-ups in edit mode
-                          .reverse()
-                          .map((followUp) => (
-                            <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-                              <div className="flex justify-between items-start mb-2">
-                                <div className="flex items-center gap-2">
-                                  <User className="w-3 h-3 text-gray-400" />
-                                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                                    {followUp.author}
-                                  </span>
-                                </div>
-                                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                                  <CalendarLucide className="w-3 h-3" />
-                                  {new Date(followUp.timestamp).toLocaleDateString()}
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-700 dark:text-gray-300">{followUp.text}</p>
-                            </div>
-                          ))}
-                        
-                        {task.followUps.length > 5 && (
-                          <div className="text-xs text-blue-600 dark:text-blue-400 italic text-center">
-                            +{task.followUps.length - 5} more follow-ups...
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {task.followUps.length === 0 && (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No follow-ups yet</p>
-                        <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
 
               {/* Links Section */}
               <div className="space-y-4">
@@ -668,6 +605,67 @@ export const TaskFormOptimized = React.memo(({
               )}
 
             </div>
+            </div>
+
+            {/* Right Side - Follow-ups Panel (only for existing tasks) */}
+            {task && (
+              <div className="w-1/3 border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Follow-ups
+                  </h3>
+                  <div className="flex items-center justify-between mt-3">
+                    <span className="text-sm text-gray-600 dark:text-gray-300">
+                      {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setFollowUpDialogOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <MessageSquarePlus className="w-4 h-4" />
+                      Add Follow-up
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto">
+                  {task.followUps.length > 0 ? (
+                    <div className="space-y-3">
+                      {task.followUps
+                        .slice() // Create a copy to avoid mutating original
+                        .reverse() // Show most recent first
+                        .map((followUp) => (
+                          <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="flex items-center gap-2">
+                                <User className="w-3 h-3 text-gray-400" />
+                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                  {followUp.author}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                <CalendarLucide className="w-3 h-3" />
+                                {new Date(followUp.timestamp).toLocaleDateString()}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{followUp.text}</p>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No follow-ups yet</p>
+                      <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
           </div>
 
           {/* Form Actions */}
