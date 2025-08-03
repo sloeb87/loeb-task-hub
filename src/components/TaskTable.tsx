@@ -316,7 +316,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     if (taskTime.isRunning) {
       stopTimer(task.id);
     } else {
-      startTimer(task.id);
+      startTimer(task.id, task.title, task.project, task.responsible);
     }
   };
 

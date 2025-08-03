@@ -9,19 +9,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
+import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
+import { TimeEntryExport } from "@/components/TimeEntryExport";
 import { Task } from "@/types/task";
-import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 
 interface TimeTrackingPageProps {
   tasks: Task[];
 }
 
 export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
-  const { taskTimers, startTimer, stopTimer, getTaskTime, getTotalTimeForAllTasks } = useTimeTracking();
+  const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats } = useTimeTracking();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [filters, setFilters] = useState<TimeEntryFilters>({
+    year: new Date().getFullYear()
+  });
+
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const [editFormData, setEditFormData] = useState({
     date: "",
     startTime: "",
@@ -29,45 +34,22 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
     totalMinutes: 0
   });
 
-  // Get all tasks with time data
-  const tasksWithTime = useMemo(() => {
-    return tasks.map(task => ({
-      ...task,
-      timeData: getTaskTime(task.id)
-    })).filter(task => 
-      task.timeData.totalTime > 0 || task.timeData.isRunning
-    );
-  }, [tasks, taskTimers]);
-
-  // Filter tasks based on search and status
-  const filteredTasks = useMemo(() => {
-    return tasksWithTime.filter(task => {
-      const matchesSearch = searchTerm === "" || 
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === "all" || 
-        (statusFilter === "running" && task.timeData.isRunning) ||
-        (statusFilter === "paused" && !task.timeData.isRunning && task.timeData.totalTime > 0);
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [tasksWithTime, searchTerm, statusFilter]);
-
-  // Calculate statistics
-  const stats = useMemo(() => {
-    const totalTime = getTotalTimeForAllTasks();
-    const runningTasks = tasksWithTime.filter(t => t.timeData.isRunning).length;
-    const tasksWithTimeLogged = tasksWithTime.filter(t => t.timeData.totalTime > 0).length;
+  // Get filtered entries based on search and filters
+  const filteredEntries = useMemo(() => {
+    const filtered = getFilteredTimeEntries(filters);
     
-    return {
-      totalTime,
-      runningTasks,
-      tasksWithTimeLogged,
-      avgTimePerTask: tasksWithTimeLogged > 0 ? totalTime / tasksWithTimeLogged : 0
-    };
-  }, [tasksWithTime, getTotalTimeForAllTasks]);
+    if (!searchTerm) return filtered;
+    
+    return filtered.filter(entry => 
+      entry.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.taskId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      entry.responsible.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [getFilteredTimeEntries, filters, searchTerm]);
+
+  // Calculate statistics for filtered entries
+  const stats = useMemo(() => getTimeEntryStats(filteredEntries), [getTimeEntryStats, filteredEntries]);
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -93,25 +75,26 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
   };
 
   const handleTimerToggle = (taskId: string) => {
-    const taskTime = getTaskTime(taskId);
-    if (taskTime.isRunning) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+    
+    const runningEntry = filteredEntries.find(entry => entry.taskId === taskId && entry.isRunning);
+    if (runningEntry) {
       stopTimer(taskId);
     } else {
-      startTimer(taskId);
+      startTimer(taskId, task.title, task.project, task.responsible);
     }
   };
 
-  const handleEditTimeEntry = (task: Task) => {
-    const taskTime = getTaskTime(task.id);
-    const currentSessionStart = taskTime.currentSessionStart;
-    const sessionDate = currentSessionStart ? new Date(currentSessionStart) : new Date();
+  const handleEditTimeEntry = (entry: TimeEntry) => {
+    const startDate = new Date(entry.startTime);
     
-    setEditingTask(task);
+    setEditingEntry(entry);
     setEditFormData({
-      date: sessionDate.toISOString().split('T')[0],
-      startTime: currentSessionStart ? new Date(currentSessionStart).toTimeString().slice(0, 5) : "",
-      endTime: taskTime.isRunning ? "" : new Date().toTimeString().slice(0, 5),
-      totalMinutes: taskTime.totalTime
+      date: startDate.toISOString().split('T')[0],
+      startTime: startDate.toTimeString().slice(0, 5),
+      endTime: entry.endTime ? new Date(entry.endTime).toTimeString().slice(0, 5) : "",
+      totalMinutes: entry.duration || 0
     });
     setEditDialogOpen(true);
   };
@@ -121,7 +104,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
     // In a full implementation, this would save the changes to the database
     console.log('Saving time entry:', editFormData);
     setEditDialogOpen(false);
-    setEditingTask(null);
+    setEditingEntry(null);
   };
 
   const calculateDuration = (startTime: string, endTime: string) => {
@@ -197,7 +180,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {stats.runningTasks}
+              {stats.runningEntries}
             </div>
           </CardContent>
         </Card>
@@ -208,7 +191,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {stats.tasksWithTimeLogged}
+              {stats.totalEntries}
             </div>
           </CardContent>
         </Card>
@@ -219,40 +202,42 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {formatTime(Math.round(stats.avgTimePerTask))}
+              {formatTime(Math.round(stats.averageEntryDuration))}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
+      <TimeEntryFiltersComponent
+        filters={filters}
+        onFiltersChange={setFilters}
+        onClearFilters={() => setFilters({ year: new Date().getFullYear() })}
+      />
+
+      {/* Export */}
+      <TimeEntryExport
+        entries={filteredEntries}
+        filters={filters}
+        onExport={() => console.log('Export functionality')}
+      />
+
+      {/* Time Entries Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Time Entries</CardTitle>
-          <CardDescription>All tasks with logged time or active timers</CardDescription>
+          <CardTitle>Individual Time Entries</CardTitle>
+          <CardDescription>Each timer session as a separate entry with unique ID</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Search tasks..."
+                placeholder="Search entries..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
               />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
-              >
-                <option value="all">All Tasks</option>
-                <option value="running">Running Timers</option>
-                <option value="paused">Paused/Stopped</option>
-              </select>
             </div>
           </div>
 
@@ -261,77 +246,84 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Entry ID</TableHead>
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
-                  <TableHead>Time Logged</TableHead>
-                  <TableHead>Timer Status</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTasks.map((task) => {
-                  const currentSessionStart = task.timeData.currentSessionStart;
-                  const sessionDate = currentSessionStart ? new Date(currentSessionStart) : new Date();
+                {filteredEntries.map((entry) => {
+                  const startDate = new Date(entry.startTime);
+                  const endDate = entry.endTime ? new Date(entry.endTime) : null;
                   
                   return (
-                    <TableRow key={task.id}>
+                    <TableRow key={entry.id}>
+                      <TableCell>
+                        <div className="text-sm font-mono text-gray-600 dark:text-gray-400">
+                          {entry.id.split('_')[1]}
+                        </div>
+                      </TableCell>
+                      
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium text-gray-900 dark:text-white">
-                            {task.title}
+                            {entry.taskTitle}
                           </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">
-                            {task.id}
+                            {entry.taskId}
                           </div>
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="text-sm text-gray-900 dark:text-white">
-                          {task.project}
+                          {entry.projectName}
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="text-sm text-gray-900 dark:text-white">
-                          {sessionDate.toLocaleDateString()}
+                          {startDate.toLocaleDateString()}
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="text-sm text-gray-900 dark:text-white">
-                          {currentSessionStart ? new Date(currentSessionStart).toLocaleTimeString() : '-'}
+                          {startDate.toLocaleTimeString()}
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="text-sm text-gray-900 dark:text-white">
-                          {task.timeData.isRunning ? (
+                          {entry.isRunning ? (
                             <span className="text-green-600 dark:text-green-400">In Progress</span>
                           ) : (
-                            currentSessionStart ? new Date().toLocaleTimeString() : '-'
+                            endDate ? endDate.toLocaleTimeString() : '-'
                           )}
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {formatDetailedTime(task.timeData.totalTime)}
+                          {entry.duration ? formatDetailedTime(entry.duration) : '-'}
                         </div>
                       </TableCell>
                       
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          {task.timeData.isRunning ? (
+                          {entry.isRunning ? (
                             <div className="flex items-center text-red-600 dark:text-red-400">
                               <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-2"></div>
                               <span className="text-sm font-medium">Running</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Stopped</span>
+                            <span className="text-sm text-gray-500 dark:text-gray-400">Completed</span>
                           )}
                         </div>
                       </TableCell>
@@ -340,11 +332,20 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                         <div className="flex items-center space-x-2">
                           <Button
                             size="sm"
-                            variant={task.timeData.isRunning ? "destructive" : "outline"}
-                            onClick={() => handleTimerToggle(task.id)}
-                            title={task.timeData.isRunning ? "Stop Timer" : "Start Timer"}
+                            variant={entry.isRunning ? "destructive" : "outline"}
+                            onClick={() => {
+                              if (entry.isRunning) {
+                                stopTimer(entry.taskId);
+                              } else {
+                                const task = tasks.find(t => t.id === entry.taskId);
+                                if (task) {
+                                  startTimer(entry.taskId, task.title, task.project, task.responsible);
+                                }
+                              }
+                            }}
+                            title={entry.isRunning ? "Stop Timer" : "Start Timer"}
                           >
-                            {task.timeData.isRunning ? (
+                            {entry.isRunning ? (
                               <Pause className="w-4 h-4" />
                             ) : (
                               <Play className="w-4 h-4" />
@@ -354,7 +355,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleEditTimeEntry(task)}
+                            onClick={() => handleEditTimeEntry(entry)}
                             title="Edit Time Entry"
                           >
                             <Edit3 className="w-4 h-4" />
@@ -377,11 +378,11 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
             </Table>
           </div>
 
-          {filteredTasks.length === 0 && (
+          {filteredEntries.length === 0 && (
             <div className="text-center py-12">
               <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400">
-                {searchTerm || statusFilter !== "all" 
+                {searchTerm || Object.keys(filters).length > 1
                   ? "No time entries found matching your filters."
                   : "No time entries yet. Start a timer on a task to begin tracking time."
                 }
@@ -397,8 +398,7 @@ export const TimeTrackingPage = ({ tasks }: TimeTrackingPageProps) => {
           <DialogHeader>
             <DialogTitle>Edit Time Entry</DialogTitle>
             <DialogDescription>
-              Modify the time entry for: {editingTask?.title}
-            </DialogDescription>
+              Modify the time entry: {editingEntry?.id}</DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
