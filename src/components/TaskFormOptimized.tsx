@@ -266,9 +266,10 @@ export const TaskFormOptimized = React.memo(({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
-          <div className="flex-1 flex gap-6 overflow-hidden">
-            {/* Left Side - Main Form */}
-            <div className="flex-1 overflow-y-auto pr-2">
+          <div className="flex-1 overflow-y-auto">
+            <div className="flex gap-6 min-h-full">
+              {/* Left Side - Main Form */}
+              <div className="flex-1">
             <div className="space-y-6">
               {/* Task Details Section */}
               <div className="space-y-4">
@@ -631,7 +632,7 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1">
                   {task.followUps.length > 0 ? (
                     <div className="space-y-3">
                       {task.followUps
@@ -666,6 +667,7 @@ export const TaskFormOptimized = React.memo(({
               </div>
             )}
 
+            </div>
           </div>
 
           {/* Form Actions */}
