@@ -322,8 +322,8 @@ export function useSupabaseStorage() {
 
     if (error) throw error;
 
-    // Reload tasks to get updated follow-ups
-    loadTasks();
+    // Reload tasks to get updated follow-ups and wait for completion
+    await loadTasks();
   };
 
   const deleteTask = async (taskId: string): Promise<void> => {

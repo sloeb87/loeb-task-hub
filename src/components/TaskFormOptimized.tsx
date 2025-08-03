@@ -232,12 +232,17 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [onEditRelatedTask, onClose]);
 
-  const handleFollowUpAdd = (text: string) => {
+  const handleFollowUpAdd = async (text: string) => {
     if (!task || !onAddFollowUp) return;
     
-    // Use the proper Supabase addFollowUp function
-    onAddFollowUp(task.id, text);
-    setFollowUpDialogOpen(false);
+    try {
+      // Use the proper Supabase addFollowUp function and wait for completion
+      await onAddFollowUp(task.id, text);
+      setFollowUpDialogOpen(false);
+      // The parent component will receive the updated task through the database refresh
+    } catch (error) {
+      console.error('Error adding follow-up:', error);
+    }
   };
 
   const handleStartTimer = () => {
