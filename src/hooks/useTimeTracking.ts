@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
-import { supabase } from '@/integrations/supabase/client';
 
 export interface TimeEntry {
   id: string;
@@ -23,7 +22,7 @@ export interface TaskTimeData {
 export function useTimeTracking() {
   const { user } = useAuth();
   const [taskTimers, setTaskTimers] = useState<Map<string, TaskTimeData>>(new Map());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load existing time data
   useEffect(() => {
@@ -71,60 +70,16 @@ export function useTimeTracking() {
     
     try {
       setIsLoading(true);
-      
-      // Load completed time entries
-      const { data: completedEntries, error: completedError } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .not('end_time', 'is', null);
-
-      if (completedError) throw completedError;
-
-      // Load active time entries (currently running)
-      const { data: activeEntries, error: activeError } = await supabase
-        .from('time_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .is('end_time', null);
-
-      if (activeError) throw activeError;
-
-      // Calculate total time per task
-      const taskTimeMap = new Map<string, TaskTimeData>();
-
-      // Add completed entries
-      completedEntries?.forEach(entry => {
-        const current = taskTimeMap.get(entry.task_id) || {
-          taskId: entry.task_id,
-          totalTime: 0,
-          isRunning: false
-        };
-        
-        current.totalTime += entry.duration || 0;
-        taskTimeMap.set(entry.task_id, current);
-      });
-
-      // Add active entries
-      activeEntries?.forEach(entry => {
-        const current = taskTimeMap.get(entry.task_id) || {
-          taskId: entry.task_id,
-          totalTime: 0,
-          isRunning: false
-        };
-        
-        const startTime = new Date(entry.start_time);
-        const currentTime = new Date();
-        const sessionMinutes = Math.floor((currentTime.getTime() - startTime.getTime()) / (1000 * 60));
-        
-        current.totalTime += sessionMinutes;
-        current.isRunning = true;
-        current.currentSessionStart = entry.start_time;
-        
-        taskTimeMap.set(entry.task_id, current);
-      });
-
-      setTaskTimers(taskTimeMap);
+      // Temporary implementation - will use localStorage until migration is approved
+      const savedTimers = localStorage.getItem(`timers_${user.id}`);
+      if (savedTimers) {
+        const parsed = JSON.parse(savedTimers);
+        const taskTimeMap = new Map<string, TaskTimeData>();
+        Object.entries(parsed).forEach(([taskId, data]: [string, any]) => {
+          taskTimeMap.set(taskId, data);
+        });
+        setTaskTimers(taskTimeMap);
+      }
     } catch (error) {
       console.error('Error loading time data:', error);
     } finally {
@@ -149,20 +104,9 @@ export function useTimeTracking() {
         await stopTimer(runningTaskId);
       }
 
-      // Create new time entry
-      const { data, error } = await supabase
-        .from('time_entries')
-        .insert({
-          task_id: taskId,
-          user_id: user.id,
-          start_time: new Date().toISOString(),
-          description: 'Timer session'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      // Temporary localStorage implementation until migration is approved
+      const startTime = new Date().toISOString();
+      
       // Update local state
       setTaskTimers(prev => {
         const newMap = new Map(prev);
@@ -175,8 +119,12 @@ export function useTimeTracking() {
         newMap.set(taskId, {
           ...current,
           isRunning: true,
-          currentSessionStart: data.start_time
+          currentSessionStart: startTime
         });
+        
+        // Save to localStorage
+        const timersObj = Object.fromEntries(newMap);
+        localStorage.setItem(`timers_${user.id}`, JSON.stringify(timersObj));
         
         return newMap;
       });
@@ -196,19 +144,8 @@ export function useTimeTracking() {
       const startTime = new Date(taskData.currentSessionStart);
       const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 
-      // Update the active time entry
-      const { error } = await supabase
-        .from('time_entries')
-        .update({
-          end_time: endTime.toISOString(),
-          duration: duration
-        })
-        .eq('task_id', taskId)
-        .eq('user_id', user.id)
-        .is('end_time', null);
-
-      if (error) throw error;
-
+      // Temporary localStorage implementation until migration is approved
+      
       // Update local state
       setTaskTimers(prev => {
         const newMap = new Map(prev);
@@ -217,9 +154,15 @@ export function useTimeTracking() {
           newMap.set(taskId, {
             ...current,
             isRunning: false,
-            currentSessionStart: undefined
+            currentSessionStart: undefined,
+            totalTime: current.totalTime + duration
           });
         }
+        
+        // Save to localStorage
+        const timersObj = Object.fromEntries(newMap);
+        localStorage.setItem(`timers_${user.id}`, JSON.stringify(timersObj));
+        
         return newMap;
       });
     } catch (error) {
