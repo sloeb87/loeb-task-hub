@@ -1,5 +1,7 @@
 import React from 'react';
 import { useScopeColor } from '@/hooks/useScopeColor';
+import { useTaskTypeColor } from '@/hooks/useTaskTypeColor';
+import { useEnvironmentColor } from '@/hooks/useEnvironmentColor';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,8 @@ export const ResponsiveTaskCard = ({
   timeSpent = 0
 }: ResponsiveTaskCardProps) => {
   const { getScopeStyle } = useScopeColor();
+  const { getTaskTypeStyle } = useTaskTypeColor();
+  const { getEnvironmentStyle } = useEnvironmentColor();
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100';
@@ -90,6 +94,26 @@ export const ResponsiveTaskCard = ({
               style={getScopeStyle(task.scope)}
             >
               {task.scope}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Task Type and Environment */}
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center">
+            <Badge 
+              className="text-xs border"
+              style={getTaskTypeStyle(task.taskType)}
+            >
+              {task.taskType}
+            </Badge>
+          </div>
+          <div className="flex items-center">
+            <Badge 
+              className="text-xs border"
+              style={getEnvironmentStyle(task.environment)}
+            >
+              {task.environment}
             </Badge>
           </div>
         </div>

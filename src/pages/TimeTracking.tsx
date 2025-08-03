@@ -13,6 +13,8 @@ import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useScopeColor } from "@/hooks/useScopeColor";
+import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
+import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
 import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
@@ -25,6 +27,8 @@ interface TimeTrackingPageProps {
 export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
   const { getScopeStyle } = useScopeColor();
+  const { getTaskTypeStyle } = useTaskTypeColor();
+  const { getEnvironmentStyle } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
     year: new Date().getFullYear()
@@ -271,6 +275,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                   <TableHead>Task</TableHead>
                   <TableHead>Project</TableHead>
                   <TableHead>Scope</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Environment</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Start Time</TableHead>
                   <TableHead>End Time</TableHead>
@@ -298,16 +304,38 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                          </div>
                        </TableCell>
                        
-                       <TableCell>
-                         <div className="flex items-center">
-                           <Badge 
-                             style={getScopeStyle(task?.scope || '')}
-                             className="text-xs"
-                           >
-                             {task?.scope || '-'}
-                           </Badge>
-                         </div>
-                       </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Badge 
+                              style={getScopeStyle(task?.scope || '')}
+                              className="text-xs"
+                            >
+                              {task?.scope || '-'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Badge 
+                              style={getTaskTypeStyle(task?.taskType || '')}
+                              className="text-xs border"
+                            >
+                              {task?.taskType || '-'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Badge 
+                              style={getEnvironmentStyle(task?.environment || '')}
+                              className="text-xs border"
+                            >
+                              {task?.environment || '-'}
+                            </Badge>
+                          </div>
+                        </TableCell>
                        
                        <TableCell>
                          <div className="text-sm text-gray-900 dark:text-white">

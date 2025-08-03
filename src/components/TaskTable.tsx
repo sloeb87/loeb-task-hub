@@ -9,6 +9,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useScopeColor } from "@/hooks/useScopeColor";
+import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
+import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -44,6 +46,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
   const { getScopeStyle } = useScopeColor();
+  const { getTaskTypeStyle } = useTaskTypeColor();
+  const { getEnvironmentStyle } = useEnvironmentColor();
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -465,8 +469,16 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-1">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">{task.environment}</div>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge 
+                        className="text-xs border"
+                        style={getEnvironmentStyle(task.environment)}
+                      >
+                        {task.environment}
+                      </Badge>
+                      <Badge 
+                        className="text-xs border"
+                        style={getTaskTypeStyle(task.taskType)}
+                      >
                         {task.taskType}
                       </Badge>
                     </div>
