@@ -116,6 +116,7 @@ export type Database = {
           scope: string
           start_date: string
           status: string
+          team: string[] | null
           updated_at: string
           user_id: string
         }
@@ -131,6 +132,7 @@ export type Database = {
           scope: string
           start_date: string
           status?: string
+          team?: string[] | null
           updated_at?: string
           user_id: string
         }
@@ -146,6 +148,7 @@ export type Database = {
           scope?: string
           start_date?: string
           status?: string
+          team?: string[] | null
           updated_at?: string
           user_id?: string
         }

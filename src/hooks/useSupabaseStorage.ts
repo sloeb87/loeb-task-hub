@@ -40,6 +40,7 @@ interface SupabaseProject {
   end_date: string;
   status: string;
   cost_center: string | null;
+  team: string[] | null;
   links: any;
   created_at: string;
   updated_at: string;
@@ -109,7 +110,7 @@ export function useSupabaseStorage() {
       name: supabaseProject.name,
       description: supabaseProject.description || '',
       owner: supabaseProject.owner || '',
-      team: [], // Will need to be handled separately if needed
+      team: supabaseProject.team || [],
       startDate: supabaseProject.start_date,
       endDate: supabaseProject.end_date,
       status: supabaseProject.status as any,
@@ -384,6 +385,7 @@ export function useSupabaseStorage() {
         end_date: projectData.endDate,
         status: projectData.status,
         cost_center: projectData.cost_center,
+        team: projectData.team || [],
         links: projectData.links || {}
       })
       .select()
@@ -410,6 +412,7 @@ export function useSupabaseStorage() {
         end_date: updatedProject.endDate,
         status: updatedProject.status,
         cost_center: updatedProject.cost_center,
+        team: updatedProject.team || [],
         links: updatedProject.links || {}
       })
       .eq('id', updatedProject.id)
