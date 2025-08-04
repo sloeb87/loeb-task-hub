@@ -11,6 +11,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useScopeColor } from "@/hooks/useScopeColor";
 import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
 import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -30,6 +32,7 @@ interface Filters {
 }
 
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
+  const isMobile = useIsMobile();
   const [sortField, setSortField] = useState<SortField>('id');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState("");
@@ -330,6 +333,60 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     return `${hours}h ${mins}m`;
   };
 
+  // Mobile view
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search tasks..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        {/* Mobile Task Cards */}
+        {filteredAndSortedTasks.map(task => (
+          <ResponsiveTaskCard
+            key={task.id}
+            task={task}
+            onEditTask={onEditTask}
+            onFollowUp={onFollowUp}
+            onStartTimer={(taskId) => startTimer(taskId, task.title, task.project, task.responsible)}
+            onStopTimer={stopTimer}
+            isTimerRunning={getTaskTime(task.id).isRunning}
+            timeSpent={getTaskTime(task.id).totalTime}
+          />
+        ))}
+
+        {filteredAndSortedTasks.length === 0 && (
+          <div className="text-center py-12 bg-card rounded-lg border border-border">
+            <p className="text-muted-foreground">No tasks found matching your criteria.</p>
+          </div>
+        )}
+
+        {/* Follow-up Dialog */}
+        {selectedTaskForFollowUp && (
+          <FollowUpDialog
+            isOpen={followUpDialogOpen}
+            onClose={() => {
+              setFollowUpDialogOpen(false);
+              setSelectedTaskForFollowUp(null);
+            }}
+            onAddFollowUp={handleAddFollowUp}
+            task={selectedTaskForFollowUp}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // Desktop view
   return (
     <>
       <div className="bg-card rounded-lg shadow-sm border border-border">

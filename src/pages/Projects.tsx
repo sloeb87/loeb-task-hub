@@ -239,11 +239,15 @@ const ProjectsPage = ({
         <ProjectTable
           projects={projects}
           tasks={tasks}
-          onEditProject={handleEditProject}
-          onCreateTask={handleCreateTaskForProject}
-          onAddTaskToProject={handleAddTaskToProject}
-          onGenerateReport={handleGenerateReport}
-          filter={projectFilter}
+          onCreateProject={onCreateProject}
+          onUpdateProject={onUpdateProject}
+          onDeleteProject={onDeleteProject}
+          onCreateTask={onCreateTask}
+          onUpdateTask={onUpdateTask}
+          onDeleteTask={onDeleteTask}
+          projectFilter={projectFilter}
+          setProjectFilter={setProjectFilter}
+          onAddFollowUp={onAddFollowUp}
         />
       ) : (
         <Card>
