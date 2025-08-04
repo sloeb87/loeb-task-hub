@@ -529,63 +529,69 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                         {task.description}
                       </p>
                       
-                      <div className="flex items-center space-x-1">
-                        {task.links.folder && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
-                            onClick={(e) => handleLinkClick(task.links.folder!, e)}
-                            title="Open Folder"
-                          >
-                            <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                          </Button>
-                        )}
-                        {task.links.email && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
-                            onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
-                            title="Send Email"
-                          >
-                            <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
-                          </Button>
-                        )}
-                        {task.links.file && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
-                            onClick={(e) => handleLinkClick(task.links.file!, e)}
-                            title="Open File"
-                          >
-                            <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                          </Button>
-                        )}
-                        {task.links.oneNote && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
-                            onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
-                            title="Open OneNote"
-                          >
-                            <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
-                          </Button>
-                        )}
-                        {task.links.teams && (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
-                            onClick={(e) => handleLinkClick(task.links.teams!, e)}
-                            title="Open Teams"
-                          >
-                            <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-                          </Button>
-                        )}
-                      </div>
+                      {/* Task Links - Made more prominent */}
+                      {task.links && Object.values(task.links).some(link => link) && (
+                        <div className="space-y-1 mt-2">
+                          <p className="text-xs font-medium text-gray-600 dark:text-gray-300">Links</p>
+                          <div className="flex flex-wrap gap-1">
+                            {task.links.folder && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-6 px-2 py-1 text-xs"
+                                onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                              >
+                                <FolderOpen className="w-3 h-3 mr-1 text-blue-600 dark:text-blue-400" />
+                                Folder
+                              </Button>
+                            )}
+                            {task.links.email && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-6 px-2 py-1 text-xs"
+                                onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                              >
+                                <Mail className="w-3 h-3 mr-1 text-green-600 dark:text-green-400" />
+                                Email
+                              </Button>
+                            )}
+                            {task.links.file && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-6 px-2 py-1 text-xs"
+                                onClick={(e) => handleLinkClick(task.links.file!, e)}
+                              >
+                                <FileText className="w-3 h-3 mr-1 text-purple-600 dark:text-purple-400" />
+                                File
+                              </Button>
+                            )}
+                            {task.links.oneNote && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-6 px-2 py-1 text-xs"
+                                onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1 text-orange-600 dark:text-orange-400" />
+                                OneNote
+                              </Button>
+                            )}
+                            {task.links.teams && (
+                              <Button 
+                                size="sm" 
+                                variant="outline" 
+                                className="h-6 px-2 py-1 text-xs"
+                                onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1 text-indigo-600 dark:text-indigo-400" />
+                                Teams
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
 

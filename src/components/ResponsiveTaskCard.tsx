@@ -5,7 +5,7 @@ import { useEnvironmentColor } from '@/hooks/useEnvironmentColor';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square } from "lucide-react";
+import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square, Mail, FileText, ExternalLink } from "lucide-react";
 import { Task } from "@/types/task";
 
 interface ResponsiveTaskCardProps {
@@ -54,8 +54,15 @@ export const ResponsiveTaskCard = ({
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
-
+  
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Completed';
+
+  const handleLinkClick = (url: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (url) {
+      window.open(url, '_blank');
+    }
+  };
 
   return (
     <Card className="w-full mb-4 hover:shadow-md transition-shadow duration-200">
@@ -179,6 +186,73 @@ export const ResponsiveTaskCard = ({
                 >
                   <Pause className="w-3 h-3 mr-1" />
                   Stop
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Task Links */}
+        {task.links && Object.values(task.links).some(link => link) && (
+          <div className="space-y-3">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <ExternalLink className="w-4 h-4 mr-2" />
+              <span>Task Links</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {task.links.folder && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 px-3"
+                  onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                >
+                  <FolderOpen className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                  <span className="text-xs">Folder</span>
+                </Button>
+              )}
+              {task.links.email && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 px-3"
+                  onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                >
+                  <Mail className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
+                  <span className="text-xs">Email</span>
+                </Button>
+              )}
+              {task.links.file && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 px-3"
+                  onClick={(e) => handleLinkClick(task.links.file!, e)}
+                >
+                  <FileText className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                  <span className="text-xs">File</span>
+                </Button>
+              )}
+              {task.links.oneNote && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 px-3"
+                  onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                  <span className="text-xs">OneNote</span>
+                </Button>
+              )}
+              {task.links.teams && (
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="justify-start h-auto py-2 px-3"
+                  onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                >
+                  <ExternalLink className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-xs">Teams</span>
                 </Button>
               )}
             </div>
