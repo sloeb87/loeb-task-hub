@@ -115,7 +115,7 @@ export const AppHeader = ({
       </SheetContent>
     </Sheet>;
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">PMTask</h1>
