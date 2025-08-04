@@ -118,7 +118,12 @@ export const AppHeader = ({
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">PMTask</h1>
+            <button 
+              onClick={() => onViewChange('projects')}
+              className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
+            >
+              PMTask
+            </button>
             
             {user && <Badge variant="outline" className="text-xs hidden lg:inline">
                 {user.email}
