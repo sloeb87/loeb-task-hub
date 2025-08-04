@@ -279,66 +279,67 @@ export const ProjectDetailView = ({
             {/* Project Links */}
             {project.links && Object.values(project.links).some(link => link) && (
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Project Links</p>
-                <div className="flex items-center space-x-2">
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">Project Links</p>
+                <div className="grid grid-cols-2 gap-3">
                   {project.links.folder && (
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                      variant="outline" 
+                      className="justify-start h-auto py-2 px-3"
                       onClick={(e) => handleLinkClick(project.links.folder!, e)}
-                      title="Open Project Folder"
                     >
-                      <FolderOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <FolderOpen className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
+                      <span className="text-sm">Project Folder</span>
                     </Button>
                   )}
                   {project.links.email && (
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-green-100 dark:hover:bg-green-900/30"
+                      variant="outline" 
+                      className="justify-start h-auto py-2 px-3"
                       onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
-                      title="Send Project Email"
                     >
-                      <Mail className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <Mail className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
+                      <span className="text-sm">Project Email</span>
                     </Button>
                   )}
                   {project.links.file && (
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                      variant="outline" 
+                      className="justify-start h-auto py-2 px-3"
                       onClick={(e) => handleLinkClick(project.links.file!, e)}
-                      title="Open Project File"
                     >
-                      <FileText className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      <FileText className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
+                      <span className="text-sm">Project File</span>
                     </Button>
                   )}
                   {project.links.oneNote && (
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+                      variant="outline" 
+                      className="justify-start h-auto py-2 px-3"
                       onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
-                      title="Open Project OneNote"
                     >
-                      <ExternalLink className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                      <ExternalLink className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
+                      <span className="text-sm">OneNote</span>
                     </Button>
                   )}
                   {project.links.teams && (
                     <Button 
                       size="sm" 
-                      variant="ghost" 
-                      className="p-2 h-8 w-8 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                      variant="outline" 
+                      className="justify-start h-auto py-2 px-3"
                       onClick={(e) => handleLinkClick(project.links.teams!, e)}
-                      title="Open Project Teams"
                     >
-                      <ExternalLink className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                      <ExternalLink className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-sm">Teams</span>
                     </Button>
                   )}
                 </div>
               </div>
             )}
+
           </CardContent>
         </Card>
 
