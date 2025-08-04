@@ -491,7 +491,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Scope Column */}
                   <TableCell>
                     <Badge 
-                      className="text-sm font-medium border"
+                      className="text-base font-medium border"
                       style={getScopeStyle(task.scope)}
                     >
                       {task.scope}
@@ -502,15 +502,15 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-2">
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
+                        <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
                         {isOverdue(task.dueDate, task.status) && (
-                          <Badge variant="destructive" className="text-xs">Overdue</Badge>
+                          <Badge variant="destructive" className="text-sm">Overdue</Badge>
                         )}
                       </div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
+                      <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
                         {task.title}
                       </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                         {task.description}
                       </p>
                     </div>
@@ -519,10 +519,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Project Column */}
                   <TableCell>
                     <div className="space-y-2">
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
+                      <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
                       <div>
                         <Badge 
-                          className="text-xs border"
+                          className="text-sm border"
                           style={getEnvironmentStyle(task.environment)}
                         >
                           {task.environment}
@@ -530,7 +530,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       </div>
                       <div>
                         <Badge 
-                          className="text-xs border"
+                          className="text-sm border"
                           style={getTaskTypeStyle(task.taskType)}
                         >
                           {task.taskType}
@@ -544,7 +544,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     <div className="space-y-2">
                       <div>
                         <Badge 
-                          className="text-xs border"
+                          className="text-sm border"
                           style={getStatusStyle(task.status)}
                         >
                           {task.status}
@@ -552,7 +552,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                       </div>
                       <div>
                         <Badge 
-                          className="text-xs border"
+                          className="text-sm border"
                           style={getPriorityStyle(task.priority)}
                         >
                           {task.priority}
@@ -565,12 +565,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
+                        <span className="text-base text-gray-900 dark:text-white">{task.responsible}</span>
                       </div>
                       {task.stakeholders.length > 0 && (
                         <div className="flex items-center space-x-1">
                           <Users className="w-3 h-3 text-gray-400" />
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
                             +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
                           </span>
                         </div>
@@ -580,7 +580,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
                    {/* Due Date Column */}
                    <TableCell>
-                     <div className="space-y-1 text-xs">
+                     <div className="space-y-1 text-sm">
                        <div className={`flex items-center font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
                          {new Date(task.dueDate).toLocaleDateString()}
                        </div>
@@ -617,12 +617,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                              {taskTime.isRunning && (
                                <div className="flex items-center text-red-600 dark:text-red-400">
                                  <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
-                                 <span className="text-xs font-medium">Live</span>
+                                 <span className="text-sm font-medium">Live</span>
                                </div>
                              )}
                            </div>
                            {taskTime.totalTime > 0 && (
-                             <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
                                <Clock className="w-3 h-3 mr-1" />
                                <span>{formatTime(taskTime.totalTime)}</span>
                              </div>
