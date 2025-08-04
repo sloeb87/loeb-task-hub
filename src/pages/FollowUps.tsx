@@ -363,51 +363,6 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-wrap gap-2 mb-4">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('thisMonth')}
-            >
-              This Month
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('lastMonth')}
-            >
-              Last Month
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('thisYear')}
-            >
-              This Year
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('lastYear')}
-            >
-              Last Year
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('last30Days')}
-            >
-              Last 30 Days
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handlePresetSelection('last90Days')}
-            >
-              Last 90 Days
-            </Button>
-          </div>
-
           <div className="flex flex-wrap gap-4 items-center">
             <Popover>
               <PopoverTrigger asChild>
