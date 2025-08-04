@@ -185,6 +185,9 @@ export const TaskFormOptimized = React.memo(({
 
   // Form field update handlers
   const updateField = useCallback((field: keyof FormData, value: any) => {
+    if (field === 'taskType') {
+      console.log('TaskForm - updateField called for taskType:', { field, value });
+    }
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
@@ -221,6 +224,12 @@ export const TaskFormOptimized = React.memo(({
         followUps: task.followUps 
       })
     };
+
+    console.log('TaskForm - Form data being saved:', {
+      originalTaskType: task?.taskType,
+      formDataTaskType: formData.taskType,
+      finalTaskType: taskData.taskType
+    });
 
     onSave(taskData);
     onClose();
