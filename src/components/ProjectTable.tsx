@@ -182,7 +182,7 @@ export const ProjectTable = ({
                 <TableHead style={{ minWidth: '150px' }}>
                   Timeline
                 </TableHead>
-                <TableHead style={{ minWidth: '100px' }}>Actions</TableHead>
+                
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -260,41 +260,12 @@ export const ProjectTable = ({
                         </div>
                       </TableCell>
 
-                      {/* Actions Column */}
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6" 
-                            onClick={e => {
-                              e.stopPropagation();
-                              onUpdateProject(project);
-                            }} 
-                            title="Edit Project"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            className="p-1 h-6 w-6" 
-                            onClick={e => {
-                              e.stopPropagation();
-                              onDeleteProject(project.id);
-                            }} 
-                            title="Delete Project"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
                     </TableRow>
 
                     {/* Expanded Content */}
                     {isExpanded && (
                       <TableRow className="bg-muted/50">
-                        <TableCell colSpan={7}>
+                        <TableCell colSpan={6}>
                           <Card className="border-0 shadow-none">
                             <CardContent className="p-4">
                               <div className="flex items-center justify-between mb-4">
