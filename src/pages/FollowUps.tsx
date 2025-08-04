@@ -185,7 +185,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                     />
                     <label 
                       htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      className="text-base cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
                       title={value}
                     >
                       {value}
@@ -313,7 +313,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Follow-Ups</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Total Follow-Ups</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -324,7 +324,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Tasks with Follow-Ups</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Tasks with Follow-Ups</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -335,7 +335,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Recent (7 days)</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Recent (7 days)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
@@ -408,19 +408,19 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                 {filteredFollowUps.map((followUp) => (
                   <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                     <TableCell>
-                      <span className="text-sm text-gray-900 dark:text-white">
+                      <span className="text-base text-gray-900 dark:text-white">
                         {formatDate(followUp.timestamp)}
                       </span>
                     </TableCell>
                     
                     <TableCell>
-                      <div className="text-sm text-gray-900 dark:text-white truncate">
+                      <div className="text-base text-gray-900 dark:text-white truncate">
                         {followUp.taskId}_{followUp.taskTitle}
                       </div>
                     </TableCell>
                     
                     <TableCell>
-                      <div className="text-sm text-gray-900 dark:text-white truncate">
+                      <div className="text-base text-gray-900 dark:text-white truncate">
                         {followUp.projectName}
                       </div>
                     </TableCell>
@@ -429,7 +429,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                       <div className="flex items-center">
                         <Badge 
                           style={getScopeStyle(followUp.taskScope)}
-                          className="text-xs"
+                          className="text-sm"
                         >
                           {followUp.taskScope}
                         </Badge>
@@ -440,7 +440,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                       <div className="flex items-center">
                         <Badge 
                           style={getTaskTypeStyle(followUp.taskType)}
-                          className="text-xs border"
+                          className="text-sm border"
                         >
                           {followUp.taskType}
                         </Badge>
@@ -451,7 +451,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                       <div className="flex items-center">
                         <Badge 
                           style={getEnvironmentStyle(followUp.taskEnvironment)}
-                          className="text-xs border"
+                          className="text-sm border"
                         >
                           {followUp.taskEnvironment}
                         </Badge>

@@ -180,7 +180,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                     />
                     <label 
                       htmlFor={`${filterType}-${value}`}
-                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      className="text-base cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
                       title={value}
                     >
                       {value}
@@ -383,7 +383,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Total Time Logged</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Total Time Logged</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -394,7 +394,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Running Timers</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Running Timers</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
@@ -405,7 +405,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Tasks with Time</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Tasks with Time</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -416,7 +416,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Time per Task</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Avg. Time per Task</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
@@ -503,16 +503,16 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        </TableCell>
                        
                        <TableCell>
-                         <div className="text-sm text-gray-900 dark:text-white truncate">
-                           {entry.projectName}
-                         </div>
+                          <div className="text-base text-gray-900 dark:text-white truncate">
+                            {entry.projectName}
+                          </div>
                        </TableCell>
                        
                         <TableCell>
                           <div className="flex items-center">
                             <Badge 
                               style={getScopeStyle(task?.scope || '')}
-                              className="text-xs"
+                              className="text-sm"
                             >
                               {task?.scope || '-'}
                             </Badge>
@@ -523,7 +523,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                           <div className="flex items-center">
                             <Badge 
                               style={getTaskTypeStyle(task?.taskType || '')}
-                              className="text-xs border"
+                              className="text-sm border"
                             >
                               {task?.taskType || '-'}
                             </Badge>
@@ -534,7 +534,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                           <div className="flex items-center">
                             <Badge 
                               style={getEnvironmentStyle(task?.environment || '')}
-                              className="text-xs border"
+                              className="text-sm border"
                             >
                               {task?.environment || '-'}
                             </Badge>
@@ -542,19 +542,19 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                         </TableCell>
                        
                        <TableCell>
-                         <div className="text-sm text-gray-900 dark:text-white">
-                           {startDate.toLocaleDateString()}
-                         </div>
+                          <div className="text-base text-gray-900 dark:text-white">
+                            {startDate.toLocaleDateString()}
+                          </div>
                        </TableCell>
                        
                        <TableCell>
-                         <div className="text-sm text-gray-900 dark:text-white">
-                           {startDate.toLocaleTimeString()}
-                         </div>
+                          <div className="text-base text-gray-900 dark:text-white">
+                            {startDate.toLocaleTimeString()}
+                          </div>
                        </TableCell>
                        
                        <TableCell>
-                         <div className="text-sm text-gray-900 dark:text-white">
+                         <div className="text-base text-gray-900 dark:text-white">
                            {entry.isRunning ? (
                              <span className="text-green-600 dark:text-green-400">In Progress</span>
                            ) : (
@@ -564,7 +564,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        </TableCell>
                        
                        <TableCell>
-                         <div className="text-sm font-medium text-gray-900 dark:text-white">
+                         <div className="text-base font-medium text-gray-900 dark:text-white">
                            {entry.duration ? formatDetailedTime(entry.duration) : '-'}
                          </div>
                        </TableCell>
@@ -665,7 +665,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
               <Label htmlFor="duration" className="text-right">
                 Duration
               </Label>
-              <div className="col-span-3 text-sm text-gray-600 dark:text-gray-400 py-2">
+              <div className="col-span-3 text-base text-gray-600 dark:text-gray-400 py-2">
                 {formatDetailedTime(editFormData.totalMinutes)}
               </div>
             </div>

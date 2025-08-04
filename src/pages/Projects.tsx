@@ -181,7 +181,7 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Projects</p>
+                <p className="text-base font-medium text-gray-600 dark:text-gray-300">Total Projects</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">{projects.length}</p>
               </div>
             </div>
@@ -194,7 +194,7 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Active Projects</p>
+                <p className="text-base font-medium text-gray-600 dark:text-gray-300">Active Projects</p>
                 <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {projects.filter(p => p.status === 'Active').length}
                 </p>
@@ -209,7 +209,7 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">On Hold</p>
+                <p className="text-base font-medium text-gray-600 dark:text-gray-300">On Hold</p>
                 <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                   {projects.filter(p => p.status === 'On Hold').length}
                 </p>
@@ -224,7 +224,7 @@ const ProjectsPage = ({
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Completed</p>
+                <p className="text-base font-medium text-gray-600 dark:text-gray-300">Completed</p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {projects.filter(p => p.status === 'Completed').length}
                 </p>
