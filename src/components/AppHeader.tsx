@@ -119,9 +119,7 @@ export const AppHeader = ({
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">PMTask</h1>
-            <Badge variant="secondary" className="text-xs hidden sm:inline">
-              Loeb Consulting
-            </Badge>
+            
             {user && <Badge variant="outline" className="text-xs hidden lg:inline">
                 {user.email}
               </Badge>}
