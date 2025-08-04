@@ -696,11 +696,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                           .reverse()
                           .map((followUp, index) => (
                             <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
+                              <div className="text-xs text-gray-400 mb-1">
+                                {new Date(followUp.timestamp).toLocaleDateString()}
+                              </div>
                               <div className="text-xs text-gray-600 dark:text-gray-300">
                                 {followUp.text}
-                              </div>
-                              <div className="text-xs text-gray-400 mt-1">
-                                {new Date(followUp.timestamp).toLocaleDateString()}
                               </div>
                             </div>
                           ))
