@@ -103,6 +103,21 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     return new Date(dueDate) < new Date();
   };
 
+  const getDueDateColor = (dueDate: string, status: string) => {
+    if (status === "Completed") return "text-gray-500 dark:text-gray-400";
+    
+    const today = new Date();
+    const due = new Date(dueDate);
+    const diffTime = due.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
+    if (diffDays <= 3) return "text-red-600 dark:text-red-400"; // Within 3 days
+    if (diffDays <= 7) return "text-orange-600 dark:text-orange-400"; // Within 1 week
+    
+    return "text-gray-500 dark:text-gray-400"; // Normal
+  };
+
   const getUniqueValues = (filterType: keyof Filters): string[] => {
     if (filterType === 'dueDate') {
       return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
@@ -626,20 +641,20 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     </div>
                   </TableCell>
 
-                  {/* Due Date Column */}
-                  <TableCell>
-                    <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        {new Date(task.dueDate).toLocaleDateString()}
-                      </div>
-                      {task.completionDate && (
-                        <div className="flex items-center text-green-600 dark:text-green-400">
-                          <Calendar className="w-3 h-3 mr-1" />
-                          Completed: {new Date(task.completionDate).toLocaleDateString()}
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
+                   {/* Due Date Column */}
+                   <TableCell>
+                     <div className="space-y-1 text-xs">
+                       <div className={`flex items-center font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
+                         {new Date(task.dueDate).toLocaleDateString()}
+                       </div>
+                       {task.completionDate && (
+                         <div className="flex items-center text-green-600 dark:text-green-400">
+                           <Calendar className="w-3 h-3 mr-1" />
+                           Completed: {new Date(task.completionDate).toLocaleDateString()}
+                         </div>
+                       )}
+                     </div>
+                   </TableCell>
 
                   {/* Time Tracking Column */}
                   <TableCell>
