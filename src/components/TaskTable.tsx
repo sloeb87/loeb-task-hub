@@ -30,6 +30,8 @@ interface Filters {
   project: string[];
   responsible: string[];
   dueDate: string[];
+  followUps: string[];
+  timeTracking: string[];
 }
 
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
@@ -43,7 +45,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     priority: [],
     project: [],
     responsible: [],
-    dueDate: []
+    dueDate: [],
+    followUps: [],
+    timeTracking: []
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -99,29 +103,41 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     return new Date(dueDate) < new Date();
   };
 
-  const getUniqueValues = (field: keyof Task) => {
-    if (field === 'dueDate') {
+  const getUniqueValues = (filterType: keyof Filters): string[] => {
+    if (filterType === 'dueDate') {
       return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
     }
     
+    if (filterType === 'followUps') {
+      // Return options based on follow-up status
+      return ['Has Follow-ups', 'No Follow-ups'];
+    }
+    
+    if (filterType === 'timeTracking') {
+      // Return options based on time tracking status
+      return ['Has Time Logged', 'No Time Logged', 'Currently Running'];
+    }
+    
+    // For actual Task properties
+    const field = filterType as keyof Task;
     const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
     
     // Ensure all possible values are included for specific fields
-    if (field === 'scope') {
+    if (filterType === 'scope') {
       const allScopes = ['Frontend', 'Backend', 'Database', 'Infrastructure', 'Mobile', 'API', 'UI/UX', 'DevOps'];
       allScopes.forEach(scope => {
         if (!values.includes(scope)) {
           values.push(scope);
         }
       });
-    } else if (field === 'status') {
+    } else if (filterType === 'status') {
       const allStatuses = ['Open', 'In Progress', 'Completed', 'On Hold'];
       allStatuses.forEach(status => {
         if (!values.includes(status)) {
           values.push(status);
         }
       });
-    } else if (field === 'priority') {
+    } else if (filterType === 'priority') {
       const allPriorities = ['Low', 'Medium', 'High', 'Critical'];
       allPriorities.forEach(priority => {
         if (!values.includes(priority)) {
@@ -180,6 +196,26 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
       if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
       if (filters.responsible.length > 0 && !filters.responsible.includes(task.responsible)) return false;
       if (filters.dueDate.length > 0 && !filters.dueDate.includes(new Date(task.dueDate).toLocaleDateString())) return false;
+      
+      // Follow-ups filter
+      if (filters.followUps.length > 0) {
+        const hasFollowUps = task.followUps && task.followUps.length > 0;
+        const followUpStatus = hasFollowUps ? 'Has Follow-ups' : 'No Follow-ups';
+        if (!filters.followUps.includes(followUpStatus)) return false;
+      }
+      
+      // Time tracking filter
+      if (filters.timeTracking.length > 0) {
+        const taskTime = getTaskTime(task.id);
+        let timeStatus = 'No Time Logged';
+        if (taskTime.isRunning) {
+          timeStatus = 'Currently Running';
+        } else if (taskTime.totalTime > 0) {
+          timeStatus = 'Has Time Logged';
+        }
+        if (!filters.timeTracking.includes(timeStatus)) return false;
+      }
+      
       return true;
     })
     .sort((a, b) => {
@@ -215,13 +251,13 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     filterType, 
     children 
   }: { 
-    field: SortField; 
+    field?: SortField; 
     filterType: keyof Filters; 
     children: React.ReactNode;
   }) => (
     <div className="flex items-center justify-between min-w-0">
       <div className="flex items-center gap-1">
-        <SortableHeader field={field}>{children}</SortableHeader>
+        {field ? <SortableHeader field={field}>{children}</SortableHeader> : <span>{children}</span>}
         <div className="relative" ref={el => filterRefs.current[filterType] = el}>
           <Button
             size="sm"
@@ -239,7 +275,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           {showFilters[filterType] && (
             <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                {getUniqueValues(filterType as keyof Task).map(value => (
+                {getUniqueValues(filterType).map(value => (
                   <div key={value} className="flex items-center space-x-2">
                     <Checkbox
                       id={`${filterType}-${value}`}
@@ -434,8 +470,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableHead style={{ minWidth: '120px' }}>
                   <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
                 </TableHead>
-                <TableHead style={{ minWidth: '120px' }}>Time Tracking</TableHead>
-                <TableHead style={{ minWidth: '200px' }}>Follow Ups</TableHead>
+                <TableHead style={{ minWidth: '120px' }}>
+                  <FilterableHeader filterType="timeTracking">Time Tracking</FilterableHeader>
+                </TableHead>
+                <TableHead style={{ minWidth: '200px' }}>
+                  <FilterableHeader filterType="followUps">Follow Ups</FilterableHeader>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
