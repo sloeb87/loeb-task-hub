@@ -10,7 +10,6 @@ import { Project, Task } from "@/types/task";
 import { useScopeColor } from '@/hooks/useScopeColor';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileProjectCard } from './MobileProjectCard';
-
 interface ProjectTableProps {
   projects: Project[];
   tasks: Task[];
@@ -24,12 +23,11 @@ interface ProjectTableProps {
   setProjectFilter: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
   onAddFollowUp: (taskId: string, followUpText: string) => void;
 }
-
-export const ProjectTable = ({ 
-  projects, 
-  tasks, 
-  onCreateProject, 
-  onUpdateProject, 
+export const ProjectTable = ({
+  projects,
+  tasks,
+  onCreateProject,
+  onUpdateProject,
   onDeleteProject,
   onCreateTask,
   onUpdateTask,
@@ -39,63 +37,61 @@ export const ProjectTable = ({
   onAddFollowUp
 }: ProjectTableProps) => {
   const isMobile = useIsMobile();
-  const { getScopeStyle } = useScopeColor();
-  
+  const {
+    getScopeStyle
+  } = useScopeColor();
+
   // Filter states
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
-  
-
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
     const totalTasks = projectTasks.length;
     const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
     const inProgressTasks = projectTasks.filter(task => task.status === 'In Progress').length;
-    const overdueTasks = projectTasks.filter(task => 
-      new Date(task.dueDate) < new Date() && task.status !== 'Completed'
-    ).length;
-
+    const overdueTasks = projectTasks.filter(task => new Date(task.dueDate) < new Date() && task.status !== 'Completed').length;
     return {
       totalTasks,
       completedTasks,
       inProgressTasks,
       overdueTasks,
-      completionRate: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+      completionRate: totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0,
       projectTasks
     };
   };
-
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
-      case 'active': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100';
-      case 'on hold': return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-100';
-      case 'completed': return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-100';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-100';
+      case 'active':
+        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100';
+      case 'on hold':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-100';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900 dark:text-blue-100';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-100';
     }
   };
 
   // Filter projects based on projectFilter and custom filters
   const filteredProjects = useMemo(() => {
     let filtered = projects;
-    
+
     // Apply status filter
     if (projectFilter === 'active') filtered = filtered.filter(p => p.status === 'Active');
     if (projectFilter === 'on-hold') filtered = filtered.filter(p => p.status === 'On Hold');
     if (projectFilter === 'completed') filtered = filtered.filter(p => p.status === 'Completed');
-    
+
     // Apply scope filter
     if (selectedScopes.length > 0) {
       filtered = filtered.filter(p => selectedScopes.includes(p.scope));
     }
-    
+
     // Apply project name filter
     if (selectedProjects.length > 0) {
       filtered = filtered.filter(p => selectedProjects.includes(p.name));
     }
-    
     return filtered;
   }, [projects, projectFilter, selectedScopes, selectedProjects]);
-
   const sortedProjects = useMemo(() => {
     return [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredProjects]);
@@ -104,7 +100,6 @@ export const ProjectTable = ({
   const uniqueScopes = useMemo(() => {
     return [...new Set(projects.map(p => p.scope))].sort();
   }, [projects]);
-
   const uniqueProjectNames = useMemo(() => {
     return [...new Set(projects.map(p => p.name))].sort();
   }, [projects]);
@@ -117,7 +112,6 @@ export const ProjectTable = ({
       setSelectedScopes(prev => prev.filter(s => s !== scope));
     }
   };
-
   const handleProjectFilterChange = (projectName: string, checked: boolean) => {
     if (checked) {
       setSelectedProjects(prev => [...prev, projectName]);
@@ -125,44 +119,25 @@ export const ProjectTable = ({
       setSelectedProjects(prev => prev.filter(p => p !== projectName));
     }
   };
-
-
   const handleRowClick = (project: Project) => {
     onUpdateProject(project);
   };
 
   // Mobile view
   if (isMobile) {
-    return (
-      <div className="space-y-6">
+    return <div className="space-y-6">
         {/* Filter Controls */}
         <div className="flex flex-wrap gap-2">
-          <Button
-            variant={projectFilter === 'all' ? 'default' : 'outline'}
-            onClick={() => setProjectFilter('all')}
-            size="sm"
-          >
+          <Button variant={projectFilter === 'all' ? 'default' : 'outline'} onClick={() => setProjectFilter('all')} size="sm">
             All ({projects.length})
           </Button>
-          <Button
-            variant={projectFilter === 'active' ? 'default' : 'outline'}
-            onClick={() => setProjectFilter('active')}
-            size="sm"
-          >
+          <Button variant={projectFilter === 'active' ? 'default' : 'outline'} onClick={() => setProjectFilter('active')} size="sm">
             Active ({projects.filter(p => p.status === 'Active').length})
           </Button>
-          <Button
-            variant={projectFilter === 'on-hold' ? 'default' : 'outline'}
-            onClick={() => setProjectFilter('on-hold')}
-            size="sm"
-          >
+          <Button variant={projectFilter === 'on-hold' ? 'default' : 'outline'} onClick={() => setProjectFilter('on-hold')} size="sm">
             On Hold ({projects.filter(p => p.status === 'On Hold').length})
           </Button>
-          <Button
-            variant={projectFilter === 'completed' ? 'default' : 'outline'}
-            onClick={() => setProjectFilter('completed')}
-            size="sm"
-          >
+          <Button variant={projectFilter === 'completed' ? 'default' : 'outline'} onClick={() => setProjectFilter('completed')} size="sm">
             Completed ({projects.filter(p => p.status === 'Completed').length})
           </Button>
         </div>
@@ -170,41 +145,28 @@ export const ProjectTable = ({
         {/* Mobile Project Cards */}
         <div className="space-y-4">
           {sortedProjects.map(project => {
-            const projectTasks = tasks.filter(task => task.project === project.name);
-            return (
-              <MobileProjectCard
-                key={project.id}
-                project={project}
-                projectTasks={projectTasks}
-                onEditProject={onUpdateProject}
-                onDeleteProject={onDeleteProject}
-                onCreateTask={onCreateTask}
-                onEditTask={onUpdateTask}
-                onDeleteTask={onDeleteTask}
-              />
-            );
-          })}
+          const projectTasks = tasks.filter(task => task.project === project.name);
+          return <MobileProjectCard key={project.id} project={project} projectTasks={projectTasks} onEditProject={onUpdateProject} onDeleteProject={onDeleteProject} onCreateTask={onCreateTask} onEditTask={onUpdateTask} onDeleteTask={onDeleteTask} />;
+        })}
         </div>
 
-        {sortedProjects.length === 0 && (
-          <div className="text-center py-12">
+        {sortedProjects.length === 0 && <div className="text-center py-12">
             <p className="text-muted-foreground">No projects found matching your criteria.</p>
-          </div>
-        )}
-      </div>
-    );
+          </div>}
+      </div>;
   }
 
   // Desktop view
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       {/* Desktop Table */}
       <div className="bg-card rounded-lg shadow-sm border border-border">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 border-border">
-                <TableHead style={{ minWidth: '120px' }}>
+                <TableHead style={{
+                minWidth: '120px'
+              }}>
                   <div className="flex items-center gap-1">
                     Scope
                     <DropdownMenu>
@@ -214,37 +176,24 @@ export const ProjectTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-48">
-                        {uniqueScopes.map((scope) => (
-                          <DropdownMenuCheckboxItem
-                            key={scope}
-                            checked={selectedScopes.includes(scope)}
-                            onCheckedChange={(checked) => handleScopeFilterChange(scope, checked || false)}
-                          >
+                        {uniqueScopes.map(scope => <DropdownMenuCheckboxItem key={scope} checked={selectedScopes.includes(scope)} onCheckedChange={checked => handleScopeFilterChange(scope, checked || false)}>
                             {scope}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                        {selectedScopes.length > 0 && (
-                          <div className="border-t pt-2 mt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedScopes([])}
-                              className="w-full"
-                            >
+                          </DropdownMenuCheckboxItem>)}
+                        {selectedScopes.length > 0 && <div className="border-t pt-2 mt-2">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedScopes([])} className="w-full">
                               Clear All ({selectedScopes.length})
                             </Button>
-                          </div>
-                        )}
+                          </div>}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    {selectedScopes.length > 0 && (
-                      <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {selectedScopes.length > 0 && <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                         {selectedScopes.length}
-                      </span>
-                    )}
+                      </span>}
                   </div>
                 </TableHead>
-                <TableHead style={{ minWidth: '300px' }}>
+                <TableHead style={{
+                minWidth: '300px'
+              }}>
                   <div className="flex items-center gap-1">
                     Project Name
                     <DropdownMenu>
@@ -254,43 +203,34 @@ export const ProjectTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-48 max-h-60 overflow-y-auto">
-                        {uniqueProjectNames.map((projectName) => (
-                          <DropdownMenuCheckboxItem
-                            key={projectName}
-                            checked={selectedProjects.includes(projectName)}
-                            onCheckedChange={(checked) => handleProjectFilterChange(projectName, checked || false)}
-                          >
+                        {uniqueProjectNames.map(projectName => <DropdownMenuCheckboxItem key={projectName} checked={selectedProjects.includes(projectName)} onCheckedChange={checked => handleProjectFilterChange(projectName, checked || false)}>
                             {projectName}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                        {selectedProjects.length > 0 && (
-                          <div className="border-t pt-2 mt-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedProjects([])}
-                              className="w-full"
-                            >
+                          </DropdownMenuCheckboxItem>)}
+                        {selectedProjects.length > 0 && <div className="border-t pt-2 mt-2">
+                            <Button size="sm" variant="outline" onClick={() => setSelectedProjects([])} className="w-full">
                               Clear All ({selectedProjects.length})
                             </Button>
-                          </div>
-                        )}
+                          </div>}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    {selectedProjects.length > 0 && (
-                      <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                    {selectedProjects.length > 0 && <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
                         {selectedProjects.length}
-                      </span>
-                    )}
+                      </span>}
                   </div>
                 </TableHead>
-                <TableHead style={{ minWidth: '180px' }}>
+                <TableHead style={{
+                minWidth: '180px'
+              }}>
                   Owner & Team
                 </TableHead>
-                <TableHead style={{ minWidth: '220px' }}>
+                <TableHead style={{
+                minWidth: '220px'
+              }}>
                   Status & Progress
                 </TableHead>
-                <TableHead style={{ minWidth: '150px' }}>
+                <TableHead style={{
+                minWidth: '150px'
+              }}>
                   Timeline
                 </TableHead>
                 
@@ -298,15 +238,11 @@ export const ProjectTable = ({
             </TableHeader>
             <TableBody>
               {sortedProjects.map(project => {
-                const stats = getProjectStats(project);
-                return (
-                  <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
+              const stats = getProjectStats(project);
+              return <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
-                      <Badge 
-                        className="text-sm font-medium border"
-                        style={getScopeStyle(project.scope)}
-                      >
+                      <Badge className="text-sm font-medium border" style={getScopeStyle(project.scope)}>
                         {project.scope}
                       </Badge>
                     </TableCell>
@@ -323,7 +259,7 @@ export const ProjectTable = ({
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          <Users className="w-3 h-3 text-muted-foreground" />
+                          
                           <span className="text-sm font-medium text-foreground">{project.owner || 'No owner assigned'}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">{project.team.length} team members</p>
@@ -354,25 +290,29 @@ export const ProjectTable = ({
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <Calendar className="w-3 h-3" />
-                          <span>{new Date(project.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>
+                          <span>{new Date(project.startDate).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit'
+                        })}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          to {new Date(project.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                          to {new Date(project.endDate).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit'
+                      })}
                         </div>
                       </div>
                     </TableCell>
-                  </TableRow>
-                );
-              })}
+                  </TableRow>;
+            })}
             </TableBody>
           </Table>
         </div>
-        {sortedProjects.length === 0 && (
-          <div className="text-center py-12">
+        {sortedProjects.length === 0 && <div className="text-center py-12">
             <p className="text-muted-foreground">No projects found matching your criteria.</p>
-          </div>
-        )}
+          </div>}
       </div>
-    </div>
-  );
+    </div>;
 };
