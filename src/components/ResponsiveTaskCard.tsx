@@ -58,57 +58,66 @@ export const ResponsiveTaskCard = ({
   const isOverdue = new Date(task.dueDate) < new Date() && task.status !== 'Completed';
 
   return (
-    <Card className="w-full hover:shadow-md transition-shadow duration-200">
+    <Card className="w-full mb-4 hover:shadow-md transition-shadow duration-200">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate text-gray-900 dark:text-white">
-              {task.title}
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {task.id}
+            <div className="flex items-center gap-2 mb-2">
+              <FolderOpen className="w-4 h-4 text-primary" />
+              <h3 className="font-semibold text-base truncate text-foreground">
+                {task.title}
+              </h3>
+            </div>
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {task.description}
             </p>
           </div>
-          <div className="flex flex-wrap gap-1 ml-2">
-            <Badge className={`${getStatusColor(task.status)} text-xs px-2 py-0.5`}>
+          <div className="flex flex-col gap-2 ml-3">
+            <Badge className={`${getStatusColor(task.status)} text-xs px-2 py-1`}>
               {task.status}
             </Badge>
-            <Badge className={`${getPriorityColor(task.priority)} text-xs px-2 py-0.5`}>
+            <Badge className={`${getPriorityColor(task.priority)} text-xs px-2 py-1`}>
               {task.priority}
             </Badge>
           </div>
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0 space-y-3">
-        {/* Project and Scope */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center text-gray-600 dark:text-gray-300">
-            <FolderOpen className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{task.project}</span>
+      <CardContent className="space-y-4">
+        {/* Task Details */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <FolderOpen className="w-4 h-4 mr-2" />
+              <span>Project</span>
+            </div>
+            <p className="text-sm font-medium text-foreground truncate">{task.project}</p>
           </div>
-          <div className="flex items-center text-gray-600 dark:text-gray-300">
-            <span className="w-3 h-3 mr-1 flex-shrink-0 bg-blue-500 rounded-full"></span>
+          
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <User className="w-4 h-4 mr-2" />
+              <span>Responsible</span>
+            </div>
+            <p className="text-sm font-medium text-foreground truncate">{task.responsible}</p>
+          </div>
+        </div>
+
+        {/* Badges Section */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge 
               className="text-xs border"
               style={getScopeStyle(task.scope)}
             >
               {task.scope}
             </Badge>
-          </div>
-        </div>
-
-        {/* Task Type and Environment */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center">
             <Badge 
               className="text-xs border"
               style={getTaskTypeStyle(task.taskType)}
             >
               {task.taskType}
             </Badge>
-          </div>
-          <div className="flex items-center">
             <Badge 
               className="text-xs border"
               style={getEnvironmentStyle(task.environment)}
@@ -118,76 +127,79 @@ export const ResponsiveTaskCard = ({
           </div>
         </div>
 
-        {/* Responsible and Due Date */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center text-gray-600 dark:text-gray-300">
-            <User className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{task.responsible}</span>
+        {/* Due Date and Time Tracking */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Calendar className="w-4 h-4 mr-2" />
+              <span>Due Date</span>
+            </div>
+            <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : 'text-foreground'}`}>
+              {new Date(task.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+            </p>
           </div>
-          <div className={`flex items-center ${isOverdue ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-300'}`}>
-            <Calendar className="w-3 h-3 mr-1 flex-shrink-0" />
-            <span className="truncate">{task.dueDate}</span>
+          
+          <div className="space-y-2">
+            <div className="flex items-center text-sm text-muted-foreground">
+              <Clock className="w-4 h-4 mr-2" />
+              <span>Time Spent</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-foreground">
+                {formatTime(timeSpent)}
+              </p>
+              {isTimerRunning && (
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Time Tracking */}
-        {(onStartTimer || onStopTimer || timeSpent > 0) && (
-          <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 rounded-lg p-2">
-            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
-              <Clock className="w-3 h-3 mr-1" />
-              <span>{formatTime(timeSpent)}</span>
-              {isTimerRunning && (
-                <div className="ml-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              )}
-            </div>
-            <div className="flex gap-1">
+        {/* Time Tracking Controls */}
+        {(onStartTimer || onStopTimer) && (
+          <div className="flex items-center justify-between bg-muted/50 rounded-lg p-3">
+            <span className="text-sm font-medium text-foreground">Timer Controls</span>
+            <div className="flex gap-2">
               {!isTimerRunning ? (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onStartTimer?.(task.id)}
-                  className="h-6 px-2 text-xs"
+                  className="h-8 px-3"
                 >
-                  <Play className="w-3 h-3" />
+                  <Play className="w-3 h-3 mr-1" />
+                  Start
                 </Button>
               ) : (
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => onStopTimer?.(task.id)}
-                  className="h-6 px-2 text-xs"
+                  className="h-8 px-3"
                 >
-                  <Pause className="w-3 h-3" />
+                  <Pause className="w-3 h-3 mr-1" />
+                  Stop
                 </Button>
               )}
             </div>
           </div>
         )}
 
-        {/* Description */}
-        {task.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-2">
-            {task.description}
-          </p>
-        )}
-
         {/* Actions */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-3 pt-2">
           <Button
-            size="sm"
             variant="outline"
             onClick={() => onEditTask(task)}
-            className="flex-1 text-xs h-8"
+            className="flex-1"
           >
-            Edit
+            Edit Task
           </Button>
           <Button
-            size="sm"
             variant="outline"
             onClick={() => onFollowUp(task)}
-            className="flex-1 text-xs h-8"
+            className="flex-1"
           >
-            <MessageSquarePlus className="w-3 h-3 mr-1" />
+            <MessageSquarePlus className="w-4 h-4 mr-2" />
             Follow-up
           </Button>
         </div>
