@@ -575,8 +575,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-1 text-xs text-gray-500 dark:text-gray-400">
                       <div className="flex items-center">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Due: {new Date(task.dueDate).toLocaleDateString()}
+                        {new Date(task.dueDate).toLocaleDateString()}
                       </div>
                       {task.completionDate && (
                         <div className="flex items-center text-green-600 dark:text-green-400">
