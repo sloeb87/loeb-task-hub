@@ -37,6 +37,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
   const stats = useMemo((): TaskStat[] => {
     const openTasks = tasks.filter(t => t.status === "Open").length;
     const inProgressTasks = tasks.filter(t => t.status === "In Progress").length;
+    const activeTasks = openTasks + inProgressTasks; // Merge Open and In Progress
     const onHoldTasks = tasks.filter(t => t.status === "On Hold").length;
     const criticalTasks = tasks.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
     const completedTasks = tasks.filter(t => t.status === "Completed").length;
@@ -51,20 +52,12 @@ export const TaskSummaryCardsOptimized = React.memo(({
         filter: "all" as FilterType
       },
       {
-        title: "Open",
-        count: openTasks,
-        icon: Clock,
-        color: "text-yellow-600 dark:text-yellow-400",
-        bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
-        filter: "open" as FilterType
-      },
-      {
-        title: "In Progress",
-        count: inProgressTasks,
+        title: "Active",
+        count: activeTasks,
         icon: Play,
         color: "text-green-600 dark:text-green-400",
         bgColor: "bg-green-50 dark:bg-green-900/20",
-        filter: "inprogress" as FilterType
+        filter: "active" as FilterType
       },
       {
         title: "On Hold",
@@ -86,7 +79,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
   }, [tasks]);
 
   return (
-    <div className="grid grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-4 gap-4 mb-6">
       {stats.map((stat) => {
         const Icon = stat.icon;
         const isActive = activeFilter === stat.filter;
