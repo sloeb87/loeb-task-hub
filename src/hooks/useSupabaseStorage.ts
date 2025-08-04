@@ -266,11 +266,28 @@ export function useSupabaseStorage() {
 
     if (findError) throw findError;
 
+    // Find the project ID by name if project is specified
+    let projectId = null;
+    if (updatedTask.project) {
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('name', updatedTask.project)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (projectError) {
+        console.error('Error finding project:', projectError);
+      } else if (projectData) {
+        projectId = projectData.id;
+      }
+    }
+
     const { error } = await supabase
       .from('tasks')
       .update({
         scope: updatedTask.scope,
-        project_id: updatedTask.project || null,
+        project_id: projectId,
         environment: updatedTask.environment,
         task_type: updatedTask.taskType,
         title: updatedTask.title,
