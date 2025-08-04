@@ -488,8 +488,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableHead style={{ minWidth: '120px' }}>
                   <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
                 </TableHead>
-                <TableHead style={{ minWidth: '120px' }}>
-                  <FilterableHeader filterType="timeTracking">Time Tracking</FilterableHeader>
+                <TableHead style={{ minWidth: '160px' }}>
+                  <FilterableHeader filterType="timeTracking">Action</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '200px' }}>
                   <FilterableHeader filterType="followUps">Follow Ups</FilterableHeader>
@@ -667,42 +667,104 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                    </TableCell>
 
                   {/* Time Tracking Column */}
-                  <TableCell>
-                    {(() => {
-                      const taskTime = getTaskTime(task.id);
-                      return (
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              size="sm"
-                              variant={taskTime.isRunning ? "destructive" : "outline"}
-                              onClick={(e) => handleTimerToggle(task, e)}
-                              className="h-8 w-8 p-0"
-                              title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
-                            >
-                              {taskTime.isRunning ? (
-                                <Pause className="w-4 h-4" />
-                              ) : (
-                                <Play className="w-4 h-4" />
-                              )}
-                            </Button>
-                            {taskTime.isRunning && (
-                              <div className="flex items-center text-red-600 dark:text-red-400">
-                                <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
-                                <span className="text-xs font-medium">Live</span>
-                              </div>
-                            )}
-                          </div>
-                          {taskTime.totalTime > 0 && (
-                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                              <Clock className="w-3 h-3 mr-1" />
-                              <span>{formatTime(taskTime.totalTime)}</span>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-                  </TableCell>
+                   <TableCell>
+                     {(() => {
+                       const taskTime = getTaskTime(task.id);
+                       return (
+                         <div className="space-y-2">
+                           {/* Time Tracking Controls */}
+                           <div className="flex items-center space-x-2">
+                             <Button
+                               size="sm"
+                               variant={taskTime.isRunning ? "destructive" : "outline"}
+                               onClick={(e) => handleTimerToggle(task, e)}
+                               className="h-7 w-7 p-0"
+                               title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
+                             >
+                               {taskTime.isRunning ? (
+                                 <Pause className="w-3 h-3" />
+                               ) : (
+                                 <Play className="w-3 h-3" />
+                               )}
+                             </Button>
+                             {taskTime.isRunning && (
+                               <div className="flex items-center text-red-600 dark:text-red-400">
+                                 <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
+                                 <span className="text-xs font-medium">Live</span>
+                               </div>
+                             )}
+                           </div>
+                           {taskTime.totalTime > 0 && (
+                             <div className="flex items-center text-xs text-gray-600 dark:text-gray-400">
+                               <Clock className="w-3 h-3 mr-1" />
+                               <span>{formatTime(taskTime.totalTime)}</span>
+                             </div>
+                           )}
+                           
+                           {/* Task Link Icons */}
+                           {task.links && Object.values(task.links).some(link => link) && (
+                             <div className="flex items-center space-x-1">
+                               {task.links.folder && (
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
+                                   onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                                   title="Open Folder"
+                                 >
+                                   <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                                 </Button>
+                               )}
+                               {task.links.email && (
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
+                                   onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                                   title="Send Email"
+                                 >
+                                   <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
+                                 </Button>
+                               )}
+                               {task.links.file && (
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
+                                   onClick={(e) => handleLinkClick(task.links.file!, e)}
+                                   title="Open File"
+                                 >
+                                   <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                                 </Button>
+                               )}
+                               {task.links.oneNote && (
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
+                                   onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                                   title="Open OneNote"
+                                 >
+                                   <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
+                                 </Button>
+                               )}
+                               {task.links.teams && (
+                                 <Button 
+                                   size="sm" 
+                                   variant="ghost" 
+                                   className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
+                                   onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                                   title="Open Teams"
+                                 >
+                                   <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                                 </Button>
+                               )}
+                             </div>
+                           )}
+                         </div>
+                       );
+                     })()}
+                   </TableCell>
 
                   {/* Follow Ups Column */}
                   <TableCell>
