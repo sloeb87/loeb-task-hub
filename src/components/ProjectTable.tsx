@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Project, Task } from "@/types/task";
 import { useScopeColor } from '@/hooks/useScopeColor';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -40,6 +41,10 @@ export const ProjectTable = ({
   const isMobile = useIsMobile();
   const { getScopeStyle } = useScopeColor();
   
+  // Filter states
+  const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
+  const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  
 
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
@@ -69,18 +74,57 @@ export const ProjectTable = ({
     }
   };
 
-  // Filter projects based on projectFilter
+  // Filter projects based on projectFilter and custom filters
   const filteredProjects = useMemo(() => {
-    if (projectFilter === 'all') return projects;
-    if (projectFilter === 'active') return projects.filter(p => p.status === 'Active');
-    if (projectFilter === 'on-hold') return projects.filter(p => p.status === 'On Hold');
-    if (projectFilter === 'completed') return projects.filter(p => p.status === 'Completed');
-    return projects;
-  }, [projects, projectFilter]);
+    let filtered = projects;
+    
+    // Apply status filter
+    if (projectFilter === 'active') filtered = filtered.filter(p => p.status === 'Active');
+    if (projectFilter === 'on-hold') filtered = filtered.filter(p => p.status === 'On Hold');
+    if (projectFilter === 'completed') filtered = filtered.filter(p => p.status === 'Completed');
+    
+    // Apply scope filter
+    if (selectedScopes.length > 0) {
+      filtered = filtered.filter(p => selectedScopes.includes(p.scope));
+    }
+    
+    // Apply project name filter
+    if (selectedProjects.length > 0) {
+      filtered = filtered.filter(p => selectedProjects.includes(p.name));
+    }
+    
+    return filtered;
+  }, [projects, projectFilter, selectedScopes, selectedProjects]);
 
   const sortedProjects = useMemo(() => {
     return [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredProjects]);
+
+  // Get unique values for filters
+  const uniqueScopes = useMemo(() => {
+    return [...new Set(projects.map(p => p.scope))].sort();
+  }, [projects]);
+
+  const uniqueProjectNames = useMemo(() => {
+    return [...new Set(projects.map(p => p.name))].sort();
+  }, [projects]);
+
+  // Filter handlers
+  const handleScopeFilterChange = (scope: string, checked: boolean) => {
+    if (checked) {
+      setSelectedScopes(prev => [...prev, scope]);
+    } else {
+      setSelectedScopes(prev => prev.filter(s => s !== scope));
+    }
+  };
+
+  const handleProjectFilterChange = (projectName: string, checked: boolean) => {
+    if (checked) {
+      setSelectedProjects(prev => [...prev, projectName]);
+    } else {
+      setSelectedProjects(prev => prev.filter(p => p !== projectName));
+    }
+  };
 
 
   const handleRowClick = (project: Project) => {
@@ -163,13 +207,47 @@ export const ProjectTable = ({
                 <TableHead style={{ minWidth: '120px' }}>
                   <div className="flex items-center gap-1">
                     Scope
-                    <Filter className="w-4 h-4" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Filter className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-48">
+                        {uniqueScopes.map((scope) => (
+                          <DropdownMenuCheckboxItem
+                            key={scope}
+                            checked={selectedScopes.includes(scope)}
+                            onCheckedChange={(checked) => handleScopeFilterChange(scope, checked)}
+                          >
+                            {scope}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
                   <div className="flex items-center gap-1">
                     Project Name
-                    <Filter className="w-4 h-4" />
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Filter className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-48 max-h-60 overflow-y-auto">
+                        {uniqueProjectNames.map((projectName) => (
+                          <DropdownMenuCheckboxItem
+                            key={projectName}
+                            checked={selectedProjects.includes(projectName)}
+                            onCheckedChange={(checked) => handleProjectFilterChange(projectName, checked)}
+                          >
+                            {projectName}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
