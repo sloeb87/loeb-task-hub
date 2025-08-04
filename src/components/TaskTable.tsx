@@ -107,9 +107,13 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     if (status === "Completed") return "text-gray-500 dark:text-gray-400";
     
     const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset to start of day
+    
     const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0); // Reset to start of day
+    
     const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
     if (diffDays <= 3) return "text-red-600 dark:text-red-400"; // Within 3 days
