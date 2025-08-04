@@ -193,7 +193,18 @@ export const ProjectDetailView = ({
           <CardHeader>
             <CardTitle className="text-gray-900 dark:text-white">Project Details</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Description */}
+            {project.description && (
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Description</p>
+                <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
+                  {project.description}
+                </p>
+              </div>
+            )}
+
+            {/* Status and Scope */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Status</p>
@@ -212,6 +223,29 @@ export const ProjectDetailView = ({
               </div>
             </div>
 
+            {/* Timeline */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Start Date</p>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                    {new Date(project.startDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">End Date</p>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                  <span className="text-sm text-gray-900 dark:text-gray-100">
+                    {new Date(project.endDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Owner and Cost Center */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Owner</p>
@@ -226,14 +260,19 @@ export const ProjectDetailView = ({
               </div>
             </div>
 
+            {/* Team Members */}
             <div>
               <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Team Members</p>
               <div className="flex flex-wrap gap-2">
-                {project.team.map((member, index) => (
-                  <Badge key={index} variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
-                    {member}
-                  </Badge>
-                ))}
+                {project.team && project.team.length > 0 ? (
+                  project.team.map((member, index) => (
+                    <Badge key={index} variant="outline" className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">
+                      {member}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">No team members assigned</span>
+                )}
               </div>
             </div>
 
