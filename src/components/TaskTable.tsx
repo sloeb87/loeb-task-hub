@@ -213,58 +213,59 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     children: React.ReactNode;
   }) => (
     <div className="flex items-center justify-between min-w-0">
-      <SortableHeader field={field}>{children}</SortableHeader>
-      <div className="relative ml-2" ref={el => filterRefs.current[filterType] = el}>
-        <Button
-          size="sm"
-          variant="ghost"
-          className={`px-2 py-1 h-auto shrink-0 flex items-center gap-1 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
-          onClick={(e) => toggleFilterDropdown(filterType, e)}
-        >
-          <Filter className="w-3 h-3" />
-          <span className="text-xs">Filter</span>
+      <div className="flex items-center gap-1">
+        <SortableHeader field={field}>{children}</SortableHeader>
+        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`p-1 h-6 w-6 shrink-0 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+            onClick={(e) => toggleFilterDropdown(filterType, e)}
+          >
+            <Filter className="w-3 h-3" />
+          </Button>
           {filters[filterType].length > 0 && (
             <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               {filters[filterType].length}
             </span>
           )}
-        </Button>
-        {showFilters[filterType] && (
-          <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {getUniqueValues(filterType as keyof Task).map(value => (
-                <div key={value} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`${filterType}-${value}`}
-                    checked={filters[filterType].includes(value)}
-                    onCheckedChange={(checked) => 
-                      handleFilterChange(filterType, value, checked as boolean)
-                    }
-                  />
-                  <label 
-                    htmlFor={`${filterType}-${value}`}
-                    className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
-                    title={value}
-                  >
-                    {value}
-                  </label>
-                </div>
-              ))}
-            </div>
-            {filters[filterType].length > 0 && (
-              <div className="mt-2 pt-2 border-t dark:border-gray-600">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => clearFilter(filterType)}
-                  className="w-full"
-                >
-                  Clear All ({filters[filterType].length})
-                </Button>
+          {showFilters[filterType] && (
+            <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {getUniqueValues(filterType as keyof Task).map(value => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${filterType}-${value}`}
+                      checked={filters[filterType].includes(value)}
+                      onCheckedChange={(checked) => 
+                        handleFilterChange(filterType, value, checked as boolean)
+                      }
+                    />
+                    <label 
+                      htmlFor={`${filterType}-${value}`}
+                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      title={value}
+                    >
+                      {value}
+                    </label>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
-        )}
+              {filters[filterType].length > 0 && (
+                <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => clearFilter(filterType)}
+                    className="w-full"
+                  >
+                    Clear All ({filters[filterType].length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
