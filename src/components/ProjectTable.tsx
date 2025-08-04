@@ -209,7 +209,7 @@ export const ProjectTable = ({
                     Scope
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Button variant="ghost" size="sm" className={`h-6 w-6 p-0 ${selectedScopes.length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}>
                           <Filter className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -218,13 +218,30 @@ export const ProjectTable = ({
                           <DropdownMenuCheckboxItem
                             key={scope}
                             checked={selectedScopes.includes(scope)}
-                            onCheckedChange={(checked) => handleScopeFilterChange(scope, checked)}
+                            onCheckedChange={(checked) => handleScopeFilterChange(scope, checked || false)}
                           >
                             {scope}
                           </DropdownMenuCheckboxItem>
                         ))}
+                        {selectedScopes.length > 0 && (
+                          <div className="border-t pt-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedScopes([])}
+                              className="w-full"
+                            >
+                              Clear All ({selectedScopes.length})
+                            </Button>
+                          </div>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    {selectedScopes.length > 0 && (
+                      <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {selectedScopes.length}
+                      </span>
+                    )}
                   </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
@@ -232,7 +249,7 @@ export const ProjectTable = ({
                     Project Name
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Button variant="ghost" size="sm" className={`h-6 w-6 p-0 ${selectedProjects.length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}>
                           <Filter className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -241,13 +258,30 @@ export const ProjectTable = ({
                           <DropdownMenuCheckboxItem
                             key={projectName}
                             checked={selectedProjects.includes(projectName)}
-                            onCheckedChange={(checked) => handleProjectFilterChange(projectName, checked)}
+                            onCheckedChange={(checked) => handleProjectFilterChange(projectName, checked || false)}
                           >
                             {projectName}
                           </DropdownMenuCheckboxItem>
                         ))}
+                        {selectedProjects.length > 0 && (
+                          <div className="border-t pt-2 mt-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setSelectedProjects([])}
+                              className="w-full"
+                            >
+                              Clear All ({selectedProjects.length})
+                            </Button>
+                          </div>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    {selectedProjects.length > 0 && (
+                      <span className="ml-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                        {selectedProjects.length}
+                      </span>
+                    )}
                   </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
