@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { useScopeColor } from '@/hooks/useScopeColor';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -161,10 +161,16 @@ export const ProjectTable = ({
             <TableHeader>
               <TableRow className="bg-muted/50 border-border">
                 <TableHead style={{ minWidth: '120px' }}>
-                  Scope
+                  <div className="flex items-center gap-1">
+                    Scope
+                    <Filter className="w-4 h-4" />
+                  </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
-                  Project Name
+                  <div className="flex items-center gap-1">
+                    Project Name
+                    <Filter className="w-4 h-4" />
+                  </div>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
                   Owner & Team
