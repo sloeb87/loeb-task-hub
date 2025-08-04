@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { TimeEntry, TimeEntryFilters, TimeEntryStats } from '@/types/timeEntry';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface TaskTimeData {
   taskId: string;
@@ -63,25 +64,62 @@ export function useTimeTracking() {
     try {
       setIsLoading(true);
       
-      // Load from localStorage for now (until database migration is complete)
-      const savedTimers = localStorage.getItem(`timers_${user.id}`);
-      const savedEntries = localStorage.getItem(`timeEntries_${user.id}`);
-      
-      // Load task timers
-      if (savedTimers) {
-        const parsed = JSON.parse(savedTimers);
-        const taskTimeMap = new Map<string, TaskTimeData>();
-        Object.entries(parsed).forEach(([taskId, data]: [string, any]) => {
-          taskTimeMap.set(taskId, data);
-        });
-        setTaskTimers(taskTimeMap);
+      // Load time entries from database
+      const { data: timeEntriesData, error: timeEntriesError } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (timeEntriesError) {
+        console.error('Error loading time entries:', timeEntriesError);
+        return;
       }
-      
-      // Load time entries
-      if (savedEntries) {
-        const entries = JSON.parse(savedEntries);
-        setTimeEntries(entries);
-      }
+
+      // Convert database entries to TimeEntry format
+      const entries: TimeEntry[] = (timeEntriesData || []).map(entry => ({
+        id: entry.id,
+        taskId: entry.task_id,
+        taskTitle: entry.task_title,
+        projectName: entry.project_name,
+        responsible: entry.responsible,
+        userId: entry.user_id,
+        startTime: entry.start_time,
+        endTime: entry.end_time,
+        duration: entry.duration,
+        description: entry.description,
+        isRunning: entry.is_running,
+        createdAt: entry.created_at
+      }));
+
+      setTimeEntries(entries);
+
+      // Calculate task totals from database entries
+      const taskTimeMap = new Map<string, TaskTimeData>();
+      entries.forEach(entry => {
+        const taskId = entry.taskId;
+        const existing = taskTimeMap.get(taskId) || {
+          taskId,
+          totalTime: 0,
+          isRunning: false
+        };
+
+        // Add duration to total time
+        if (entry.duration) {
+          existing.totalTime += entry.duration;
+        }
+
+        // If this is a running entry, mark as running
+        if (entry.isRunning) {
+          existing.isRunning = true;
+          existing.currentSessionStart = entry.startTime;
+          existing.currentEntryId = entry.id;
+        }
+
+        taskTimeMap.set(taskId, existing);
+      });
+
+      setTaskTimers(taskTimeMap);
     } catch (error) {
       console.error('Error loading time data:', error);
     } finally {
@@ -106,29 +144,45 @@ export function useTimeTracking() {
         await stopTimer(runningTaskId);
       }
 
-      // Create new time entry
-      const entryId = `entry_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      // Create new time entry in database
       const startTime = new Date().toISOString();
       
-      const newEntry: TimeEntry = {
-        id: entryId,
-        taskId: taskId,
-        taskTitle: taskTitle || taskId,
-        projectName: projectName || 'Unknown Project',
-        responsible: responsible || 'Unknown',
-        userId: user.id,
-        startTime: startTime,
-        description: 'Timer session',
-        createdAt: startTime,
-        isRunning: true
+      const { data: newEntry, error } = await supabase
+        .from('time_entries')
+        .insert({
+          user_id: user.id,
+          task_id: taskId,
+          task_title: taskTitle || taskId,
+          project_name: projectName || 'Unknown Project',
+          responsible: responsible || 'Unknown',
+          start_time: startTime,
+          description: 'Timer session',
+          is_running: true
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating time entry:', error);
+        return;
+      }
+
+      // Convert to TimeEntry format
+      const timeEntry: TimeEntry = {
+        id: newEntry.id,
+        taskId: newEntry.task_id,
+        taskTitle: newEntry.task_title,
+        projectName: newEntry.project_name,
+        responsible: newEntry.responsible,
+        userId: newEntry.user_id,
+        startTime: newEntry.start_time,
+        description: newEntry.description,
+        isRunning: newEntry.is_running,
+        createdAt: newEntry.created_at
       };
 
       // Update time entries
-      setTimeEntries(prev => {
-        const updated = [...prev, newEntry];
-        localStorage.setItem(`timeEntries_${user.id}`, JSON.stringify(updated));
-        return updated;
-      });
+      setTimeEntries(prev => [timeEntry, ...prev]);
       
       // Update local state
       setTaskTimers(prev => {
@@ -143,12 +197,8 @@ export function useTimeTracking() {
           ...current,
           isRunning: true,
           currentSessionStart: startTime,
-          currentEntryId: entryId
+          currentEntryId: newEntry.id
         });
-        
-        // Save to localStorage
-        const timersObj = Object.fromEntries(newMap);
-        localStorage.setItem(`timers_${user.id}`, JSON.stringify(timersObj));
         
         return newMap;
       });
@@ -168,9 +218,24 @@ export function useTimeTracking() {
       const startTime = new Date(taskData.currentSessionStart);
       const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
 
-      // Update the time entry
-      setTimeEntries(prev => {
-        const updated = prev.map(entry => 
+      // Update the time entry in database
+      const { error } = await supabase
+        .from('time_entries')
+        .update({
+          end_time: endTime.toISOString(),
+          duration: duration,
+          is_running: false
+        })
+        .eq('id', taskData.currentEntryId);
+
+      if (error) {
+        console.error('Error updating time entry:', error);
+        return;
+      }
+
+      // Update the time entry in state
+      setTimeEntries(prev => 
+        prev.map(entry => 
           entry.id === taskData.currentEntryId
             ? {
                 ...entry,
@@ -179,10 +244,8 @@ export function useTimeTracking() {
                 isRunning: false
               }
             : entry
-        );
-        localStorage.setItem(`timeEntries_${user.id}`, JSON.stringify(updated));
-        return updated;
-      });
+        )
+      );
 
       // Update local state
       setTaskTimers(prev => {
@@ -197,10 +260,6 @@ export function useTimeTracking() {
             totalTime: current.totalTime + duration
           });
         }
-        
-        // Save to localStorage
-        const timersObj = Object.fromEntries(newMap);
-        localStorage.setItem(`timers_${user.id}`, JSON.stringify(timersObj));
         
         return newMap;
       });
@@ -281,16 +340,27 @@ export function useTimeTracking() {
     if (!user) return;
 
     try {
-      // Remove from time entries
-      setTimeEntries(prev => {
-        const updated = prev.filter(entry => entry.id !== entryId);
-        localStorage.setItem(`timeEntries_${user.id}`, JSON.stringify(updated));
-        return updated;
-      });
+      // Delete from database
+      const { error } = await supabase
+        .from('time_entries')
+        .delete()
+        .eq('id', entryId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error deleting time entry:', error);
+        return;
+      }
+
+      // Remove from state
+      setTimeEntries(prev => prev.filter(entry => entry.id !== entryId));
+      
+      // Reload time data to recalculate totals
+      await loadTimeData();
     } catch (error) {
       console.error('Error deleting time entry:', error);
     }
-  }, [user]);
+  }, [user, loadTimeData]);
 
   return {
     taskTimers,
