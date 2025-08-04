@@ -87,9 +87,9 @@ export const TaskSummaryCardsOptimized = React.memo(({
         return (
           <Card 
             key={stat.filter}
-            className={`transition-all duration-200 hover:shadow-md cursor-pointer transform hover:scale-105 ${
+            className={`transition-all hover:shadow-md cursor-pointer ${
               isActive 
-                ? 'ring-2 ring-blue-500 shadow-lg scale-105' 
+                ? 'ring-2 ring-blue-500 shadow-lg' 
                 : 'hover:shadow-lg'
             }`}
             onClick={() => onFilterChange(stat.filter)}
