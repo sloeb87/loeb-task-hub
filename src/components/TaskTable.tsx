@@ -29,6 +29,7 @@ interface Filters {
   priority: string[];
   project: string[];
   responsible: string[];
+  dueDate: string[];
 }
 
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
@@ -41,7 +42,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     status: [],
     priority: [],
     project: [],
-    responsible: []
+    responsible: [],
+    dueDate: []
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -98,6 +100,10 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const getUniqueValues = (field: keyof Task) => {
+    if (field === 'dueDate') {
+      return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
+    }
+    
     const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
     
     // Ensure all possible values are included for specific fields
@@ -173,6 +179,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
       if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
       if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
       if (filters.responsible.length > 0 && !filters.responsible.includes(task.responsible)) return false;
+      if (filters.dueDate.length > 0 && !filters.dueDate.includes(new Date(task.dueDate).toLocaleDateString())) return false;
       return true;
     })
     .sort((a, b) => {
@@ -425,7 +432,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>
-                  <SortableHeader field="dueDate">Due Date</SortableHeader>
+                  <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>Time Tracking</TableHead>
                 <TableHead style={{ minWidth: '200px' }}>Follow Ups</TableHead>
