@@ -194,16 +194,6 @@ export const ProjectDetailView = ({
             <CardTitle className="text-gray-900 dark:text-white">Project Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Description */}
-            {project.description && (
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Description</p>
-                <p className="text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">
-                  {project.description}
-                </p>
-              </div>
-            )}
-
             {/* Status and Scope */}
             <div className="grid grid-cols-2 gap-4">
               <div>
