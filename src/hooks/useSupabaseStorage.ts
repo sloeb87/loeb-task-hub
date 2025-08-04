@@ -257,6 +257,12 @@ export function useSupabaseStorage() {
   const updateTask = async (updatedTask: Task): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
+    console.log('updateTask called with:', {
+      taskId: updatedTask.id,
+      taskType: updatedTask.taskType,
+      fullTask: updatedTask
+    });
+
     // Find the task by task_number
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
@@ -265,7 +271,12 @@ export function useSupabaseStorage() {
       .eq('user_id', user.id)
       .single();
 
-    if (findError) throw findError;
+    if (findError) {
+      console.error('Error finding task for update:', findError);
+      throw findError;
+    }
+
+    console.log('Found existing task in DB:', existingTask);
 
     // Find the project ID by name if project is specified
     let projectId = null;
@@ -284,32 +295,44 @@ export function useSupabaseStorage() {
       }
     }
 
+    const updateData = {
+      scope: updatedTask.scope,
+      project_id: projectId,
+      environment: updatedTask.environment,
+      task_type: updatedTask.taskType,
+      title: updatedTask.title,
+      description: updatedTask.description,
+      status: updatedTask.status,
+      priority: updatedTask.priority,
+      responsible: updatedTask.responsible,
+      start_date: updatedTask.startDate,
+      due_date: updatedTask.dueDate,
+      completion_date: updatedTask.completionDate || null,
+      duration: updatedTask.duration || null,
+      dependencies: updatedTask.dependencies || [],
+      details: updatedTask.details,
+      links: updatedTask.links || {},
+      stakeholders: updatedTask.stakeholders || []
+    };
+
+    console.log('Update data being sent to DB:', updateData);
+
     const { error } = await supabase
       .from('tasks')
-      .update({
-        scope: updatedTask.scope,
-        project_id: projectId,
-        environment: updatedTask.environment,
-        task_type: updatedTask.taskType,
-        title: updatedTask.title,
-        description: updatedTask.description,
-        status: updatedTask.status,
-        priority: updatedTask.priority,
-        responsible: updatedTask.responsible,
-        start_date: updatedTask.startDate,
-        due_date: updatedTask.dueDate,
-        completion_date: updatedTask.completionDate || null,
-        duration: updatedTask.duration || null,
-        dependencies: updatedTask.dependencies || [],
-        details: updatedTask.details,
-        links: updatedTask.links || {},
-        stakeholders: updatedTask.stakeholders || []
-      })
+      .update(updateData)
       .eq('id', existingTask.id);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw error;
+    }
+
+    console.log('Task updated successfully in DB, updating local state');
 
     setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+    
+    // Also reload tasks to ensure we have the latest data
+    await loadTasks();
   };
 
   const addFollowUp = async (taskId: string, followUpText: string): Promise<void> => {
