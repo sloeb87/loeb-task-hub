@@ -159,7 +159,7 @@ const Index = () => {
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <AppHeader activeView={activeView} onViewChange={setActiveView} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} onOpenParameters={() => setIsParametersOpen(true)} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className={activeView === "dashboard" ? "px-4 sm:px-6 lg:px-8 py-6" : "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6"}>
         <div className="space-y-6">
           {activeView === "tasks" ? <>
             {/* Task Management Header */}
