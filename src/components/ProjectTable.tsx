@@ -182,7 +182,7 @@ export const ProjectTable = ({
               {sortedProjects.map(project => {
                 const stats = getProjectStats(project);
                 return (
-                  <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onDoubleClick={() => handleRowClick(project)}>
+                  <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
                       <Badge 
