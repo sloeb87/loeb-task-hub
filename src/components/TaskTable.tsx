@@ -11,6 +11,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useScopeColor } from "@/hooks/useScopeColor";
 import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
 import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
+import { useStatusColor } from "@/hooks/useStatusColor";
+import { usePriorityColor } from "@/hooks/usePriorityColor";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 
@@ -57,6 +59,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const { getScopeStyle } = useScopeColor();
   const { getTaskTypeStyle } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
+  const { getStatusStyle } = useStatusColor();
+  const { getPriorityStyle } = usePriorityColor();
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -78,25 +82,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
   }, [showFilters]);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Completed": return "bg-green-100 text-green-800";
-      case "In Progress": return "bg-blue-100 text-blue-800";
-      case "Open": return "bg-orange-100 text-orange-800";
-      case "On Hold": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "Critical": return "bg-red-100 text-red-800";
-      case "High": return "bg-orange-100 text-orange-800";
-      case "Medium": return "bg-yellow-100 text-yellow-800";
-      case "Low": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
 
   const isOverdue = (dueDate: string, status: string) => {
     if (status === "Completed") return false;
@@ -558,12 +543,18 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-2">
                       <div>
-                        <Badge className={`text-xs ${getStatusColor(task.status)}`}>
+                        <Badge 
+                          className="text-xs border"
+                          style={getStatusStyle(task.status)}
+                        >
                           {task.status}
                         </Badge>
                       </div>
                       <div>
-                        <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                        <Badge 
+                          className="text-xs border"
+                          style={getPriorityStyle(task.priority)}
+                        >
                           {task.priority}
                         </Badge>
                       </div>
