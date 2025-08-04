@@ -296,7 +296,7 @@ export const ProjectTable = ({
                           year: '2-digit'
                         })}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground ml-4">
+                        <div className="text-xs text-muted-foreground">
                           to {new Date(project.endDate).toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: '2-digit',
