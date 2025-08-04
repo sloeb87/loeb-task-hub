@@ -104,6 +104,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const getDueDateColor = (dueDate: string, status: string) => {
+    if (status === "Completed") return "text-green-600 dark:text-green-400";
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset to start of day
     
@@ -113,7 +115,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     const diffTime = due.getTime() - today.getTime();
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // Show overdue colors even for completed tasks if they were completed late
     if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
     if (diffDays <= 3) return "text-red-600 dark:text-red-400"; // Within 3 days
     if (diffDays <= 7) return "text-orange-600 dark:text-orange-400"; // Within 1 week
