@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter, Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { Project, Task } from "@/types/task";
 import { useScopeColor } from '@/hooks/useScopeColor';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -44,6 +45,7 @@ export const ProjectTable = ({
   // Filter states
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
     const totalTasks = projectTasks.length;
@@ -76,6 +78,16 @@ export const ProjectTable = ({
   const filteredProjects = useMemo(() => {
     let filtered = projects;
 
+    // Apply search filter
+    if (searchTerm) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.scope.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
     // Apply status filter
     if (projectFilter === 'active') filtered = filtered.filter(p => p.status === 'Active');
     if (projectFilter === 'on-hold') filtered = filtered.filter(p => p.status === 'On Hold');
@@ -91,7 +103,7 @@ export const ProjectTable = ({
       filtered = filtered.filter(p => selectedProjects.includes(p.name));
     }
     return filtered;
-  }, [projects, projectFilter, selectedScopes, selectedProjects]);
+  }, [projects, projectFilter, selectedScopes, selectedProjects, searchTerm]);
   const sortedProjects = useMemo(() => {
     return [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredProjects]);
@@ -126,6 +138,19 @@ export const ProjectTable = ({
   // Mobile view
   if (isMobile) {
     return <div className="space-y-6">
+        {/* Search Bar */}
+        <div className="bg-card rounded-lg border border-border p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         {/* Filter Controls */}
         <div className="flex flex-wrap gap-2">
           <Button variant={projectFilter === 'all' ? 'default' : 'outline'} onClick={() => setProjectFilter('all')} size="sm">
@@ -160,6 +185,19 @@ export const ProjectTable = ({
   return <div className="space-y-6">
       {/* Desktop Table */}
       <div className="bg-card rounded-lg shadow-sm border border-border">
+        {/* Search Bar */}
+        <div className="p-4 border-b border-border">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
