@@ -524,20 +524,24 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
                   {/* Project Column */}
                   <TableCell>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">{task.project}</div>
-                      <Badge 
-                        className="text-xs border"
-                        style={getEnvironmentStyle(task.environment)}
-                      >
-                        {task.environment}
-                      </Badge>
-                      <Badge 
-                        className="text-xs border"
-                        style={getTaskTypeStyle(task.taskType)}
-                      >
-                        {task.taskType}
-                      </Badge>
+                      <div>
+                        <Badge 
+                          className="text-xs border"
+                          style={getEnvironmentStyle(task.environment)}
+                        >
+                          {task.environment}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Badge 
+                          className="text-xs border"
+                          style={getTaskTypeStyle(task.taskType)}
+                        >
+                          {task.taskType}
+                        </Badge>
+                      </div>
                     </div>
                   </TableCell>
 
