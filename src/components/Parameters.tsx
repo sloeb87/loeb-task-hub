@@ -59,8 +59,19 @@ const defaultTaskTypes: ColoredItem[] = [
   { name: "Research", color: "#06b6d4" }
 ];
 
-const defaultStatuses = ["Open", "In Progress", "Completed", "On Hold"];
-const defaultPriorities = ["Low", "Medium", "High", "Critical"];
+const defaultStatuses: ColoredItem[] = [
+  { name: "Open", color: "#6b7280" },
+  { name: "In Progress", color: "#3b82f6" },
+  { name: "Completed", color: "#10b981" },
+  { name: "On Hold", color: "#f59e0b" }
+];
+
+const defaultPriorities: ColoredItem[] = [
+  { name: "Low", color: "#10b981" },
+  { name: "Medium", color: "#f59e0b" },
+  { name: "High", color: "#ef4444" },
+  { name: "Critical", color: "#dc2626" }
+];
 
 const defaultScopes: ColoredItem[] = [
   { name: "Frontend", color: "#3b82f6" },
@@ -80,14 +91,17 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   // Use default parameters initially, then load from database
   const [environments, setEnvironments] = useState<ColoredItem[]>(defaultEnvironments);
   const [taskTypes, setTaskTypes] = useState<ColoredItem[]>(defaultTaskTypes);
-  const [statuses, setStatuses] = useState<string[]>(defaultStatuses);
-  const [priorities, setPriorities] = useState<string[]>(defaultPriorities);
+  const [statuses, setStatuses] = useState<ColoredItem[]>(defaultStatuses);
+  const [priorities, setPriorities] = useState<ColoredItem[]>(defaultPriorities);
   const [scopes, setScopes] = useState<ColoredItem[]>(defaultScopes);
 
   const [newEnvironment, setNewEnvironment] = useState("");
   const [newTaskType, setNewTaskType] = useState("");
   const [newStatus, setNewStatus] = useState("");
   const [newPriority, setNewPriority] = useState("");
+  
+  const [newStatusColor, setNewStatusColor] = useState(predefinedColors[0].value);
+  const [newPriorityColor, setNewPriorityColor] = useState(predefinedColors[0].value);
   const [newScope, setNewScope] = useState("");
 
   const [newEnvironmentColor, setNewEnvironmentColor] = useState(predefinedColors[0].value);
@@ -203,10 +217,10 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
           setTaskTypes(groupedParams.taskTypes.map(p => ({ name: p.name, color: p.color })));
         }
         if (groupedParams.statuses) {
-          setStatuses(groupedParams.statuses.map(p => p.name));
+          setStatuses(groupedParams.statuses.map(p => ({ name: p.name, color: p.color })));
         }
         if (groupedParams.priorities) {
-          setPriorities(groupedParams.priorities.map(p => p.name));
+          setPriorities(groupedParams.priorities.map(p => ({ name: p.name, color: p.color })));
         }
       }
     } catch (error) {
@@ -249,14 +263,14 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         })),
         ...statuses.map(status => ({
           user_id: user.id,
-          name: status,
-          color: '#6b7280', // Default color for statuses
+          name: status.name,
+          color: status.color,
           category: 'statuses'
         })),
         ...priorities.map(priority => ({
           user_id: user.id,
-          name: priority,
-          color: '#6b7280', // Default color for priorities
+          name: priority.name,
+          color: priority.color,
           category: 'priorities'
         }))
       ];
@@ -619,13 +633,15 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   <CardTitle>Status Options</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderItemList(
+                  {renderColoredItemList(
                     statuses,
                     setStatuses,
                     "Statuses",
                     newStatus,
                     setNewStatus,
-                    "Add new status..."
+                    "Add new status...",
+                    newStatusColor,
+                    setNewStatusColor
                   )}
                 </CardContent>
               </Card>
@@ -637,13 +653,15 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   <CardTitle>Priority Options</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {renderItemList(
+                  {renderColoredItemList(
                     priorities,
                     setPriorities,
                     "Priorities",
                     newPriority,
                     setNewPriority,
-                    "Add new priority..."
+                    "Add new priority...",
+                    newPriorityColor,
+                    setNewPriorityColor
                   )}
                 </CardContent>
               </Card>
