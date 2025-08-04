@@ -109,42 +109,41 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
     
     if (filterType === 'followUps') {
-      // Return options based on follow-up status
-      return ['Has Follow-ups', 'No Follow-ups'];
+      // Only return options that actually exist in the data
+      const hasFollowUps = tasks.some(task => task.followUps && task.followUps.length > 0);
+      const hasNoFollowUps = tasks.some(task => !task.followUps || task.followUps.length === 0);
+      
+      const options = [];
+      if (hasFollowUps) options.push('Has Follow-ups');
+      if (hasNoFollowUps) options.push('No Follow-ups');
+      return options;
     }
     
     if (filterType === 'timeTracking') {
-      // Return options based on time tracking status
-      return ['Has Time Logged', 'No Time Logged', 'Currently Running'];
+      // Only return options that actually exist in the data
+      const options = [];
+      const hasTimeLogged = tasks.some(task => {
+        const taskTime = getTaskTime(task.id);
+        return taskTime.totalTime > 0 && !taskTime.isRunning;
+      });
+      const hasNoTime = tasks.some(task => {
+        const taskTime = getTaskTime(task.id);
+        return taskTime.totalTime === 0 && !taskTime.isRunning;
+      });
+      const hasRunning = tasks.some(task => {
+        const taskTime = getTaskTime(task.id);
+        return taskTime.isRunning;
+      });
+      
+      if (hasTimeLogged) options.push('Has Time Logged');
+      if (hasNoTime) options.push('No Time Logged');
+      if (hasRunning) options.push('Currently Running');
+      return options;
     }
     
-    // For actual Task properties
+    // For actual Task properties - only return values that exist in the data
     const field = filterType as keyof Task;
     const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
-    
-    // Ensure all possible values are included for specific fields
-    if (filterType === 'scope') {
-      const allScopes = ['Frontend', 'Backend', 'Database', 'Infrastructure', 'Mobile', 'API', 'UI/UX', 'DevOps'];
-      allScopes.forEach(scope => {
-        if (!values.includes(scope)) {
-          values.push(scope);
-        }
-      });
-    } else if (filterType === 'status') {
-      const allStatuses = ['Open', 'In Progress', 'Completed', 'On Hold'];
-      allStatuses.forEach(status => {
-        if (!values.includes(status)) {
-          values.push(status);
-        }
-      });
-    } else if (filterType === 'priority') {
-      const allPriorities = ['Low', 'Medium', 'High', 'Critical'];
-      allPriorities.forEach(priority => {
-        if (!values.includes(priority)) {
-          values.push(priority);
-        }
-      });
-    }
     
     return values.sort();
   };
