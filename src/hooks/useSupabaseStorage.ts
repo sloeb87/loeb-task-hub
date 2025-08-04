@@ -33,7 +33,8 @@ interface SupabaseProject {
   id: string;
   name: string;
   description: string | null;
-  owner_id: string;
+  owner: string | null;
+  user_id: string;
   scope: string;
   start_date: string;
   end_date: string;
@@ -102,24 +103,12 @@ export function useSupabaseStorage() {
     };
   }, []);
 
-  const convertSupabaseProjectToProject = async (supabaseProject: SupabaseProject): Promise<Project> => {
-    // Get owner name from user profile
-    let ownerName = 'Unknown';
-    if (supabaseProject.owner_id) {
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('display_name')
-        .eq('user_id', supabaseProject.owner_id)
-        .single();
-      
-      ownerName = profileData?.display_name || 'Unknown';
-    }
-
+  const convertSupabaseProjectToProject = (supabaseProject: SupabaseProject): Project => {
     return {
       id: supabaseProject.id,
       name: supabaseProject.name,
       description: supabaseProject.description || '',
-      owner: ownerName,
+      owner: supabaseProject.owner || '',
       team: [], // Will need to be handled separately if needed
       startDate: supabaseProject.start_date,
       endDate: supabaseProject.end_date,
@@ -172,14 +161,12 @@ export function useSupabaseStorage() {
       const { data, error } = await supabase
         .from('projects')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const convertedProjects = await Promise.all(
-        (data || []).map(convertSupabaseProjectToProject)
-      );
+      const convertedProjects = (data || []).map(convertSupabaseProjectToProject);
       setProjects(convertedProjects);
     } catch (err) {
       console.error('Error loading projects:', err);
@@ -212,7 +199,7 @@ export function useSupabaseStorage() {
           .from('projects')
           .select('id')
           .eq('name', taskData.project)
-          .eq('owner_id', user.id)
+          .eq('user_id', user.id)
           .single();
         
         if (projectError) {
@@ -373,7 +360,8 @@ export function useSupabaseStorage() {
       .insert({
         name: projectData.name,
         description: projectData.description,
-        owner_id: user.id,
+        owner: projectData.owner,
+        user_id: user.id,
         scope: projectData.scope,
         start_date: projectData.startDate,
         end_date: projectData.endDate,
@@ -386,7 +374,7 @@ export function useSupabaseStorage() {
 
     if (error) throw error;
 
-    const newProject = await convertSupabaseProjectToProject(data);
+    const newProject = convertSupabaseProjectToProject(data);
     setProjects(prev => [newProject, ...prev]);
     return newProject;
   };
@@ -399,6 +387,7 @@ export function useSupabaseStorage() {
       .update({
         name: updatedProject.name,
         description: updatedProject.description,
+        owner: updatedProject.owner,
         scope: updatedProject.scope,
         start_date: updatedProject.startDate,
         end_date: updatedProject.endDate,
@@ -407,7 +396,7 @@ export function useSupabaseStorage() {
         links: updatedProject.links || {}
       })
       .eq('id', updatedProject.id)
-      .eq('owner_id', user.id);
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
@@ -431,7 +420,7 @@ export function useSupabaseStorage() {
       .from('projects')
       .delete()
       .eq('id', projectId)
-      .eq('owner_id', user.id);
+      .eq('user_id', user.id);
 
     if (error) throw error;
 

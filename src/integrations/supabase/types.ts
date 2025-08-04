@@ -112,11 +112,12 @@ export type Database = {
           id: string
           links: Json | null
           name: string
-          owner_id: string
+          owner: string | null
           scope: string
           start_date: string
           status: string
           updated_at: string
+          user_id: string
         }
         Insert: {
           cost_center?: string | null
@@ -126,11 +127,12 @@ export type Database = {
           id?: string
           links?: Json | null
           name: string
-          owner_id: string
+          owner?: string | null
           scope: string
           start_date: string
           status?: string
           updated_at?: string
+          user_id: string
         }
         Update: {
           cost_center?: string | null
@@ -140,11 +142,12 @@ export type Database = {
           id?: string
           links?: Json | null
           name?: string
-          owner_id?: string
+          owner?: string | null
           scope?: string
           start_date?: string
           status?: string
           updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
