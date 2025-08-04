@@ -548,12 +548,16 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Status & Priority Column */}
                   <TableCell>
                     <div className="space-y-2">
-                      <Badge className={`text-xs ${getStatusColor(task.status)}`}>
-                        {task.status}
-                      </Badge>
-                      <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
-                      </Badge>
+                      <div>
+                        <Badge className={`text-xs ${getStatusColor(task.status)}`}>
+                          {task.status}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>
+                          {task.priority}
+                        </Badge>
+                      </div>
                     </div>
                   </TableCell>
 
