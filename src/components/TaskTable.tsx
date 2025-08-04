@@ -22,7 +22,7 @@ interface TaskTableProps {
   onFollowUp: (task: Task) => void;
 }
 
-type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate';
+type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
 type SortDirection = 'asc' | 'desc';
 
 interface Filters {
@@ -34,6 +34,8 @@ interface Filters {
   dueDate: string[];
   followUps: string[];
   timeTracking: string[];
+  taskType: string[];
+  environment: string[];
 }
 
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
@@ -49,7 +51,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     responsible: [],
     dueDate: [],
     followUps: [],
-    timeTracking: []
+    timeTracking: [],
+    taskType: [],
+    environment: []
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -455,14 +459,14 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50">
-                <TableHead style={{ minWidth: '130px' }}>
-                  <FilterableHeader field="scope" filterType="scope">Scope</FilterableHeader>
+                <TableHead style={{ minWidth: '180px' }}>
+                  <FilterableHeader field="scope" filterType="scope">Scope & Project</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
                   <SortableHeader field="title">Task</SortableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '150px' }}>
-                  <FilterableHeader field="project" filterType="project">Project</FilterableHeader>
+                  <FilterableHeader field="taskType" filterType="taskType">Type & Environment</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
                   <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
@@ -488,14 +492,17 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   className="hover:bg-muted/50 transition-colors cursor-pointer"
                   onClick={(e) => handleRowClick(task, e)}
                 >
-                  {/* Scope Column */}
+                  {/* Scope & Project Column */}
                   <TableCell>
-                    <Badge 
-                      className="text-base font-medium border"
-                      style={getScopeStyle(task.scope)}
-                    >
-                      {task.scope}
-                    </Badge>
+                    <div className="space-y-2">
+                      <Badge 
+                        className="text-base font-medium border"
+                        style={getScopeStyle(task.scope)}
+                      >
+                        {task.scope}
+                      </Badge>
+                      <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
+                    </div>
                   </TableCell>
 
                   {/* Task Column */}
@@ -516,24 +523,23 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     </div>
                   </TableCell>
 
-                  {/* Project Column */}
+                  {/* Type & Environment Column */}
                   <TableCell>
                     <div className="space-y-2">
-                      <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
-                      <div>
-                        <Badge 
-                          className="text-sm border"
-                          style={getEnvironmentStyle(task.environment)}
-                        >
-                          {task.environment}
-                        </Badge>
-                      </div>
                       <div>
                         <Badge 
                           className="text-sm border"
                           style={getTaskTypeStyle(task.taskType)}
                         >
                           {task.taskType}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Badge 
+                          className="text-sm border"
+                          style={getEnvironmentStyle(task.environment)}
+                        >
+                          {task.environment}
                         </Badge>
                       </div>
                     </div>
