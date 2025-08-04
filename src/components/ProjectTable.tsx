@@ -191,7 +191,7 @@ export const ProjectTable = ({
                 const isExpanded = expandedProject === project.id;
                 return (
                   <React.Fragment key={`project-${project.id}`}>
-                    <TableRow className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
+                    <TableRow className="hover:bg-muted/50 transition-colors cursor-pointer" onDoubleClick={() => handleRowClick(project)}>
                       {/* Expand/Collapse Column */}
                       <TableCell>
                         <Button size="sm" variant="ghost" className="p-1 h-6 w-6" onClick={e => toggleExpanded(project.id, e)}>
