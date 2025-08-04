@@ -158,38 +158,6 @@ export const ProjectTable = ({
   // Desktop view
   return (
     <div className="space-y-6">
-      {/* Filter Controls */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant={projectFilter === 'all' ? 'default' : 'outline'}
-          onClick={() => setProjectFilter('all')}
-          size="sm"
-        >
-          All Projects ({projects.length})
-        </Button>
-        <Button
-          variant={projectFilter === 'active' ? 'default' : 'outline'}
-          onClick={() => setProjectFilter('active')}
-          size="sm"
-        >
-          Active ({projects.filter(p => p.status === 'Active').length})
-        </Button>
-        <Button
-          variant={projectFilter === 'on-hold' ? 'default' : 'outline'}
-          onClick={() => setProjectFilter('on-hold')}
-          size="sm"
-        >
-          On Hold ({projects.filter(p => p.status === 'On Hold').length})
-        </Button>
-        <Button
-          variant={projectFilter === 'completed' ? 'default' : 'outline'}
-          onClick={() => setProjectFilter('completed')}
-          size="sm"
-        >
-          Completed ({projects.filter(p => p.status === 'Completed').length})
-        </Button>
-      </div>
-
       {/* Desktop Table */}
       <div className="bg-card rounded-lg shadow-sm border border-border">
         <div className="overflow-x-auto">
