@@ -29,6 +29,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     name: project?.name || '',
     description: project?.description || '',
     owner: project?.owner || '',
+    cost_center: project?.cost_center || '',
     startDate: project?.startDate || '',
     endDate: project?.endDate || '',
     status: project?.status || 'Active' as Project['status'],
@@ -123,6 +124,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
         name: project.name,
         description: project.description,
         owner: project.owner,
+        cost_center: project.cost_center || '',
         startDate: project.startDate,
         endDate: project.endDate,
         status: project.status,
@@ -201,7 +203,16 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                   </SelectContent>
                 </Select>
               </div>
-              <div></div>
+              <div>
+                <Label htmlFor="cost_center" className="text-gray-700 dark:text-gray-300">Cost Center</Label>
+                <Input
+                  id="cost_center"
+                  value={formData.cost_center}
+                  onChange={(e) => handleInputChange('cost_center', e.target.value)}
+                  placeholder="Enter cost center..."
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+              </div>
             </div>
 
             <div>

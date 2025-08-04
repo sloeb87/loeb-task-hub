@@ -50,6 +50,7 @@ export interface Project {
   status: "Active" | "On Hold" | "Completed";
   tasks: string[]; // Task IDs
   scope: string; // Added scope to Project
+  cost_center?: string; // Added cost center to Project
   links?: {
     oneNote?: string;
     teams?: string;

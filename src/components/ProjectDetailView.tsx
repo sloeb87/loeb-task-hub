@@ -220,6 +220,10 @@ export const ProjectDetailView = ({
                   <span className="text-sm text-gray-900 dark:text-gray-100">{project.owner || 'No owner assigned'}</span>
                 </div>
               </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Cost Center</p>
+                <span className="text-sm text-gray-900 dark:text-gray-100">{project.cost_center || 'Not assigned'}</span>
+              </div>
             </div>
 
             <div>

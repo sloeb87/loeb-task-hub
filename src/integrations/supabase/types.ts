@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -105,6 +105,7 @@ export type Database = {
       }
       projects: {
         Row: {
+          cost_center: string | null
           created_at: string
           description: string | null
           end_date: string
@@ -118,6 +119,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          cost_center?: string | null
           created_at?: string
           description?: string | null
           end_date: string
@@ -131,6 +133,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          cost_center?: string | null
           created_at?: string
           description?: string | null
           end_date?: string
