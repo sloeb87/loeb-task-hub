@@ -557,7 +557,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-900 dark:text-white">{task.responsible}</span>
                       </div>
                       {task.stakeholders.length > 0 && (
