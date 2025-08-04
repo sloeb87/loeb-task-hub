@@ -39,7 +39,7 @@ export const ProjectTable = ({
 }: ProjectTableProps) => {
   const isMobile = useIsMobile();
   const { getScopeStyle } = useScopeColor();
-  const [expandedProject, setExpandedProject] = useState<string | null>(null);
+  
 
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
@@ -82,10 +82,6 @@ export const ProjectTable = ({
     return [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredProjects]);
 
-  const toggleExpanded = (projectId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setExpandedProject(expandedProject === projectId ? null : projectId);
-  };
 
   const handleRowClick = (project: Project) => {
     onUpdateProject(project);
@@ -164,9 +160,6 @@ export const ProjectTable = ({
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/50 border-border">
-                <TableHead style={{ minWidth: '50px' }}>
-                  {/* Empty header for expand/collapse */}
-                </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>
                   Scope
                 </TableHead>
@@ -188,161 +181,69 @@ export const ProjectTable = ({
             <TableBody>
               {sortedProjects.map(project => {
                 const stats = getProjectStats(project);
-                const isExpanded = expandedProject === project.id;
                 return (
-                  <React.Fragment key={`project-${project.id}`}>
-                    <TableRow className="hover:bg-muted/50 transition-colors cursor-pointer" onDoubleClick={() => handleRowClick(project)}>
-                      {/* Expand/Collapse Column */}
-                      <TableCell>
-                        <Button size="sm" variant="ghost" className="p-1 h-6 w-6" onClick={e => toggleExpanded(project.id, e)}>
-                          {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                        </Button>
-                      </TableCell>
+                  <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onDoubleClick={() => handleRowClick(project)}>
+                    {/* Scope Column */}
+                    <TableCell>
+                      <Badge 
+                        className="text-sm font-medium border"
+                        style={getScopeStyle(project.scope)}
+                      >
+                        {project.scope}
+                      </Badge>
+                    </TableCell>
 
-                      {/* Scope Column */}
-                      <TableCell>
-                        <Badge 
-                          className="text-sm font-medium border"
-                          style={getScopeStyle(project.scope)}
-                        >
-                          {project.scope}
-                        </Badge>
-                      </TableCell>
+                    {/* Project Name Column */}
+                    <TableCell>
+                      <div className="space-y-1">
+                        <h3 className="text-sm font-medium text-foreground">{project.name}</h3>
+                        <p className="text-xs text-muted-foreground line-clamp-2">{project.description}</p>
+                      </div>
+                    </TableCell>
 
-                      {/* Project Name Column */}
-                      <TableCell>
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-medium text-foreground">{project.name}</h3>
-                          <p className="text-xs text-muted-foreground line-clamp-2">{project.description}</p>
+                    {/* Owner & Team Column */}
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <Users className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">{project.owner}</span>
                         </div>
-                      </TableCell>
+                        <p className="text-xs text-muted-foreground">{project.team.length} team members</p>
+                      </div>
+                    </TableCell>
 
-                      {/* Owner & Team Column */}
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2">
-                            <Users className="w-3 h-3 text-muted-foreground" />
-                            <span className="text-sm font-medium text-foreground">{project.owner}</span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{project.team.length} team members</p>
+                    {/* Status & Progress Column */}
+                    <TableCell>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Badge className={`${getStatusColor(project.status)} text-xs px-2 py-1`}>
+                            {project.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {stats.completionRate}%
+                          </span>
                         </div>
-                      </TableCell>
-
-                      {/* Status & Progress Column */}
-                      <TableCell>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <Badge className={`${getStatusColor(project.status)} text-xs px-2 py-1`}>
-                              {project.status}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                              {stats.completionRate}%
-                            </span>
-                          </div>
-                          <Progress value={stats.completionRate} className="h-2" />
-                          <div className="text-xs text-muted-foreground">
-                            {stats.completedTasks}/{stats.totalTasks} tasks
-                            {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
-                          </div>
+                        <Progress value={stats.completionRate} className="h-2" />
+                        <div className="text-xs text-muted-foreground">
+                          {stats.completedTasks}/{stats.totalTasks} tasks
+                          {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
                         </div>
-                      </TableCell>
+                      </div>
+                    </TableCell>
 
-                      {/* Timeline Column */}
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                            <Calendar className="w-3 h-3" />
-                            <span>{project.startDate}</span>
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            to {project.endDate}
-                          </div>
+                    {/* Timeline Column */}
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                          <Calendar className="w-3 h-3" />
+                          <span>{project.startDate}</span>
                         </div>
-                      </TableCell>
-
-                    </TableRow>
-
-                    {/* Expanded Content */}
-                    {isExpanded && (
-                      <TableRow className="bg-muted/50">
-                        <TableCell colSpan={6}>
-                          <Card className="border-0 shadow-none">
-                            <CardContent className="p-4">
-                              <div className="flex items-center justify-between mb-4">
-                                <h4 className="text-sm font-medium text-foreground">Project Tasks</h4>
-                                <Button
-                                  size="sm"
-                                  onClick={() => onCreateTask({
-                                    title: '',
-                                    description: '',
-                                    status: 'Open',
-                                    priority: 'Medium',
-                                    responsible: '',
-                                    project: project.name,
-                                    startDate: new Date().toISOString().split('T')[0],
-                                    dueDate: '',
-                                    scope: project.scope,
-                                    taskType: 'Development',
-                                    environment: 'Development',
-                                    details: '',
-                                    links: {},
-                                    stakeholders: []
-                                  })}
-                                >
-                                  <Plus className="w-4 h-4 mr-1" />
-                                  Add Task
-                                </Button>
-                              </div>
-                              
-                              {stats.projectTasks.length > 0 ? (
-                                <div className="space-y-2">
-                                  {stats.projectTasks.map(task => (
-                                    <div key={task.id} className="flex items-center justify-between p-3 bg-background rounded border">
-                                      <div className="flex items-center space-x-3">
-                                        <Badge variant="outline" className="text-xs">
-                                          {task.id}
-                                        </Badge>
-                                        <span className="text-sm text-foreground">{task.title}</span>
-                                        <Badge className={`${getStatusColor(task.status)} text-xs`}>
-                                          {task.status}
-                                        </Badge>
-                                      </div>
-                                      <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                        <span>{task.responsible}</span>
-                                        <span>Due: {task.dueDate}</span>
-                                        <div className="flex gap-1">
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => onUpdateTask(task)}
-                                            className="h-6 w-6 p-0"
-                                          >
-                                            <Edit className="w-3 h-3" />
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            onClick={() => onDeleteTask(task.id)}
-                                            className="h-6 w-6 p-0"
-                                          >
-                                            <Trash2 className="w-3 h-3" />
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground text-center py-8">
-                                  No tasks assigned to this project yet.
-                                </p>
-                              )}
-                            </CardContent>
-                          </Card>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </React.Fragment>
+                        <div className="text-xs text-muted-foreground">
+                          to {project.endDate}
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
             </TableBody>
