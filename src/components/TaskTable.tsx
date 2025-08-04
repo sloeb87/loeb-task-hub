@@ -218,10 +218,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         <Button
           size="sm"
           variant="ghost"
-          className={`p-1 h-6 w-6 shrink-0 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+          className={`px-2 py-1 h-auto shrink-0 flex items-center gap-1 ${filters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
           onClick={(e) => toggleFilterDropdown(filterType, e)}
         >
           <Filter className="w-3 h-3" />
+          <span className="text-xs">Filter</span>
           {filters[filterType].length > 0 && (
             <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               {filters[filterType].length}
