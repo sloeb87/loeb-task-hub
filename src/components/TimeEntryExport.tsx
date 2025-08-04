@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Download, FileSpreadsheet } from "lucide-react";
+import { Download, FileSpreadsheet, FileText } from "lucide-react";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
+import * as XLSX from 'xlsx';
 
 interface TimeEntryExportProps {
   entries: TimeEntry[];
@@ -71,6 +72,61 @@ export const TimeEntryExport = ({ entries, filters, onExport }: TimeEntryExportP
     document.body.removeChild(link);
   };
 
+  const generateExcel = () => {
+    const headers = [
+      'Entry ID',
+      'Task ID', 
+      'Task Title',
+      'Project',
+      'Responsible',
+      'Date',
+      'Start Time',
+      'End Time',
+      'Duration (Hours)',
+      'Status',
+      'Description'
+    ];
+
+    const excelData = entries.map(entry => {
+      const startDate = new Date(entry.startTime);
+      const endDate = entry.endTime ? new Date(entry.endTime) : null;
+      
+      return [
+        entry.id,
+        entry.taskId,
+        entry.taskTitle,
+        entry.projectName,
+        entry.responsible,
+        startDate.toLocaleDateString(),
+        startDate.toLocaleTimeString(),
+        endDate ? endDate.toLocaleTimeString() : 'In Progress',
+        entry.duration ? formatTime(entry.duration) : '0:00',
+        entry.isRunning ? 'Running' : 'Completed',
+        entry.description || ''
+      ];
+    });
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...excelData]);
+    
+    // Auto-size columns
+    const colWidths = headers.map(() => ({ wch: 15 }));
+    ws['!cols'] = colWidths;
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Time Entries');
+    
+    // Generate filename with filters
+    let filename = 'time-entries';
+    if (filters.year) filename += `-${filters.year}`;
+    if (filters.month) filename += `-${filters.month}`;
+    filename += '.xlsx';
+    
+    // Download file
+    XLSX.writeFile(wb, filename);
+  };
+
   const totalTime = entries.reduce((sum, entry) => sum + (entry.duration || 0), 0);
   const completedEntries = entries.filter(entry => !entry.isRunning).length;
 
@@ -88,14 +144,26 @@ export const TimeEntryExport = ({ entries, filters, onExport }: TimeEntryExportP
         </div>
       </div>
       
-      <Button 
-        onClick={generateCSV}
-        className="flex items-center gap-2"
-        disabled={entries.length === 0}
-      >
-        <FileSpreadsheet className="w-4 h-4" />
-        Export to Excel
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button 
+          onClick={generateCSV}
+          variant="outline"
+          className="flex items-center gap-2"
+          disabled={entries.length === 0}
+        >
+          <FileText className="w-4 h-4" />
+          Export CSV
+        </Button>
+        
+        <Button 
+          onClick={generateExcel}
+          className="flex items-center gap-2"
+          disabled={entries.length === 0}
+        >
+          <FileSpreadsheet className="w-4 h-4" />
+          Export Excel
+        </Button>
+      </div>
     </div>
   );
 };
