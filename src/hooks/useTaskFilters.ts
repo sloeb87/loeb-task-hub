@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Task } from '@/types/task';
 
-export type FilterType = "all" | "open" | "inprogress" | "onhold" | "critical";
+export type FilterType = "all" | "open" | "inprogress" | "onhold" | "critical" | "active";
 
 export const useTaskFilters = (tasks: Task[], activeFilter: FilterType) => {
   const filteredTasks = useMemo(() => {
@@ -11,6 +11,8 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType) => {
           return task.status === "Open";
         case "inprogress":
           return task.status === "In Progress";
+        case "active":
+          return task.status === "Open" || task.status === "In Progress";
         case "onhold":
           return task.status === "On Hold";
         case "critical":
