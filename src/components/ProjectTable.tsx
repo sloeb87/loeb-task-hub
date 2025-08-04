@@ -324,7 +324,7 @@ export const ProjectTable = ({
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <Users className="w-3 h-3 text-muted-foreground" />
-                          <span className="text-sm font-medium text-foreground">{project.owner}</span>
+                          <span className="text-sm font-medium text-foreground">{project.owner || 'No owner assigned'}</span>
                         </div>
                         <p className="text-xs text-muted-foreground">{project.team.length} team members</p>
                       </div>
