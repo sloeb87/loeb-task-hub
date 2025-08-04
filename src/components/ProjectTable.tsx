@@ -280,7 +280,7 @@ export const ProjectTable = ({
               return <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
-                      <Badge className="text-sm font-medium border" style={getScopeStyle(project.scope)}>
+                      <Badge className="text-base font-medium border" style={getScopeStyle(project.scope)}>
                         {project.scope}
                       </Badge>
                     </TableCell>
@@ -288,8 +288,8 @@ export const ProjectTable = ({
                     {/* Project Name Column */}
                     <TableCell>
                       <div className="space-y-1">
-                        <h3 className="text-sm font-medium text-foreground">{project.name}</h3>
-                        <p className="text-xs text-muted-foreground line-clamp-2">{project.description}</p>
+                        <h3 className="text-base font-medium text-foreground">{project.name}</h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
                       </div>
                     </TableCell>
 
@@ -298,9 +298,9 @@ export const ProjectTable = ({
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           
-                          <span className="text-sm font-medium text-foreground">{project.owner || 'No owner assigned'}</span>
+                          <span className="text-base font-medium text-foreground">{project.owner || 'No owner assigned'}</span>
                         </div>
-                        <p className="text-xs text-muted-foreground">{project.team.length} team members</p>
+                        <p className="text-sm text-muted-foreground">{project.team.length} team members</p>
                       </div>
                     </TableCell>
 
@@ -308,15 +308,15 @@ export const ProjectTable = ({
                     <TableCell>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Badge className={`${getStatusColor(project.status)} text-xs px-2 py-1`}>
+                          <Badge className={`${getStatusColor(project.status)} text-sm px-2 py-1`}>
                             {project.status}
                           </Badge>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm text-muted-foreground">
                             {stats.completionRate}%
                           </span>
                         </div>
                         <Progress value={stats.completionRate} className="h-2" />
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
                           {stats.completedTasks}/{stats.totalTasks} tasks
                           {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
                         </div>
@@ -326,15 +326,15 @@ export const ProjectTable = ({
                     {/* Timeline Column */}
                     <TableCell>
                       <div className="space-y-1">
-                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                          <Calendar className="w-3 h-3" />
+                        <div className="flex items-center space-x-1 text-base text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
                           <span>{new Date(project.startDate).toLocaleDateString('en-GB', {
                           day: '2-digit',
                           month: '2-digit',
                           year: '2-digit'
                         })}</span>
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-sm text-muted-foreground">
                           to {new Date(project.endDate).toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: '2-digit',
