@@ -320,10 +320,10 @@ export const ProjectTable = ({
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                           <Calendar className="w-3 h-3" />
-                          <span>{project.startDate}</span>
+                          <span>{new Date(project.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          to {project.endDate}
+                          to {new Date(project.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                         </div>
                       </div>
                     </TableCell>
