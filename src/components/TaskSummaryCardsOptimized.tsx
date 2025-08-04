@@ -86,7 +86,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
   }, [tasks]);
 
   return (
-    <div className="grid grid-cols-5 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       {stats.map((stat) => {
         const Icon = stat.icon;
         const isActive = activeFilter === stat.filter;
@@ -102,14 +102,9 @@ export const TaskSummaryCardsOptimized = React.memo(({
             onClick={() => onFilterChange(stat.filter)}
           >
             <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
-                  {stat.title}
-                </CardTitle>
-                <div className={`p-2 rounded-full ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
-              </div>
+              <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                {stat.title}
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="flex items-baseline space-x-2">
