@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MessageSquare, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Task, FollowUp } from "@/types/task";
 import { useScopeColor } from "@/hooks/useScopeColor";
@@ -25,6 +27,15 @@ interface FollowUpFilters {
   environments?: string[];
 }
 
+interface MultiSelectFilters {
+  date: string[];
+  task: string[];
+  project: string[];
+  scope: string[];
+  type: string[];
+  environment: string[];
+}
+
 interface FollowUpWithTask extends FollowUp {
   taskId: string;
   taskTitle: string;
@@ -40,6 +51,34 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
   const { getEnvironmentStyle } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FollowUpFilters>({});
+  
+  // Multi-select filters
+  const [multiSelectFilters, setMultiSelectFilters] = useState<MultiSelectFilters>({
+    date: [],
+    task: [],
+    project: [],
+    scope: [],
+    type: [],
+    environment: []
+  });
+  
+  const [showFilters, setShowFilters] = useState<Record<keyof MultiSelectFilters, boolean>>({
+    date: false,
+    task: false,
+    project: false,
+    scope: false,
+    type: false,
+    environment: false
+  });
+  
+  const filterRefs = useRef<Record<keyof MultiSelectFilters, HTMLDivElement | null>>({
+    date: null,
+    task: null,
+    project: null,
+    scope: null,
+    type: null,
+    environment: null
+  });
 
   // Get all follow-ups with task information
   const allFollowUps = useMemo(() => {
@@ -62,11 +101,122 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   }, [tasks]);
 
+  // Get unique values for multi-select filters
+  const getUniqueValues = (filterType: keyof MultiSelectFilters): string[] => {
+    switch (filterType) {
+      case 'date':
+        return [...new Set(allFollowUps.map(f => new Date(f.timestamp).toLocaleDateString()))].sort();
+      case 'task':
+        return [...new Set(allFollowUps.map(f => f.taskTitle))].sort();
+      case 'project':
+        return [...new Set(allFollowUps.map(f => f.projectName))].sort();
+      case 'scope':
+        return [...new Set(allFollowUps.map(f => f.taskScope))].sort();
+      case 'type':
+        return [...new Set(allFollowUps.map(f => f.taskType))].sort();
+      case 'environment':
+        return [...new Set(allFollowUps.map(f => f.taskEnvironment))].sort();
+      default:
+        return [];
+    }
+  };
+
+  // Multi-select filter handlers
+  const handleFilterChange = (filterType: keyof MultiSelectFilters, value: string, checked: boolean) => {
+    setMultiSelectFilters(prev => ({
+      ...prev,
+      [filterType]: checked 
+        ? [...prev[filterType], value]
+        : prev[filterType].filter(item => item !== value)
+    }));
+  };
+
+  const clearFilter = (filterType: keyof MultiSelectFilters) => {
+    setMultiSelectFilters(prev => ({
+      ...prev,
+      [filterType]: []
+    }));
+  };
+
+  const toggleFilterDropdown = (filterType: keyof MultiSelectFilters, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setShowFilters(prev => ({
+      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {} as Record<keyof MultiSelectFilters, boolean>),
+      [filterType]: !prev[filterType]
+    }));
+  };
+
+  // Filter component for table headers
+  const FilterableHeader = ({ 
+    filterType, 
+    children 
+  }: { 
+    filterType: keyof MultiSelectFilters; 
+    children: React.ReactNode;
+  }) => (
+    <div className="flex items-center justify-between min-w-0">
+      <div className="flex items-center gap-1">
+        <span>{children}</span>
+        <div className="relative" ref={el => filterRefs.current[filterType] = el}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`p-1 h-6 w-6 shrink-0 ${multiSelectFilters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
+            onClick={(e) => toggleFilterDropdown(filterType, e)}
+          >
+            <Filter className="w-3 h-3" />
+          </Button>
+          {multiSelectFilters[filterType].length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+              {multiSelectFilters[filterType].length}
+            </span>
+          )}
+          {showFilters[filterType] && (
+            <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
+              <div className="space-y-2 max-h-80 overflow-y-auto">
+                {getUniqueValues(filterType).map(value => (
+                  <div key={value} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`${filterType}-${value}`}
+                      checked={multiSelectFilters[filterType].includes(value)}
+                      onCheckedChange={(checked) => 
+                        handleFilterChange(filterType, value, checked as boolean)
+                      }
+                    />
+                    <label 
+                      htmlFor={`${filterType}-${value}`}
+                      className="text-sm cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
+                      title={value}
+                    >
+                      {value}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {multiSelectFilters[filterType].length > 0 && (
+                <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => clearFilter(filterType)}
+                    className="w-full"
+                  >
+                    Clear All ({multiSelectFilters[filterType].length})
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   // Apply filters
   const filteredFollowUps = useMemo(() => {
     let filtered = allFollowUps;
 
-    // Apply date filters
+    // Apply existing date filters
     if (filters.dateRange || filters.year || filters.month) {
       filtered = filtered.filter(followUp => {
         const followUpDate = new Date(followUp.timestamp);
@@ -87,6 +237,26 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
       });
     }
 
+    // Apply multi-select filters
+    if (multiSelectFilters.date.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.date.includes(new Date(f.timestamp).toLocaleDateString()));
+    }
+    if (multiSelectFilters.task.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.task.includes(f.taskTitle));
+    }
+    if (multiSelectFilters.project.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.project.includes(f.projectName));
+    }
+    if (multiSelectFilters.scope.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.scope.includes(f.taskScope));
+    }
+    if (multiSelectFilters.type.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.type.includes(f.taskType));
+    }
+    if (multiSelectFilters.environment.length > 0) {
+      filtered = filtered.filter(f => multiSelectFilters.environment.includes(f.taskEnvironment));
+    }
+
     // Apply search filter
     if (searchTerm) {
       filtered = filtered.filter(followUp => 
@@ -100,7 +270,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     }
 
     return filtered;
-  }, [allFollowUps, filters, searchTerm]);
+  }, [allFollowUps, filters, multiSelectFilters, searchTerm]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -213,12 +383,24 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Scope</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Environment</TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="date">Date</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="task">Task</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="project">Project</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="scope">Scope</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="type">Type</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="environment">Environment</FilterableHeader>
+                  </TableHead>
                   <TableHead>Follow-Up</TableHead>
                 </TableRow>
               </TableHeader>
