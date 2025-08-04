@@ -38,6 +38,7 @@ interface SupabaseProject {
   start_date: string;
   end_date: string;
   status: string;
+  cost_center: string | null;
   links: any;
   created_at: string;
   updated_at: string;
@@ -101,18 +102,31 @@ export function useSupabaseStorage() {
     };
   }, []);
 
-  const convertSupabaseProjectToProject = (supabaseProject: SupabaseProject): Project => {
+  const convertSupabaseProjectToProject = async (supabaseProject: SupabaseProject): Promise<Project> => {
+    // Get owner name from user profile
+    let ownerName = 'Unknown';
+    if (supabaseProject.owner_id) {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', supabaseProject.owner_id)
+        .single();
+      
+      ownerName = profileData?.display_name || 'Unknown';
+    }
+
     return {
       id: supabaseProject.id,
       name: supabaseProject.name,
       description: supabaseProject.description || '',
-      owner: supabaseProject.owner_id,
+      owner: ownerName,
       team: [], // Will need to be handled separately if needed
       startDate: supabaseProject.start_date,
       endDate: supabaseProject.end_date,
       status: supabaseProject.status as any,
       tasks: [], // Will be populated from tasks
       scope: supabaseProject.scope,
+      cost_center: supabaseProject.cost_center || undefined,
       links: supabaseProject.links || {}
     };
   };
@@ -163,7 +177,9 @@ export function useSupabaseStorage() {
 
       if (error) throw error;
 
-      const convertedProjects = (data || []).map(convertSupabaseProjectToProject);
+      const convertedProjects = await Promise.all(
+        (data || []).map(convertSupabaseProjectToProject)
+      );
       setProjects(convertedProjects);
     } catch (err) {
       console.error('Error loading projects:', err);
@@ -362,6 +378,7 @@ export function useSupabaseStorage() {
         start_date: projectData.startDate,
         end_date: projectData.endDate,
         status: projectData.status,
+        cost_center: projectData.cost_center,
         links: projectData.links || {}
       })
       .select()
@@ -369,7 +386,7 @@ export function useSupabaseStorage() {
 
     if (error) throw error;
 
-    const newProject = convertSupabaseProjectToProject(data);
+    const newProject = await convertSupabaseProjectToProject(data);
     setProjects(prev => [newProject, ...prev]);
     return newProject;
   };
@@ -386,6 +403,7 @@ export function useSupabaseStorage() {
         start_date: updatedProject.startDate,
         end_date: updatedProject.endDate,
         status: updatedProject.status,
+        cost_center: updatedProject.cost_center,
         links: updatedProject.links || {}
       })
       .eq('id', updatedProject.id)
