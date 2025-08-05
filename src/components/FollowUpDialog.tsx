@@ -52,13 +52,16 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
+    console.log('Save button clicked!');
+    console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    
     if (!editingFollowUp) {
       console.log('No editingFollowUp');
       return;
     }
     
     if (!onUpdateFollowUp) {
-      console.log('No onUpdateFollowUp function');
+      console.log('No onUpdateFollowUp function - this is the problem!');
       return;
     }
     
@@ -66,7 +69,9 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
       const textToSave = editingText.trim() || 'No content';
       const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
       
+      console.log('Saving changes:', { text: textToSave, timestamp: newTimestamp });
       await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
+      console.log('Save successful!');
       
       // Exit edit mode
       setEditingFollowUp(null);
