@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { GanttChart } from "@/components/GanttChart";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { 
@@ -14,19 +14,18 @@ import {
   Search, 
   Download, 
   Calendar,
-  Users,
   Target,
-  Clock,
-  AlertTriangle,
   CheckCircle2,
   PlayCircle,
   PauseCircle,
-  Settings,
+  Clock,
+  AlertTriangle,
   FullscreenIcon,
-  Minimize2
+  Minimize2,
+  Settings,
+  BarChart3
 } from "lucide-react";
-import { Task, TaskStatus, TaskPriority, Project } from "@/types/task";
-import { mockProjects } from "@/data/mockData";
+import { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
@@ -44,6 +43,7 @@ const GanttView = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
   // Check if project is specified in URL params
   useEffect(() => {
@@ -62,7 +62,8 @@ const GanttView = () => {
       const searchMatch = searchTerm === "" || 
         task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
+        task.responsible.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        task.id.toLowerCase().includes(searchTerm.toLowerCase());
       
       return projectMatch && statusMatch && priorityMatch && searchMatch;
     });
@@ -116,6 +117,7 @@ const GanttView = () => {
     try {
       await updateTask(updatedTask);
       setSelectedTask(null);
+      setIsTaskFormOpen(false);
       toast({
         title: "Task Updated",
         description: `Task "${updatedTask.title}" has been updated successfully.`,
@@ -130,15 +132,25 @@ const GanttView = () => {
   };
 
   const handleTasksChange = async (updatedTasks: Task[]) => {
-    // Update tasks via Supabase storage
+    // Find which tasks changed and update them
+    const tasksToUpdate = updatedTasks.filter(updatedTask => {
+      const originalTask = tasks.find(t => t.id === updatedTask.id);
+      return originalTask && (
+        originalTask.startDate !== updatedTask.startDate ||
+        originalTask.dueDate !== updatedTask.dueDate
+      );
+    });
+
     try {
-      for (const task of updatedTasks) {
+      for (const task of tasksToUpdate) {
         await updateTask(task);
       }
-      toast({
-        title: "Tasks Updated",
-        description: "Tasks have been synchronized successfully.",
-      });
+      if (tasksToUpdate.length > 0) {
+        toast({
+          title: "Tasks Updated",
+          description: `${tasksToUpdate.length} task(s) rescheduled successfully.`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -148,12 +160,24 @@ const GanttView = () => {
     }
   };
 
+  const handleEditTask = (task: Task) => {
+    setSelectedTask(task);
+    setIsTaskFormOpen(true);
+  };
+
   const exportGantt = () => {
     toast({
       title: "Export Started",
       description: "Gantt chart export is being prepared...",
     });
     // Here you would implement actual export functionality
+  };
+
+  const clearFilters = () => {
+    setSelectedProject("all");
+    setStatusFilter("all");
+    setPriorityFilter("all");
+    setSearchTerm("");
   };
 
   const getStatusStats = () => {
@@ -168,10 +192,11 @@ const GanttView = () => {
   };
 
   const stats = getStatusStats();
+  const hasActiveFilters = selectedProject !== "all" || statusFilter !== "all" || priorityFilter !== "all" || searchTerm !== "";
 
   return (
     <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
-      {/* Enhanced Header */}
+      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
@@ -185,14 +210,31 @@ const GanttView = () => {
                 <ArrowLeft className="w-4 h-4" />
                 Back to Dashboard
               </Button>
-              <div className="h-6 w-px bg-gray-300" />
+              <Separator orientation="vertical" className="h-6" />
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Project Gantt Chart</h1>
-                <p className="text-sm text-gray-600">Interactive timeline view</p>
+                <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5" />
+                  Gantt Timeline
+                </h1>
+                <p className="text-sm text-gray-600">Interactive project timeline</p>
               </div>
             </div>
             
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className={`flex items-center gap-2 ${hasActiveFilters ? 'bg-blue-50 border-blue-300' : ''}`}
+              >
+                <Filter className="w-4 h-4" />
+                Filters
+                {hasActiveFilters && (
+                  <Badge variant="secondary" className="ml-1 h-4 text-xs">
+                    {[selectedProject !== "all", statusFilter !== "all", priorityFilter !== "all", searchTerm !== ""].filter(Boolean).length}
+                  </Badge>
+                )}
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -218,7 +260,6 @@ const GanttView = () => {
                 className="flex items-center gap-2"
               >
                 {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <FullscreenIcon className="w-4 h-4" />}
-                {isFullscreen ? 'Exit' : 'Fullscreen'}
               </Button>
             </div>
           </div>
@@ -226,169 +267,146 @@ const GanttView = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Enhanced Controls Panel */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filters & Controls
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="filters" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="filters">Filters</TabsTrigger>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="settings">Settings</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="filters" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  {/* Search */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Search Tasks</label>
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder="Search tasks..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <Target className="w-4 h-4 text-blue-500" />
+              <div>
+                <p className="text-sm text-gray-600">Total</p>
+                <p className="text-xl font-bold">{stats.total}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              <div>
+                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-xl font-bold text-green-600">{stats.completed}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <PlayCircle className="w-4 h-4 text-blue-500" />
+              <div>
+                <p className="text-sm text-gray-600">In Progress</p>
+                <p className="text-xl font-bold text-blue-600">{stats.inProgress}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <Clock className="w-4 h-4 text-orange-500" />
+              <div>
+                <p className="text-sm text-gray-600">Open</p>
+                <p className="text-xl font-bold text-orange-600">{stats.open}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center space-x-2">
+              <PauseCircle className="w-4 h-4 text-gray-500" />
+              <div>
+                <p className="text-sm text-gray-600">On Hold</p>
+                <p className="text-xl font-bold text-gray-600">{stats.onHold}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
 
-                  {/* Project Filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Project</label>
-                    <Select value={selectedProject} onValueChange={setSelectedProject}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Projects</SelectItem>
-                        {projects.map((project) => (
-                          <SelectItem key={project.id} value={project.name}>
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status Filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Status</label>
-                    <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TaskStatus | "all")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="Open">Open</SelectItem>
-                        <SelectItem value="In Progress">In Progress</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="On Hold">On Hold</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Priority Filter */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Priority</label>
-                    <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as TaskPriority | "all")}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select priority" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Priorities</SelectItem>
-                        <SelectItem value="Low">Low</SelectItem>
-                        <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                        <SelectItem value="Critical">Critical</SelectItem>
-                      </SelectContent>
-                    </Select>
+        {/* Filters Panel */}
+        {showFilters && (
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Filter className="w-5 h-5" />
+                  Filters
+                </CardTitle>
+                {hasActiveFilters && (
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear All
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Search */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Search</label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
                 </div>
-              </TabsContent>
 
-              <TabsContent value="overview" className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <Target className="w-4 h-4 text-blue-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Total Tasks</p>
-                          <p className="text-xl font-bold">{stats.total}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <CheckCircle2 className="w-4 h-4 text-green-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Completed</p>
-                          <p className="text-xl font-bold text-green-600">{stats.completed}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <PlayCircle className="w-4 h-4 text-blue-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">In Progress</p>
-                          <p className="text-xl font-bold text-blue-600">{stats.inProgress}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-orange-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">Open</p>
-                          <p className="text-xl font-bold text-orange-600">{stats.open}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center space-x-2">
-                        <PauseCircle className="w-4 h-4 text-gray-500" />
-                        <div>
-                          <p className="text-sm text-gray-600">On Hold</p>
-                          <p className="text-xl font-bold text-gray-600">{stats.onHold}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                {/* Project Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Project</label>
+                  <Select value={selectedProject} onValueChange={setSelectedProject}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={project.name}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              </TabsContent>
 
-              <TabsContent value="settings" className="space-y-4">
-                <div className="text-sm text-gray-600">
-                  <p>• Click on any task to edit its details</p>
-                  <p>• Drag tasks to move them in time</p>
-                  <p>• Drag the edges to resize task duration</p>
-                  <p>• Hover over tasks to see resize handles</p>
-                  <p>• Use the dependency panel below to manage task relationships</p>
-                  <p>• Click on comments in tasks to edit them</p>
+                {/* Status Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as TaskStatus | "all")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="Open">Open</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="On Hold">On Hold</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+
+                {/* Priority Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priority</label>
+                  <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as TaskPriority | "all")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Priorities</SelectItem>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Critical">Critical</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Results Info */}
         <div className="mb-4 flex items-center justify-between">
@@ -396,12 +414,12 @@ const GanttView = () => {
             Showing {filteredTasks.length} of {tasks.length} tasks
             {selectedProject !== "all" && (
               <Badge variant="outline" className="ml-2">
-                Project: {selectedProject}
+                {selectedProject}
               </Badge>
             )}
           </div>
           
-          {filteredTasks.length === 0 && (
+          {filteredTasks.length === 0 && tasks.length > 0 && (
             <div className="text-sm text-amber-600 flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
               No tasks match the current filters
@@ -409,14 +427,14 @@ const GanttView = () => {
           )}
         </div>
 
-        {/* Enhanced Gantt Chart */}
+        {/* Gantt Chart */}
         {filteredTasks.length > 0 ? (
           <GanttChart
             tasks={filteredTasks}
             onTasksChange={handleTasksChange}
             projectStartDate={projectDateRange.startDate}
             projectEndDate={projectDateRange.endDate}
-            onEditTask={setSelectedTask}
+            onEditTask={handleEditTask}
           />
         ) : (
           <Card>
@@ -435,7 +453,7 @@ const GanttView = () => {
                   className="mt-4"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create First Task
+                  Create Task
                 </Button>
               </div>
             </CardContent>
@@ -443,19 +461,17 @@ const GanttView = () => {
         )}
 
         {/* Task Form Dialog */}
-        {(isTaskFormOpen || selectedTask) && (
-          <TaskFormOptimized
-            isOpen={isTaskFormOpen || !!selectedTask}
-            onClose={() => {
-              setIsTaskFormOpen(false);
-              setSelectedTask(null);
-            }}
-            onSave={selectedTask ? handleUpdateTask : handleCreateTask}
-            task={selectedTask}
-            allTasks={tasks}
-            allProjects={projects}
-          />
-        )}
+        <TaskFormOptimized 
+          isOpen={isTaskFormOpen} 
+          onClose={() => {
+            setIsTaskFormOpen(false);
+            setSelectedTask(null);
+          }} 
+          onSave={selectedTask ? handleUpdateTask : handleCreateTask} 
+          task={selectedTask} 
+          allTasks={tasks} 
+          allProjects={projects}
+        />
       </div>
     </div>
   );
