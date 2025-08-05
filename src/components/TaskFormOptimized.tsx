@@ -28,6 +28,7 @@ interface TaskFormProps {
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onDelete?: (taskId: string) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
+  onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
   task?: Task | null;
   allTasks: Task[];
   allProjects: Project[];
@@ -90,6 +91,7 @@ export const TaskFormOptimized = React.memo(({
   onSave, 
   onDelete,
   onAddFollowUp,
+  onUpdateFollowUp,
   task, 
   allTasks, 
   allProjects, 
@@ -797,6 +799,7 @@ export const TaskFormOptimized = React.memo(({
           isOpen={followUpDialogOpen}
           onClose={() => setFollowUpDialogOpen(false)}
           onAddFollowUp={handleFollowUpAdd}
+          onUpdateFollowUp={onUpdateFollowUp}
           task={task}
         />
       )}
