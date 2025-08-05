@@ -109,10 +109,11 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
       await onUpdateFollowUp(task.id, editingFollowUp, textToSave, newTimestamp);
       console.log('Save successful!');
       
-      // Exit edit mode
+      // Exit edit mode and close dialog to refresh data
       setEditingFollowUp(null);
       setEditingText('');
       setEditingTimestamp('');
+      onClose(); // Close dialog so it refreshes when reopened
     } catch (error) {
       console.error('Save error:', error);
     }
