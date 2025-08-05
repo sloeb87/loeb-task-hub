@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor, usePriorityColor } from '@/hooks/useParameterColors';
@@ -89,133 +89,135 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   // Remove duplicate functions - now using utilities
   // isOverdue and getDueDateColor are imported from utils
 
-  const getUniqueValues = (filterType: keyof Filters): string[] => {
-    if (filterType === 'dueDate') {
-      return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
-    }
-    
-    if (filterType === 'followUps') {
-      // Only return options that actually exist in the data
-      const hasFollowUps = tasks.some(task => task.followUps && task.followUps.length > 0);
-      const hasNoFollowUps = tasks.some(task => !task.followUps || task.followUps.length === 0);
+  const getUniqueValues = useMemo(() => {
+    return (filterType: keyof Filters): string[] => {
+      if (filterType === 'dueDate') {
+        return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
+      }
       
-      const options = [];
-      if (hasFollowUps) options.push('Has Follow-ups');
-      if (hasNoFollowUps) options.push('No Follow-ups');
-      return options;
-    }
-    
-    if (filterType === 'timeTracking') {
-      // Only return options that actually exist in the data
-      const options = [];
-      const hasTimeLogged = tasks.some(task => {
-        const taskTime = getTaskTime(task.id);
-        return taskTime.totalTime > 0 && !taskTime.isRunning;
-      });
-      const hasNoTime = tasks.some(task => {
-        const taskTime = getTaskTime(task.id);
-        return taskTime.totalTime === 0 && !taskTime.isRunning;
-      });
-      const hasRunning = tasks.some(task => {
-        const taskTime = getTaskTime(task.id);
-        return taskTime.isRunning;
-      });
+      if (filterType === 'followUps') {
+        // Only return options that actually exist in the data
+        const hasFollowUps = tasks.some(task => task.followUps && task.followUps.length > 0);
+        const hasNoFollowUps = tasks.some(task => !task.followUps || task.followUps.length === 0);
+        
+        const options = [];
+        if (hasFollowUps) options.push('Has Follow-ups');
+        if (hasNoFollowUps) options.push('No Follow-ups');
+        return options;
+      }
       
-      if (hasTimeLogged) options.push('Has Time Logged');
-      if (hasNoTime) options.push('No Time Logged');
-      if (hasRunning) options.push('Currently Running');
-      return options;
-    }
-    
-    // For actual Task properties - only return values that exist in the data
-    const field = filterType as keyof Task;
-    const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
-    
-    return values.sort();
-  };
+      if (filterType === 'timeTracking') {
+        // Only return options that actually exist in the data
+        const options = [];
+        const hasTimeLogged = tasks.some(task => {
+          const taskTime = getTaskTime(task.id);
+          return taskTime.totalTime > 0 && !taskTime.isRunning;
+        });
+        const hasNoTime = tasks.some(task => {
+          const taskTime = getTaskTime(task.id);
+          return taskTime.totalTime === 0 && !taskTime.isRunning;
+        });
+        const hasRunning = tasks.some(task => {
+          const taskTime = getTaskTime(task.id);
+          return taskTime.isRunning;
+        });
+        
+        if (hasTimeLogged) options.push('Has Time Logged');
+        if (hasNoTime) options.push('No Time Logged');
+        if (hasRunning) options.push('Currently Running');
+        return options;
+      }
+      
+      // For actual Task properties - only return values that exist in the data
+      const field = filterType as keyof Task;
+      const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
+      
+      return values.sort();
+    };
+  }, [tasks, getTaskTime]);
 
-  const handleSort = (field: SortField) => {
+  const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
       setSortDirection('asc');
     }
-  };
+  }, [sortField, sortDirection]);
 
-  const handleFilterChange = (filterType: keyof Filters, value: string, checked: boolean) => {
+  const handleFilterChange = useCallback((filterType: keyof Filters, value: string, checked: boolean) => {
     setFilters(prev => ({
       ...prev,
       [filterType]: checked 
         ? [...prev[filterType], value]
         : prev[filterType].filter(item => item !== value)
     }));
-  };
+  }, []);
 
-  const toggleFilterDropdown = (filterType: string, e: React.MouseEvent) => {
+  const toggleFilterDropdown = useCallback((filterType: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Filter button clicked:', filterType);
     setShowFilters(prev => {
       const newState = Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {});
       newState[filterType] = !prev[filterType];
-      console.log('New filter state:', newState);
       return newState;
     });
-  };
+  }, []);
 
-  const clearFilter = (filterType: keyof Filters) => {
+  const clearFilter = useCallback((filterType: keyof Filters) => {
     setFilters(prev => ({ ...prev, [filterType]: [] }));
-  };
+  }, []);
 
-  const filteredAndSortedTasks = tasks
-    .filter(task => {
-      const matchesSearch = searchTerm === "" || 
-        task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
-      if (!matchesSearch) return false;
-      if (filters.scope.length > 0 && !filters.scope.includes(task.scope)) return false;
-      if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
-      if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
-      if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
-      if (filters.responsible.length > 0 && !filters.responsible.includes(task.responsible)) return false;
-      if (filters.dueDate.length > 0 && !filters.dueDate.includes(new Date(task.dueDate).toLocaleDateString())) return false;
-      
-      // Follow-ups filter
-      if (filters.followUps.length > 0) {
-        const hasFollowUps = task.followUps && task.followUps.length > 0;
-        const followUpStatus = hasFollowUps ? 'Has Follow-ups' : 'No Follow-ups';
-        if (!filters.followUps.includes(followUpStatus)) return false;
-      }
-      
-      // Time tracking filter
-      if (filters.timeTracking.length > 0) {
-        const taskTime = getTaskTime(task.id);
-        let timeStatus = 'No Time Logged';
-        if (taskTime.isRunning) {
-          timeStatus = 'Currently Running';
-        } else if (taskTime.totalTime > 0) {
-          timeStatus = 'Has Time Logged';
+  const filteredAndSortedTasks = useMemo(() => {
+    return tasks
+      .filter(task => {
+        const matchesSearch = searchTerm === "" || 
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
+        if (!matchesSearch) return false;
+        if (filters.scope.length > 0 && !filters.scope.includes(task.scope)) return false;
+        if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
+        if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
+        if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
+        if (filters.responsible.length > 0 && !filters.responsible.includes(task.responsible)) return false;
+        if (filters.dueDate.length > 0 && !filters.dueDate.includes(new Date(task.dueDate).toLocaleDateString())) return false;
+        
+        // Follow-ups filter
+        if (filters.followUps.length > 0) {
+          const hasFollowUps = task.followUps && task.followUps.length > 0;
+          const followUpStatus = hasFollowUps ? 'Has Follow-ups' : 'No Follow-ups';
+          if (!filters.followUps.includes(followUpStatus)) return false;
         }
-        if (!filters.timeTracking.includes(timeStatus)) return false;
-      }
-      
-      return true;
-    })
-    .sort((a, b) => {
-      let aValue: string | number = a[sortField];
-      let bValue: string | number = b[sortField];
+        
+        // Time tracking filter
+        if (filters.timeTracking.length > 0) {
+          const taskTime = getTaskTime(task.id);
+          let timeStatus = 'No Time Logged';
+          if (taskTime.isRunning) {
+            timeStatus = 'Currently Running';
+          } else if (taskTime.totalTime > 0) {
+            timeStatus = 'Has Time Logged';
+          }
+          if (!filters.timeTracking.includes(timeStatus)) return false;
+        }
+        
+        return true;
+      })
+      .sort((a, b) => {
+        let aValue: string | number = a[sortField];
+        let bValue: string | number = b[sortField];
 
-      if (sortField === 'dueDate') {
-        aValue = new Date(aValue as string).getTime();
-        bValue = new Date(bValue as string).getTime();
-      }
+        if (sortField === 'dueDate') {
+          aValue = new Date(aValue as string).getTime();
+          bValue = new Date(bValue as string).getTime();
+        }
 
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+  }, [tasks, searchTerm, filters, sortField, sortDirection, getTaskTime]);
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <div 
@@ -305,24 +307,22 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
   };
 
-  const handleRowClick = (task: Task, e: React.MouseEvent) => {
+  const handleRowClick = useCallback((task: Task, e: React.MouseEvent) => {
     // Ensure we're not clicking on interactive elements within the row
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('a') || target.closest('.follow-up-section')) {
       return;
     }
     
-    console.log('Task row clicked - calling onEditTask with:', task);
     onEditTask(task);
-  };
+  }, [onEditTask]);
 
-  const handleFollowUpClick = (task: Task, e: React.MouseEvent) => {
+  const handleFollowUpClick = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
-    console.log('Follow-up clicked for task:', task.title);
     onFollowUp(task); // Use the parent's follow-up system
-  };
+  }, [onFollowUp]);
 
-  const handleTimerToggle = (task: Task, e: React.MouseEvent) => {
+  const handleTimerToggle = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
     const taskTime = getTaskTime(task.id);
     if (taskTime.isRunning) {
@@ -330,7 +330,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     } else {
       startTimer(task.id, task.title, task.project, task.responsible);
     }
-  };
+  }, [getTaskTime, stopTimer, startTimer]);
 
   // formatTime is now imported from utils
 
