@@ -700,23 +700,18 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                           Click to add follow-up
                         </div>
                       ) : (
-                        task.followUps
-                          .slice(-3)
-                          .reverse()
-                          .map((followUp, index) => (
-                            <div key={followUp.id} className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
-                              <div className="text-xs text-gray-400 mb-1">
-                                {new Date(followUp.timestamp).toLocaleDateString()}
-                              </div>
-                              <div className="text-xs text-gray-600 dark:text-gray-300">
-                                {followUp.text}
-                              </div>
-                            </div>
-                          ))
+                        <div className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
+                          <div className="text-xs text-gray-400 mb-1">
+                            {new Date(task.followUps[task.followUps.length - 1].timestamp).toLocaleDateString()}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                            {task.followUps[task.followUps.length - 1].text}
+                          </div>
+                        </div>
                       )}
-                      {task.followUps.length > 3 && (
+                      {task.followUps.length > 1 && (
                         <div className="text-xs text-blue-600 dark:text-blue-400 italic">
-                          +{task.followUps.length - 3} more...
+                          +{task.followUps.length - 1} more...
                         </div>
                       )}
                     </div>
