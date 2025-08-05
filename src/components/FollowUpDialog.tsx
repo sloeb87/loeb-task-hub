@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types/task";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User, Edit, Save, X } from "lucide-react";
 
 interface FollowUpDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAddFollowUp: (text: string) => void;
+  onUpdateFollowUp?: (followUpId: string, text: string, timestamp?: string) => void;
   task: Task;
 }
 
-export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, task }: FollowUpDialogProps) => {
+export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowUp, task }: FollowUpDialogProps) => {
   const [followUpText, setFollowUpText] = useState('');
+  const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingTimestamp, setEditingTimestamp] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +32,39 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, task }: FollowU
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString();
+  };
+
+  const formatDateForInput = (dateString: string) => {
+    const date = new Date(dateString);
+    // Format for datetime-local input
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const handleEditFollowUp = (followUp: any) => {
+    setEditingFollowUp(followUp.id);
+    setEditingText(followUp.text);
+    setEditingTimestamp(formatDateForInput(followUp.timestamp));
+  };
+
+  const handleSaveEdit = () => {
+    if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
+      const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+      onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
+      setEditingFollowUp(null);
+      setEditingText('');
+      setEditingTimestamp('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingFollowUp(null);
+    setEditingText('');
+    setEditingTimestamp('');
   };
 
   return (
@@ -66,15 +104,63 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, task }: FollowU
               <div className="space-y-3 max-h-40 overflow-y-auto">
                 {task.followUps.map((followUp) => (
                   <div key={followUp.id} className="bg-blue-50 rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="text-sm font-medium text-blue-900">
-                        {followUp.author}
-                      </span>
-                      <span className="text-xs text-blue-600">
-                        {formatDate(followUp.timestamp)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700">{followUp.text}</p>
+                    {editingFollowUp === followUp.id ? (
+                      // Edit mode
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-sm font-medium text-blue-900">
+                            {followUp.author}
+                          </span>
+                          <div className="flex space-x-2">
+                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
+                              <Save className="w-3 h-3" />
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Input
+                            type="datetime-local"
+                            value={editingTimestamp}
+                            onChange={(e) => setEditingTimestamp(e.target.value)}
+                            className="text-xs"
+                          />
+                          <Textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="text-sm"
+                            rows={3}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      // View mode
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="text-sm font-medium text-blue-900">
+                            {followUp.author}
+                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-blue-600">
+                              {formatDate(followUp.timestamp)}
+                            </span>
+                            {onUpdateFollowUp && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => handleEditFollowUp(followUp)}
+                                className="p-1 h-6 w-6"
+                              >
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-700">{followUp.text}</p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

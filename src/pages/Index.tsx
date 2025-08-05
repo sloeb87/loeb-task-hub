@@ -30,6 +30,7 @@ const Index = () => {
     createTask,
     updateTask,
     addFollowUp,
+    updateFollowUp,
     deleteTask,
     createProject,
     updateProject,
@@ -102,6 +103,15 @@ const Index = () => {
       // You could add a toast notification here
     }
   }, [addFollowUp]);
+
+  const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
+    try {
+      await updateFollowUp(followUpId, text, timestamp);
+    } catch (error) {
+      console.error('Failed to update follow-up:', error);
+      // You could add a toast notification here
+    }
+  }, [updateFollowUp]);
   const handleFollowUpTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
     updateTask(updatedTask);
@@ -219,7 +229,7 @@ const Index = () => {
         />
 
         {/* Follow Up Dialog */}
-        {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} task={followUpTask} />}
+        {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} onUpdateFollowUp={handleUpdateFollowUpWrapper} task={followUpTask} />}
 
         {/* Parameters Dialog */}
         <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />
