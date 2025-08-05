@@ -8,7 +8,15 @@ import { Task } from '@/types/task';
 // Date utilities
 export const isOverdue = (dueDate: string, status: string): boolean => {
   if (status === "Completed") return false;
-  return new Date(dueDate) < new Date();
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  
+  // Only consider overdue if date is strictly in the past (not today)
+  return due < today;
 };
 
 export const getDueDateColor = (dueDate: string, status: string): string => {
@@ -24,6 +32,7 @@ export const getDueDateColor = (dueDate: string, status: string): string => {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
+  if (diffDays === 0) return "text-red-600 dark:text-red-400"; // Due today (red)
   if (diffDays <= 3) return "text-orange-600 dark:text-orange-400"; // Within 3 days
   if (diffDays <= 7) return "text-yellow-600 dark:text-yellow-400"; // Within 7 days
   

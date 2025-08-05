@@ -35,9 +35,14 @@ export const getPriorityColor = (priority: TaskPriority): string => {
 // Check if task is overdue
 export const isOverdue = (dueDate: string, status: TaskStatus): boolean => {
   if (status === "Completed") return false;
-  const due = new Date(dueDate);
+  
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  
+  const due = new Date(dueDate);
+  due.setHours(0, 0, 0, 0);
+  
+  // Only consider overdue if date is strictly in the past (not today)
   return due < today;
 };
 
