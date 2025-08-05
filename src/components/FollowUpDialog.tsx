@@ -57,17 +57,22 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleEditFollowUp = (followUp: any) => {
+    console.log('Edit button clicked for follow-up:', followUp.id, followUp.text);
     setEditingFollowUp(followUp.id);
     setEditingText(followUp.text);
     setEditingTimestamp(formatDateForInput(followUp.timestamp));
+    console.log('Edit state set:', { id: followUp.id, text: followUp.text });
   };
 
   const handleSaveEdit = async () => {
     console.log('Save button clicked!');
+    console.log('editingFollowUp:', editingFollowUp);
+    console.log('editingText:', editingText);
+    console.log('editingTimestamp:', editingTimestamp);
     console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
     
     if (!editingFollowUp) {
-      console.log('No editingFollowUp');
+      console.log('No editingFollowUp - cannot save!');
       return;
     }
     
