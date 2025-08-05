@@ -249,7 +249,7 @@ const Index = () => {
             isOpen={!!followUpTask} 
             onClose={() => setFollowUpTask(null)} 
             onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-            onUpdateFollowUp={(followUpId, text, timestamp) => handleUpdateFollowUpWrapper(followUpId, text, timestamp)} 
+            onUpdateFollowUp={handleUpdateFollowUpWrapper} 
             task={followUpTask} 
           />
         )}
