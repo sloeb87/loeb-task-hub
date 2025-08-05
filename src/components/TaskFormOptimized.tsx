@@ -313,7 +313,7 @@ export const TaskFormOptimized = React.memo(({
               
               {/* Left Side - Main Form */}
               {!isTaskDetailsCollapsed && (
-                <div className="flex-1">
+                <div className="flex-[0.6]">
             <div className="space-y-6">
               {/* Task Details Section */}
               <div className="space-y-4">
@@ -688,7 +688,7 @@ export const TaskFormOptimized = React.memo(({
               {task && (
                 <div className={cn(
                   "border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0 transition-all duration-300",
-                  isTaskDetailsCollapsed ? "w-full border-l-0 pl-0 max-w-none" : "w-80"
+                  isTaskDetailsCollapsed ? "w-full border-l-0 pl-0 max-w-none" : "flex-[0.4]"
                 )}>
                   <div className="mb-4">
                   <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
