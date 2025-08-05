@@ -260,6 +260,12 @@ export const TaskFormOptimized = React.memo(({
     }
   };
 
+  const handleFollowUpClick = (followUpId?: string) => {
+    console.log('Opening FollowUpDialog from TaskFormOptimized with onUpdateFollowUp:', !!onUpdateFollowUp);
+    console.log('Selected follow-up ID:', followUpId);
+    setFollowUpDialogOpen(true);
+  };
+
   const handleStartTimer = () => {
     if (task) {
       startTimer(task.id, task.title, task.project, task.responsible);
@@ -735,7 +741,7 @@ export const TaskFormOptimized = React.memo(({
                            <div 
                              key={followUp.id} 
                              className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
-                             onClick={() => setFollowUpDialogOpen(true)}
+                             onClick={() => handleFollowUpClick(followUp.id)}
                              title="Click to edit this follow-up"
                            >
                              <div className="flex items-center gap-3">

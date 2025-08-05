@@ -21,6 +21,13 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   const [editingText, setEditingText] = useState('');
   const [editingTimestamp, setEditingTimestamp] = useState('');
 
+  // Debug logging
+  console.log('FollowUpDialog received props:', { 
+    hasOnUpdateFollowUp: !!onUpdateFollowUp, 
+    taskId: task?.id,
+    isOpen 
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (followUpText.trim()) {
