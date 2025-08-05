@@ -457,21 +457,6 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <FilterableHeader filterType="project">Project</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
-                    <FilterableHeader filterType="scope">Scope</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
-                    <FilterableHeader filterType="type">Type</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
-                    <FilterableHeader filterType="environment">Environment</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
-                    <FilterableHeader filterType="task">Task</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
                     <FilterableHeader filterType="date">Date</FilterableHeader>
                   </TableHead>
                   <TableHead>Status</TableHead>
@@ -484,7 +469,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                   <React.Fragment key={projectName}>
                     {/* Project Header Row */}
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
-                      <TableCell colSpan={9} className="font-semibold text-lg py-3">
+                      <TableCell colSpan={4} className="font-semibold text-lg py-3">
                         📁 {projectName}
                       </TableCell>
                     </TableRow>
@@ -493,7 +478,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                       <React.Fragment key={`${projectName}-${taskTitle}`}>
                         {/* Task Header Row with Scope, Type, Environment */}
                         <TableRow className="bg-muted/30 hover:bg-muted/30">
-                          <TableCell colSpan={9} className="font-medium text-base py-2 pl-8">
+                          <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
                             <div className="flex items-center gap-3">
                               <span>📋 {taskTitle}</span>
                               <Badge style={getScopeStyle(followUps[0].taskScope)} className="text-xs border">
@@ -516,63 +501,8 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                             className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
                             onClick={(e) => handleRowClick(followUp, e)}
                           >
-                            {/* Project Column */}
-                            <TableCell className="pl-12">
-                              <div className="flex items-center">
-                                <Badge 
-                                  style={getScopeStyle(followUp.taskScope)}
-                                  className="text-sm border"
-                                >
-                                  {followUp.projectName}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            {/* Scope Column */}
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Badge 
-                                  style={getScopeStyle(followUp.taskScope)}
-                                  className="text-sm border"
-                                >
-                                  {followUp.taskScope}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            {/* Type Column */}
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Badge 
-                                  style={getTaskTypeStyle(followUp.taskType)}
-                                  className="text-sm border"
-                                >
-                                  {followUp.taskType}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            {/* Environment Column */}
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Badge 
-                                  style={getEnvironmentStyle(followUp.taskEnvironment)}
-                                  className="text-sm border"
-                                >
-                                  {followUp.taskEnvironment}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            {/* Task Column */}
-                            <TableCell className="max-w-xs">
-                              <div className="truncate" title={followUp.taskTitle}>
-                                {followUp.taskTitle}
-                              </div>
-                            </TableCell>
-                            
                             {/* Date Column */}
-                            <TableCell>
+                            <TableCell className="pl-12">
                               {editingFollowUp === followUp.id ? (
                                 <div className="edit-controls">
                                   <Input
