@@ -52,12 +52,22 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = () => {
+    console.log('Save button clicked!');
+    console.log('editingFollowUp:', editingFollowUp);
+    console.log('onUpdateFollowUp:', onUpdateFollowUp);
+    console.log('editingText:', editingText);
+    console.log('editingText.trim():', editingText.trim());
+    
     if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
+      console.log('All conditions met, calling onUpdateFollowUp');
       const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+      console.log('newTimestamp:', newTimestamp);
       onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
       setEditingFollowUp(null);
       setEditingText('');
       setEditingTimestamp('');
+    } else {
+      console.log('Save conditions not met');
     }
   };
 
