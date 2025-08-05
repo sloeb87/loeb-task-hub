@@ -52,45 +52,34 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
-    console.log('=== SAVE BUTTON CLICKED ===');
-    console.log('editingFollowUp:', editingFollowUp);
-    console.log('editingText:', editingText);
-    console.log('editingTimestamp:', editingTimestamp);
-    console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
-    console.log('onUpdateFollowUp type:', typeof onUpdateFollowUp);
+    console.log('SAVE: editingFollowUp=', editingFollowUp);
+    console.log('SAVE: onUpdateFollowUp=', !!onUpdateFollowUp);
+    
+    if (!editingFollowUp) {
+      console.log('ERROR: No editingFollowUp');
+      return;
+    }
+    
+    if (!onUpdateFollowUp) {
+      console.log('ERROR: No onUpdateFollowUp function');
+      return;
+    }
     
     try {
-      // Save if we have an editing follow-up and the update function is available
-      if (editingFollowUp) {
-        console.log('✓ editingFollowUp is set');
-        if (onUpdateFollowUp) {
-          console.log('✓ onUpdateFollowUp function exists');
-          // Ensure we have some text (don't allow empty follow-ups)
-          const textToSave = editingText.trim() || 'No content';
-          const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-          
-          console.log('Calling onUpdateFollowUp with:', {
-            followUpId: editingFollowUp,
-            text: textToSave,
-            timestamp: newTimestamp
-          });
-          
-          await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
-          console.log('onUpdateFollowUp completed successfully');
-        } else {
-          console.log('✗ onUpdateFollowUp function is missing');
-        }
-      } else {
-        console.log('✗ editingFollowUp is missing');
-      }
-    } catch (error) {
-      console.error('Error saving follow-up:', error);
-    } finally {
-      console.log('Exiting edit mode');
-      // Always exit edit mode, regardless of save success/failure
+      const textToSave = editingText.trim() || 'No content';
+      const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+      
+      console.log('SAVING:', { id: editingFollowUp, text: textToSave, timestamp: newTimestamp });
+      
+      await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
+      console.log('SAVE SUCCESS');
+      
+      // Exit edit mode
       setEditingFollowUp(null);
       setEditingText('');
       setEditingTimestamp('');
+    } catch (error) {
+      console.error('SAVE ERROR:', error);
     }
   };
 
