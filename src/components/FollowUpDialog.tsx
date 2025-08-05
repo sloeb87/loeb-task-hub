@@ -51,13 +51,27 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
     setEditingTimestamp(formatDateForInput(followUp.timestamp));
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
+    console.log('Save button clicked - conditions check:');
+    console.log('editingFollowUp:', editingFollowUp);
+    console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    console.log('editingText.trim():', editingText.trim());
+    
     if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
-      const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-      onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
-      setEditingFollowUp(null);
-      setEditingText('');
-      setEditingTimestamp('');
+      try {
+        console.log('Attempting to save follow-up...');
+        const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+        console.log('Calling onUpdateFollowUp with:', { editingFollowUp, text: editingText.trim(), newTimestamp });
+        await onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
+        console.log('Follow-up saved successfully');
+        setEditingFollowUp(null);
+        setEditingText('');
+        setEditingTimestamp('');
+      } catch (error) {
+        console.error('Error saving follow-up:', error);
+      }
+    } else {
+      console.log('Save conditions not met');
     }
   };
 
