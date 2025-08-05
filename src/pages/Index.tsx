@@ -140,6 +140,12 @@ const Index = () => {
     }
   }, [handleUpdateTask, handleCreateTask]);
 
+  const handleNavigateToProject = useCallback((projectName: string) => {
+    setActiveView("projects");
+    // The project filter is already set to 'active' by default, which should show the project
+    // You could add additional logic here to filter or highlight the specific project
+  }, []);
+
   // Show loading state
   if (isLoading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -196,10 +202,19 @@ const Index = () => {
         </div>
 
         {/* Task Form Dialog */}
-        <TaskFormOptimized isOpen={isTaskFormOpen} onClose={() => {
-        setIsTaskFormOpen(false);
-        setSelectedTask(null);
-      }} onSave={handleSaveTask} onDelete={handleDeleteTask} task={selectedTask} allTasks={tasks} allProjects={projects} />
+        <TaskFormOptimized 
+          isOpen={isTaskFormOpen} 
+          onClose={() => {
+            setIsTaskFormOpen(false);
+            setSelectedTask(null);
+          }} 
+          onSave={handleSaveTask} 
+          onDelete={handleDeleteTask} 
+          task={selectedTask} 
+          allTasks={tasks} 
+          allProjects={projects}
+          onNavigateToProject={handleNavigateToProject}
+        />
 
         {/* Follow Up Dialog */}
         {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} task={followUpTask} />}

@@ -16,7 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft } from "lucide-react";
+import { CalendarIcon, MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -32,6 +32,7 @@ interface TaskFormProps {
   allProjects: Project[];
   projectName?: string | null;
   onEditRelatedTask?: (task: Task) => void;
+  onNavigateToProject?: (projectName: string) => void;
 }
 
 interface FormData {
@@ -92,7 +93,8 @@ export const TaskFormOptimized = React.memo(({
   allTasks, 
   allProjects, 
   projectName, 
-  onEditRelatedTask 
+  onEditRelatedTask,
+  onNavigateToProject
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -272,6 +274,13 @@ export const TaskFormOptimized = React.memo(({
     }
   };
 
+  const handleNavigateToProject = () => {
+    if (onNavigateToProject && formData.project) {
+      onNavigateToProject(formData.project);
+      onClose();
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
@@ -323,7 +332,22 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   <div>
-                    <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
+                      {(task || projectName) && formData.project && onNavigateToProject && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleNavigateToProject}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                          title={`Go to ${formData.project} project`}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          Go to Project
+                        </Button>
+                      )}
+                    </div>
                     {task || projectName ? (
                       // Read-only when editing existing task or creating task from project context
                       <Input
