@@ -380,7 +380,7 @@ export function useSupabaseStorage() {
         .from('follow_ups')
         .insert({
           task_id: existingTask.id,
-          text: `Task marked completed on ${new Date().toLocaleDateString()}`,
+          text: "Task marked completed",
           created_at: new Date().toISOString()
         });
 
