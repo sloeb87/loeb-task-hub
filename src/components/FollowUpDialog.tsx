@@ -52,6 +52,12 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
+    console.log('=== SAVE BUTTON CLICKED ===');
+    console.log('editingFollowUp:', editingFollowUp);
+    console.log('editingText:', editingText);
+    console.log('editingTimestamp:', editingTimestamp);
+    console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    
     try {
       // Save if we have an editing follow-up and the update function is available
       if (editingFollowUp && onUpdateFollowUp) {
@@ -59,17 +65,21 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
         const textToSave = editingText.trim() || 'No content';
         const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
         
-        console.log('Saving follow-up:', {
+        console.log('Calling onUpdateFollowUp with:', {
           followUpId: editingFollowUp,
           text: textToSave,
           timestamp: newTimestamp
         });
         
         await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
+        console.log('onUpdateFollowUp completed successfully');
+      } else {
+        console.log('Save conditions not met - missing editingFollowUp or onUpdateFollowUp');
       }
     } catch (error) {
       console.error('Error saving follow-up:', error);
     } finally {
+      console.log('Exiting edit mode');
       // Always exit edit mode, regardless of save success/failure
       setEditingFollowUp(null);
       setEditingText('');
