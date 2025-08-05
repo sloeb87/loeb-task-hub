@@ -199,9 +199,9 @@ const GanttView = () => {
   const hasActiveFilters = selectedProject !== "all" || statusFilter !== "all" || priorityFilter !== "all" || searchTerm !== "";
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
+    <div className={`min-h-screen bg-background ${isFullscreen ? 'fixed inset-0 z-50' : ''}`}>
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
@@ -216,11 +216,11 @@ const GanttView = () => {
               </Button>
               <Separator orientation="vertical" className="h-6" />
               <div>
-                <h1 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <h1 className="text-xl font-bold text-foreground flex items-center gap-2">
                   <BarChart3 className="w-5 h-5" />
                   Gantt Timeline
                 </h1>
-                <p className="text-sm text-gray-600">Interactive project timeline</p>
+                <p className="text-sm text-muted-foreground">Interactive project timeline</p>
               </div>
             </div>
             
@@ -286,8 +286,8 @@ const GanttView = () => {
             <div className="flex items-center space-x-2">
               <Target className="w-4 h-4 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">Total</p>
-                <p className="text-xl font-bold">{stats.total}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-foreground">{stats.total}</p>
               </div>
             </div>
           </Card>
@@ -296,7 +296,7 @@ const GanttView = () => {
             <div className="flex items-center space-x-2">
               <CheckCircle2 className="w-4 h-4 text-green-500" />
               <div>
-                <p className="text-sm text-gray-600">Completed</p>
+                <p className="text-sm text-muted-foreground">Completed</p>
                 <p className="text-xl font-bold text-green-600">{stats.completed}</p>
               </div>
             </div>
@@ -306,7 +306,7 @@ const GanttView = () => {
             <div className="flex items-center space-x-2">
               <PlayCircle className="w-4 h-4 text-blue-500" />
               <div>
-                <p className="text-sm text-gray-600">In Progress</p>
+                <p className="text-sm text-muted-foreground">In Progress</p>
                 <p className="text-xl font-bold text-blue-600">{stats.inProgress}</p>
               </div>
             </div>
@@ -316,7 +316,7 @@ const GanttView = () => {
             <div className="flex items-center space-x-2">
               <Clock className="w-4 h-4 text-orange-500" />
               <div>
-                <p className="text-sm text-gray-600">Open</p>
+                <p className="text-sm text-muted-foreground">Open</p>
                 <p className="text-xl font-bold text-orange-600">{stats.open}</p>
               </div>
             </div>
@@ -326,7 +326,7 @@ const GanttView = () => {
             <div className="flex items-center space-x-2">
               <PauseCircle className="w-4 h-4 text-gray-500" />
               <div>
-                <p className="text-sm text-gray-600">On Hold</p>
+                <p className="text-sm text-muted-foreground">On Hold</p>
                 <p className="text-xl font-bold text-gray-600">{stats.onHold}</p>
               </div>
             </div>
@@ -423,7 +423,7 @@ const GanttView = () => {
 
         {/* Results Info */}
         <div className="mb-4 flex items-center justify-between">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             Showing {filteredTasks.length} of {tasks.length} tasks
             {selectedProject !== "all" && (
               <Badge variant="outline" className="ml-2">
