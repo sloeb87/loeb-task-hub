@@ -136,7 +136,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
             Add and view follow-up notes for this task.
           </DialogDescription>
 
-          {/* Task Summary - Moved to top */}
+          {/* Task Summary */}
           <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4">
             <h3 className="font-medium text-foreground mb-2">{task.title}</h3>
             <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
@@ -152,7 +152,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
             </div>
           </div>
 
-          {/* Previous Follow-ups - Moved to top */}
+          {/* Previous Follow-ups */}
           {task.followUps.length > 0 && (
             <div>
               <h4 className="font-medium text-foreground mb-3">Previous Follow-ups</h4>
@@ -213,8 +213,12 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
             </div>
           )}
         </DialogHeader>
-        {/* New Follow-up Form - Main content area */}
-        <div className="border-t border-border pt-4">
+        
+        {/* Spacer to push Add Follow-up form to bottom */}
+        <div className="flex-1 min-h-[2rem]"></div>
+        
+        {/* Add Follow-up Form - At the bottom */}
+        <div className="border-t border-border pt-4 mt-auto">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="followUpText" className="block text-sm font-medium text-foreground mb-2">
