@@ -112,12 +112,22 @@ const Index = () => {
     console.log('handleUpdateFollowUpWrapper called:', { followUpId, text, timestamp });
     console.log('updateFollowUp function exists:', !!updateFollowUp);
     console.log('updateFollowUp type:', typeof updateFollowUp);
+    
+    if (!updateFollowUp) {
+      console.error('updateFollowUp function is not available');
+      return;
+    }
+    
     try {
       await updateFollowUp(followUpId, text, timestamp);
+      console.log('Follow-up updated successfully');
     } catch (error) {
       console.error('Failed to update follow-up:', error);
     }
   }, [updateFollowUp]);
+
+  // Debug the wrapper function
+  console.log('handleUpdateFollowUpWrapper exists:', !!handleUpdateFollowUpWrapper);
 
   const handleUpdateFollowUpFromPage = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
     try {
