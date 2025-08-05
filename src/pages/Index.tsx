@@ -37,10 +37,6 @@ const Index = () => {
     deleteProject
   } = useSupabaseStorage();
 
-  // Debug log to check if updateFollowUp is defined
-  console.log('updateFollowUp from hook:', updateFollowUp);
-  console.log('updateFollowUp type:', typeof updateFollowUp);
-
   // Initialize dark mode from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('dark-mode');
@@ -109,14 +105,14 @@ const Index = () => {
   }, [addFollowUp]);
 
   const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
-    console.log('handleUpdateFollowUpWrapper called with:', { followUpId, text, timestamp });
-    console.log('updateFollowUp function exists:', !!updateFollowUp);
-    console.log('updateFollowUp type:', typeof updateFollowUp);
+    if (!updateFollowUp) {
+      console.error('updateFollowUp function is not available');
+      return;
+    }
     try {
       await updateFollowUp(followUpId, text, timestamp);
     } catch (error) {
       console.error('Failed to update follow-up:', error);
-      // You could add a toast notification here
     }
   }, [updateFollowUp]);
 
