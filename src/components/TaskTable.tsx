@@ -37,7 +37,7 @@ interface Filters {
 
 export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
   const isMobile = useIsMobile();
-  const [sortField, setSortField] = useState<SortField>('id');
+  const [sortField, setSortField] = useState<SortField>('dueDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({
