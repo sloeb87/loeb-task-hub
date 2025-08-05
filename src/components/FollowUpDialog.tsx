@@ -21,12 +21,16 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   const [editingText, setEditingText] = useState('');
   const [editingTimestamp, setEditingTimestamp] = useState('');
 
-  // Debug logging
-  console.log('FollowUpDialog received props:', { 
-    hasOnUpdateFollowUp: !!onUpdateFollowUp, 
-    taskId: task?.id,
-    isOpen 
-  });
+  // Debug logging when dialog opens
+  React.useEffect(() => {
+    if (isOpen) {
+      console.log('FollowUpDialog opened with:', { 
+        hasOnUpdateFollowUp: !!onUpdateFollowUp, 
+        taskId: task?.id,
+        followUpCount: task?.followUps?.length || 0
+      });
+    }
+  }, [isOpen, onUpdateFollowUp, task?.id, task?.followUps?.length]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

@@ -107,6 +107,14 @@ export const TaskFormOptimized = React.memo(({
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
   const { startTimer } = useTimeTracking();
 
+  // Debug: Check what functions are received
+  console.log('TaskFormOptimized received props:', {
+    hasOnAddFollowUp: !!onAddFollowUp,
+    hasOnUpdateFollowUp: !!onUpdateFollowUp,
+    onUpdateFollowUpType: typeof onUpdateFollowUp,
+    taskId: task?.id
+  });
+
   // Dropdown options - now coming from the database
   const dropdownOptions = useMemo(() => ({
     scopes: parameters.scopes.map(scope => scope.name),
@@ -261,7 +269,9 @@ export const TaskFormOptimized = React.memo(({
   };
 
   const handleFollowUpClick = (followUpId?: string) => {
-    console.log('Opening FollowUpDialog from TaskFormOptimized with onUpdateFollowUp:', !!onUpdateFollowUp);
+    console.log('Opening FollowUpDialog from TaskFormOptimized');
+    console.log('onUpdateFollowUp function available:', !!onUpdateFollowUp);
+    console.log('onUpdateFollowUp function type:', typeof onUpdateFollowUp);
     console.log('Selected follow-up ID:', followUpId);
     setFollowUpDialogOpen(true);
   };
