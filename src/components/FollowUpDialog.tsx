@@ -5,17 +5,18 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types/task";
-import { Calendar, User, Edit, Save, X } from "lucide-react";
+import { Calendar, User, Edit, Save, X, Trash2 } from "lucide-react";
 
 interface FollowUpDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAddFollowUp: (text: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
+  onDeleteFollowUp?: (followUpId: string) => void;
   task: Task;
 }
 
-export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowUp, task }: FollowUpDialogProps) => {
+export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowUp, onDeleteFollowUp, task }: FollowUpDialogProps) => {
   const [followUpText, setFollowUpText] = useState('');
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
@@ -124,6 +125,14 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
     setEditingTimestamp('');
   };
 
+  const handleDeleteFollowUp = async (followUpId: string) => {
+    if (!onDeleteFollowUp) return;
+    
+    if (confirm('Are you sure you want to delete this follow-up?')) {
+      await onDeleteFollowUp(followUpId);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] h-[95vh] max-w-none bg-background/95 backdrop-blur-sm border-2 shadow-2xl overflow-y-auto">
@@ -201,15 +210,26 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                               </Badge>
                             )}
                           </div>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            onClick={() => handleEditFollowUp(followUp)}
-                            className="p-1 h-7 w-7 hover:bg-muted"
-                            title="Edit follow-up"
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
+                          <div className="flex space-x-1">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleEditFollowUp(followUp)}
+                              className="p-1 h-7 w-7 hover:bg-muted"
+                              title="Edit follow-up"
+                            >
+                              <Edit className="w-3 h-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => handleDeleteFollowUp(followUp.id)}
+                              className="p-1 h-7 w-7 hover:bg-destructive hover:text-destructive-foreground"
+                              title="Delete follow-up"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
                         </div>
                         <p className="text-sm text-foreground">{followUp.text}</p>
                       </div>

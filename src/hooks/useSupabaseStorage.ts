@@ -461,6 +461,19 @@ export function useSupabaseStorage() {
     await loadTasks();
   };
 
+  const deleteFollowUp = async (followUpId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('follow_ups')
+      .delete()
+      .eq('id', followUpId);
+
+    if (error) throw error;
+
+    await loadTasks();
+  };
+
   const deleteTask = async (taskId: string): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
@@ -577,6 +590,7 @@ export function useSupabaseStorage() {
     updateTask,
     addFollowUp,
     updateFollowUp,
+    deleteFollowUp,
     deleteTask,
     createProject,
     updateProject,

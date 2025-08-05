@@ -31,6 +31,7 @@ const Index = () => {
     updateTask,
     addFollowUp,
     updateFollowUp,
+    deleteFollowUp,
     deleteTask,
     createProject,
     updateProject,
@@ -120,6 +121,16 @@ const Index = () => {
       console.error('Failed to update follow-up:', error);
     }
   }, [updateFollowUp, tasks]);
+
+  const handleDeleteFollowUpWrapper = useCallback(async (followUpId: string) => {
+    console.log('handleDeleteFollowUpWrapper called with:', { followUpId });
+    try {
+      await deleteFollowUp(followUpId);
+      console.log('Follow-up deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete follow-up:', error);
+    }
+  }, [deleteFollowUp]);
 
 
   const handleFollowUpTask = useCallback((task: Task) => {
@@ -248,6 +259,7 @@ const Index = () => {
             onClose={() => setFollowUpTask(null)} 
             onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
             onUpdateFollowUp={handleUpdateFollowUpWrapper}
+            onDeleteFollowUp={handleDeleteFollowUpWrapper}
             task={followUpTask} 
           />
         )}
