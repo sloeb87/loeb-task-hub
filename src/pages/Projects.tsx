@@ -150,8 +150,14 @@ const ProjectsPage = ({
   };
 
   const handleGenerateReport = (project?: Project) => {
+    console.log('handleGenerateReport called with project:', project?.name);
+    console.log('detailProject state:', detailProject?.name);
     const targetProject = project || detailProject;
-    if (!targetProject) return;
+    if (!targetProject) {
+      console.error('No project found for report generation');
+      return;
+    }
+    console.log('Setting report project:', targetProject.name);
     setReportProject(targetProject);
     setIsReportModalOpen(true);
   };
@@ -172,7 +178,7 @@ const ProjectsPage = ({
         onDeleteProject={onDeleteProject}
         onCreateTask={() => handleCreateTaskForProject()}
         onEditTask={handleEditTask}
-        onGenerateReport={() => handleGenerateReport()}
+        onGenerateReport={() => handleGenerateReport(detailProject)}
         onUpdateTask={onUpdateTask}
         onDeleteTask={onDeleteTask}
         onSaveTask={handleSaveTask}
