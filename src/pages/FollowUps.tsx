@@ -10,11 +10,13 @@ import { Task, FollowUp } from "@/types/task";
 import { useScopeColor } from "@/hooks/useScopeColor";
 import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
 import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
+import { useStatusColor } from "@/hooks/useStatusColor";
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
 
 interface FollowUpsPageProps {
   tasks: Task[];
+  onEditTask?: (task: Task) => void;
 }
 
 interface FollowUpFilters {
@@ -42,13 +44,15 @@ interface FollowUpWithTask extends FollowUp {
   taskScope: string;
   taskType: string;
   taskEnvironment: string;
+  taskStatus: string;
   projectName: string;
 }
 
-export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
+export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
   const { getScopeStyle } = useScopeColor();
   const { getTaskTypeStyle } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
+  const { getStatusStyle } = useStatusColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FollowUpFilters>({});
   
@@ -93,6 +97,7 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
           taskScope: task.scope,
           taskType: task.taskType,
           taskEnvironment: task.environment,
+          taskStatus: task.status,
           projectName: task.project
         });
       });
@@ -298,6 +303,17 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
     setFilters({});
   };
 
+  // Handle click on follow-up row to open related task
+  const handleRowClick = (followUp: FollowUpWithTask) => {
+    if (onEditTask) {
+      // Find the full task object
+      const task = tasks.find(t => t.id === followUp.taskId);
+      if (task) {
+        onEditTask(task);
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -401,12 +417,17 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                   <TableHead>
                     <FilterableHeader filterType="environment">Environment</FilterableHeader>
                   </TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Follow-Up</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredFollowUps.map((followUp) => (
-                  <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                  <TableRow 
+                    key={`${followUp.taskId}-${followUp.id}`} 
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => handleRowClick(followUp)}
+                  >
                     <TableCell>
                       <span className="text-base text-gray-900 dark:text-white">
                         {formatDate(followUp.timestamp)}
@@ -454,6 +475,17 @@ export const FollowUpsPage = ({ tasks }: FollowUpsPageProps) => {
                           className="text-sm border"
                         >
                           {followUp.taskEnvironment}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Badge 
+                          style={getStatusStyle(followUp.taskStatus)}
+                          className="text-sm border"
+                        >
+                          {followUp.taskStatus}
                         </Badge>
                       </div>
                     </TableCell>
