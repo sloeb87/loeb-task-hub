@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter, Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -38,9 +39,10 @@ export const ProjectTable = ({
   onAddFollowUp
 }: ProjectTableProps) => {
   const isMobile = useIsMobile();
-  const {
-    getScopeStyle
-  } = useScopeColor();
+  const { getScopeStyle, loading: scopeLoading } = useScopeColor();
+  
+  // Wait for parameter colors to load to prevent the grey-to-color flash
+  const parametersLoading = scopeLoading;
 
   // Filter states
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
@@ -137,6 +139,40 @@ export const ProjectTable = ({
 
   // Mobile view
   if (isMobile) {
+    // Show loading skeleton for mobile while parameters are loading
+    if (parametersLoading) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-card rounded-lg border border-border p-4">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="flex gap-2 flex-wrap">
+            {Array.from({ length: 4 }, (_, i) => (
+              <Skeleton key={i} className="h-8 w-24" />
+            ))}
+          </div>
+          
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="bg-card rounded-lg border border-border p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-5 w-20" />
+                </div>
+                <Skeleton className="h-8 w-8" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <div className="flex space-x-2">
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-18" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return <div className="space-y-6">
         {/* Search Bar */}
         <div className="bg-card rounded-lg border border-border p-4">
@@ -179,6 +215,30 @@ export const ProjectTable = ({
             <p className="text-muted-foreground">No projects found matching your criteria.</p>
           </div>}
       </div>;
+  }
+
+  // Show loading skeleton for desktop while parameters are loading
+  if (parametersLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-card rounded-lg shadow-sm border border-border">
+          <div className="p-4 border-b border-border">
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <div className="p-4 space-y-2">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="flex space-x-4">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-6 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // Desktop view
@@ -280,9 +340,12 @@ export const ProjectTable = ({
               return <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
-                      <Badge className="text-base font-medium border" style={getScopeStyle(project.scope)}>
-                        {project.scope}
-                      </Badge>
+                       <Badge 
+                         className="text-base font-medium border" 
+                         style={parametersLoading ? {} : getScopeStyle(project.scope)}
+                       >
+                         {project.scope}
+                       </Badge>
                     </TableCell>
 
                     {/* Project Name Column */}

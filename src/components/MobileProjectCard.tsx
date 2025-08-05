@@ -38,7 +38,10 @@ export const MobileProjectCard = ({
   onDeleteTask
 }: MobileProjectCardProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { getScopeStyle } = useScopeColor();
+  const { getScopeStyle, loading: scopeLoading } = useScopeColor();
+  
+  // Wait for parameter colors to load to prevent the grey-to-color flash
+  const parametersLoading = scopeLoading;
 
   const getProjectStats = (project: Project) => {
     const totalTasks = projectTasks.length;
@@ -89,7 +92,7 @@ export const MobileProjectCard = ({
             </Badge>
             <Badge 
               className="text-xs border"
-              style={getScopeStyle(project.scope)}
+              style={parametersLoading ? {} : getScopeStyle(project.scope)}
             >
               {project.scope}
             </Badge>
