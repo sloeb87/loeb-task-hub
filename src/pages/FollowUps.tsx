@@ -321,6 +321,7 @@ export const FollowUpsPage = ({
 
   // Handle save edit
   const handleSaveEdit = (event: React.MouseEvent) => {
+    event.preventDefault();
     event.stopPropagation();
     if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
       const followUp = allFollowUps.find(f => f.id === editingFollowUp);
@@ -336,6 +337,7 @@ export const FollowUpsPage = ({
 
   // Handle cancel edit
   const handleCancelEdit = (event: React.MouseEvent) => {
+    event.preventDefault();
     event.stopPropagation();
     setEditingFollowUp(null);
     setEditingText('');
@@ -482,13 +484,30 @@ export const FollowUpsPage = ({
                             <TableCell>
                               <div className="flex space-x-2">
                                 {editingFollowUp === followUp.id ? <>
-                                    <Button size="sm" onClick={e => handleSaveEdit(e)} className="h-8 w-8 p-0">
+                                    <Button 
+                                      size="sm" 
+                                      onClick={handleSaveEdit} 
+                                      className="h-8 w-8 p-0"
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                    >
                                       <Save className="h-4 w-4" />
                                     </Button>
-                                    <Button size="sm" variant="outline" onClick={e => handleCancelEdit(e)} className="h-8 w-8 p-0">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline" 
+                                      onClick={handleCancelEdit} 
+                                      className="h-8 w-8 p-0"
+                                      onMouseDown={(e) => e.stopPropagation()}
+                                    >
                                       <X className="h-4 w-4" />
                                     </Button>
-                                  </> : <Button size="sm" variant="outline" onClick={e => handleEditClick(followUp, e)} className="h-8 w-8 p-0">
+                                  </> : <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    onClick={(e) => handleEditClick(followUp, e)} 
+                                    className="h-8 w-8 p-0"
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                  >
                                     <Edit className="h-4 w-4" />
                                   </Button>}
                               </div>
