@@ -470,7 +470,12 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                     {/* Project Header Row */}
                     <TableRow className="bg-muted/50 hover:bg-muted/50">
                       <TableCell colSpan={4} className="font-semibold text-lg py-3">
-                        📁 {projectName}
+                        <div className="flex items-center gap-3">
+                          <span>📁 {projectName}</span>
+                          <Badge style={getScopeStyle(Object.values(tasks)[0][0].taskScope)} className="text-sm border">
+                            {Object.values(tasks)[0][0].taskScope}
+                          </Badge>
+                        </div>
                       </TableCell>
                     </TableRow>
                     
@@ -481,9 +486,6 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                           <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
                             <div className="flex items-center gap-3">
                               <span>📋 {taskTitle}</span>
-                              <Badge style={getScopeStyle(followUps[0].taskScope)} className="text-xs border">
-                                {followUps[0].taskScope}
-                              </Badge>
                               <Badge style={getTaskTypeStyle(followUps[0].taskType)} className="text-xs border">
                                 {followUps[0].taskType}
                               </Badge>
