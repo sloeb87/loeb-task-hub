@@ -730,18 +730,23 @@ export const TaskFormOptimized = React.memo(({
                         .slice() // Create a copy to avoid mutating original
                         .reverse() // Show most recent first
                         .map((followUp) => (
-                          <div key={followUp.id} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500">
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
-                                {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
-                                  month: '2-digit', 
-                                  day: '2-digit', 
-                                  year: '2-digit' 
-                                })}
-                              </span>
-                              <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
-                            </div>
-                          </div>
+                           <div 
+                             key={followUp.id} 
+                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
+                             onClick={() => setFollowUpDialogOpen(true)}
+                             title="Click to edit this follow-up"
+                           >
+                             <div className="flex items-center gap-3">
+                               <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
+                                 {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
+                                   month: '2-digit', 
+                                   day: '2-digit', 
+                                   year: '2-digit' 
+                                 })}
+                               </span>
+                               <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
+                             </div>
+                           </div>
                         ))}
                     </div>
                   ) : (
