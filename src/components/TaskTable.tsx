@@ -413,7 +413,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableHead style={{ minWidth: '160px' }}>
                   <FilterableHeader filterType="timeTracking">Action</FilterableHeader>
                 </TableHead>
-                <TableHead style={{ minWidth: '200px' }}>
+                <TableHead style={{ minWidth: '300px' }}>
                   <FilterableHeader filterType="followUps">Follow Ups</FilterableHeader>
                 </TableHead>
               </TableRow>
