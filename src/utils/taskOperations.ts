@@ -24,8 +24,8 @@ export const getDueDateColor = (dueDate: string, status: string): string => {
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
-  if (diffDays <= 3) return "text-red-600 dark:text-red-400"; // Within 3 days
-  if (diffDays <= 7) return "text-orange-800 dark:text-orange-300"; // Within 1 week
+  if (diffDays <= 3) return "text-orange-600 dark:text-orange-400"; // Within 3 days
+  if (diffDays <= 7) return "text-yellow-600 dark:text-yellow-400"; // Within 7 days
   
   return "text-gray-500 dark:text-gray-400"; // Normal
 };
