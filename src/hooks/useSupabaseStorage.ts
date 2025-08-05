@@ -69,7 +69,7 @@ export function useSupabaseStorage() {
       id: followUp.id,
       text: followUp.text,
       timestamp: followUp.created_at,
-      taskStatus: followUp.task_status
+      taskStatus: followUp.task_status || 'Unknown'
     })) || [];
 
     if (followUps.length > 0) {
