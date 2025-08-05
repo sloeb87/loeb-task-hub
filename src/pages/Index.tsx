@@ -37,6 +37,10 @@ const Index = () => {
     deleteProject
   } = useSupabaseStorage();
 
+  // Debug the updateFollowUp function from the hook
+  console.log('updateFollowUp from hook:', !!updateFollowUp);
+  console.log('updateFollowUp type:', typeof updateFollowUp);
+
   // Initialize dark mode from localStorage
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('dark-mode');
