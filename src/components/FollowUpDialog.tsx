@@ -57,24 +57,31 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
     console.log('editingText:', editingText);
     console.log('editingTimestamp:', editingTimestamp);
     console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    console.log('onUpdateFollowUp type:', typeof onUpdateFollowUp);
     
     try {
       // Save if we have an editing follow-up and the update function is available
-      if (editingFollowUp && onUpdateFollowUp) {
-        // Ensure we have some text (don't allow empty follow-ups)
-        const textToSave = editingText.trim() || 'No content';
-        const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-        
-        console.log('Calling onUpdateFollowUp with:', {
-          followUpId: editingFollowUp,
-          text: textToSave,
-          timestamp: newTimestamp
-        });
-        
-        await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
-        console.log('onUpdateFollowUp completed successfully');
+      if (editingFollowUp) {
+        console.log('✓ editingFollowUp is set');
+        if (onUpdateFollowUp) {
+          console.log('✓ onUpdateFollowUp function exists');
+          // Ensure we have some text (don't allow empty follow-ups)
+          const textToSave = editingText.trim() || 'No content';
+          const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+          
+          console.log('Calling onUpdateFollowUp with:', {
+            followUpId: editingFollowUp,
+            text: textToSave,
+            timestamp: newTimestamp
+          });
+          
+          await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
+          console.log('onUpdateFollowUp completed successfully');
+        } else {
+          console.log('✗ onUpdateFollowUp function is missing');
+        }
       } else {
-        console.log('Save conditions not met - missing editingFollowUp or onUpdateFollowUp');
+        console.log('✗ editingFollowUp is missing');
       }
     } catch (error) {
       console.error('Error saving follow-up:', error);
