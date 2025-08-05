@@ -687,8 +687,8 @@ export const TaskFormOptimized = React.memo(({
               {/* Right Side - Follow-ups Panel (only for existing tasks) */}
               {task && (
                 <div className={cn(
-                  "border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0 transition-all duration-200",
-                  isTaskDetailsCollapsed ? "w-full border-l-0 pl-0" : "w-80"
+                  "border-l border-gray-200 dark:border-gray-700 pl-6 flex flex-col flex-shrink-0 transition-all duration-300",
+                  isTaskDetailsCollapsed ? "w-full border-l-0 pl-0 max-w-none" : "w-80"
                 )}>
                   <div className="mb-4">
                   <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
