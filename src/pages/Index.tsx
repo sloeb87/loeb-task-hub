@@ -105,10 +105,6 @@ const Index = () => {
   }, [addFollowUp]);
 
   const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
-    if (!updateFollowUp) {
-      console.error('updateFollowUp function is not available');
-      return;
-    }
     try {
       await updateFollowUp(followUpId, text, timestamp);
     } catch (error) {

@@ -52,17 +52,13 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
-    if (editingFollowUp && editingText.trim()) {
+    if (editingFollowUp && editingText.trim() && onUpdateFollowUp) {
       try {
-        if (onUpdateFollowUp) {
-          const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-          await onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
-          setEditingFollowUp(null);
-          setEditingText('');
-          setEditingTimestamp('');
-        } else {
-          console.error('onUpdateFollowUp function not provided');
-        }
+        const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+        await onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
+        setEditingFollowUp(null);
+        setEditingText('');
+        setEditingTimestamp('');
       } catch (error) {
         console.error('Error saving follow-up:', error);
       }
@@ -115,10 +111,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                     {editingFollowUp === followUp.id ? (
                       // Edit mode
                       <div className="space-y-3">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="text-sm font-medium text-blue-900">
-                            {followUp.author}
-                          </span>
+                        <div className="flex justify-end items-start mb-2">
                           <div className="flex space-x-2">
                             <Button size="sm" variant="default" onClick={handleSaveEdit}>
                               <Save className="w-3 h-3" />
@@ -147,23 +140,18 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                       // View mode
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-sm font-medium text-blue-900">
-                            {followUp.author}
+                          <span className="text-xs text-blue-600">
+                            {formatDate(followUp.timestamp)}
                           </span>
-                           <div className="flex items-center space-x-2">
-                             <span className="text-xs text-blue-600">
-                               {formatDate(followUp.timestamp)}
-                             </span>
-                             <Button 
-                               size="sm" 
-                               variant="outline" 
-                               onClick={() => handleEditFollowUp(followUp)}
-                               className="p-1 h-7 w-7 hover:bg-blue-100 border-blue-200 hover:border-blue-300"
-                               title="Edit follow-up"
-                             >
-                               <Edit className="w-3 h-3 text-blue-600" />
-                             </Button>
-                           </div>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => handleEditFollowUp(followUp)}
+                            className="p-1 h-7 w-7 hover:bg-blue-100 border-blue-200 hover:border-blue-300"
+                            title="Edit follow-up"
+                          >
+                            <Edit className="w-3 h-3 text-blue-600" />
+                          </Button>
                         </div>
                         <p className="text-sm text-gray-700">{followUp.text}</p>
                       </div>

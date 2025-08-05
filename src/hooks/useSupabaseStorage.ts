@@ -64,8 +64,7 @@ export function useSupabaseStorage() {
     const followUps: FollowUp[] = followUpsData?.map(fu => ({
       id: fu.id,
       text: fu.text,
-      timestamp: fu.created_at,
-      author: fu.author
+      timestamp: fu.created_at
     })) || [];
 
     if (followUps.length > 0) {
@@ -353,7 +352,6 @@ export function useSupabaseStorage() {
         const followUpsToInsert = newFollowUps.map(followUp => ({
           task_id: existingTask.id,
           text: followUp.text,
-          author: followUp.author,
           created_at: followUp.timestamp
         }));
 
@@ -403,8 +401,7 @@ export function useSupabaseStorage() {
       .insert([
         {
           task_id: existingTask.id,
-          text: followUpText,
-          author: profileData?.display_name || user.email || 'Unknown'
+          text: followUpText
         }
       ]);
 

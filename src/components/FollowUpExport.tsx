@@ -1,16 +1,18 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { FileSpreadsheet, FileText } from "lucide-react";
-import { Task, FollowUp } from "@/types/task";
+import { Download, FileSpreadsheet } from "lucide-react";
 import * as XLSX from 'xlsx';
 
-interface FollowUpWithTask extends FollowUp {
+interface FollowUpWithTask {
+  id: string;
+  text: string;
+  timestamp: string;
   taskId: string;
   taskTitle: string;
+  projectName: string;
   taskScope: string;
   taskType: string;
   taskEnvironment: string;
-  projectName: string;
 }
 
 interface FollowUpExportProps {
@@ -29,42 +31,48 @@ export const FollowUpExport = ({ followUps, filters }: FollowUpExportProps) => {
       'Task Type',
       'Environment',
       'Follow-Up Date',
-      'Author',
       'Follow-Up Text'
     ];
 
-    const csvData = followUps.map(followUp => {
-      const followUpDate = new Date(followUp.timestamp);
+    // Filter follow-ups based on current filters
+    const filteredFollowUps = followUps.filter(followUp => {
+      if (filters.project && followUp.projectName !== filters.project) return false;
+      if (filters.taskType && followUp.taskType !== filters.taskType) return false;
+      if (filters.environment && followUp.taskEnvironment !== filters.environment) return false;
+      if (filters.scope && followUp.taskScope !== filters.scope) return false;
       
-      return [
-        followUp.id,
-        followUp.taskId,
+      if (filters.dateFrom || filters.dateTo) {
+        const followUpDate = new Date(followUp.timestamp);
+        if (filters.dateFrom && followUpDate < new Date(filters.dateFrom)) return false;
+        if (filters.dateTo && followUpDate > new Date(filters.dateTo)) return false;
+      }
+      
+      return true;
+    });
+
+    const csvData = filteredFollowUps.map(followUp => {
+      const followUpDate = new Date(followUp.timestamp);
+      const csvRow = [
+        `"${followUp.id}"`,
+        `"${followUp.taskId}"`,
         `"${followUp.taskTitle}"`,
         `"${followUp.projectName}"`,
         `"${followUp.taskScope}"`,
         `"${followUp.taskType}"`,
         `"${followUp.taskEnvironment}"`,
         followUpDate.toLocaleDateString(),
-        `"${followUp.author}"`,
         `"${followUp.text}"`
       ];
+      return csvRow.join(',');
     });
 
-    const csv = [headers, ...csvData].map(row => row.join(',')).join('\n');
+    const csvContent = [headers.join(','), ...csvData].join('\n');
     
-    // Create download
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    
-    // Generate filename with filters
-    let filename = 'follow-ups';
-    if (filters.year) filename += `-${filters.year}`;
-    if (filters.month) filename += `-${filters.month}`;
-    filename += '.csv';
-    
-    link.setAttribute('download', filename);
+    link.setAttribute('download', `follow-ups-export-${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -72,22 +80,24 @@ export const FollowUpExport = ({ followUps, filters }: FollowUpExportProps) => {
   };
 
   const generateExcel = () => {
-    const headers = [
-      'Follow-Up ID',
-      'Task ID', 
-      'Task Title',
-      'Project',
-      'Scope',
-      'Task Type',
-      'Environment',
-      'Follow-Up Date',
-      'Author',
-      'Follow-Up Text'
-    ];
-
-    const excelData = followUps.map(followUp => {
-      const followUpDate = new Date(followUp.timestamp);
+    // Filter follow-ups based on current filters
+    const filteredFollowUps = followUps.filter(followUp => {
+      if (filters.project && followUp.projectName !== filters.project) return false;
+      if (filters.taskType && followUp.taskType !== filters.taskType) return false;
+      if (filters.environment && followUp.taskEnvironment !== filters.environment) return false;
+      if (filters.scope && followUp.taskScope !== filters.scope) return false;
       
+      if (filters.dateFrom || filters.dateTo) {
+        const followUpDate = new Date(followUp.timestamp);
+        if (filters.dateFrom && followUpDate < new Date(filters.dateFrom)) return false;
+        if (filters.dateTo && followUpDate > new Date(filters.dateTo)) return false;
+      }
+      
+      return true;
+    });
+
+    const excelData = filteredFollowUps.map((followUp) => {
+      const followUpDate = new Date(followUp.timestamp);
       return [
         followUp.id,
         followUp.taskId,
@@ -97,63 +107,63 @@ export const FollowUpExport = ({ followUps, filters }: FollowUpExportProps) => {
         followUp.taskType,
         followUp.taskEnvironment,
         followUpDate.toLocaleDateString(),
-        followUp.author,
         followUp.text
       ];
     });
 
     // Create workbook and worksheet
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...excelData]);
     
+    const headers = [
+      'Follow-Up ID',
+      'Task ID',
+      'Task Title',
+      'Project Name',
+      'Task Scope', 
+      'Task Type',
+      'Task Environment',
+      'Date',
+      'Follow-up Text'
+    ];
+
+    const wsData = [headers, ...excelData];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
     // Auto-size columns
-    const colWidths = headers.map((header, index) => {
-      if (index === headers.length - 1) return { wch: 50 }; // Follow-Up Text column wider
-      return { wch: 15 };
+    const colWidths = headers.map((header, colIndex) => {
+      const columnData = wsData.map(row => row[colIndex] || '');
+      const maxLength = Math.max(...columnData.map(cell => String(cell).length));
+      return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
     });
     ws['!cols'] = colWidths;
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Follow Ups');
-    
-    // Generate filename with filters
-    let filename = 'follow-ups';
-    if (filters.year) filename += `-${filters.year}`;
-    if (filters.month) filename += `-${filters.month}`;
-    filename += '.xlsx';
-    
-    // Download file
-    XLSX.writeFile(wb, filename);
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Follow-ups');
+
+    // Write file
+    XLSX.writeFile(wb, `follow-ups-export-${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-      <div className="flex items-center space-x-4">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          <span className="font-medium">{followUps.length}</span> follow-ups
-        </div>
-      </div>
+    <div className="flex gap-2">
+      <Button 
+        onClick={generateCSV}
+        variant="outline" 
+        size="sm"
+        className="flex items-center gap-2"
+      >
+        <Download className="w-4 h-4" />
+        Export CSV
+      </Button>
       
-      <div className="flex items-center gap-2">
-        <Button 
-          onClick={generateCSV}
-          variant="outline"
-          className="flex items-center gap-2"
-          disabled={followUps.length === 0}
-        >
-          <FileText className="w-4 h-4" />
-          Export CSV
-        </Button>
-        
-        <Button 
-          onClick={generateExcel}
-          className="flex items-center gap-2"
-          disabled={followUps.length === 0}
-        >
-          <FileSpreadsheet className="w-4 h-4" />
-          Export Excel
-        </Button>
-      </div>
+      <Button 
+        onClick={generateExcel}
+        variant="outline" 
+        size="sm"
+        className="flex items-center gap-2"
+      >
+        <FileSpreadsheet className="w-4 h-4" />
+        Export Excel
+      </Button>
     </div>
   );
 };

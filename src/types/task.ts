@@ -7,7 +7,6 @@ export interface FollowUp {
   id: string;
   text: string;
   timestamp: string;
-  author: string;
 }
 
 export interface Task {

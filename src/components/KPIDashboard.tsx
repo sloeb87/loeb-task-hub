@@ -78,7 +78,9 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   const filteredFollowUps = useMemo(() => {
     const followUps = filteredTasks.flatMap(task => 
       task.followUps.map(followUp => ({
-        ...followUp,
+        id: followUp.id,
+        text: followUp.text,
+        timestamp: followUp.timestamp,
         taskId: task.id,
         taskTitle: task.title,
         project: task.project

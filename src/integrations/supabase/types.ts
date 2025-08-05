@@ -16,21 +16,18 @@ export type Database = {
     Tables: {
       follow_ups: {
         Row: {
-          author: string
           created_at: string
           id: string
           task_id: string
           text: string
         }
         Insert: {
-          author: string
           created_at?: string
           id?: string
           task_id: string
           text: string
         }
         Update: {
-          author?: string
           created_at?: string
           id?: string
           task_id?: string

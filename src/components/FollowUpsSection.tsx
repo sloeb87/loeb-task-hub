@@ -8,7 +8,6 @@ interface FollowUp {
   id: string;
   text: string;
   timestamp: string;
-  author: string;
   taskId: string;
   taskTitle: string;
   project: string;
@@ -86,8 +85,6 @@ export const FollowUpsSection = ({ followUps, selectedProject }: FollowUpsSectio
                           <span className="font-medium text-sm">
                             {new Date(followUp.timestamp).toLocaleDateString()}
                           </span>
-                          <span>•</span>
-                          <span className="text-sm">{followUp.author}</span>
                         </div>
                         <p className="text-foreground leading-relaxed">{followUp.text}</p>
                       </div>
