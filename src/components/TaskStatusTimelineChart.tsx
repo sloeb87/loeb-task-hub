@@ -8,7 +8,7 @@ interface TaskStatusTimelineChartProps {
   data: Array<{
     date: string;
     opened: number;
-    closed: number;
+    completed: number;
     wip: number;
   }>;
 }
@@ -31,7 +31,7 @@ export const TaskStatusTimelineChart = ({ data }: TaskStatusTimelineChartProps) 
             <Tooltip />
             <Legend />
             <Bar dataKey="opened" fill="#3b82f6" name="Opened Tasks" />
-            <Bar dataKey="closed" fill="#10b981" name="Closed Tasks" />
+            <Bar dataKey="completed" fill="#10b981" name="Completed Tasks" />
             <Line 
               type="monotone" 
               dataKey="wip" 
