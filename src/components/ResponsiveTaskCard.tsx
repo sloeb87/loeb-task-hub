@@ -25,9 +25,12 @@ export const ResponsiveTaskCard = ({
   isTimerRunning = false,
   timeSpent = 0
 }: ResponsiveTaskCardProps) => {
-  const { getScopeStyle } = useScopeColor();
-  const { getTaskTypeStyle } = useTaskTypeColor();
-  const { getEnvironmentStyle } = useEnvironmentColor();
+  const { getScopeStyle, loading: scopeLoading } = useScopeColor();
+  const { getTaskTypeStyle, loading: taskTypeLoading } = useTaskTypeColor();
+  const { getEnvironmentStyle, loading: environmentLoading } = useEnvironmentColor();
+  
+  // Wait for parameter colors to load to prevent the grey-to-color flash
+  const parametersLoading = scopeLoading || taskTypeLoading || environmentLoading;
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'completed': return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900 dark:text-green-100';
@@ -113,19 +116,19 @@ export const ResponsiveTaskCard = ({
           <div className="flex items-center gap-2 flex-wrap">
             <Badge 
               className="text-xs border"
-              style={getScopeStyle(task.scope)}
+              style={parametersLoading ? {} : getScopeStyle(task.scope)}
             >
               {task.scope}
             </Badge>
             <Badge 
               className="text-xs border"
-              style={getTaskTypeStyle(task.taskType)}
+              style={parametersLoading ? {} : getTaskTypeStyle(task.taskType)}
             >
               {task.taskType}
             </Badge>
             <Badge 
               className="text-xs border"
-              style={getEnvironmentStyle(task.environment)}
+              style={parametersLoading ? {} : getEnvironmentStyle(task.environment)}
             >
               {task.environment}
             </Badge>

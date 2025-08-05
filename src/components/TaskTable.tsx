@@ -55,11 +55,14 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
-  const { getScopeStyle } = useScopeColor();
-  const { getTaskTypeStyle } = useTaskTypeColor();
-  const { getEnvironmentStyle } = useEnvironmentColor();
-  const { getStatusStyle } = useStatusColor();
-  const { getPriorityStyle } = usePriorityColor();
+  const { getScopeStyle, loading: scopeLoading } = useScopeColor();
+  const { getTaskTypeStyle, loading: taskTypeLoading } = useTaskTypeColor();
+  const { getEnvironmentStyle, loading: environmentLoading } = useEnvironmentColor();
+  const { getStatusStyle, loading: statusLoading } = useStatusColor();
+  const { getPriorityStyle, loading: priorityLoading } = usePriorityColor();
+  
+  // Wait for all parameter colors to load to prevent the grey-to-color flash
+  const parametersLoading = scopeLoading || taskTypeLoading || environmentLoading || statusLoading || priorityLoading;
 
   // Close filter dropdowns when clicking outside
   useEffect(() => {
@@ -428,12 +431,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Scope & Project Column */}
                   <TableCell>
                     <div className="space-y-2">
-                      <Badge 
-                        className="text-base font-medium border"
-                        style={getScopeStyle(task.scope)}
-                      >
-                        {task.scope}
-                      </Badge>
+                       <Badge 
+                         className="text-base font-medium border"
+                         style={parametersLoading ? {} : getScopeStyle(task.scope)}
+                       >
+                         {task.scope}
+                       </Badge>
                       <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
                     </div>
                   </TableCell>
@@ -460,20 +463,20 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-2">
                       <div>
-                        <Badge 
-                          className="text-sm border"
-                          style={getTaskTypeStyle(task.taskType)}
-                        >
-                          {task.taskType}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Badge 
-                          className="text-sm border"
-                          style={getEnvironmentStyle(task.environment)}
-                        >
-                          {task.environment}
-                        </Badge>
+                         <Badge 
+                           className="text-sm border"
+                           style={parametersLoading ? {} : getTaskTypeStyle(task.taskType)}
+                         >
+                           {task.taskType}
+                         </Badge>
+                       </div>
+                       <div>
+                         <Badge 
+                           className="text-sm border"
+                           style={parametersLoading ? {} : getEnvironmentStyle(task.environment)}
+                         >
+                           {task.environment}
+                         </Badge>
                       </div>
                     </div>
                   </TableCell>
@@ -499,20 +502,20 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   <TableCell>
                     <div className="space-y-2">
                       <div>
-                        <Badge 
-                          className="text-sm border"
-                          style={getStatusStyle(task.status)}
-                        >
-                          {task.status}
-                        </Badge>
-                      </div>
-                      <div>
-                        <Badge 
-                          className="text-sm border"
-                          style={getPriorityStyle(task.priority)}
-                        >
-                          {task.priority}
-                        </Badge>
+                         <Badge 
+                           className="text-sm border"
+                           style={parametersLoading ? {} : getStatusStyle(task.status)}
+                         >
+                           {task.status}
+                         </Badge>
+                       </div>
+                       <div>
+                         <Badge 
+                           className="text-sm border"
+                           style={parametersLoading ? {} : getPriorityStyle(task.priority)}
+                         >
+                           {task.priority}
+                         </Badge>
                       </div>
                     </div>
                   </TableCell>

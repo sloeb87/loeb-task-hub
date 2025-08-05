@@ -5,7 +5,7 @@ export type ParameterType = 'scopes' | 'statuses' | 'priorities' | 'taskTypes' |
 
 // Consolidated hook for all parameter-based colors
 export const useParameterColors = () => {
-  const { parameters } = useParameters();
+  const { parameters, loading } = useParameters();
   
   // Memoize color functions to prevent recreating them on every render
   const colorFunctions = useMemo(() => {
@@ -54,7 +54,10 @@ export const useParameterColors = () => {
       getTaskTypeColor,
       getTaskTypeStyle,
       getEnvironmentColor,
-      getEnvironmentStyle
+      getEnvironmentStyle,
+      
+      // Loading state
+      loading
     };
   }, [parameters]);
 
@@ -63,26 +66,26 @@ export const useParameterColors = () => {
 
 // Individual hooks for backward compatibility (now just wrappers)
 export const useScopeColor = () => {
-  const { getScopeColor, getScopeStyle } = useParameterColors();
-  return { getScopeColor, getScopeStyle };
+  const { getScopeColor, getScopeStyle, loading } = useParameterColors();
+  return { getScopeColor, getScopeStyle, loading };
 };
 
 export const useStatusColor = () => {
-  const { getStatusColor, getStatusStyle } = useParameterColors();
-  return { getStatusColor, getStatusStyle };
+  const { getStatusColor, getStatusStyle, loading } = useParameterColors();
+  return { getStatusColor, getStatusStyle, loading };
 };
 
 export const usePriorityColor = () => {
-  const { getPriorityColor, getPriorityStyle } = useParameterColors();
-  return { getPriorityColor, getPriorityStyle };
+  const { getPriorityColor, getPriorityStyle, loading } = useParameterColors();
+  return { getPriorityColor, getPriorityStyle, loading };
 };
 
 export const useTaskTypeColor = () => {
-  const { getTaskTypeColor, getTaskTypeStyle } = useParameterColors();
-  return { getTaskTypeColor, getTaskTypeStyle };
+  const { getTaskTypeColor, getTaskTypeStyle, loading } = useParameterColors();
+  return { getTaskTypeColor, getTaskTypeStyle, loading };
 };
 
 export const useEnvironmentColor = () => {
-  const { getEnvironmentColor, getEnvironmentStyle } = useParameterColors();
-  return { getEnvironmentColor, getEnvironmentStyle };
+  const { getEnvironmentColor, getEnvironmentStyle, loading } = useParameterColors();
+  return { getEnvironmentColor, getEnvironmentStyle, loading };
 };
