@@ -165,7 +165,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
           {task.followUps.length > 0 && (
             <div>
               <h4 className="font-medium text-foreground mb-3">Previous Follow-ups</h4>
-              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+              <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                 {task.followUps.map((followUp) => (
                   <div key={followUp.id} className="bg-card border border-border rounded-lg p-3">
                     {editingFollowUp === followUp.id ? (
