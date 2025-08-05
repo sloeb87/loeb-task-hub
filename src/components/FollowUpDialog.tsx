@@ -21,6 +21,11 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   const [editingText, setEditingText] = useState('');
   const [editingTimestamp, setEditingTimestamp] = useState('');
 
+  // Debug state changes
+  React.useEffect(() => {
+    console.log('editingFollowUp state changed to:', editingFollowUp);
+  }, [editingFollowUp]);
+
   // Debug logging when dialog opens
   React.useEffect(() => {
     if (isOpen) {
