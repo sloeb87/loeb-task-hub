@@ -290,7 +290,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailHTML = generateReportHTML(data);
 
     const emailResponse = await resend.emails.send({
-      from: "PMTask Reports <reports@yourdomain.com>",
+      from: "PMTask Reports <s.loeb@loebconsulting.be>",
       to: [data.recipientEmail],
       subject: `📊 Project Report: ${data.project.name}`,
       html: emailHTML,
