@@ -53,10 +53,19 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
 
   const handleSaveEdit = async () => {
     try {
-      // Only save if there are changes and the function is available
-      if (editingFollowUp && editingText.trim() && onUpdateFollowUp) {
+      // Save if we have an editing follow-up and the update function is available
+      if (editingFollowUp && onUpdateFollowUp) {
+        // Ensure we have some text (don't allow empty follow-ups)
+        const textToSave = editingText.trim() || 'No content';
         const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-        await onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
+        
+        console.log('Saving follow-up:', {
+          followUpId: editingFollowUp,
+          text: textToSave,
+          timestamp: newTimestamp
+        });
+        
+        await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
       }
     } catch (error) {
       console.error('Error saving follow-up:', error);
