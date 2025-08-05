@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar as CalendarIcon, Filter, X } from "lucide-react";
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -22,9 +24,10 @@ interface FollowUpFiltersProps {
   filters: FollowUpFilters;
   onFiltersChange: (filters: FollowUpFilters) => void;
   onClearFilters: () => void;
+  availableProjects?: string[];
 }
 
-export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters }: FollowUpFiltersProps) => {
+export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters, availableProjects = [] }: FollowUpFiltersProps) => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
     filters.dateRange ? { from: filters.dateRange.from, to: filters.dateRange.to } : undefined
   );
@@ -183,6 +186,61 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
                   numberOfMonths={2}
                   className={cn("p-3 pointer-events-auto")}
                 />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Project Filter */}
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Projects
+            </label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[200px] justify-between"
+                >
+                  {filters.projects?.length 
+                    ? `${filters.projects.length} project(s) selected`
+                    : "Select projects"
+                  }
+                  <Filter className="ml-2 h-4 w-4 shrink-0" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0">
+                <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
+                  {availableProjects.map((project) => (
+                    <div key={project} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`project-${project}`}
+                        checked={filters.projects?.includes(project) || false}
+                        onCheckedChange={(checked) => {
+                          const currentProjects = filters.projects || [];
+                          const updatedProjects = checked
+                            ? [...currentProjects, project]
+                            : currentProjects.filter(p => p !== project);
+                          onFiltersChange({
+                            ...filters,
+                            projects: updatedProjects.length > 0 ? updatedProjects : undefined
+                          });
+                        }}
+                      />
+                      <label 
+                        htmlFor={`project-${project}`}
+                        className="text-sm cursor-pointer flex-1 truncate"
+                        title={project}
+                      >
+                        {project}
+                      </label>
+                    </div>
+                  ))}
+                  {availableProjects.length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      No projects available
+                    </p>
+                  )}
+                </div>
               </PopoverContent>
             </Popover>
           </div>

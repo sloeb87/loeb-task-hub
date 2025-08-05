@@ -232,6 +232,21 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
         return false;
       }
 
+      // Date range filter from FollowUpFilters component
+      if (filters.dateRange) {
+        const followUpDate = new Date(followUp.timestamp);
+        if (followUpDate < filters.dateRange.from || followUpDate > filters.dateRange.to) {
+          return false;
+        }
+      }
+
+      // Project filter from FollowUpFilters component
+      if (filters.projects && filters.projects.length > 0) {
+        if (!filters.projects.includes(followUp.projectName)) {
+          return false;
+        }
+      }
+
       // Multi-select filters
       if (multiSelectFilters.date.length > 0 && 
           !multiSelectFilters.date.includes(formatDate(followUp.timestamp))) {
@@ -260,7 +275,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
 
       return true;
     });
-  }, [allFollowUps, searchTerm, multiSelectFilters]);
+  }, [allFollowUps, searchTerm, multiSelectFilters, filters]);
 
   // Group filtered follow-ups by project then by task
   const groupedFollowUps = useMemo(() => {
@@ -423,6 +438,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
         filters={filters}
         onFiltersChange={setFilters}
         onClearFilters={clearFilters}
+        availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]}
       />
 
       {/* Export */}
