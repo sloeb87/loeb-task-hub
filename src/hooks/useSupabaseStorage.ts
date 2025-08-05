@@ -266,10 +266,10 @@ export function useSupabaseStorage() {
       fullTask: updatedTask
     });
 
-    // Find the task by task_number
+    // Find the task by task_number and get current status to check for completion
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
-      .select('id')
+      .select('id, status')
       .eq('task_number', updatedTask.id)
       .eq('user_id', user.id)
       .single();
@@ -298,6 +298,10 @@ export function useSupabaseStorage() {
       }
     }
 
+    // Check if task is being marked as completed
+    const isBeingCompleted = existingTask.status !== 'Completed' && updatedTask.status === 'Completed';
+    const todayDate = new Date().toISOString().split('T')[0];
+
     const updateData = {
       scope: updatedTask.scope,
       project_id: projectId,
@@ -310,7 +314,7 @@ export function useSupabaseStorage() {
       responsible: updatedTask.responsible,
       start_date: updatedTask.startDate,
       due_date: updatedTask.dueDate,
-      completion_date: updatedTask.completionDate || null,
+      completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       dependencies: updatedTask.dependencies || [],
       details: updatedTask.details,
@@ -370,7 +374,25 @@ export function useSupabaseStorage() {
       }
     }
 
-    setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
+    // Add follow-up comment if task was just completed
+    if (isBeingCompleted) {
+      const { error: followUpError } = await supabase
+        .from('follow_ups')
+        .insert({
+          task_id: existingTask.id,
+          text: `Task marked completed on ${new Date().toLocaleDateString()}`,
+          created_at: new Date().toISOString()
+        });
+
+      if (followUpError) {
+        console.error('Error adding completion follow-up:', followUpError);
+      }
+    }
+
+    setTasks(prev => prev.map(task => task.id === updatedTask.id ? {
+      ...updatedTask,
+      completionDate: isBeingCompleted ? todayDate : updatedTask.completionDate
+    } : task));
     
     // Also reload tasks to ensure we have the latest data
     await loadTasks();

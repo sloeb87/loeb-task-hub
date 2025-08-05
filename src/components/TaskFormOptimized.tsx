@@ -575,6 +575,17 @@ export const TaskFormOptimized = React.memo(({
                       </PopoverContent>
                     </Popover>
                   </div>
+
+                  {task?.completionDate && (
+                    <div>
+                      <Label className="text-gray-700 dark:text-gray-300">Completion Date</Label>
+                      <Input
+                        value={new Date(task.completionDate).toLocaleDateString()}
+                        readOnly
+                        className="bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white cursor-not-allowed"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
 
