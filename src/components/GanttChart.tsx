@@ -419,6 +419,7 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                     className={`flex-1 text-center text-sm border-r last:border-r-0 ${
                       unit.isToday ? 'bg-gantt-today text-gantt-today-foreground font-semibold' : ''
                     } ${unit.isWeekend ? 'bg-gantt-weekend text-gantt-weekend-foreground' : ''}`}
+                    style={{ minWidth: `${100 / timelineUnits.length}%` }}
                   >
                     <div className="py-2">{unit.label}</div>
                   </div>
@@ -495,6 +496,7 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                             <div
                               key={unitIndex}
                               className="flex-1 border-r last:border-r-0 border-border"
+                              style={{ minWidth: `${100 / timelineUnits.length}%` }}
                             />
                           ))}
                         </div>
