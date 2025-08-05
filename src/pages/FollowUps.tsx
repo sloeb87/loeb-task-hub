@@ -7,10 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MessageSquare, Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Task, FollowUp } from "@/types/task";
-import { useScopeColor } from "@/hooks/useScopeColor";
-import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
-import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
-import { useStatusColor } from "@/hooks/useStatusColor";
+import { formatDate } from "@/utils/taskOperations";
+import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
 
@@ -294,10 +292,7 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
     };
   }, [filteredFollowUps]);
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  // formatDate is now imported from utils
 
   const clearFilters = () => {
     setFilters({});

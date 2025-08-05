@@ -5,14 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock } from "lucide-react";
 import { Task } from "@/types/task";
+import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect } from "react";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
-import { useScopeColor } from "@/hooks/useScopeColor";
-import { useTaskTypeColor } from "@/hooks/useTaskTypeColor";
-import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
-import { useStatusColor } from "@/hooks/useStatusColor";
-import { usePriorityColor } from "@/hooks/usePriorityColor";
+import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor, usePriorityColor } from '@/hooks/useParameterColors';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 
@@ -87,29 +84,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   }, [showFilters]);
 
 
-  const isOverdue = (dueDate: string, status: string) => {
-    if (status === "Completed") return false;
-    return new Date(dueDate) < new Date();
-  };
-
-  const getDueDateColor = (dueDate: string, status: string) => {
-    if (status === "Completed") return "text-green-600 dark:text-green-400";
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Reset to start of day
-    
-    const due = new Date(dueDate);
-    due.setHours(0, 0, 0, 0); // Reset to start of day
-    
-    const diffTime = due.getTime() - today.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays < 0) return "text-red-600 dark:text-red-400"; // Overdue
-    if (diffDays <= 3) return "text-red-600 dark:text-red-400"; // Within 3 days
-    if (diffDays <= 7) return "text-orange-800 dark:text-orange-300"; // Within 1 week
-    
-    return "text-gray-500 dark:text-gray-400"; // Normal
-  };
+  // Remove duplicate functions - now using utilities
+  // isOverdue and getDueDateColor are imported from utils
 
   const getUniqueValues = (filterType: keyof Filters): string[] => {
     if (filterType === 'dueDate') {
@@ -379,11 +355,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
     }
   };
 
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return `${hours}h ${mins}m`;
-  };
+  // formatTime is now imported from utils
 
   // Mobile view
   if (isMobile) {

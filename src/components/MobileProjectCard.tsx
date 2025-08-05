@@ -16,7 +16,7 @@ import {
   FolderOpen
 } from "lucide-react";
 import { Project, Task } from "@/types/task";
-import { useScopeColor } from '@/hooks/useScopeColor';
+import { useScopeColor } from '@/hooks/useParameterColors';
 
 interface MobileProjectCardProps {
   project: Project;

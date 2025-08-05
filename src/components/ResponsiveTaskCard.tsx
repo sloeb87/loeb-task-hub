@@ -1,7 +1,5 @@
 import React from 'react';
-import { useScopeColor } from '@/hooks/useScopeColor';
-import { useTaskTypeColor } from '@/hooks/useTaskTypeColor';
-import { useEnvironmentColor } from '@/hooks/useEnvironmentColor';
+import { useScopeColor, useTaskTypeColor, useEnvironmentColor } from '@/hooks/useParameterColors';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

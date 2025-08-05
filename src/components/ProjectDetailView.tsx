@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useScopeColor } from '@/hooks/useScopeColor';
+import { useScopeColor } from '@/hooks/useParameterColors';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

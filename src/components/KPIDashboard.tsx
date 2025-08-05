@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { useScopeColor } from '@/hooks/useScopeColor';
+import { useScopeColor } from '@/hooks/useParameterColors';
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

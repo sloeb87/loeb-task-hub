@@ -3,7 +3,8 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { Label } from "@/components/ui/label";
@@ -301,6 +302,9 @@ export const TaskFormOptimized = React.memo(({
               </Button>
             )}
           </DialogTitle>
+          <DialogDescription>
+            {task ? 'Edit task details, dependencies, and track progress.' : 'Create a new task with all necessary details and requirements.'}
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">

@@ -8,7 +8,7 @@ import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircl
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Project, Task } from "@/types/task";
-import { useScopeColor } from '@/hooks/useScopeColor';
+import { useScopeColor } from '@/hooks/useParameterColors';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileProjectCard } from './MobileProjectCard';
 interface ProjectTableProps {
