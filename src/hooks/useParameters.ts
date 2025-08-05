@@ -59,7 +59,7 @@ const DEFAULT_PARAMETERS: Parameters = {
 
 export const useParameters = () => {
   const [parameters, setParameters] = useState<Parameters>(DEFAULT_PARAMETERS);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true to prevent color flash
   const { user } = useAuth();
 
   const loadParameters = async () => {
@@ -114,6 +114,9 @@ export const useParameters = () => {
   useEffect(() => {
     if (user) {
       loadParameters();
+    } else {
+      // If no user, we can use defaults immediately
+      setLoading(false);
     }
   }, [user]);
 
