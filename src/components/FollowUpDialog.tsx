@@ -38,10 +38,11 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   // Debug logging when dialog opens
   React.useEffect(() => {
     if (isOpen) {
-      console.log('FollowUpDialog opened with:', { 
+      console.log('🔍 FollowUpDialog opened with:', { 
         hasOnUpdateFollowUp: !!onUpdateFollowUp, 
         taskId: task?.id,
-        followUpCount: task?.followUps?.length || 0
+        followUpCount: task?.followUps?.length || 0,
+        dialogSource: onUpdateFollowUp ? 'Index.tsx (CORRECT)' : 'Unknown/Wrong Source'
       });
     }
   }, [isOpen, onUpdateFollowUp, task?.id, task?.followUps?.length]);
