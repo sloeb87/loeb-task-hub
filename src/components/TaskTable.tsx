@@ -468,11 +468,11 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                 <TableHead style={{ minWidth: '150px' }}>
                   <FilterableHeader field="taskType" filterType="taskType">Type & Environment</FilterableHeader>
                 </TableHead>
-                <TableHead style={{ minWidth: '180px' }}>
-                  <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
-                </TableHead>
                 <TableHead style={{ minWidth: '150px' }}>
                   <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
+                </TableHead>
+                <TableHead style={{ minWidth: '180px' }}>
+                  <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>
                   <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
@@ -545,6 +545,23 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                     </div>
                   </TableCell>
 
+                  {/* Responsible Column */}
+                  <TableCell>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-base text-gray-900 dark:text-white">{task.responsible}</span>
+                      </div>
+                      {task.stakeholders.length > 0 && (
+                        <div className="flex items-center space-x-1">
+                          <Users className="w-3 h-3 text-gray-400" />
+                          <span className="text-sm text-gray-500 dark:text-gray-400">
+                            +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+
                   {/* Status & Priority Column */}
                   <TableCell>
                     <div className="space-y-2">
@@ -564,23 +581,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                           {task.priority}
                         </Badge>
                       </div>
-                    </div>
-                  </TableCell>
-
-                  {/* Responsible Column */}
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-base text-gray-900 dark:text-white">{task.responsible}</span>
-                      </div>
-                      {task.stakeholders.length > 0 && (
-                        <div className="flex items-center space-x-1">
-                          <Users className="w-3 h-3 text-gray-400" />
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            +{task.stakeholders.length} stakeholder{task.stakeholders.length !== 1 ? 's' : ''}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </TableCell>
 
