@@ -52,16 +52,19 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
-    if (editingFollowUp && editingText.trim() && onUpdateFollowUp) {
-      try {
+    try {
+      // Only save if there are changes and the function is available
+      if (editingFollowUp && editingText.trim() && onUpdateFollowUp) {
         const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
         await onUpdateFollowUp(editingFollowUp, editingText.trim(), newTimestamp);
-        setEditingFollowUp(null);
-        setEditingText('');
-        setEditingTimestamp('');
-      } catch (error) {
-        console.error('Error saving follow-up:', error);
       }
+    } catch (error) {
+      console.error('Error saving follow-up:', error);
+    } finally {
+      // Always exit edit mode, regardless of save success/failure
+      setEditingFollowUp(null);
+      setEditingText('');
+      setEditingTimestamp('');
     }
   };
 
