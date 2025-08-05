@@ -23,6 +23,8 @@ interface ProjectsPageProps {
   projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
   initialDetailProject?: string | null;
+  onBackToList?: () => void; // Callback when back action is needed
+  isInDetailView?: boolean; // Flag to indicate if in detail view
 }
 
 const ProjectsPage = ({ 
@@ -37,7 +39,9 @@ const ProjectsPage = ({
   onAddFollowUp,
   projectFilter = 'all',
   setProjectFilter,
-  initialDetailProject = null
+  initialDetailProject = null,
+  onBackToList,
+  isInDetailView
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -62,10 +66,22 @@ const ProjectsPage = ({
     }
   }, [initialDetailProject, projects]);
 
+  // Notify parent when entering/exiting detail view
+  React.useEffect(() => {
+    // Notify parent about detail view state changes
+    if (viewMode === 'detail' && onBackToList) {
+      // We're entering detail view - parent should track this
+    }
+  }, [viewMode, onBackToList]);
+
   const handleEditProject = (project: Project) => {
     console.log('handleEditProject called with:', project.name);
     setDetailProject(project);
     setViewMode('detail');
+    // Notify parent we're entering detail view
+    if (onBackToList) {
+      // Parent can now set up the back functionality
+    }
   };
 
   const handleEditProjectForm = () => {
@@ -147,7 +163,10 @@ const ProjectsPage = ({
         tasks={tasks}
         allTasks={tasks}
         allProjects={projects} // Pass the projects list
-        onBack={() => setViewMode('list')}
+        onBack={() => {
+          setViewMode('list');
+          onBackToList?.();
+        }}
         onEditProject={handleEditProjectForm}
         onUpdateProject={onUpdateProject}
         onDeleteProject={onDeleteProject}

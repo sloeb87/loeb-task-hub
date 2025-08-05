@@ -72,6 +72,9 @@ const Index = () => {
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
+  
+  // Track when projects page is in detail view
+  const [isProjectDetailView, setIsProjectDetailView] = useState(false);
 
   // Use optimized filtering hook
   const {
@@ -198,7 +201,14 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <AppHeader activeView={activeView} onViewChange={setActiveView} isDarkMode={isDarkMode} onToggleDarkMode={toggleDarkMode} onOpenParameters={() => setIsParametersOpen(true)} />
+      <AppHeader 
+        activeView={activeView} 
+        onViewChange={setActiveView} 
+        isDarkMode={isDarkMode} 
+        onToggleDarkMode={toggleDarkMode} 
+        onOpenParameters={() => setIsParametersOpen(true)}
+        onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
+      />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
@@ -228,7 +238,21 @@ const Index = () => {
             <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
             <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
-          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} /> : <ProjectsPage 
+            tasks={tasks} 
+            projects={projects} 
+            onCreateProject={handleCreateProject} 
+            onUpdateProject={handleUpdateProject} 
+            onDeleteProject={handleDeleteProject} 
+            onCreateTask={handleCreateTask} 
+            onUpdateTask={handleUpdateTask} 
+            onDeleteTask={handleDeleteTask} 
+            projectFilter={projectFilter} 
+            setProjectFilter={setProjectFilter} 
+            onAddFollowUp={handleAddFollowUpWrapper} 
+            initialDetailProject={projectToShowDetails}
+            onBackToList={() => setIsProjectDetailView(false)}
+          />}
         </div>
 
         {/* Task Form Dialog */}

@@ -12,13 +12,15 @@ interface AppHeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
+  onBack?: () => void; // Optional back function for project detail view
 }
 export const AppHeader = ({
   activeView,
   onViewChange,
   isDarkMode,
   onToggleDarkMode,
-  onOpenParameters
+  onOpenParameters,
+  onBack
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -122,8 +124,14 @@ export const AppHeader = ({
           <div className="flex items-center space-x-2 sm:space-x-4">
             <button 
               onClick={() => {
-                navigate('/');
-                onViewChange('projects');
+                if (onBack) {
+                  // If we're in project detail view, use the back function
+                  onBack();
+                } else {
+                  // Otherwise, navigate to main page with projects view
+                  navigate('/');
+                  onViewChange('projects');
+                }
               }}
               className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
             >
