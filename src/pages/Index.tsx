@@ -68,6 +68,7 @@ const Index = () => {
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking" | "followups">("tasks");
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
+  const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
 
   // Use optimized filtering hook
   const {
@@ -141,9 +142,10 @@ const Index = () => {
   }, [handleUpdateTask, handleCreateTask]);
 
   const handleNavigateToProject = useCallback((projectName: string) => {
+    setProjectToShowDetails(projectName);
     setActiveView("projects");
-    // The project filter is already set to 'active' by default, which should show the project
-    // You could add additional logic here to filter or highlight the specific project
+    // Reset project details after a short delay to ensure it only triggers once
+    setTimeout(() => setProjectToShowDetails(null), 100);
   }, []);
 
   // Show loading state
@@ -198,7 +200,7 @@ const Index = () => {
             <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
             <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
-          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} />}
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
         </div>
 
         {/* Task Form Dialog */}

@@ -285,8 +285,21 @@ export const TaskFormOptimized = React.memo(({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white">
-            {task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}
+          <DialogTitle className="text-gray-900 dark:text-white flex items-center justify-between">
+            <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
+            {(task || projectName) && formData.project && onNavigateToProject && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleNavigateToProject}
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                title={`Go to ${formData.project} project details`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Go to Project
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -332,22 +345,7 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
-                      {(task || projectName) && formData.project && onNavigateToProject && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={handleNavigateToProject}
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
-                          title={`Go to ${formData.project} project`}
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          Go to Project
-                        </Button>
-                      )}
-                    </div>
+                    <Label htmlFor="project" className="text-gray-700 dark:text-gray-300">Project</Label>
                     {task || projectName ? (
                       // Read-only when editing existing task or creating task from project context
                       <Input

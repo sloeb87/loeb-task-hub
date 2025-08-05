@@ -22,6 +22,7 @@ interface ProjectsPageProps {
   onAddFollowUp: (taskId: string, followUpText: string) => void;
   projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
+  initialDetailProject?: string | null;
 }
 
 const ProjectsPage = ({ 
@@ -35,7 +36,8 @@ const ProjectsPage = ({
   onDeleteTask,
   onAddFollowUp,
   projectFilter = 'all',
-  setProjectFilter
+  setProjectFilter,
+  initialDetailProject = null
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -48,6 +50,17 @@ const ProjectsPage = ({
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
   console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask?.title);
+
+  // Handle initial detail project navigation
+  React.useEffect(() => {
+    if (initialDetailProject) {
+      const project = projects.find(p => p.name === initialDetailProject);
+      if (project) {
+        setDetailProject(project);
+        setViewMode('detail');
+      }
+    }
+  }, [initialDetailProject, projects]);
 
   const handleEditProject = (project: Project) => {
     console.log('handleEditProject called with:', project.name);
