@@ -815,7 +815,7 @@ export const TaskFormOptimized = React.memo(({
           isOpen={followUpDialogOpen}
           onClose={() => setFollowUpDialogOpen(false)}
           onAddFollowUp={handleFollowUpAdd}
-          onUpdateFollowUp={onUpdateFollowUp}
+          onUpdateFollowUp={onUpdateFollowUp || (() => console.error('onUpdateFollowUp is undefined!'))}
           task={task}
         />
       )}
