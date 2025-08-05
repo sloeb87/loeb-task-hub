@@ -234,6 +234,7 @@ const Index = () => {
           onDelete={handleDeleteTask} 
           onAddFollowUp={handleAddFollowUpWrapper}
           onUpdateFollowUp={handleUpdateFollowUpWrapper}
+          onFollowUpTask={handleFollowUpTask}
           task={selectedTask} 
           allTasks={tasks} 
           allProjects={projects}

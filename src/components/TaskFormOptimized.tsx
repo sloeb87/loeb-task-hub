@@ -6,7 +6,6 @@ import {
   DialogTitle,
   DialogDescription
 } from "@/components/ui/dialog";
-import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +28,7 @@ interface TaskFormProps {
   onDelete?: (taskId: string) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
+  onFollowUpTask?: (task: Task) => void; // Add this to open the main follow-up dialog
   task?: Task | null;
   allTasks: Task[];
   allProjects: Project[];
@@ -92,6 +92,7 @@ export const TaskFormOptimized = React.memo(({
   onDelete,
   onAddFollowUp,
   onUpdateFollowUp,
+  onFollowUpTask,
   task, 
   allTasks, 
   allProjects, 
@@ -103,7 +104,6 @@ export const TaskFormOptimized = React.memo(({
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
-  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
   const { startTimer } = useTimeTracking();
 
@@ -261,7 +261,6 @@ export const TaskFormOptimized = React.memo(({
     try {
       // Use the proper Supabase addFollowUp function and wait for completion
       await onAddFollowUp(task.id, text);
-      setFollowUpDialogOpen(false);
       // The parent component will receive the updated task through the database refresh
     } catch (error) {
       console.error('Error adding follow-up:', error);
@@ -269,11 +268,12 @@ export const TaskFormOptimized = React.memo(({
   };
 
   const handleFollowUpClick = (followUpId?: string) => {
-    console.log('Opening FollowUpDialog from TaskFormOptimized');
-    console.log('onUpdateFollowUp function available:', !!onUpdateFollowUp);
-    console.log('onUpdateFollowUp function type:', typeof onUpdateFollowUp);
-    console.log('Selected follow-up ID:', followUpId);
-    setFollowUpDialogOpen(true);
+    console.log('Follow-up clicked - using parent follow-up system');
+    if (task && onFollowUpTask) {
+      onFollowUpTask(task); // Use the parent's follow-up dialog system
+    } else {
+      console.error('onFollowUpTask not available');
+    }
   };
 
   const handleStartTimer = () => {
@@ -732,7 +732,7 @@ export const TaskFormOptimized = React.memo(({
                       type="button"
                       variant="outline"
                       size="sm"
-                      onClick={() => setFollowUpDialogOpen(true)}
+                      onClick={() => handleFollowUpClick()}
                       className="flex items-center gap-2"
                     >
                       <MessageSquarePlus className="w-4 h-4" />
@@ -809,16 +809,6 @@ export const TaskFormOptimized = React.memo(({
         </form>
       </DialogContent>
 
-      {/* Follow-up Dialog */}
-      {task && (
-        <FollowUpDialog
-          isOpen={followUpDialogOpen}
-          onClose={() => setFollowUpDialogOpen(false)}
-          onAddFollowUp={handleFollowUpAdd}
-          onUpdateFollowUp={onUpdateFollowUp || (() => console.error('onUpdateFollowUp is undefined!'))}
-          task={task}
-        />
-      )}
     </Dialog>
   );
 });
