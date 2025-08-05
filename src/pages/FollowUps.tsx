@@ -491,10 +491,21 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                     
                     {Object.entries(tasks).map(([taskTitle, followUps]) => (
                       <React.Fragment key={`${projectName}-${taskTitle}`}>
-                        {/* Task Header Row */}
+                        {/* Task Header Row with Scope, Type, Environment */}
                         <TableRow className="bg-muted/30 hover:bg-muted/30">
                           <TableCell colSpan={9} className="font-medium text-base py-2 pl-8">
-                            📋 {taskTitle}
+                            <div className="flex items-center gap-3">
+                              <span>📋 {taskTitle}</span>
+                              <Badge style={getScopeStyle(followUps[0].taskScope)} className="text-xs border">
+                                {followUps[0].taskScope}
+                              </Badge>
+                              <Badge style={getTaskTypeStyle(followUps[0].taskType)} className="text-xs border">
+                                {followUps[0].taskType}
+                              </Badge>
+                              <Badge style={getEnvironmentStyle(followUps[0].taskEnvironment)} className="text-xs border">
+                                {followUps[0].taskEnvironment}
+                              </Badge>
+                            </div>
                           </TableCell>
                         </TableRow>
                         
