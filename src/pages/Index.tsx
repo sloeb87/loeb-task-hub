@@ -105,6 +105,9 @@ const Index = () => {
   }, [addFollowUp]);
 
   const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
+    console.log('handleUpdateFollowUpWrapper called:', { followUpId, text, timestamp });
+    console.log('updateFollowUp function exists:', !!updateFollowUp);
+    console.log('updateFollowUp type:', typeof updateFollowUp);
     try {
       await updateFollowUp(followUpId, text, timestamp);
     } catch (error) {

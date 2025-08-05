@@ -16,6 +16,8 @@ interface FollowUpDialogProps {
 }
 
 export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowUp, task }: FollowUpDialogProps) => {
+  console.log('FollowUpDialog rendered with onUpdateFollowUp:', !!onUpdateFollowUp);
+  console.log('onUpdateFollowUp type:', typeof onUpdateFollowUp);
   const [followUpText, setFollowUpText] = useState('');
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
