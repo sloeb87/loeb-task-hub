@@ -105,29 +105,27 @@ const Index = () => {
     }
   }, [addFollowUp]);
 
-  const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
-    console.log('handleUpdateFollowUpWrapper called with:', { followUpId, text, timestamp });
+  const handleUpdateFollowUpWrapper = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
+    console.log('handleUpdateFollowUpWrapper called with:', { taskId, followUpId, text, timestamp });
     try {
       await updateFollowUp(followUpId, text, timestamp);
       console.log('Follow-up updated successfully');
+      
+      // Update the followUpTask state with the latest data
+      const updatedTask = tasks.find(task => task.id === taskId);
+      if (updatedTask) {
+        setFollowUpTask(updatedTask);
+      }
     } catch (error) {
       console.error('Failed to update follow-up:', error);
     }
-  }, [updateFollowUp]);
+  }, [updateFollowUp, tasks]);
 
 
-  const handleUpdateFollowUpFromPage = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
-    try {
-      await updateFollowUp(followUpId, text, timestamp);
-    } catch (error) {
-      console.error('Failed to update follow-up:', error);
-      // You could add a toast notification here
-    }
-  }, [updateFollowUp]);
-  const handleFollowUpTask = useCallback((updatedTask: Task) => {
-    console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
-    updateTask(updatedTask);
-  }, [updateTask]);
+  const handleFollowUpTask = useCallback((task: Task) => {
+    console.log('Index - handleFollowUpTask called with:', task.id, task.title);
+    setFollowUpTask(task);
+  }, []);
   const handleCreateProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
     try {
       await createProject(projectData);
@@ -222,7 +220,7 @@ const Index = () => {
             <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
             <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
-          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpFromPage} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
         </div>
 
         {/* Task Form Dialog */}
@@ -246,7 +244,7 @@ const Index = () => {
             isOpen={!!followUpTask} 
             onClose={() => setFollowUpTask(null)} 
             onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-            onUpdateFollowUp={handleUpdateFollowUpFromPage}
+            onUpdateFollowUp={handleUpdateFollowUpWrapper}
             task={followUpTask} 
           />
         )}
