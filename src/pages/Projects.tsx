@@ -158,31 +158,49 @@ const ProjectsPage = ({
       return;
     }
     console.log('Setting report project:', targetProject.name);
+    console.log('Current isReportModalOpen state:', isReportModalOpen);
     setReportProject(targetProject);
     setIsReportModalOpen(true);
+    console.log('After setting modal to true');
   };
 
   if (viewMode === 'detail' && detailProject) {
     return (
-      <ProjectDetailView
-        project={detailProject}
-        tasks={tasks}
-        allTasks={tasks}
-        allProjects={projects} // Pass the projects list
-        onBack={() => {
-          setViewMode('list');
-          onBackToList?.();
-        }}
-        onEditProject={handleEditProjectForm}
-        onUpdateProject={onUpdateProject}
-        onDeleteProject={onDeleteProject}
-        onCreateTask={() => handleCreateTaskForProject()}
-        onEditTask={handleEditTask}
-        onGenerateReport={() => handleGenerateReport(detailProject)}
-        onUpdateTask={onUpdateTask}
-        onDeleteTask={onDeleteTask}
-        onSaveTask={handleSaveTask}
-      />
+      <>
+        <ProjectDetailView
+          project={detailProject}
+          tasks={tasks}
+          allTasks={tasks}
+          allProjects={projects} // Pass the projects list
+          onBack={() => {
+            setViewMode('list');
+            onBackToList?.();
+          }}
+          onEditProject={handleEditProjectForm}
+          onUpdateProject={onUpdateProject}
+          onDeleteProject={onDeleteProject}
+          onCreateTask={() => handleCreateTaskForProject()}
+          onEditTask={handleEditTask}
+          onGenerateReport={() => handleGenerateReport(detailProject)}
+          onUpdateTask={onUpdateTask}
+          onDeleteTask={onDeleteTask}
+          onSaveTask={handleSaveTask}
+        />
+
+        {/* Report Modal - Also available in detail view */}
+        {reportProject && (
+          <ReportModal
+            isOpen={isReportModalOpen}
+            onClose={() => {
+              console.log('ReportModal closing');
+              setIsReportModalOpen(false);
+              setReportProject(null);
+            }}
+            project={reportProject}
+            tasks={tasks}
+          />
+        )}
+      </>
     );
   }
 
