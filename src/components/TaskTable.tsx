@@ -7,7 +7,7 @@ import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, C
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect } from "react";
-import { FollowUpDialog } from "@/components/FollowUpDialog";
+
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor, usePriorityColor } from '@/hooks/useParameterColors';
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -54,8 +54,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   });
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
-  const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
   const { getScopeStyle } = useScopeColor();
   const { getTaskTypeStyle } = useTaskTypeColor();
@@ -317,32 +315,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   const handleFollowUpClick = (task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
     console.log('Follow-up clicked for task:', task.title);
-    setSelectedTaskForFollowUp(task);
-    setFollowUpDialogOpen(true);
-  };
-
-  const handleAddFollowUp = (text: string) => {
-    if (selectedTaskForFollowUp) {
-      // Create a new follow-up object
-      const newFollowUp = {
-        id: `fu-${Date.now()}`,
-        text: text,
-        timestamp: new Date().toISOString(),
-        author: 'Current User' // You might want to get this from a user context
-      };
-
-      // Update the task with the new follow-up
-      const updatedTask = {
-        ...selectedTaskForFollowUp,
-        followUps: [...selectedTaskForFollowUp.followUps, newFollowUp]
-      };
-
-      // Call the onFollowUp callback to update the task
-      onFollowUp(updatedTask);
-    }
-    
-    setFollowUpDialogOpen(false);
-    setSelectedTaskForFollowUp(null);
+    onFollowUp(task); // Use the parent's follow-up system
   };
 
   const handleTimerToggle = (task: Task, e: React.MouseEvent) => {
@@ -394,18 +367,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           </div>
         )}
 
-        {/* Follow-up Dialog */}
-        {selectedTaskForFollowUp && (
-          <FollowUpDialog
-            isOpen={followUpDialogOpen}
-            onClose={() => {
-              setFollowUpDialogOpen(false);
-              setSelectedTaskForFollowUp(null);
-            }}
-            onAddFollowUp={handleAddFollowUp}
-            task={selectedTaskForFollowUp}
-          />
-        )}
       </div>
     );
   }
@@ -716,18 +677,6 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         )}
       </div>
 
-      {/* Follow-up Dialog */}
-      {selectedTaskForFollowUp && (
-        <FollowUpDialog
-          isOpen={followUpDialogOpen}
-          onClose={() => {
-            setFollowUpDialogOpen(false);
-            setSelectedTaskForFollowUp(null);
-          }}
-          onAddFollowUp={handleAddFollowUp}
-          task={selectedTaskForFollowUp}
-        />
-      )}
     </>
   );
 };
