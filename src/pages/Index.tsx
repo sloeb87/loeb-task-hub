@@ -106,8 +106,10 @@ const Index = () => {
   }, [addFollowUp]);
 
   const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
+    console.log('handleUpdateFollowUpWrapper called with:', { followUpId, text, timestamp });
     try {
       await updateFollowUp(followUpId, text, timestamp);
+      console.log('Follow-up updated successfully');
     } catch (error) {
       console.error('Failed to update follow-up:', error);
     }
@@ -240,13 +242,16 @@ const Index = () => {
 
         {/* Follow Up Dialog */}
         {followUpTask && (
-          <FollowUpDialog 
-            isOpen={!!followUpTask} 
-            onClose={() => setFollowUpTask(null)} 
-            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-            onUpdateFollowUp={handleUpdateFollowUpWrapper} 
-            task={followUpTask} 
-          />
+          <>
+            {console.log('Rendering FollowUpDialog with handleUpdateFollowUpWrapper:', typeof handleUpdateFollowUpWrapper)}
+            <FollowUpDialog 
+              isOpen={!!followUpTask} 
+              onClose={() => setFollowUpTask(null)} 
+              onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
+              onUpdateFollowUp={handleUpdateFollowUpWrapper}
+              task={followUpTask} 
+            />
+          </>
         )}
 
         {/* Parameters Dialog */}
