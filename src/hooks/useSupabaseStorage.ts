@@ -68,6 +68,10 @@ export function useSupabaseStorage() {
       author: fu.author
     })) || [];
 
+    if (followUps.length > 0) {
+      console.log(`Task ${supabaseTask.task_number} has ${followUps.length} follow-ups:`, followUps);
+    }
+
     // Get project name from project_id
     let projectName = '';
     if (supabaseTask.project_id) {
@@ -347,12 +351,13 @@ export function useSupabaseStorage() {
       // Save new follow-ups to database
       if (newFollowUps.length > 0) {
         const followUpsToInsert = newFollowUps.map(followUp => ({
-          id: followUp.id,
           task_id: existingTask.id,
           text: followUp.text,
           author: followUp.author,
           created_at: followUp.timestamp
         }));
+
+        console.log('Inserting follow-ups:', followUpsToInsert);
 
         const { error: followUpError } = await supabase
           .from('follow_ups')
@@ -361,6 +366,8 @@ export function useSupabaseStorage() {
         if (followUpError) {
           console.error('Error saving follow-ups:', followUpError);
           // Don't throw here, just log the error so the main task update succeeds
+        } else {
+          console.log('Follow-ups saved successfully');
         }
       }
     }
@@ -372,6 +379,7 @@ export function useSupabaseStorage() {
   };
 
   const addFollowUp = async (taskId: string, followUpText: string): Promise<void> => {
+    console.log('addFollowUp called with:', { taskId, followUpText });
     if (!user) throw new Error('User not authenticated');
 
     // Find the task by task_number
@@ -400,7 +408,12 @@ export function useSupabaseStorage() {
         }
       ]);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error inserting follow-up:', error);
+      throw error;
+    }
+
+    console.log('Follow-up successfully inserted into database');
 
     // Reload tasks to get updated follow-ups and wait for completion
     await loadTasks();

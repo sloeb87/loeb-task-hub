@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types/task";
 import { Calendar, User } from "lucide-react";
@@ -37,6 +37,9 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, task }: FollowU
             <span>Follow-Up for Task {task.id}</span>
             <Badge variant="outline">{task.status}</Badge>
           </DialogTitle>
+          <DialogDescription>
+            Add and view follow-up notes for this task.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
