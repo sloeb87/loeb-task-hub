@@ -112,10 +112,10 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                             {followUp.author}
                           </span>
                           <div className="flex space-x-2">
-                            <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
+                            <Button size="sm" variant="default" onClick={handleSaveEdit}>
                               <Save className="w-3 h-3" />
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={handleCancelEdit}>
+                            <Button size="sm" variant="outline" onClick={handleCancelEdit}>
                               <X className="w-3 h-3" />
                             </Button>
                           </div>
