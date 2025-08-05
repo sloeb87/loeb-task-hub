@@ -148,12 +148,12 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                              </span>
                              <Button 
                                size="sm" 
-                               variant="ghost" 
+                               variant="outline" 
                                onClick={() => handleEditFollowUp(followUp)}
-                               className="p-1 h-6 w-6 hover:bg-blue-100"
+                               className="p-1 h-7 w-7 hover:bg-blue-100 border-blue-200 hover:border-blue-300"
                                title="Edit follow-up"
                              >
-                               <Edit className="w-3 h-3" />
+                               <Edit className="w-3 h-3 text-blue-600" />
                              </Button>
                            </div>
                         </div>
