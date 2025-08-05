@@ -329,6 +329,42 @@ export function useSupabaseStorage() {
 
     console.log('Task updated successfully in DB, updating local state');
 
+    // Handle follow-ups separately - check if there are new follow-ups to save
+    if (updatedTask.followUps && updatedTask.followUps.length > 0) {
+      // Get existing follow-ups from database
+      const { data: existingFollowUps } = await supabase
+        .from('follow_ups')
+        .select('id')
+        .eq('task_id', existingTask.id);
+
+      const existingFollowUpIds = new Set(existingFollowUps?.map(f => f.id) || []);
+      
+      // Find new follow-ups (those not in the database yet)
+      const newFollowUps = updatedTask.followUps.filter(followUp => 
+        !existingFollowUpIds.has(followUp.id)
+      );
+
+      // Save new follow-ups to database
+      if (newFollowUps.length > 0) {
+        const followUpsToInsert = newFollowUps.map(followUp => ({
+          id: followUp.id,
+          task_id: existingTask.id,
+          text: followUp.text,
+          author: followUp.author,
+          created_at: followUp.timestamp
+        }));
+
+        const { error: followUpError } = await supabase
+          .from('follow_ups')
+          .insert(followUpsToInsert);
+
+        if (followUpError) {
+          console.error('Error saving follow-ups:', followUpError);
+          // Don't throw here, just log the error so the main task update succeeds
+        }
+      }
+    }
+
     setTasks(prev => prev.map(task => task.id === updatedTask.id ? updatedTask : task));
     
     // Also reload tasks to ensure we have the latest data
