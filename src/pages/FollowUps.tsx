@@ -68,6 +68,9 @@ export const FollowUpsPage = ({
   
   // State for collapsible project groups
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  
+  // State for collapsible task groups
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set());
 
   // Edit state for follow-ups
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
@@ -360,6 +363,20 @@ export const FollowUpsPage = ({
     });
   };
 
+  // Toggle task expansion
+  const toggleTaskExpansion = (projectName: string, taskTitle: string) => {
+    const taskKey = `${projectName}-${taskTitle}`;
+    setExpandedTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskKey)) {
+        newSet.delete(taskKey);
+      } else {
+        newSet.add(taskKey);
+      }
+      return newSet;
+    });
+  };
+
   return <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3">
@@ -462,9 +479,14 @@ export const FollowUpsPage = ({
                     {/* Only show tasks if project is expanded */}
                     {expandedProjects.has(projectName) && Object.entries(tasks).map(([taskTitle, followUps]) => <React.Fragment key={`${projectName}-${taskTitle}`}>
                         {/* Task Header Row with Scope, Type, Environment */}
-                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableRow className="bg-muted/30 hover:bg-muted/30 cursor-pointer" onClick={() => toggleTaskExpansion(projectName, taskTitle)}>
                           <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
                             <div className="flex items-center gap-3">
+                              {expandedTasks.has(`${projectName}-${taskTitle}`) ? (
+                                <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                              )}
                               <span>📋 {taskTitle}</span>
                               <Badge style={getTaskTypeStyle(followUps[0].taskType)} className="text-xs border">
                                 {followUps[0].taskType}
@@ -476,8 +498,8 @@ export const FollowUpsPage = ({
                           </TableCell>
                         </TableRow>
                         
-                        {/* Follow-up Rows */}
-                        {followUps.map(followUp => <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={e => handleRowClick(followUp, e)}>
+                        {/* Follow-up Rows - only show if task is expanded */}
+                        {expandedTasks.has(`${projectName}-${taskTitle}`) && followUps.map(followUp => <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={e => handleRowClick(followUp, e)}>
                             {/* Date Column */}
                             <TableCell className="pl-12">
                               {editingFollowUp === followUp.id ? <div className="edit-controls">
