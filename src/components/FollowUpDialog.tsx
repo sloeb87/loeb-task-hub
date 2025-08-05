@@ -109,10 +109,20 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
       await onUpdateFollowUp(task.id, editingFollowUp, textToSave, newTimestamp);
       console.log('Save successful!');
       
-      // Exit edit mode but keep dialog open
+      // Exit edit mode
       setEditingFollowUp(null);
       setEditingText('');
       setEditingTimestamp('');
+      
+      // Close dialog briefly to refresh data, then reopen
+      onClose();
+      setTimeout(() => {
+        // Find and click the follow-up button again to reopen with fresh data
+        const followUpButton = document.querySelector(`[data-task-id="${task.id}"] button[title*="follow-up"], [data-task-id="${task.id}"] button[title*="Follow-up"]`);
+        if (followUpButton) {
+          (followUpButton as HTMLButtonElement).click();
+        }
+      }, 100);
     } catch (error) {
       console.error('Save error:', error);
     }
