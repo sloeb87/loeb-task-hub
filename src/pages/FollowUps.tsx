@@ -476,7 +476,7 @@ export const FollowUpsPage = ({
                               {editingFollowUp === followUp.id ? <div className="edit-controls">
                                   <Textarea value={editingText} onChange={e => setEditingText(e.target.value)} className="text-sm min-h-[60px] w-full" onClick={e => e.stopPropagation()} rows={2} />
                                 </div> : <div className="max-w-md">
-                                  <p className="text-sm">{followUp.text}</p>
+                                  <p className="text-sm whitespace-pre-wrap">{followUp.text}</p>
                                 </div>}
                             </TableCell>
                             
