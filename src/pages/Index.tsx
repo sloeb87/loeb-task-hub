@@ -37,9 +37,6 @@ const Index = () => {
     deleteProject
   } = useSupabaseStorage();
 
-  // Debug the updateFollowUp function from the hook
-  console.log('updateFollowUp from hook:', !!updateFollowUp);
-  console.log('updateFollowUp type:', typeof updateFollowUp);
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -109,10 +106,6 @@ const Index = () => {
   }, [addFollowUp]);
 
   const handleUpdateFollowUpWrapper = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
-    console.log('handleUpdateFollowUpWrapper called:', { followUpId, text, timestamp });
-    console.log('updateFollowUp function exists:', !!updateFollowUp);
-    console.log('updateFollowUp type:', typeof updateFollowUp);
-    
     if (!updateFollowUp) {
       console.error('updateFollowUp function is not available');
       return;
@@ -120,14 +113,11 @@ const Index = () => {
     
     try {
       await updateFollowUp(followUpId, text, timestamp);
-      console.log('Follow-up updated successfully');
     } catch (error) {
       console.error('Failed to update follow-up:', error);
     }
   }, [updateFollowUp]);
 
-  // Debug the wrapper function
-  console.log('handleUpdateFollowUpWrapper exists:', !!handleUpdateFollowUpWrapper);
 
   const handleUpdateFollowUpFromPage = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
     try {
@@ -254,7 +244,15 @@ const Index = () => {
         />
 
         {/* Follow Up Dialog */}
-        {followUpTask && <FollowUpDialog isOpen={!!followUpTask} onClose={() => setFollowUpTask(null)} onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} onUpdateFollowUp={handleUpdateFollowUpWrapper} task={followUpTask} />}
+        {followUpTask && (
+          <FollowUpDialog 
+            isOpen={!!followUpTask} 
+            onClose={() => setFollowUpTask(null)} 
+            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
+            onUpdateFollowUp={handleUpdateFollowUpWrapper} 
+            task={followUpTask} 
+          />
+        )}
 
         {/* Parameters Dialog */}
         <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />

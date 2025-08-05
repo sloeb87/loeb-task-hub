@@ -16,8 +16,6 @@ interface FollowUpDialogProps {
 }
 
 export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowUp, task }: FollowUpDialogProps) => {
-  console.log('FollowUpDialog rendered with onUpdateFollowUp:', !!onUpdateFollowUp);
-  console.log('onUpdateFollowUp type:', typeof onUpdateFollowUp);
   const [followUpText, setFollowUpText] = useState('');
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
   const [editingText, setEditingText] = useState('');
@@ -54,16 +52,13 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
-    console.log('SAVE: editingFollowUp=', editingFollowUp);
-    console.log('SAVE: onUpdateFollowUp=', !!onUpdateFollowUp);
-    
     if (!editingFollowUp) {
-      console.log('ERROR: No editingFollowUp');
+      console.log('No editingFollowUp');
       return;
     }
     
     if (!onUpdateFollowUp) {
-      console.log('ERROR: No onUpdateFollowUp function');
+      console.log('No onUpdateFollowUp function');
       return;
     }
     
@@ -71,17 +66,14 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
       const textToSave = editingText.trim() || 'No content';
       const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
       
-      console.log('SAVING:', { id: editingFollowUp, text: textToSave, timestamp: newTimestamp });
-      
       await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
-      console.log('SAVE SUCCESS');
       
       // Exit edit mode
       setEditingFollowUp(null);
       setEditingText('');
       setEditingTimestamp('');
     } catch (error) {
-      console.error('SAVE ERROR:', error);
+      console.error('Save error:', error);
     }
   };
 
