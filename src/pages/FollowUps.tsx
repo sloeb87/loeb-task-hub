@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight } from "lucide-react";
+import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight, Minimize2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Task, FollowUp } from "@/types/task";
@@ -377,6 +377,12 @@ export const FollowUpsPage = ({
     });
   };
 
+  // Collapse all projects and tasks
+  const collapseAll = () => {
+    setExpandedProjects(new Set());
+    setExpandedTasks(new Set());
+  };
+
   return <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3">
@@ -432,10 +438,23 @@ export const FollowUpsPage = ({
       {/* Follow-Ups Table */}
       <Card>
         <CardHeader>
-          <CardTitle>All Follow-Ups</CardTitle>
-          <CardDescription>
-            Complete history of task follow-ups grouped by project and task
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Follow-Ups</CardTitle>
+              <CardDescription>
+                Complete history of task follow-ups grouped by project and task
+              </CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={collapseAll}
+              className="flex items-center gap-2"
+            >
+              <Minimize2 className="w-4 h-4" />
+              Collapse All
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
