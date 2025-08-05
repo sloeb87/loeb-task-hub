@@ -142,21 +142,20 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                           <span className="text-sm font-medium text-blue-900">
                             {followUp.author}
                           </span>
-                          <div className="flex items-center space-x-2">
-                            <span className="text-xs text-blue-600">
-                              {formatDate(followUp.timestamp)}
-                            </span>
-                            {onUpdateFollowUp && (
-                              <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                onClick={() => handleEditFollowUp(followUp)}
-                                className="p-1 h-6 w-6"
-                              >
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
+                           <div className="flex items-center space-x-2">
+                             <span className="text-xs text-blue-600">
+                               {formatDate(followUp.timestamp)}
+                             </span>
+                             <Button 
+                               size="sm" 
+                               variant="ghost" 
+                               onClick={() => handleEditFollowUp(followUp)}
+                               className="p-1 h-6 w-6 hover:bg-blue-100"
+                               title="Edit follow-up"
+                             >
+                               <Edit className="w-3 h-3" />
+                             </Button>
+                           </div>
                         </div>
                         <p className="text-sm text-gray-700">{followUp.text}</p>
                       </div>
