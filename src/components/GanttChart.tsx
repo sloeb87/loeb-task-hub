@@ -379,8 +379,8 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                   <div
                     key={index}
                     className={`flex-1 text-center text-sm border-r last:border-r-0 ${
-                      unit.isToday ? 'bg-blue-100 font-semibold' : ''
-                    } ${unit.isWeekend ? 'bg-gray-50' : ''}`}
+                      unit.isToday ? 'bg-gantt-today text-gantt-today-foreground font-semibold' : ''
+                    } ${unit.isWeekend ? 'bg-gantt-weekend text-gantt-weekend-foreground' : ''}`}
                   >
                     <div className="py-2">{unit.label}</div>
                   </div>
@@ -401,7 +401,7 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                   <div
                     key={task.id}
                     className={`grid grid-cols-12 border-b hover:bg-muted/30 transition-colors ${
-                      isSelected ? 'bg-blue-50' : ''
+                      isSelected ? 'bg-accent/50' : ''
                     }`}
                   >
                     {/* Task Info */}
@@ -449,7 +449,7 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                         {timelineUnits.map((_, unitIndex) => (
                           <div
                             key={unitIndex}
-                            className="flex-1 border-r last:border-r-0 border-gray-200"
+                            className="flex-1 border-r last:border-r-0 border-border"
                           />
                         ))}
                       </div>
