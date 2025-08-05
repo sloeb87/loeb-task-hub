@@ -90,7 +90,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <span>Follow-Up for Task {task.id}</span>
@@ -122,7 +122,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
           {task.followUps.length > 0 && (
             <div>
               <h4 className="font-medium text-gray-900 mb-3">Previous Follow-ups</h4>
-              <div className="space-y-3 max-h-40 overflow-y-auto">
+              <div className="space-y-3 max-h-80 overflow-y-auto">
                 {task.followUps.map((followUp) => (
                   <div key={followUp.id} className="bg-blue-50 rounded-lg p-3">
                     {editingFollowUp === followUp.id ? (
