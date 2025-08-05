@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -617,7 +617,21 @@ export const TaskFormOptimized = React.memo(({
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-gray-700 dark:text-gray-300">OneNote</Label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-gray-700 dark:text-gray-300">OneNote</Label>
+                      {formData.links.oneNote && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                          onClick={() => window.open(formData.links.oneNote, '_blank')}
+                          title="Open OneNote link"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       value={formData.links.oneNote}
                       onChange={(e) => updateLinkField('oneNote', e.target.value)}
@@ -626,7 +640,21 @@ export const TaskFormOptimized = React.memo(({
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-700 dark:text-gray-300">Teams</Label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-gray-700 dark:text-gray-300">Teams</Label>
+                      {formData.links.teams && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                          onClick={() => window.open(formData.links.teams, '_blank')}
+                          title="Open Teams link"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       value={formData.links.teams}
                       onChange={(e) => updateLinkField('teams', e.target.value)}
@@ -635,7 +663,21 @@ export const TaskFormOptimized = React.memo(({
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-700 dark:text-gray-300">Email</Label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-gray-700 dark:text-gray-300">Email</Label>
+                      {formData.links.email && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                          onClick={() => window.open(`mailto:${formData.links.email}`, '_blank')}
+                          title="Open email"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       value={formData.links.email}
                       onChange={(e) => updateLinkField('email', e.target.value)}
@@ -644,7 +686,21 @@ export const TaskFormOptimized = React.memo(({
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-700 dark:text-gray-300">File</Label>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-gray-700 dark:text-gray-300">File</Label>
+                      {formData.links.file && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-900/20"
+                          onClick={() => window.open(formData.links.file, '_blank')}
+                          title="Open file link"
+                        >
+                          <File className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
                     <Input
                       value={formData.links.file}
                       onChange={(e) => updateLinkField('file', e.target.value)}
