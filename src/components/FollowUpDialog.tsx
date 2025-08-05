@@ -231,7 +231,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-foreground">{followUp.text}</p>
+                        <p className="text-sm text-foreground whitespace-pre-wrap">{followUp.text}</p>
                       </div>
                     )}
                   </div>
