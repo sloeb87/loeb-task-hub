@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight, Minimize2 } from "lucide-react";
+import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight, Minimize2, Maximize2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Task, FollowUp } from "@/types/task";
@@ -377,11 +377,32 @@ export const FollowUpsPage = ({
     });
   };
 
-  // Collapse all projects and tasks
-  const collapseAll = () => {
-    setExpandedProjects(new Set());
-    setExpandedTasks(new Set());
+  // Toggle between collapse all and expand all
+  const toggleExpandCollapseAll = () => {
+    const hasExpandedItems = expandedProjects.size > 0 || expandedTasks.size > 0;
+    
+    if (hasExpandedItems) {
+      // Collapse all
+      setExpandedProjects(new Set());
+      setExpandedTasks(new Set());
+    } else {
+      // Expand all
+      const allProjects = new Set<string>(Object.keys(groupedFollowUps));
+      const allTasks = new Set<string>();
+      
+      Object.entries(groupedFollowUps).forEach(([projectName, tasks]) => {
+        Object.keys(tasks).forEach(taskTitle => {
+          allTasks.add(`${projectName}-${taskTitle}`);
+        });
+      });
+      
+      setExpandedProjects(allProjects);
+      setExpandedTasks(allTasks);
+    }
   };
+
+  // Determine current state for button
+  const hasExpandedItems = expandedProjects.size > 0 || expandedTasks.size > 0;
 
   return <div className="space-y-6">
       {/* Header */}
@@ -448,11 +469,20 @@ export const FollowUpsPage = ({
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={collapseAll}
+              onClick={toggleExpandCollapseAll}
               className="flex items-center gap-2"
             >
-              <Minimize2 className="w-4 h-4" />
-              Collapse All
+              {hasExpandedItems ? (
+                <>
+                  <Minimize2 className="w-4 h-4" />
+                  Collapse All
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="w-4 h-4" />
+                  Expand All
+                </>
+              )}
             </Button>
           </div>
         </CardHeader>
