@@ -49,6 +49,57 @@ interface ReportEmailRequest {
 const generateReportHTML = (data: ReportEmailRequest) => {
   const { project, tasks, metrics } = data;
   
+  // Generate timeline/Gantt visualization
+  const generateGanttTimeline = () => {
+    const sortedTasks = tasks.sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime());
+    
+    return sortedTasks.map(task => {
+      const startDate = new Date(task.startDate);
+      const endDate = new Date(task.dueDate);
+      const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      const statusColor = {
+        'Completed': '#10b981',
+        'In Progress': '#3b82f6',
+        'Open': '#6b7280',
+        'On Hold': '#f59e0b'
+      }[task.status] || '#6b7280';
+
+      return `
+        <div class="gantt-row">
+          <div class="gantt-task-info">
+            <strong>${task.title}</strong>
+            <small>${task.responsible}</small>
+          </div>
+          <div class="gantt-bar">
+            <div class="gantt-timeline" style="background-color: ${statusColor};">
+              ${startDate.toLocaleDateString()} → ${endDate.toLocaleDateString()} (${duration}d)
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  };
+
+  // Get all follow-ups across all tasks
+  const getAllFollowUps = () => {
+    const allFollowUps = [];
+    tasks.forEach(task => {
+      if (task.followUps && task.followUps.length > 0) {
+        task.followUps.forEach(followUp => {
+          allFollowUps.push({
+            ...followUp,
+            taskTitle: task.title,
+            taskId: task.id
+          });
+        });
+      }
+    });
+    return allFollowUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  };
+
+  const allFollowUps = getAllFollowUps();
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -59,217 +110,252 @@ const generateReportHTML = (data: ReportEmailRequest) => {
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-          line-height: 1.6;
+          line-height: 1.4;
           color: #333;
-          max-width: 800px;
+          max-width: 900px;
           margin: 0 auto;
-          padding: 20px;
+          padding: 16px;
           background-color: #f8fafc;
         }
         .header {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
-          padding: 30px;
-          border-radius: 12px;
-          margin-bottom: 30px;
+          padding: 20px;
+          border-radius: 8px;
+          margin-bottom: 20px;
           text-align: center;
         }
         .header h1 {
           margin: 0;
-          font-size: 28px;
+          font-size: 24px;
           font-weight: bold;
         }
         .header p {
-          margin: 10px 0 0 0;
+          margin: 8px 0 0 0;
           opacity: 0.9;
+          font-size: 14px;
         }
         .card {
           background: white;
-          border-radius: 8px;
-          padding: 24px;
-          margin-bottom: 24px;
+          border-radius: 6px;
+          padding: 16px;
+          margin-bottom: 16px;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         .card h2 {
-          margin: 0 0 16px 0;
-          font-size: 20px;
+          margin: 0 0 12px 0;
+          font-size: 18px;
           color: #1f2937;
         }
-        .metrics-grid {
+        .compact-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 16px;
-          margin-bottom: 24px;
+          grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+          gap: 12px;
+          margin-bottom: 16px;
         }
         .metric-card {
           background: #f3f4f6;
-          padding: 16px;
-          border-radius: 8px;
+          padding: 12px;
+          border-radius: 6px;
           text-align: center;
         }
         .metric-value {
-          font-size: 24px;
+          font-size: 20px;
           font-weight: bold;
           color: #1f2937;
         }
         .metric-label {
-          font-size: 12px;
+          font-size: 11px;
           color: #6b7280;
           text-transform: uppercase;
-          margin-top: 4px;
+          margin-top: 2px;
         }
         .progress-bar {
           background: #e5e7eb;
-          border-radius: 4px;
-          height: 8px;
-          margin: 12px 0;
+          border-radius: 3px;
+          height: 6px;
+          margin: 8px 0;
         }
         .progress-fill {
           background: #10b981;
-          border-radius: 4px;
+          border-radius: 3px;
           height: 100%;
-          transition: width 0.3s ease;
         }
-        .task-item {
-          border: 1px solid #e5e7eb;
-          border-radius: 8px;
-          padding: 16px;
-          margin-bottom: 12px;
+        .compact-info {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          font-size: 14px;
         }
-        .task-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          margin-bottom: 8px;
-        }
-        .task-title {
-          font-weight: 600;
-          color: #1f2937;
-          margin: 0;
+        .compact-info p {
+          margin: 4px 0;
         }
         .badge {
           display: inline-block;
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 12px;
+          padding: 2px 6px;
+          border-radius: 3px;
+          font-size: 11px;
           font-weight: 500;
-          margin-left: 8px;
         }
         .status-completed { background: #d1fae5; color: #065f46; }
-        .status-progress { background: #dbeafe; color: #1e40af; }
+        .status-inprogress { background: #dbeafe; color: #1e40af; }
         .status-open { background: #f3f4f6; color: #374151; }
-        .status-hold { background: #fef3c7; color: #92400e; }
+        .status-onhold { background: #fef3c7; color: #92400e; }
         .priority-high { background: #fee2e2; color: #991b1b; }
         .priority-medium { background: #fef3c7; color: #92400e; }
         .priority-low { background: #e0f2fe; color: #0369a1; }
-        .follow-ups {
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid #e5e7eb;
-        }
-        .follow-up-item {
-          font-size: 14px;
-          color: #6b7280;
+        .gantt-row {
+          display: grid;
+          grid-template-columns: 200px 1fr;
+          gap: 12px;
           margin-bottom: 8px;
-          padding-left: 16px;
-          position: relative;
+          padding: 8px;
+          border: 1px solid #e5e7eb;
+          border-radius: 4px;
+          font-size: 12px;
         }
-        .follow-up-item:before {
-          content: "💬";
-          position: absolute;
-          left: 0;
+        .gantt-task-info strong {
+          display: block;
+          font-size: 13px;
+        }
+        .gantt-task-info small {
+          color: #6b7280;
+        }
+        .gantt-timeline {
+          padding: 4px 8px;
+          border-radius: 3px;
+          color: white;
+          font-weight: 500;
+          font-size: 11px;
+        }
+        .task-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 12px;
+        }
+        .task-compact {
+          border: 1px solid #e5e7eb;
+          border-radius: 6px;
+          padding: 12px;
+          font-size: 12px;
+        }
+        .task-compact h4 {
+          margin: 0 0 6px 0;
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .task-compact p {
+          margin: 2px 0;
+        }
+        .followup-item {
+          background: #f9fafb;
+          border-left: 3px solid #3b82f6;
+          padding: 8px 12px;
+          margin: 4px 0;
+          border-radius: 0 4px 4px 0;
+          font-size: 12px;
+        }
+        .followup-meta {
+          font-size: 11px;
+          color: #6b7280;
+          margin-top: 4px;
         }
         .footer {
           text-align: center;
-          padding: 24px;
+          padding: 16px;
           color: #6b7280;
-          font-size: 14px;
+          font-size: 12px;
           border-top: 1px solid #e5e7eb;
-          margin-top: 40px;
+          margin-top: 24px;
         }
       </style>
     </head>
     <body>
       <div class="header">
-        <h1>📊 Project Report: ${project.name}</h1>
-        <p>Generated on ${new Date().toLocaleDateString('en-US', {
+        <h1>📊 ${project.name}</h1>
+        <p>Project Report • ${new Date().toLocaleDateString('en-US', {
           year: 'numeric',
-          month: 'long',
+          month: 'short',
           day: 'numeric'
         })}</p>
       </div>
 
       <div class="card">
-        <h2>📋 Project Overview</h2>
-        <p><strong>Description:</strong> ${project.description || 'No description provided'}</p>
-        <p><strong>Owner:</strong> ${project.owner || 'Not specified'}</p>
-        <p><strong>Status:</strong> <span class="badge status-${project.status.toLowerCase().replace(' ', '')}">${project.status}</span></p>
-        <p><strong>Timeline:</strong> ${project.startDate} → ${project.endDate}</p>
-        <p><strong>Team:</strong> ${project.team.join(', ') || 'No team members specified'}</p>
+        <h2>📋 Overview</h2>
+        <div class="compact-info">
+          <p><strong>Owner:</strong> ${project.owner || 'Not specified'}</p>
+          <p><strong>Status:</strong> <span class="badge status-${project.status.toLowerCase().replace(' ', '')}">${project.status}</span></p>
+          <p><strong>Timeline:</strong> ${project.startDate} → ${project.endDate}</p>
+          <p><strong>Team:</strong> ${project.team.join(', ') || 'No team specified'}</p>
+        </div>
+        ${project.description ? `<p><strong>Description:</strong> ${project.description}</p>` : ''}
       </div>
 
       <div class="card">
-        <h2>📊 Progress Summary</h2>
-        <div class="metrics-grid">
+        <h2>📊 Progress Metrics</h2>
+        <div class="compact-grid">
           <div class="metric-card">
             <div class="metric-value">${metrics.totalTasks}</div>
-            <div class="metric-label">Total Tasks</div>
+            <div class="metric-label">Total</div>
           </div>
           <div class="metric-card">
             <div class="metric-value">${metrics.completedTasks}</div>
-            <div class="metric-label">Completed</div>
+            <div class="metric-label">Done</div>
           </div>
           <div class="metric-card">
             <div class="metric-value">${metrics.inProgressTasks}</div>
-            <div class="metric-label">In Progress</div>
+            <div class="metric-label">Active</div>
           </div>
           <div class="metric-card">
             <div class="metric-value">${metrics.overdueTasks}</div>
             <div class="metric-label">Overdue</div>
           </div>
-        </div>
-        
-        <div>
-          <p><strong>Completion Rate: ${metrics.completionRate.toFixed(1)}%</strong></p>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${metrics.completionRate}%"></div>
+          <div class="metric-card">
+            <div class="metric-value">${metrics.completionRate.toFixed(0)}%</div>
+            <div class="metric-label">Complete</div>
           </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: ${metrics.completionRate}%"></div>
         </div>
       </div>
 
       <div class="card">
-        <h2>📝 Task Details</h2>
-        ${tasks.map(task => `
-          <div class="task-item">
-            <div class="task-header">
-              <h3 class="task-title">${task.title}</h3>
-              <div>
-                <span class="badge status-${task.status.toLowerCase().replace(' ', '')}">${task.status}</span>
-                <span class="badge priority-${task.priority.toLowerCase()}">${task.priority}</span>
-              </div>
-            </div>
-            <p><strong>ID:</strong> ${task.id}</p>
-            <p><strong>Description:</strong> ${task.description || 'No description'}</p>
-            <p><strong>Responsible:</strong> ${task.responsible}</p>
-            <p><strong>Due Date:</strong> ${task.dueDate}</p>
-            
-            ${task.followUps && task.followUps.length > 0 ? `
-              <div class="follow-ups">
-                <strong>Recent Follow-ups:</strong>
-                ${task.followUps.slice(0, 3).map(followUp => `
-                  <div class="follow-up-item">
-                    ${followUp.text} (${new Date(followUp.timestamp).toLocaleDateString()})
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-        `).join('')}
+        <h2>🗓️ Project Timeline</h2>
+        ${generateGanttTimeline()}
       </div>
 
+      <div class="card">
+        <h2>📝 Tasks Summary</h2>
+        <div class="task-grid">
+          ${tasks.map(task => `
+            <div class="task-compact">
+              <h4>${task.title}</h4>
+              <p><strong>ID:</strong> ${task.id} | <strong>Owner:</strong> ${task.responsible}</p>
+              <p><strong>Due:</strong> ${task.dueDate}</p>
+              <p><span class="badge status-${task.status.toLowerCase().replace(' ', '')}">${task.status}</span> <span class="badge priority-${task.priority.toLowerCase()}">${task.priority}</span></p>
+              ${task.description ? `<p><em>${task.description}</em></p>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      ${allFollowUps.length > 0 ? `
+        <div class="card">
+          <h2>💬 All Follow-ups (${allFollowUps.length})</h2>
+          ${allFollowUps.map(followUp => `
+            <div class="followup-item">
+              <div>${followUp.text}</div>
+              <div class="followup-meta">
+                📌 ${followUp.taskTitle} • ${new Date(followUp.timestamp).toLocaleDateString()} ${followUp.taskStatus ? `• Status: ${followUp.taskStatus}` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
       <div class="footer">
-        <p>This report was generated by PMTask Project Management System</p>
-        <p>📧 Report generated and sent on ${new Date().toLocaleString()}</p>
+        <p>📧 PMTask Project Management • Generated ${new Date().toLocaleString()}</p>
       </div>
     </body>
     </html>
