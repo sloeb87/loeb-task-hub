@@ -102,6 +102,7 @@ export const TaskFormOptimized = React.memo(({
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
@@ -548,33 +549,39 @@ export const TaskFormOptimized = React.memo(({
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="dueDate" className="text-gray-700 dark:text-gray-300">Due Date</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal dark:bg-gray-800 dark:border-gray-600 dark:text-white",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          {date ? format(date, "PPP") : <span>Pick a date</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 dark:bg-gray-800 dark:border-gray-600" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={setDate}
-                          disabled={(date) => date < new Date("1900-01-01")}
-                          initialFocus
-                          className="p-3 pointer-events-auto"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                   <div>
+                     <Label htmlFor="dueDate" className="text-gray-700 dark:text-gray-300">Due Date</Label>
+                     <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                       <PopoverTrigger asChild>
+                         <Button
+                           variant={"outline"}
+                           className={cn(
+                             "w-full justify-start text-left font-normal dark:bg-gray-800 dark:border-gray-600 dark:text-white",
+                             !date && "text-muted-foreground"
+                           )}
+                         >
+                           {date ? format(date, "PPP") : <span>Pick a date</span>}
+                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                         </Button>
+                       </PopoverTrigger>
+                       <PopoverContent className="w-auto p-0 dark:bg-gray-800 dark:border-gray-600" align="start">
+                         <Calendar
+                           mode="single"
+                           selected={date}
+                           onSelect={(selectedDate) => {
+                             if (selectedDate) {
+                               setDate(selectedDate);
+                               updateField('dueDate', selectedDate);
+                               setIsCalendarOpen(false);
+                             }
+                           }}
+                           disabled={(date) => date < new Date("1900-01-01")}
+                           initialFocus
+                           className="p-3 pointer-events-auto"
+                         />
+                       </PopoverContent>
+                     </Popover>
+                   </div>
 
                   {task?.completionDate && (
                     <div>
