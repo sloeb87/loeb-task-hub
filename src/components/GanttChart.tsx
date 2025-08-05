@@ -39,6 +39,7 @@ interface TimelineUnit {
 
 const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, onEditTask }: GanttChartProps) => {
   const [viewMode, setViewMode] = useState<'days' | 'weeks' | 'months'>('weeks');
+  const [zoomLevel, setZoomLevel] = useState<number>(1); // 0.5 to 3 range
   const [selectedTask, setSelectedTask] = useState<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<string | null>(null);
   const [dragStartX, setDragStartX] = useState(0);
@@ -244,8 +245,18 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
     console.log('Go to today');
   };
 
+  // Zoom functions
+  const zoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 3));
+  };
+
+  const zoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
+  };
+
   const resetView = () => {
     setViewMode('weeks');
+    setZoomLevel(1);
     setSelectedTask(null);
   };
 
@@ -359,6 +370,27 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
             
             <Separator orientation="vertical" className="h-6" />
             
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={zoomOut}
+              disabled={zoomLevel <= 0.5}
+              title="Zoom Out"
+            >
+              <ZoomOut className="w-4 h-4" />
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={zoomIn}
+              disabled={zoomLevel >= 3}
+              title="Zoom In"
+            >
+              <ZoomIn className="w-4 h-4" />
+            </Button>
+            
+            <Separator orientation="vertical" className="h-6" />
+            
             <Button variant="outline" size="sm" onClick={resetView}>
               <RotateCcw className="w-4 h-4" />
             </Button>
@@ -373,8 +405,14 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
             <div className="col-span-3 p-3 border-r">
               <div className="font-medium text-sm">Task</div>
             </div>
-            <div className="col-span-9 relative">
-              <div className="flex h-12 items-center">
+            <div className="col-span-9 relative overflow-x-auto">
+              <div 
+                className="flex h-12 items-center transition-transform duration-200" 
+                style={{ 
+                  width: `${100 * zoomLevel}%`,
+                  minWidth: '100%'
+                }}
+              >
                 {timelineUnits.map((unit, index) => (
                   <div
                     key={index}
@@ -443,60 +481,68 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                     </div>
 
                     {/* Timeline */}
-                    <div className="col-span-9 relative h-16 p-2">
-                      {/* Grid Lines */}
-                      <div className="absolute inset-0 flex">
-                        {timelineUnits.map((_, unitIndex) => (
-                          <div
-                            key={unitIndex}
-                            className="flex-1 border-r last:border-r-0 border-border"
-                          />
-                        ))}
-                      </div>
-
-                      {/* Task Bar */}
-                      <div
-                        className={`absolute top-2 bottom-2 rounded-md cursor-move transition-all group ${
-                          isDragging ? 'opacity-80 shadow-lg z-10' : 'hover:shadow-md'
-                        } ${
-                          task.status === 'Completed' ? 'bg-green-500' :
-                          task.status === 'In Progress' ? 'bg-blue-500' :
-                          task.status === 'On Hold' ? 'bg-yellow-500' :
-                          'bg-gray-500'
-                        }`}
-                        style={{
-                          left: `${left}%`,
-                          width: `${Math.max(width, 2)}%`,
+                    <div className="col-span-9 relative h-16 p-2 overflow-x-auto">
+                      <div 
+                        className="relative h-full transition-transform duration-200"
+                        style={{ 
+                          width: `${100 * zoomLevel}%`,
+                          minWidth: '100%'
                         }}
-                        onMouseDown={(e) => handleTaskMouseDown(e, task)}
-                        onClick={() => setSelectedTask(isSelected ? null : task.id)}
-                        title={`${task.title}\n${format(new Date(task.startDate), 'MMM dd')} - ${format(new Date(task.dueDate), 'MMM dd')}\nDuration: ${getTaskDimensions(task).duration} days`}
                       >
-                        <div className="h-full flex items-center px-2 text-white text-xs font-medium">
-                          <span className="truncate">
-                            {task.id}: {task.title}
-                          </span>
+                        {/* Grid Lines */}
+                        <div className="absolute inset-0 flex">
+                          {timelineUnits.map((_, unitIndex) => (
+                            <div
+                              key={unitIndex}
+                              className="flex-1 border-r last:border-r-0 border-border"
+                            />
+                          ))}
                         </div>
-                        
-                        {/* Progress indicator */}
-                        {task.status === 'In Progress' && (
-                          <div className="absolute bottom-0 left-0 h-1 bg-white/50 rounded-b-md" style={{ width: '60%' }} />
-                        )}
-                        
-                        {/* Priority indicator */}
-                        <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                          task.priority === 'Critical' ? 'bg-red-300' :
-                          task.priority === 'High' ? 'bg-orange-300' :
-                          task.priority === 'Medium' ? 'bg-blue-300' :
-                          'bg-gray-300'
-                        }`} />
 
-                        {/* Follow-up indicator */}
-                        {task.followUps && task.followUps.length > 0 && (
-                          <div className="absolute top-1 left-1 text-white/80">
-                            💬
+                        {/* Task Bar */}
+                        <div
+                          className={`absolute top-0 bottom-0 rounded-md cursor-move transition-all group ${
+                            isDragging ? 'opacity-80 shadow-lg z-10' : 'hover:shadow-md'
+                          } ${
+                            task.status === 'Completed' ? 'bg-green-500' :
+                            task.status === 'In Progress' ? 'bg-blue-500' :
+                            task.status === 'On Hold' ? 'bg-yellow-500' :
+                            'bg-gray-500'
+                          }`}
+                          style={{
+                            left: `${left}%`,
+                            width: `${Math.max(width, 2)}%`,
+                          }}
+                          onMouseDown={(e) => handleTaskMouseDown(e, task)}
+                          onClick={() => setSelectedTask(isSelected ? null : task.id)}
+                          title={`${task.title}\n${format(new Date(task.startDate), 'MMM dd')} - ${format(new Date(task.dueDate), 'MMM dd')}\nDuration: ${getTaskDimensions(task).duration} days`}
+                        >
+                          <div className="h-full flex items-center px-2 text-white text-xs font-medium">
+                            <span className="truncate">
+                              {task.id}: {task.title}
+                            </span>
                           </div>
-                        )}
+                          
+                          {/* Progress indicator */}
+                          {task.status === 'In Progress' && (
+                            <div className="absolute bottom-0 left-0 h-1 bg-white/50 rounded-b-md" style={{ width: '60%' }} />
+                          )}
+                          
+                          {/* Priority indicator */}
+                          <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                            task.priority === 'Critical' ? 'bg-red-300' :
+                            task.priority === 'High' ? 'bg-orange-300' :
+                            task.priority === 'Medium' ? 'bg-blue-300' :
+                            'bg-gray-300'
+                          }`} />
+
+                          {/* Follow-up indicator */}
+                          {task.followUps && task.followUps.length > 0 && (
+                            <div className="absolute top-1 left-1 text-white/80">
+                              💬
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
