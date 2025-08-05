@@ -127,7 +127,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[95vw] h-[95vh] max-w-none bg-background/95 backdrop-blur-sm border-2 shadow-2xl overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="space-y-4">
           <DialogTitle className="flex items-center space-x-2 text-foreground">
             <span>Follow-Up for Task {task.id}</span>
             <Badge variant="outline">{task.status}</Badge>
@@ -135,10 +135,8 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
           <DialogDescription>
             Add and view follow-up notes for this task.
           </DialogDescription>
-        </DialogHeader>
 
-        <div className="space-y-6 flex flex-col h-full">
-          {/* Task Summary */}
+          {/* Task Summary - Moved to top */}
           <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4">
             <h3 className="font-medium text-foreground mb-2">{task.title}</h3>
             <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
@@ -154,11 +152,11 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
             </div>
           </div>
 
-          {/* Existing Follow-ups */}
+          {/* Previous Follow-ups - Moved to top */}
           {task.followUps.length > 0 && (
-            <div className="flex-1 min-h-0 flex flex-col">
-              <h4 className="font-medium text-foreground mb-4">Previous Follow-ups</h4>
-              <div className="space-y-3 flex-1 overflow-y-auto pr-2">
+            <div>
+              <h4 className="font-medium text-foreground mb-3">Previous Follow-ups</h4>
+              <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
                 {task.followUps.map((followUp) => (
                   <div key={followUp.id} className="bg-card border border-border rounded-lg p-3">
                     {editingFollowUp === followUp.id ? (
@@ -214,35 +212,34 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
               </div>
             </div>
           )}
+        </DialogHeader>
+        {/* New Follow-up Form - Main content area */}
+        <div className="border-t border-border pt-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="followUpText" className="block text-sm font-medium text-foreground mb-2">
+                Add Follow-up
+              </label>
+              <Textarea
+                id="followUpText"
+                value={followUpText}
+                onChange={(e) => setFollowUpText(e.target.value)}
+                placeholder="Enter your follow-up note..."
+                rows={4}
+                required
+                className="w-full"
+              />
+            </div>
 
-          {/* New Follow-up Form - Pinned to bottom */}
-          <div className="border-t border-border pt-4 mt-auto">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="followUpText" className="block text-sm font-medium text-foreground mb-2">
-                  Add Follow-up
-                </label>
-                <Textarea
-                  id="followUpText"
-                  value={followUpText}
-                  onChange={(e) => setFollowUpText(e.target.value)}
-                  placeholder="Enter your follow-up note..."
-                  rows={4}
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="flex justify-end space-x-2">
-                <Button type="button" variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={!followUpText.trim()}>
-                  Add Follow-up
-                </Button>
-              </div>
-            </form>
-          </div>
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!followUpText.trim()}>
+                Add Follow-up
+              </Button>
+            </div>
+          </form>
         </div>
       </DialogContent>
     </Dialog>
