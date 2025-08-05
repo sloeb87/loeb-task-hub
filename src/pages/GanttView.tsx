@@ -23,16 +23,20 @@ import {
   FullscreenIcon,
   Minimize2,
   Settings,
-  BarChart3
+  BarChart3,
+  Moon,
+  Sun
 } from "lucide-react";
 import { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { useTheme } from "next-themes";
 
 const GanttView = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { theme, setTheme } = useTheme();
   
   // Use Supabase storage
   const { tasks, projects, createTask, updateTask } = useSupabaseStorage();
@@ -252,6 +256,15 @@ const GanttView = () => {
               >
                 <Download className="w-4 h-4" />
                 Export
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="flex items-center gap-2"
+                title="Toggle dark mode"
+              >
+                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </Button>
               <Button
                 variant="outline"
