@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
@@ -335,6 +336,31 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
 
   // Mobile view
   if (isMobile) {
+    // Show loading skeleton for mobile while parameters are loading
+    if (parametersLoading) {
+      return (
+        <div className="space-y-4">
+          <div className="bg-card rounded-lg border border-border p-4">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          {Array.from({ length: 3 }, (_, i) => (
+            <div key={i} className="bg-card rounded-lg border border-border p-4 space-y-3">
+              <div className="flex items-center space-x-3">
+                <Skeleton className="h-6 w-16" />
+                <Skeleton className="h-6 w-32" />
+              </div>
+              <Skeleton className="h-4 w-full" />
+              <div className="flex space-x-2">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     return (
       <div className="space-y-4">
         {/* Search Bar */}
@@ -370,6 +396,33 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           </div>
         )}
 
+      </div>
+    );
+  }
+
+  // Show loading skeleton for desktop while parameters are loading
+  if (parametersLoading) {
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        <div className="bg-card rounded-lg shadow-sm border border-border">
+          <div className="p-4 border-b border-border">
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <div className="space-y-2 p-4">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="flex space-x-4">
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-32" />
+                <Skeleton className="h-6 w-28" />
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-6 w-32" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
