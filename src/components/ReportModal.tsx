@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { GanttChart } from "@/components/GanttChart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare, TrendingUp, BarChart3, Download, Moon, Sun } from "lucide-react";
+import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare, TrendingUp, BarChart3, Download, Moon, Sun, Mail } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { useTheme } from "next-themes";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -103,6 +105,78 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
     }
   };
 
+  const sendEmailReport = async () => {
+    const recipientEmail = prompt("Enter recipient email address:");
+    
+    if (!recipientEmail) return;
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(recipientEmail)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const emailData = {
+        recipientEmail,
+        project: {
+          name: project.name,
+          description: project.description || '',
+          owner: project.owner || '',
+          team: project.team || [],
+          startDate: project.startDate,
+          endDate: project.endDate,
+          status: project.status,
+        },
+        tasks: projectTasks.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description || '',
+          status: task.status,
+          priority: task.priority,
+          responsible: task.responsible,
+          startDate: task.startDate,
+          dueDate: task.dueDate,
+          followUps: task.followUps || [],
+        })),
+        metrics: {
+          totalTasks: projectTasks.length,
+          completedTasks: completedTasks.length,
+          inProgressTasks: inProgressTasks.length,
+          openTasks: openTasks.length,
+          onHoldTasks: onHoldTasks.length,
+          overdueTasks: overdueTasks.length,
+          completionRate,
+        },
+      };
+
+      const { error } = await supabase.functions.invoke('send-report-email', {
+        body: emailData,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: "Email Sent Successfully!",
+        description: `Report has been sent to ${recipientEmail}`,
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Email Send Failed",
+        description: "There was an error sending the email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
@@ -120,6 +194,15 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               {theme === "dark" ? "Light" : "Dark"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={sendEmailReport}
+              className="flex items-center gap-2"
+            >
+              <Mail className="w-4 h-4" />
+              Email Report
             </Button>
             <Button
               variant="outline"
