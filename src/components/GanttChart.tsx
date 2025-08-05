@@ -400,158 +400,154 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
 
       <CardContent className="p-0">
         <div className="border-t">
-          {/* Timeline Header */}
-          <div className="grid grid-cols-12 border-b bg-muted/50">
-            <div className="col-span-3 p-3 border-r">
-              <div className="font-medium text-sm">Task</div>
-            </div>
-            <div className="col-span-9 relative overflow-x-auto">
-              <div 
-                className="flex h-12 items-center transition-transform duration-200" 
-                style={{ 
-                  width: `${100 * zoomLevel}%`,
-                  minWidth: '100%'
-                }}
-              >
-                {timelineUnits.map((unit, index) => (
-                  <div
-                    key={index}
-                    className={`flex-1 text-center text-sm border-r last:border-r-0 ${
-                      unit.isToday ? 'bg-gantt-today text-gantt-today-foreground font-semibold' : ''
-                    } ${unit.isWeekend ? 'bg-gantt-weekend text-gantt-weekend-foreground' : ''}`}
-                    style={{ minWidth: `${100 / timelineUnits.length}%` }}
-                  >
-                    <div className="py-2">{unit.label}</div>
+          <div className="overflow-x-auto">
+            <div 
+              className="transition-transform duration-200"
+              style={{ 
+                width: `${100 * zoomLevel}%`,
+                minWidth: '100%'
+              }}
+            >
+              {/* Timeline Header */}
+              <div className="grid grid-cols-12 border-b bg-muted/50">
+                <div className="col-span-3 p-3 border-r">
+                  <div className="font-medium text-sm">Task</div>
+                </div>
+                <div className="col-span-9 relative">
+                  <div className="flex h-12 items-center">
+                    {timelineUnits.map((unit, index) => (
+                      <div
+                        key={index}
+                        className={`flex-1 text-center text-sm border-r last:border-r-0 ${
+                          unit.isToday ? 'bg-gantt-today text-gantt-today-foreground font-semibold' : ''
+                        } ${unit.isWeekend ? 'bg-gantt-weekend text-gantt-weekend-foreground' : ''}`}
+                        style={{ minWidth: `${100 / timelineUnits.length}%` }}
+                      >
+                        <div className="py-2">{unit.label}</div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
+
+              {/* Task Rows */}
+              <ScrollArea className="h-96">
+                <div ref={ganttRef} className="relative">
+                  {tasks.map((task, index) => {
+                    const { left, width } = getTaskDimensions(task);
+                    const isSelected = selectedTask === task.id;
+                    const isDragging = draggedTask === task.id;
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        className={`grid grid-cols-12 border-b hover:bg-muted/30 transition-colors ${
+                          isSelected ? 'bg-accent/50' : ''
+                        }`}
+                      >
+                        {/* Task Info */}
+                        <div className="col-span-3 p-3 border-r">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium truncate">
+                                {task.title}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onEditTask?.(task)}
+                                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                              >
+                                <Edit3 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex items-center gap-1 text-xs">
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs px-1"
+                                style={getScopeStyle(task.scope)}
+                              >
+                                {task.scope}
+                              </Badge>
+                              <Badge 
+                                variant="outline" 
+                                className="text-xs px-1"
+                                style={getStatusStyle(task.status)}
+                              >
+                                {task.status}
+                              </Badge>
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {task.responsible}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Timeline */}
+                        <div className="col-span-9 relative h-16 p-2">
+                          {/* Grid Lines */}
+                          <div className="absolute inset-0 flex">
+                            {timelineUnits.map((_, unitIndex) => (
+                              <div
+                                key={unitIndex}
+                                className="flex-1 border-r last:border-r-0 border-border"
+                                style={{ minWidth: `${100 / timelineUnits.length}%` }}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Task Bar */}
+                          <div
+                            className={`absolute top-2 bottom-2 rounded-md cursor-move transition-all group ${
+                              isDragging ? 'opacity-80 shadow-lg z-10' : 'hover:shadow-md'
+                            } ${
+                              task.status === 'Completed' ? 'bg-green-500' :
+                              task.status === 'In Progress' ? 'bg-blue-500' :
+                              task.status === 'On Hold' ? 'bg-yellow-500' :
+                              'bg-gray-500'
+                            }`}
+                            style={{
+                              left: `${left}%`,
+                              width: `${Math.max(width, 2)}%`,
+                            }}
+                            onMouseDown={(e) => handleTaskMouseDown(e, task)}
+                            onClick={() => setSelectedTask(isSelected ? null : task.id)}
+                            title={`${task.title}\n${format(new Date(task.startDate), 'MMM dd')} - ${format(new Date(task.dueDate), 'MMM dd')}\nDuration: ${getTaskDimensions(task).duration} days`}
+                          >
+                            <div className="h-full flex items-center px-2 text-white text-xs font-medium">
+                              <span className="truncate">
+                                {task.id}: {task.title}
+                              </span>
+                            </div>
+                            
+                            {/* Progress indicator */}
+                            {task.status === 'In Progress' && (
+                              <div className="absolute bottom-0 left-0 h-1 bg-white/50 rounded-b-md" style={{ width: '60%' }} />
+                            )}
+                            
+                            {/* Priority indicator */}
+                            <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+                              task.priority === 'Critical' ? 'bg-red-300' :
+                              task.priority === 'High' ? 'bg-orange-300' :
+                              task.priority === 'Medium' ? 'bg-blue-300' :
+                              'bg-gray-300'
+                            }`} />
+
+                            {/* Follow-up indicator */}
+                            {task.followUps && task.followUps.length > 0 && (
+                              <div className="absolute top-1 left-1 text-white/80">
+                                💬
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </ScrollArea>
             </div>
           </div>
-
-          {/* Task Rows */}
-          <ScrollArea className="h-96">
-            <div ref={ganttRef} className="relative">
-              {tasks.map((task, index) => {
-                const { left, width } = getTaskDimensions(task);
-                const isSelected = selectedTask === task.id;
-                const isDragging = draggedTask === task.id;
-                
-                return (
-                  <div
-                    key={task.id}
-                    className={`grid grid-cols-12 border-b hover:bg-muted/30 transition-colors ${
-                      isSelected ? 'bg-accent/50' : ''
-                    }`}
-                  >
-                    {/* Task Info */}
-                    <div className="col-span-3 p-3 border-r">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium truncate">
-                            {task.title}
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEditTask?.(task)}
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                          >
-                            <Edit3 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs">
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs px-1"
-                            style={getScopeStyle(task.scope)}
-                          >
-                            {task.scope}
-                          </Badge>
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs px-1"
-                            style={getStatusStyle(task.status)}
-                          >
-                            {task.status}
-                          </Badge>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {task.responsible}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Timeline */}
-                    <div className="col-span-9 relative h-16 p-2 overflow-x-auto">
-                      <div 
-                        className="relative h-full transition-transform duration-200"
-                        style={{ 
-                          width: `${100 * zoomLevel}%`,
-                          minWidth: '100%'
-                        }}
-                      >
-                        {/* Grid Lines */}
-                        <div className="absolute inset-0 flex">
-                          {timelineUnits.map((_, unitIndex) => (
-                            <div
-                              key={unitIndex}
-                              className="flex-1 border-r last:border-r-0 border-border"
-                              style={{ minWidth: `${100 / timelineUnits.length}%` }}
-                            />
-                          ))}
-                        </div>
-
-                        {/* Task Bar */}
-                        <div
-                          className={`absolute top-0 bottom-0 rounded-md cursor-move transition-all group ${
-                            isDragging ? 'opacity-80 shadow-lg z-10' : 'hover:shadow-md'
-                          } ${
-                            task.status === 'Completed' ? 'bg-green-500' :
-                            task.status === 'In Progress' ? 'bg-blue-500' :
-                            task.status === 'On Hold' ? 'bg-yellow-500' :
-                            'bg-gray-500'
-                          }`}
-                          style={{
-                            left: `${left}%`,
-                            width: `${Math.max(width, 2)}%`,
-                          }}
-                          onMouseDown={(e) => handleTaskMouseDown(e, task)}
-                          onClick={() => setSelectedTask(isSelected ? null : task.id)}
-                          title={`${task.title}\n${format(new Date(task.startDate), 'MMM dd')} - ${format(new Date(task.dueDate), 'MMM dd')}\nDuration: ${getTaskDimensions(task).duration} days`}
-                        >
-                          <div className="h-full flex items-center px-2 text-white text-xs font-medium">
-                            <span className="truncate">
-                              {task.id}: {task.title}
-                            </span>
-                          </div>
-                          
-                          {/* Progress indicator */}
-                          {task.status === 'In Progress' && (
-                            <div className="absolute bottom-0 left-0 h-1 bg-white/50 rounded-b-md" style={{ width: '60%' }} />
-                          )}
-                          
-                          {/* Priority indicator */}
-                          <div className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                            task.priority === 'Critical' ? 'bg-red-300' :
-                            task.priority === 'High' ? 'bg-orange-300' :
-                            task.priority === 'Medium' ? 'bg-blue-300' :
-                            'bg-gray-300'
-                          }`} />
-
-                          {/* Follow-up indicator */}
-                          {task.followUps && task.followUps.length > 0 && (
-                            <div className="absolute top-1 left-1 text-white/80">
-                              💬
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
 
           {/* Legend */}
           <div className="border-t p-3 bg-muted/20">
