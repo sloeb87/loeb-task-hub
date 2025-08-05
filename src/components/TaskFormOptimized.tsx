@@ -571,7 +571,7 @@ export const TaskFormOptimized = React.memo(({
                             onSelect={(selectedDate) => {
                               if (selectedDate) {
                                 setDate(selectedDate);
-                                updateField('dueDate', selectedDate.toISOString().split('T')[0]);
+                                setFormData(prev => ({ ...prev, dueDate: selectedDate }));
                                 setIsCalendarOpen(false);
                               }
                             }}
