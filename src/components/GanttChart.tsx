@@ -94,6 +94,20 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
           isWeekend: false
         });
       }
+    } else if (viewMode === 'months') {
+      const monthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const monthEnd = new Date(endDate.getFullYear(), endDate.getMonth() + 1, 0);
+      
+      let currentDate = new Date(monthStart);
+      while (currentDate <= monthEnd) {
+        units.push({
+          date: new Date(currentDate),
+          label: format(currentDate, 'MMM yyyy'),
+          isToday: false,
+          isWeekend: false
+        });
+        currentDate.setMonth(currentDate.getMonth() + 1);
+      }
     }
     
     return units;
@@ -114,6 +128,16 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
       
       left = (taskWeekStart / timelineUnits.length) * 100;
       width = (taskWeekDuration / timelineUnits.length) * 100;
+    } else if (viewMode === 'months') {
+      const monthStart = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+      const taskMonthStart = (taskStart.getFullYear() - monthStart.getFullYear()) * 12 + 
+                             (taskStart.getMonth() - monthStart.getMonth());
+      const taskMonthEnd = (taskEnd.getFullYear() - monthStart.getFullYear()) * 12 + 
+                           (taskEnd.getMonth() - monthStart.getMonth());
+      const taskMonthDuration = Math.max(1, taskMonthEnd - taskMonthStart + 1);
+      
+      left = (taskMonthStart / timelineUnits.length) * 100;
+      width = (taskMonthDuration / timelineUnits.length) * 100;
     } else {
       const daysFromStart = Math.max(0, differenceInDays(taskStart, startDate));
       left = (daysFromStart / duration) * 100;
