@@ -112,15 +112,12 @@ const Index = () => {
       await updateFollowUp(followUpId, text, timestamp);
       console.log('Follow-up updated successfully');
       
-      // Update the followUpTask state with the latest data
-      const updatedTask = tasks.find(task => task.id === taskId);
-      if (updatedTask) {
-        setFollowUpTask(updatedTask);
-      }
+      // Note: We don't set followUpTask here anymore because it opens the dialog
+      // The task data will be automatically refreshed through the Supabase hook
     } catch (error) {
       console.error('Failed to update follow-up:', error);
     }
-  }, [updateFollowUp, tasks]);
+  }, [updateFollowUp]);
 
   const handleDeleteFollowUpWrapper = useCallback(async (followUpId: string) => {
     console.log('handleDeleteFollowUpWrapper called with:', { followUpId });
