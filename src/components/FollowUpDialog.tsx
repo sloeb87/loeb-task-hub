@@ -26,6 +26,15 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
     console.log('editingFollowUp state changed to:', editingFollowUp);
   }, [editingFollowUp]);
 
+  // Reset editing state when dialog closes
+  React.useEffect(() => {
+    if (!isOpen) {
+      setEditingFollowUp(null);
+      setEditingText('');
+      setEditingTimestamp('');
+    }
+  }, [isOpen]);
+
   // Debug logging when dialog opens
   React.useEffect(() => {
     if (isOpen) {
@@ -70,19 +79,24 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
   };
 
   const handleSaveEdit = async () => {
+    console.log('=== SAVE FUNCTION DEBUG ===');
     console.log('Save button clicked!');
-    console.log('editingFollowUp:', editingFollowUp);
-    console.log('editingText:', editingText);
-    console.log('editingTimestamp:', editingTimestamp);
-    console.log('onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    console.log('Current state values:');
+    console.log('  editingFollowUp:', editingFollowUp);
+    console.log('  editingText:', editingText);
+    console.log('  editingTimestamp:', editingTimestamp);
+    console.log('Function availability:');
+    console.log('  onUpdateFollowUp exists:', !!onUpdateFollowUp);
+    console.log('  onUpdateFollowUp type:', typeof onUpdateFollowUp);
+    console.log('=== END DEBUG ===');
     
     if (!editingFollowUp) {
-      console.log('No editingFollowUp - cannot save!');
+      console.error('SAVE FAILED: No editingFollowUp - cannot save!');
       return;
     }
     
     if (!onUpdateFollowUp) {
-      console.log('No onUpdateFollowUp function - this is the problem!');
+      console.error('SAVE FAILED: No onUpdateFollowUp function!');
       return;
     }
     
