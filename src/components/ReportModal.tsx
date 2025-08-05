@@ -1,12 +1,14 @@
-import React from "react";
+import React, { useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { GanttChart } from "@/components/GanttChart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare, TrendingUp, BarChart3 } from "lucide-react";
+import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare, TrendingUp, BarChart3, Download, Moon, Sun } from "lucide-react";
 import { Project, Task } from "@/types/task";
+import { useTheme } from "next-themes";
 
 interface ReportModalProps {
   isOpen: boolean;
@@ -16,6 +18,9 @@ interface ReportModalProps {
 }
 
 export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProps) => {
+  const { theme, setTheme } = useTheme();
+  const reportRef = useRef<HTMLDivElement>(null);
+
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed');
   const inProgressTasks = projectTasks.filter(task => task.status === 'In Progress');
@@ -59,17 +64,76 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
       .slice(0, 3);
   };
 
+  const downloadPDF = async () => {
+    if (!reportRef.current) return;
+    
+    try {
+      // Dynamic import to avoid bundle size issues
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+      
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210;
+      const pageHeight = 295;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`${project.name}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <DialogTitle className="flex items-center gap-2 text-2xl">
             <FileText className="w-6 h-6" />
             Project Report: {project.name}
           </DialogTitle>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="flex items-center gap-2"
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === "dark" ? "Light" : "Dark"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadPDF}
+              className="flex items-center gap-2"
+            >
+              <Download className="w-4 h-4" />
+              Download PDF
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div ref={reportRef} className="space-y-6">
           {/* Project Overview */}
           <Card>
             <CardHeader>
