@@ -568,13 +568,13 @@ export const TaskFormOptimized = React.memo(({
                          <Calendar
                            mode="single"
                            selected={date}
-                           onSelect={(selectedDate) => {
-                             if (selectedDate) {
-                               setDate(selectedDate);
-                               updateField('dueDate', selectedDate);
-                               setIsCalendarOpen(false);
-                             }
-                           }}
+                            onSelect={(selectedDate) => {
+                              if (selectedDate) {
+                                setDate(selectedDate);
+                                updateField('dueDate', selectedDate.toISOString().split('T')[0]);
+                                setIsCalendarOpen(false);
+                              }
+                            }}
                            disabled={(date) => date < new Date("1900-01-01")}
                            initialFocus
                            className="p-3 pointer-events-auto"
