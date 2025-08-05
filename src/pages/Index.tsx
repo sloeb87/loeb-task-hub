@@ -112,6 +112,15 @@ const Index = () => {
       // You could add a toast notification here
     }
   }, [updateFollowUp]);
+
+  const handleUpdateFollowUpFromPage = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
+    try {
+      await updateFollowUp(followUpId, text, timestamp);
+    } catch (error) {
+      console.error('Failed to update follow-up:', error);
+      // You could add a toast notification here
+    }
+  }, [updateFollowUp]);
   const handleFollowUpTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);
     updateTask(updatedTask);
@@ -210,7 +219,7 @@ const Index = () => {
             <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
             <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
-          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
+          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpFromPage} /> : <ProjectsPage tasks={tasks} projects={projects} onCreateProject={handleCreateProject} onUpdateProject={handleUpdateProject} onDeleteProject={handleDeleteProject} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} onDeleteTask={handleDeleteTask} projectFilter={projectFilter} setProjectFilter={setProjectFilter} onAddFollowUp={handleAddFollowUpWrapper} initialDetailProject={projectToShowDetails} />}
         </div>
 
         {/* Task Form Dialog */}

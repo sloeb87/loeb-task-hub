@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter } from "lucide-react";
+import { MessageSquare, Search, Filter, Edit, Save, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Task, FollowUp } from "@/types/task";
 import { formatDate } from "@/utils/taskOperations";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
@@ -15,6 +16,7 @@ import { FollowUpExport } from "@/components/FollowUpExport";
 interface FollowUpsPageProps {
   tasks: Task[];
   onEditTask?: (task: Task) => void;
+  onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
 }
 
 interface FollowUpFilters {
@@ -46,13 +48,18 @@ interface FollowUpWithTask extends FollowUp {
   projectName: string;
 }
 
-export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
+export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUpsPageProps) => {
   const { getScopeStyle } = useScopeColor();
   const { getTaskTypeStyle } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
   const { getStatusStyle } = useStatusColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FollowUpFilters>({});
+  
+  // Edit state for follow-ups
+  const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const [editingTimestamp, setEditingTimestamp] = useState('');
   
   // Multi-select filters
   const [multiSelectFilters, setMultiSelectFilters] = useState<MultiSelectFilters>({
@@ -299,7 +306,12 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
   };
 
   // Handle click on follow-up row to open related task
-  const handleRowClick = (followUp: FollowUpWithTask) => {
+  const handleRowClick = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
+    // Don't open task if clicking on edit controls
+    if ((event.target as HTMLElement).closest('.edit-controls')) {
+      return;
+    }
+    
     if (onEditTask) {
       // Find the full task object
       const task = tasks.find(t => t.id === followUp.taskId);
@@ -307,6 +319,45 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
         onEditTask(task);
       }
     }
+  };
+
+  // Helper function to format date for datetime-local input
+  const formatDateForInput = (dateString: string) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Handle edit follow-up
+  const handleEditFollowUp = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setEditingFollowUp(followUp.id);
+    setEditingText(followUp.text);
+    setEditingTimestamp(formatDateForInput(followUp.timestamp));
+  };
+
+  // Handle save edit
+  const handleSaveEdit = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
+      const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+      onUpdateFollowUp(followUp.taskId, editingFollowUp, editingText.trim(), newTimestamp);
+      setEditingFollowUp(null);
+      setEditingText('');
+      setEditingTimestamp('');
+    }
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setEditingFollowUp(null);
+    setEditingText('');
+    setEditingTimestamp('');
   };
 
   return (
@@ -414,6 +465,7 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
                   </TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Follow-Up</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -421,12 +473,24 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
                   <TableRow 
                     key={`${followUp.taskId}-${followUp.id}`} 
                     className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={() => handleRowClick(followUp)}
+                    onClick={(e) => handleRowClick(followUp, e)}
                   >
                     <TableCell>
-                      <span className="text-base text-gray-900 dark:text-white">
-                        {formatDate(followUp.timestamp)}
-                      </span>
+                      {editingFollowUp === followUp.id ? (
+                        <div className="edit-controls">
+                          <Input
+                            type="datetime-local"
+                            value={editingTimestamp}
+                            onChange={(e) => setEditingTimestamp(e.target.value)}
+                            className="text-xs w-40"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-base text-gray-900 dark:text-white">
+                          {formatDate(followUp.timestamp)}
+                        </span>
+                      )}
                     </TableCell>
                     
                     <TableCell>
@@ -486,8 +550,54 @@ export const FollowUpsPage = ({ tasks, onEditTask }: FollowUpsPageProps) => {
                     </TableCell>
                     
                     <TableCell>
-                      <div className="font-medium text-gray-900 dark:text-white max-w-xs">
-                        <p className="line-clamp-2">{followUp.text}</p>
+                      {editingFollowUp === followUp.id ? (
+                        <div className="edit-controls">
+                          <Textarea
+                            value={editingText}
+                            onChange={(e) => setEditingText(e.target.value)}
+                            className="text-sm min-h-[60px] w-full"
+                            onClick={(e) => e.stopPropagation()}
+                            rows={2}
+                          />
+                        </div>
+                      ) : (
+                        <div className="font-medium text-gray-900 dark:text-white max-w-xs">
+                          <p className="line-clamp-2">{followUp.text}</p>
+                        </div>
+                      )}
+                    </TableCell>
+                    
+                    <TableCell>
+                      <div className="edit-controls flex items-center space-x-2">
+                        {editingFollowUp === followUp.id ? (
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={(e) => handleSaveEdit(followUp, e)}
+                              className="p-1 h-6 w-6"
+                            >
+                              <Save className="w-3 h-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              onClick={handleCancelEdit}
+                              className="p-1 h-6 w-6"
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            onClick={(e) => handleEditFollowUp(followUp, e)}
+                            className="p-1 h-6 w-6"
+                          >
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
