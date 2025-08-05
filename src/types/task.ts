@@ -7,6 +7,7 @@ export interface FollowUp {
   id: string;
   text: string;
   timestamp: string;
+  taskStatus?: string;
 }
 
 export interface Task {

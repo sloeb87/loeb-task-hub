@@ -55,16 +55,21 @@ export function useSupabaseStorage() {
 
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
     // Fetch follow-ups for this task
-    const { data: followUpsData } = await supabase
+    const { data: followUpsData, error: followUpsError } = await supabase
       .from('follow_ups')
-      .select('*')
+      .select('id, text, created_at, task_status')
       .eq('task_id', supabaseTask.id)
       .order('created_at', { ascending: true });
 
-    const followUps: FollowUp[] = followUpsData?.map(fu => ({
-      id: fu.id,
-      text: fu.text,
-      timestamp: fu.created_at
+    if (followUpsError) {
+      console.error('Error fetching follow-ups:', followUpsError);
+    }
+
+    const followUps = followUpsData?.map(followUp => ({
+      id: followUp.id,
+      text: followUp.text,
+      timestamp: followUp.created_at,
+      taskStatus: followUp.task_status
     })) || [];
 
     if (followUps.length > 0) {
@@ -381,6 +386,7 @@ export function useSupabaseStorage() {
         .insert({
           task_id: existingTask.id,
           text: "Task marked completed",
+          task_status: 'Completed',
           created_at: new Date().toISOString()
         });
 
@@ -402,10 +408,10 @@ export function useSupabaseStorage() {
     console.log('addFollowUp called with:', { taskId, followUpText });
     if (!user) throw new Error('User not authenticated');
 
-    // Find the task by task_number
+    // Find the task by task_number and get current status
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
-      .select('id')
+      .select('id, status')
       .eq('task_number', taskId)
       .eq('user_id', user.id)
       .single();
@@ -420,21 +426,16 @@ export function useSupabaseStorage() {
 
     const { error } = await supabase
       .from('follow_ups')
-      .insert([
-        {
-          task_id: existingTask.id,
-          text: followUpText
-        }
-      ]);
+      .insert({
+        task_id: existingTask.id,
+        text: followUpText,
+        task_status: existingTask.status,
+        created_at: new Date().toISOString()
+      });
 
-    if (error) {
-      console.error('Error inserting follow-up:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    console.log('Follow-up successfully inserted into database');
-
-    // Reload tasks to get updated follow-ups and wait for completion
+    // Reload tasks to get the latest data including new follow-ups
     await loadTasks();
   };
 
