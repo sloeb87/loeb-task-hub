@@ -11,7 +11,7 @@ interface FollowUpDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onAddFollowUp: (text: string) => void;
-  onUpdateFollowUp?: (followUpId: string, text: string, timestamp?: string) => void;
+  onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
   task: Task;
 }
 
@@ -70,7 +70,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
       const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
       
       console.log('Saving changes:', { text: textToSave, timestamp: newTimestamp });
-      await onUpdateFollowUp(editingFollowUp, textToSave, newTimestamp);
+      await onUpdateFollowUp(task.id, editingFollowUp, textToSave, newTimestamp);
       console.log('Save successful!');
       
       // Exit edit mode

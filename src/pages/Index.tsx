@@ -242,16 +242,13 @@ const Index = () => {
 
         {/* Follow Up Dialog */}
         {followUpTask && (
-          <>
-            {console.log('Rendering FollowUpDialog with handleUpdateFollowUpWrapper:', typeof handleUpdateFollowUpWrapper)}
-            <FollowUpDialog 
-              isOpen={!!followUpTask} 
-              onClose={() => setFollowUpTask(null)} 
-              onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-              onUpdateFollowUp={handleUpdateFollowUpWrapper}
-              task={followUpTask} 
-            />
-          </>
+          <FollowUpDialog 
+            isOpen={!!followUpTask} 
+            onClose={() => setFollowUpTask(null)} 
+            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
+            onUpdateFollowUp={handleUpdateFollowUpFromPage}
+            task={followUpTask} 
+          />
         )}
 
         {/* Parameters Dialog */}
