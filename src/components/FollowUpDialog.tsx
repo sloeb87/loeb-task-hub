@@ -126,9 +126,9 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] h-[95vh] max-w-none border-2 shadow-2xl backdrop-blur-sm overflow-y-auto">
+      <DialogContent className="w-[95vw] h-[95vh] max-w-none bg-background/95 backdrop-blur-sm border-2 shadow-2xl overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
+          <DialogTitle className="flex items-center space-x-2 text-foreground">
             <span>Follow-Up for Task {task.id}</span>
             <Badge variant="outline">{task.status}</Badge>
           </DialogTitle>
@@ -139,10 +139,10 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
 
         <div className="space-y-4">
           {/* Task Summary */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-900 mb-2">{task.title}</h3>
-            <p className="text-sm text-gray-600 mb-2">{task.description}</p>
-            <div className="flex items-center space-x-4 text-xs text-gray-500">
+          <div className="bg-muted/50 dark:bg-muted/30 rounded-lg p-4">
+            <h3 className="font-medium text-foreground mb-2">{task.title}</h3>
+            <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+            <div className="flex items-center space-x-4 text-xs text-muted-foreground">
               <div className="flex items-center">
                 <User className="w-3 h-3 mr-1" />
                 {task.responsible}
@@ -157,10 +157,10 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
           {/* Existing Follow-ups */}
           {task.followUps.length > 0 && (
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Previous Follow-ups</h4>
+              <h4 className="font-medium text-foreground mb-3">Previous Follow-ups</h4>
               <div className="space-y-3 max-h-80 overflow-y-auto">
                 {task.followUps.map((followUp) => (
-                  <div key={followUp.id} className="bg-blue-50 rounded-lg p-3">
+                  <div key={followUp.id} className="bg-card border border-border rounded-lg p-3">
                     {editingFollowUp === followUp.id ? (
                       // Edit mode
                       <div className="space-y-3">
@@ -193,20 +193,20 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                       // View mode
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <span className="text-xs text-blue-600">
+                          <span className="text-xs text-primary">
                             {formatDate(followUp.timestamp)}
                           </span>
                           <Button 
                             size="sm" 
                             variant="outline" 
                             onClick={() => handleEditFollowUp(followUp)}
-                            className="p-1 h-7 w-7 hover:bg-blue-100 border-blue-200 hover:border-blue-300"
+                            className="p-1 h-7 w-7 hover:bg-muted"
                             title="Edit follow-up"
                           >
-                            <Edit className="w-3 h-3 text-blue-600" />
+                            <Edit className="w-3 h-3" />
                           </Button>
                         </div>
-                        <p className="text-sm text-gray-700">{followUp.text}</p>
+                        <p className="text-sm text-foreground">{followUp.text}</p>
                       </div>
                     )}
                   </div>
@@ -218,7 +218,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
           {/* New Follow-up Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="followUpText" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="followUpText" className="block text-sm font-medium text-foreground mb-2">
                 Add Follow-up
               </label>
               <Textarea
