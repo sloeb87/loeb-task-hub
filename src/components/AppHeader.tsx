@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 interface AppHeaderProps {
   activeView: "tasks" | "dashboard" | "projects" | "timetracking" | "followups";
   onViewChange: (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => void;
@@ -26,6 +27,7 @@ export const AppHeader = ({
   const {
     toast
   } = useToast();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const handleSignOut = async () => {
     try {
@@ -119,7 +121,10 @@ export const AppHeader = ({
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-2 sm:space-x-4">
             <button 
-              onClick={() => onViewChange('projects')}
+              onClick={() => {
+                navigate('/');
+                onViewChange('projects');
+              }}
               className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
             >
               PMTask
