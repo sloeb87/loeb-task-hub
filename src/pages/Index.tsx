@@ -92,9 +92,14 @@ const Index = () => {
     setSelectedTask(task);
     setIsTaskFormOpen(true);
   }, []);
-  const handleAddFollowUpWrapper = useCallback((taskId: string, followUpText: string) => {
-    addFollowUp(taskId, followUpText);
-    setFollowUpTask(null);
+  const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
+    try {
+      await addFollowUp(taskId, followUpText);
+      setFollowUpTask(null);
+    } catch (error) {
+      console.error('Failed to add follow-up:', error);
+      // You could add a toast notification here
+    }
   }, [addFollowUp]);
   const handleFollowUpTask = useCallback((updatedTask: Task) => {
     console.log('Index - handleFollowUpTask called with:', updatedTask.id, updatedTask.title);

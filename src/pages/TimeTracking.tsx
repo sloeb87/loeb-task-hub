@@ -19,6 +19,7 @@ import { useEnvironmentColor } from "@/hooks/useEnvironmentColor";
 import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MultiSelectFilters {
   task: string[];
@@ -304,12 +305,38 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     setEditDialogOpen(true);
   };
 
-  const handleSaveTimeEntry = () => {
-    // For now, just close the dialog
-    // In a full implementation, this would save the changes to the database
-    console.log('Saving time entry:', editFormData);
-    setEditDialogOpen(false);
-    setEditingEntry(null);
+  const handleSaveTimeEntry = async () => {
+    if (!editingEntry) return;
+
+    try {
+      // Create updated time entry with new values
+      const updatedStartTime = new Date(`${editFormData.date}T${editFormData.startTime}`);
+      const updatedEndTime = editFormData.endTime ? new Date(`${editFormData.date}T${editFormData.endTime}`) : null;
+      const duration = editFormData.totalMinutes;
+
+      // Update the entry in Supabase
+      const { error } = await supabase
+        .from('time_entries')
+        .update({
+          start_time: updatedStartTime.toISOString(),
+          end_time: updatedEndTime?.toISOString(),
+          duration: duration,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingEntry.id);
+
+      if (error) throw error;
+
+      // Close dialog and refresh data
+      setEditDialogOpen(false);
+      setEditingEntry(null);
+      
+      // The useTimeTracking hook should automatically refresh the data
+      window.location.reload(); // Simple way to refresh data
+    } catch (error) {
+      console.error('Failed to update time entry:', error);
+      // You could add a toast notification here
+    }
   };
 
   const calculateDuration = (startTime: string, endTime: string) => {
