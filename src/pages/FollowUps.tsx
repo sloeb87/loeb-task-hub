@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter, Edit, Save, X } from "lucide-react";
+import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Task, FollowUp } from "@/types/task";
@@ -65,6 +65,9 @@ export const FollowUpsPage = ({
   } = useStatusColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FollowUpFilters>({});
+  
+  // State for collapsible project groups
+  const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
 
   // Edit state for follow-ups
   const [editingFollowUp, setEditingFollowUp] = useState<string | null>(null);
@@ -343,6 +346,20 @@ export const FollowUpsPage = ({
     setEditingText('');
     setEditingTimestamp('');
   };
+
+  // Toggle project expansion
+  const toggleProjectExpansion = (projectName: string) => {
+    setExpandedProjects(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(projectName)) {
+        newSet.delete(projectName);
+      } else {
+        newSet.add(projectName);
+      }
+      return newSet;
+    });
+  };
+
   return <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center space-x-3">
@@ -426,9 +443,14 @@ export const FollowUpsPage = ({
               <TableBody>
                 {Object.entries(groupedFollowUps).map(([projectName, tasks]) => <React.Fragment key={projectName}>
                     {/* Project Header Row */}
-                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                    <TableRow className="bg-muted/50 hover:bg-muted/50 cursor-pointer" onClick={() => toggleProjectExpansion(projectName)}>
                       <TableCell colSpan={4} className="font-semibold text-lg py-3">
                         <div className="flex items-center gap-3">
+                          {expandedProjects.has(projectName) ? (
+                            <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                          ) : (
+                            <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                          )}
                           <span>📁 {projectName}</span>
                           <Badge style={getScopeStyle(Object.values(tasks)[0][0].taskScope)} className="text-sm border">
                             {Object.values(tasks)[0][0].taskScope}
@@ -437,7 +459,8 @@ export const FollowUpsPage = ({
                       </TableCell>
                     </TableRow>
                     
-                    {Object.entries(tasks).map(([taskTitle, followUps]) => <React.Fragment key={`${projectName}-${taskTitle}`}>
+                    {/* Only show tasks if project is expanded */}
+                    {expandedProjects.has(projectName) && Object.entries(tasks).map(([taskTitle, followUps]) => <React.Fragment key={`${projectName}-${taskTitle}`}>
                         {/* Task Header Row with Scope, Type, Environment */}
                         <TableRow className="bg-muted/30 hover:bg-muted/30">
                           <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
