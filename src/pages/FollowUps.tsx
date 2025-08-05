@@ -286,8 +286,9 @@ export const FollowUpsPage = ({
 
   // Handle click on follow-up row to open related task
   const handleRowClick = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
-    // Don't open task if clicking on edit controls
-    if ((event.target as HTMLElement).closest('.edit-controls')) {
+    // Don't open task if clicking on edit controls or buttons
+    const target = event.target as HTMLElement;
+    if (target.closest('.edit-controls') || target.closest('button') || target.tagName === 'BUTTON') {
       return;
     }
     if (onEditTask) {
