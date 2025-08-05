@@ -89,7 +89,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
     environment: null
   });
 
-  // Get all follow-ups with task information
+  // Get all follow-ups with task information (flattened for filtering)
   const allFollowUps = useMemo(() => {
     const followUps: FollowUpWithTask[] = [];
     
@@ -108,24 +108,24 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
       });
     });
 
-    return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return followUps;
   }, [tasks]);
 
   // Get unique values for multi-select filters
   const getUniqueValues = (filterType: keyof MultiSelectFilters): string[] => {
     switch (filterType) {
       case 'date':
-        return [...new Set(allFollowUps.map(f => new Date(f.timestamp).toLocaleDateString()))].sort();
+        return [...new Set(allFollowUps.map(f => formatDate(f.timestamp)))];
       case 'task':
-        return [...new Set(allFollowUps.map(f => f.taskTitle))].sort();
+        return [...new Set(allFollowUps.map(f => f.taskTitle))];
       case 'project':
-        return [...new Set(allFollowUps.map(f => f.projectName))].sort();
+        return [...new Set(allFollowUps.map(f => f.projectName))];
       case 'scope':
-        return [...new Set(allFollowUps.map(f => f.taskScope))].sort();
+        return [...new Set(allFollowUps.map(f => f.taskScope))];
       case 'type':
-        return [...new Set(allFollowUps.map(f => f.taskType))].sort();
+        return [...new Set(allFollowUps.map(f => f.taskType))];
       case 'environment':
-        return [...new Set(allFollowUps.map(f => f.taskEnvironment))].sort();
+        return [...new Set(allFollowUps.map(f => f.taskEnvironment))];
       default:
         return [];
     }
@@ -222,65 +222,75 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
     </div>
   );
 
-  // Apply filters
+  // Filter follow-ups based on search and filters
   const filteredFollowUps = useMemo(() => {
-    let filtered = allFollowUps;
+    return allFollowUps.filter(followUp => {
+      // Search filter
+      if (searchTerm && !followUp.text.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !followUp.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          !followUp.projectName.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
 
-    // Apply existing date filters
-    if (filters.dateRange || filters.year || filters.month) {
-      filtered = filtered.filter(followUp => {
-        const followUpDate = new Date(followUp.timestamp);
-        
-        if (filters.dateRange) {
-          return followUpDate >= filters.dateRange.from && followUpDate <= filters.dateRange.to;
-        }
-        
-        if (filters.year && filters.month) {
-          return followUpDate.getFullYear() === filters.year && followUpDate.getMonth() === filters.month - 1;
-        }
-        
-        if (filters.year) {
-          return followUpDate.getFullYear() === filters.year;
-        }
-        
-        return true;
+      // Multi-select filters
+      if (multiSelectFilters.date.length > 0 && 
+          !multiSelectFilters.date.includes(formatDate(followUp.timestamp))) {
+        return false;
+      }
+      if (multiSelectFilters.task.length > 0 && 
+          !multiSelectFilters.task.includes(followUp.taskTitle)) {
+        return false;
+      }
+      if (multiSelectFilters.project.length > 0 && 
+          !multiSelectFilters.project.includes(followUp.projectName)) {
+        return false;
+      }
+      if (multiSelectFilters.scope.length > 0 && 
+          !multiSelectFilters.scope.includes(followUp.taskScope)) {
+        return false;
+      }
+      if (multiSelectFilters.type.length > 0 && 
+          !multiSelectFilters.type.includes(followUp.taskType)) {
+        return false;
+      }
+      if (multiSelectFilters.environment.length > 0 && 
+          !multiSelectFilters.environment.includes(followUp.taskEnvironment)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [allFollowUps, searchTerm, multiSelectFilters]);
+
+  // Group filtered follow-ups by project then by task
+  const groupedFollowUps = useMemo(() => {
+    const grouped: Record<string, Record<string, FollowUpWithTask[]>> = {};
+    
+    filteredFollowUps.forEach(followUp => {
+      const projectKey = followUp.projectName || 'No Project';
+      if (!grouped[projectKey]) {
+        grouped[projectKey] = {};
+      }
+      
+      const taskKey = followUp.taskTitle;
+      if (!grouped[projectKey][taskKey]) {
+        grouped[projectKey][taskKey] = [];
+      }
+      
+      grouped[projectKey][taskKey].push(followUp);
+    });
+
+    // Sort follow-ups within each task by date (newest first)
+    Object.keys(grouped).forEach(project => {
+      Object.keys(grouped[project]).forEach(task => {
+        grouped[project][task].sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
       });
-    }
+    });
 
-    // Apply multi-select filters
-    if (multiSelectFilters.date.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.date.includes(new Date(f.timestamp).toLocaleDateString()));
-    }
-    if (multiSelectFilters.task.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.task.includes(f.taskTitle));
-    }
-    if (multiSelectFilters.project.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.project.includes(f.projectName));
-    }
-    if (multiSelectFilters.scope.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.scope.includes(f.taskScope));
-    }
-    if (multiSelectFilters.type.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.type.includes(f.taskType));
-    }
-    if (multiSelectFilters.environment.length > 0) {
-      filtered = filtered.filter(f => multiSelectFilters.environment.includes(f.taskEnvironment));
-    }
-
-    // Apply search filter
-    if (searchTerm) {
-      filtered = filtered.filter(followUp => 
-        followUp.text.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        followUp.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        followUp.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        followUp.taskScope.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        followUp.taskType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        followUp.taskEnvironment.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    return filtered;
-  }, [allFollowUps, filters, multiSelectFilters, searchTerm]);
+    return grouped;
+  }, [filteredFollowUps]);
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -298,8 +308,6 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
       recentFollowUps: recentFollowUps.length
     };
   }, [filteredFollowUps]);
-
-  // formatDate is now imported from utils
 
   const clearFilters = () => {
     setFilters({});
@@ -333,7 +341,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
   };
 
   // Handle edit follow-up
-  const handleEditFollowUp = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
+  const handleEditClick = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
     event.stopPropagation();
     setEditingFollowUp(followUp.id);
     setEditingText(followUp.text);
@@ -341,14 +349,17 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
   };
 
   // Handle save edit
-  const handleSaveEdit = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
+  const handleSaveEdit = (event: React.MouseEvent) => {
     event.stopPropagation();
     if (editingFollowUp && onUpdateFollowUp && editingText.trim()) {
-      const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
-      onUpdateFollowUp(followUp.taskId, editingFollowUp, editingText.trim(), newTimestamp);
-      setEditingFollowUp(null);
-      setEditingText('');
-      setEditingTimestamp('');
+      const followUp = allFollowUps.find(f => f.id === editingFollowUp);
+      if (followUp) {
+        const newTimestamp = editingTimestamp ? new Date(editingTimestamp).toISOString() : undefined;
+        onUpdateFollowUp(followUp.taskId, editingFollowUp, editingText.trim(), newTimestamp);
+        setEditingFollowUp(null);
+        setEditingText('');
+        setEditingTimestamp('');
+      }
     }
   };
 
@@ -425,7 +436,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
         <CardHeader>
           <CardTitle>All Follow-Ups</CardTitle>
           <CardDescription>
-            Complete history of task follow-ups and comments
+            Complete history of task follow-ups grouped by project and task
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -446,12 +457,6 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
               <TableHeader>
                 <TableRow>
                   <TableHead>
-                    <FilterableHeader filterType="date">Date</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
-                    <FilterableHeader filterType="task">Task</FilterableHeader>
-                  </TableHead>
-                  <TableHead>
                     <FilterableHeader filterType="project">Project</FilterableHeader>
                   </TableHead>
                   <TableHead>
@@ -463,144 +468,184 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
                   <TableHead>
                     <FilterableHeader filterType="environment">Environment</FilterableHeader>
                   </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="task">Task</FilterableHeader>
+                  </TableHead>
+                  <TableHead>
+                    <FilterableHeader filterType="date">Date</FilterableHeader>
+                  </TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Follow-Up</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredFollowUps.map((followUp) => (
-                  <TableRow 
-                    key={`${followUp.taskId}-${followUp.id}`} 
-                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                    onClick={(e) => handleRowClick(followUp, e)}
-                  >
-                    <TableCell>
-                      {editingFollowUp === followUp.id ? (
-                        <div className="edit-controls">
-                          <Input
-                            type="datetime-local"
-                            value={editingTimestamp}
-                            onChange={(e) => setEditingTimestamp(e.target.value)}
-                            className="text-xs w-40"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      ) : (
-                        <span className="text-base text-gray-900 dark:text-white">
-                          {formatDate(followUp.timestamp)}
-                        </span>
-                      )}
-                    </TableCell>
+                {Object.entries(groupedFollowUps).map(([projectName, tasks]) => (
+                  <React.Fragment key={projectName}>
+                    {/* Project Header Row */}
+                    <TableRow className="bg-muted/50 hover:bg-muted/50">
+                      <TableCell colSpan={9} className="font-semibold text-lg py-3">
+                        📁 {projectName}
+                      </TableCell>
+                    </TableRow>
                     
-                    <TableCell>
-                      <div className="text-base text-gray-900 dark:text-white truncate">
-                        {followUp.taskId}_{followUp.taskTitle}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="text-base text-gray-900 dark:text-white truncate">
-                        {followUp.projectName}
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Badge 
-                          style={getScopeStyle(followUp.taskScope)}
-                          className="text-sm"
-                        >
-                          {followUp.taskScope}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Badge 
-                          style={getTaskTypeStyle(followUp.taskType)}
-                          className="text-sm border"
-                        >
-                          {followUp.taskType}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Badge 
-                          style={getEnvironmentStyle(followUp.taskEnvironment)}
-                          className="text-sm border"
-                        >
-                          {followUp.taskEnvironment}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="flex items-center">
-                        <Badge 
-                          style={getStatusStyle(followUp.taskStatus)}
-                          className="text-sm border"
-                        >
-                          {followUp.taskStatus}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    
-                    <TableCell>
-                      {editingFollowUp === followUp.id ? (
-                        <div className="edit-controls">
-                          <Textarea
-                            value={editingText}
-                            onChange={(e) => setEditingText(e.target.value)}
-                            className="text-sm min-h-[60px] w-full"
-                            onClick={(e) => e.stopPropagation()}
-                            rows={2}
-                          />
-                        </div>
-                      ) : (
-                        <div className="font-medium text-gray-900 dark:text-white max-w-xs">
-                          <p className="line-clamp-2">{followUp.text}</p>
-                        </div>
-                      )}
-                    </TableCell>
-                    
-                    <TableCell>
-                      <div className="edit-controls flex items-center space-x-2">
-                        {editingFollowUp === followUp.id ? (
-                          <>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={(e) => handleSaveEdit(followUp, e)}
-                              className="p-1 h-6 w-6"
-                            >
-                              <Save className="w-3 h-3" />
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="ghost" 
-                              onClick={handleCancelEdit}
-                              className="p-1 h-6 w-6"
-                            >
-                              <X className="w-3 h-3" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            variant="ghost" 
-                            onClick={(e) => handleEditFollowUp(followUp, e)}
-                            className="p-1 h-6 w-6"
+                    {Object.entries(tasks).map(([taskTitle, followUps]) => (
+                      <React.Fragment key={`${projectName}-${taskTitle}`}>
+                        {/* Task Header Row */}
+                        <TableRow className="bg-muted/30 hover:bg-muted/30">
+                          <TableCell colSpan={9} className="font-medium text-base py-2 pl-8">
+                            📋 {taskTitle}
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Follow-up Rows */}
+                        {followUps.map((followUp) => (
+                          <TableRow 
+                            key={`${followUp.taskId}-${followUp.id}`} 
+                            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                            onClick={(e) => handleRowClick(followUp, e)}
                           >
-                            <Edit className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                            {/* Project Column */}
+                            <TableCell className="pl-12">
+                              <div className="flex items-center">
+                                <Badge 
+                                  style={getScopeStyle(followUp.taskScope)}
+                                  className="text-sm border"
+                                >
+                                  {followUp.projectName}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            
+                            {/* Scope Column */}
+                            <TableCell>
+                              <div className="flex items-center">
+                                <Badge 
+                                  style={getScopeStyle(followUp.taskScope)}
+                                  className="text-sm border"
+                                >
+                                  {followUp.taskScope}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            
+                            {/* Type Column */}
+                            <TableCell>
+                              <div className="flex items-center">
+                                <Badge 
+                                  style={getTaskTypeStyle(followUp.taskType)}
+                                  className="text-sm border"
+                                >
+                                  {followUp.taskType}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            
+                            {/* Environment Column */}
+                            <TableCell>
+                              <div className="flex items-center">
+                                <Badge 
+                                  style={getEnvironmentStyle(followUp.taskEnvironment)}
+                                  className="text-sm border"
+                                >
+                                  {followUp.taskEnvironment}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            
+                            {/* Task Column */}
+                            <TableCell className="max-w-xs">
+                              <div className="truncate" title={followUp.taskTitle}>
+                                {followUp.taskTitle}
+                              </div>
+                            </TableCell>
+                            
+                            {/* Date Column */}
+                            <TableCell>
+                              {editingFollowUp === followUp.id ? (
+                                <div className="edit-controls">
+                                  <Input
+                                    type="datetime-local"
+                                    value={editingTimestamp}
+                                    onChange={(e) => setEditingTimestamp(e.target.value)}
+                                    className="text-xs w-40"
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+                                </div>
+                              ) : (
+                                <span className="text-sm">{formatDate(followUp.timestamp)}</span>
+                              )}
+                            </TableCell>
+                            
+                            {/* Status Column */}
+                            <TableCell>
+                              <div className="flex items-center">
+                                <Badge 
+                                  style={getStatusStyle(followUp.taskStatus)}
+                                  className="text-sm border"
+                                >
+                                  {followUp.taskStatus}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            
+                            {/* Follow-Up Text Column */}
+                            <TableCell>
+                              {editingFollowUp === followUp.id ? (
+                                <div className="edit-controls">
+                                  <Textarea
+                                    value={editingText}
+                                    onChange={(e) => setEditingText(e.target.value)}
+                                    className="text-sm min-h-[60px] w-full"
+                                    onClick={(e) => e.stopPropagation()}
+                                    rows={2}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="max-w-md">
+                                  <p className="text-sm">{followUp.text}</p>
+                                </div>
+                              )}
+                            </TableCell>
+                            
+                            {/* Actions Column */}
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                {editingFollowUp === followUp.id ? (
+                                  <>
+                                    <Button
+                                      size="sm"
+                                      onClick={(e) => handleSaveEdit(e)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <Save className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={(e) => handleCancelEdit(e)}
+                                      className="h-8 w-8 p-0"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={(e) => handleEditClick(followUp, e)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
