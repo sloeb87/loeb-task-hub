@@ -200,12 +200,12 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                       // View mode
                       <div>
                         <div className="flex justify-between items-start mb-2">
-                          <div className="flex flex-col">
+                          <div className="flex items-center gap-2">
                             <span className="text-xs text-primary">
                               {formatDate(followUp.timestamp)}
                             </span>
                             {followUp.taskStatus && (
-                              <Badge variant="outline" className="w-fit mt-1 text-xs">
+                              <Badge variant="outline" className="text-xs">
                                 {followUp.taskStatus}
                               </Badge>
                             )}
