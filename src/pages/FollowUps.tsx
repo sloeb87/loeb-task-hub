@@ -102,7 +102,7 @@ export const FollowUpsPage = ({ tasks, onEditTask, onUpdateFollowUp }: FollowUps
           taskScope: task.scope,
           taskType: task.taskType,
           taskEnvironment: task.environment,
-          taskStatus: task.status,
+          taskStatus: followUp.taskStatus || 'Unknown',
           projectName: task.project
         });
       });
