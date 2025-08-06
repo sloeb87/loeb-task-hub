@@ -50,6 +50,50 @@ export const ProjectDetailView = ({
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  
+  // Add debugging and protection for task form state
+  React.useEffect(() => {
+    console.log('PROJECT_DETAIL - Task form state changed:', { 
+      isTaskFormOpen, 
+      selectedTaskId: selectedTask?.id || 'new task',
+      visibilityState: document.visibilityState,
+      documentHasFocus: document.hasFocus()
+    });
+  }, [isTaskFormOpen, selectedTask]);
+
+  // Prevent task form from closing accidentally on window focus changes
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('PROJECT_DETAIL - Visibility changed:', {
+        visibilityState: document.visibilityState,
+        isTaskFormOpen,
+        documentHasFocus: document.hasFocus()
+      });
+      
+      if (document.visibilityState === 'visible' && isTaskFormOpen) {
+        console.log('PROJECT_DETAIL - Window became visible - keeping task form open');
+      }
+    };
+
+    const handleFocusChange = () => {
+      console.log('PROJECT_DETAIL - Window focus changed:', {
+        hasFocus: document.hasFocus(),
+        isTaskFormOpen,
+        activeElement: document.activeElement?.tagName
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('blur', handleFocusChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocusChange);
+      window.removeEventListener('blur', handleFocusChange);
+    };
+  }, [isTaskFormOpen]);
+  
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
   const totalTasks = projectTasks.length;

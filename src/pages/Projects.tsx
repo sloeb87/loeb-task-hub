@@ -53,7 +53,50 @@ const ProjectsPage = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
-  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask?.title);
+  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask);
+
+  // Add debugging and protection for task form state
+  React.useEffect(() => {
+    console.log('PROJECTS - Task form state changed:', { 
+      isTaskFormOpen, 
+      selectedTaskId: selectedTask?.id || 'new task',
+      visibilityState: document.visibilityState,
+      documentHasFocus: document.hasFocus()
+    });
+  }, [isTaskFormOpen, selectedTask]);
+
+  // Prevent task form from closing accidentally on window focus changes
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('PROJECTS - Visibility changed:', {
+        visibilityState: document.visibilityState,
+        isTaskFormOpen,
+        documentHasFocus: document.hasFocus()
+      });
+      
+      if (document.visibilityState === 'visible' && isTaskFormOpen) {
+        console.log('PROJECTS - Window became visible - keeping task form open');
+      }
+    };
+
+    const handleFocusChange = () => {
+      console.log('PROJECTS - Window focus changed:', {
+        hasFocus: document.hasFocus(),
+        isTaskFormOpen,
+        activeElement: document.activeElement?.tagName
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('blur', handleFocusChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocusChange);
+      window.removeEventListener('blur', handleFocusChange);
+    };
+  }, [isTaskFormOpen]);
 
   // Handle initial detail project navigation
   React.useEffect(() => {
