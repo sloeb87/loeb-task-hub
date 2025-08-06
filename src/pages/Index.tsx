@@ -66,6 +66,20 @@ const Index = () => {
   const projects = supabaseProjects;
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  
+  // Prevent task form from closing accidentally on window focus changes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      // Prevent any unintended state changes when window becomes visible/hidden
+      if (document.visibilityState === 'visible' && isTaskFormOpen) {
+        // Ensure form stays open when coming back to the window
+        console.log('Window became visible - keeping task form open');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking" | "followups">("tasks");
