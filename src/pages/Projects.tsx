@@ -55,6 +55,22 @@ const ProjectsPage = ({
 
   console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask, 'viewMode:', viewMode, 'detailProject:', detailProject?.name);
 
+  // Add debugging to track when setViewMode is called
+  const debugSetViewMode = (newMode: 'list' | 'detail') => {
+    console.log('PROJECTS - setViewMode called:', { from: viewMode, to: newMode, stack: new Error().stack });
+    setViewMode(newMode);
+  };
+
+  // Add debugging to track when setDetailProject is called
+  const debugSetDetailProject = (project: Project | null) => {
+    console.log('PROJECTS - setDetailProject called:', { 
+      from: detailProject?.name || 'null', 
+      to: project?.name || 'null',
+      stack: new Error().stack 
+    });
+    setDetailProject(project);
+  };
+
   // Add debugging and protection for task form state
   React.useEffect(() => {
     console.log('PROJECTS - Task form state changed:', { 
@@ -108,8 +124,8 @@ const ProjectsPage = ({
       const project = projects.find(p => p.name === initialDetailProject);
       if (project) {
         console.log('PROJECTS - Setting detail project from initialDetailProject:', project.name);
-        setDetailProject(project);
-        setViewMode('detail');
+        debugSetDetailProject(project);
+        debugSetViewMode('detail');
       }
     }
   }, [initialDetailProject, projects]);
@@ -137,8 +153,8 @@ const ProjectsPage = ({
         const project = projects.find(p => p.name === projectName);
         if (project && storedViewMode === 'detail') {
           console.log('PROJECTS - Restoring detail project from sessionStorage:', projectName);
-          setDetailProject(project);
-          setViewMode('detail');
+          debugSetDetailProject(project);
+          debugSetViewMode('detail');
         }
       } catch (error) {
         console.error('Failed to parse stored project state:', error);
@@ -157,8 +173,8 @@ const ProjectsPage = ({
 
   const handleEditProject = (project: Project) => {
     console.log('handleEditProject called with:', project.name);
-    setDetailProject(project);
-    setViewMode('detail');
+    debugSetDetailProject(project);
+    debugSetViewMode('detail');
     // Notify parent we're entering detail view
     if (onBackToList) {
       // Parent can now set up the back functionality
@@ -254,7 +270,7 @@ const ProjectsPage = ({
           allTasks={tasks}
           allProjects={projects} // Pass the projects list
           onBack={() => {
-            setViewMode('list');
+            debugSetViewMode('list');
             onBackToList?.();
           }}
           onEditProject={handleEditProjectForm}
