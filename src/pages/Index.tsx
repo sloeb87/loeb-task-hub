@@ -17,6 +17,7 @@ import { FollowUpsPage } from "./FollowUps";
 import Parameters from "@/components/Parameters";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
+import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 const Index = () => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -337,6 +338,9 @@ const Index = () => {
             task={followUpTask} 
           />
         )}
+
+        {/* Global Task Form - Persists across all component remounts */}
+        <GlobalTaskForm />
 
         {/* Parameters Dialog */}
         <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />
