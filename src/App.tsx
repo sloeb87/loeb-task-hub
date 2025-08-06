@@ -11,7 +11,6 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
 import { Loader2 } from "lucide-react";
-import { TaskFormProvider } from "./contexts/TaskFormContext";
 
 const queryClient = new QueryClient();
 
@@ -38,24 +37,22 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
-          <TaskFormProvider>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={
-                  <ProtectedRoute>
-                    <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/gantt" element={
-                  <ProtectedRoute>
-                    <GanttView />
-                  </ProtectedRoute>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TaskFormProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/gantt" element={
+                <ProtectedRoute>
+                  <GanttView />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
           <Toaster />
           <Sonner />
         </TooltipProvider>

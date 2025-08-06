@@ -10,8 +10,8 @@ import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, Fol
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { ProjectForm } from "@/components/ProjectForm";
-import { useTaskForm } from "@/contexts/TaskFormContext";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -47,8 +47,93 @@ export const ProjectDetailView = ({
   onSaveTask 
 }: ProjectDetailViewProps) => {
   const { getScopeStyle } = useScopeColor();
-  const { openTaskForm } = useTaskForm();
+  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+
+  // Restore task form state from localStorage on component mount
+  React.useEffect(() => {
+    const taskFormKey = `taskForm_${project.name}`;
+    const storedTaskForm = localStorage.getItem(taskFormKey);
+    if (storedTaskForm) {
+      try {
+        const { isOpen, taskId } = JSON.parse(storedTaskForm);
+        if (isOpen) {
+          console.log('PROJECT_DETAIL - Restoring task form state from localStorage');
+          setIsTaskFormOpen(true);
+          if (taskId && taskId !== 'new') {
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+              setSelectedTask(task);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to parse stored task form state:', error);
+        localStorage.removeItem(taskFormKey);
+      }
+    }
+  }, [project.name, allTasks]);
+
+  // Store task form state in localStorage whenever it changes
+  React.useEffect(() => {
+    const taskFormKey = `taskForm_${project.name}`;
+    if (isTaskFormOpen) {
+      const taskFormState = {
+        isOpen: true,
+        taskId: selectedTask?.id || 'new',
+        timestamp: Date.now()
+      };
+      console.log('PROJECT_DETAIL - Storing task form state to localStorage:', taskFormState);
+      localStorage.setItem(taskFormKey, JSON.stringify(taskFormState));
+    } else {
+      console.log('PROJECT_DETAIL - Clearing task form state from localStorage');
+      localStorage.removeItem(taskFormKey);
+    }
+  }, [isTaskFormOpen, selectedTask, project.name]);
+  
+  // Add debugging and protection for task form state
+  React.useEffect(() => {
+    console.log('PROJECT_DETAIL - Task form state changed:', { 
+      isTaskFormOpen, 
+      selectedTaskId: selectedTask?.id || 'new task',
+      visibilityState: document.visibilityState,
+      documentHasFocus: document.hasFocus()
+    });
+  }, [isTaskFormOpen, selectedTask]);
+
+  // Prevent task form from closing accidentally on window focus changes
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      console.log('PROJECT_DETAIL - Visibility changed:', {
+        visibilityState: document.visibilityState,
+        isTaskFormOpen,
+        documentHasFocus: document.hasFocus()
+      });
+      
+      if (document.visibilityState === 'visible' && isTaskFormOpen) {
+        console.log('PROJECT_DETAIL - Window became visible - keeping task form open');
+      }
+    };
+
+    const handleFocusChange = () => {
+      console.log('PROJECT_DETAIL - Window focus changed:', {
+        hasFocus: document.hasFocus(),
+        isTaskFormOpen,
+        activeElement: document.activeElement?.tagName
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('blur', handleFocusChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocusChange);
+      window.removeEventListener('blur', handleFocusChange);
+    };
+  }, [isTaskFormOpen]);
   
   const projectTasks = tasks.filter(task => task.project === project.name);
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
@@ -87,7 +172,8 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
-    openTaskForm(project.name, task, 'project-detail-edit');
+    setSelectedTask(task);
+    setIsTaskFormOpen(true);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {
@@ -103,7 +189,8 @@ export const ProjectDetailView = ({
     } else if (onEditTask && 'id' in taskData) {
       onEditTask(taskData as Task);
     }
-    // Task form closing is now handled by global context
+    setIsTaskFormOpen(false);
+    setSelectedTask(null);
   };
 
   const handleOpenGanttWindow = () => {
@@ -112,8 +199,9 @@ export const ProjectDetailView = ({
   };
 
   const handleCreateTaskForProject = () => {
-    console.log('ProjectDetailView - Creating new task for project:', project.name);
-    openTaskForm(project.name, undefined, 'project-detail-new');
+    // Open task form with project pre-selected
+    setSelectedTask(null); // Ensure we're creating a new task
+    setIsTaskFormOpen(true);
   };
 
   const handleEditProjectLocal = () => {
@@ -418,7 +506,25 @@ export const ProjectDetailView = ({
         )}
       </Tabs>
 
-      {/* Task Form is now handled globally - no local instance needed */}
+      {/* Task Form Modal - With persistence to survive remounts */}
+      <TaskFormOptimized
+        key={selectedTask?.id || 'new'}
+        isOpen={isTaskFormOpen}
+        onClose={() => {
+          console.log('PROJECT_DETAIL - TaskForm onClose called');
+          setIsTaskFormOpen(false);
+          setSelectedTask(null);
+          // Clear persistence when explicitly closed
+          localStorage.removeItem(`taskForm_${project.name}`);
+        }}
+        onSave={handleSaveTaskLocal}
+        onDelete={onDeleteTask}
+        task={selectedTask}
+        allTasks={allTasks}
+        allProjects={allProjects}
+        projectName={project.name}
+        onEditRelatedTask={handleEditTaskLocal}
+      />
 
       {/* Project Form Modal - Local to ProjectDetailView */}
       <ProjectForm
