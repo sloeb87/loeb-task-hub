@@ -4,7 +4,7 @@ import { useTaskForm } from '@/contexts/TaskFormContext';
 import { useSupabaseStorage } from '@/hooks/useSupabaseStorage';
 
 export const GlobalTaskForm: React.FC = () => {
-  const { taskFormState, closeTaskForm } = useTaskForm();
+  const { taskFormState, closeTaskForm, openTaskForm } = useTaskForm();
   const { 
     tasks, 
     projects, 
@@ -34,8 +34,7 @@ export const GlobalTaskForm: React.FC = () => {
 
   const handleEditRelatedTask = (task: any) => {
     console.log('GLOBAL_TASK_FORM - Opening related task:', task.title);
-    // This will update the current global state
-    const { openTaskForm } = useTaskForm();
+    // Close current form and open with the related task
     openTaskForm(task.project, task, 'related-task');
   };
 
