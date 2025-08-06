@@ -50,6 +50,47 @@ export const ProjectDetailView = ({
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+
+  // Restore task form state from localStorage on component mount
+  React.useEffect(() => {
+    const taskFormKey = `taskForm_${project.name}`;
+    const storedTaskForm = localStorage.getItem(taskFormKey);
+    if (storedTaskForm) {
+      try {
+        const { isOpen, taskId } = JSON.parse(storedTaskForm);
+        if (isOpen) {
+          console.log('PROJECT_DETAIL - Restoring task form state from localStorage');
+          setIsTaskFormOpen(true);
+          if (taskId && taskId !== 'new') {
+            const task = allTasks.find(t => t.id === taskId);
+            if (task) {
+              setSelectedTask(task);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to parse stored task form state:', error);
+        localStorage.removeItem(taskFormKey);
+      }
+    }
+  }, [project.name, allTasks]);
+
+  // Store task form state in localStorage whenever it changes
+  React.useEffect(() => {
+    const taskFormKey = `taskForm_${project.name}`;
+    if (isTaskFormOpen) {
+      const taskFormState = {
+        isOpen: true,
+        taskId: selectedTask?.id || 'new',
+        timestamp: Date.now()
+      };
+      console.log('PROJECT_DETAIL - Storing task form state to localStorage:', taskFormState);
+      localStorage.setItem(taskFormKey, JSON.stringify(taskFormState));
+    } else {
+      console.log('PROJECT_DETAIL - Clearing task form state from localStorage');
+      localStorage.removeItem(taskFormKey);
+    }
+  }, [isTaskFormOpen, selectedTask, project.name]);
   
   // Add debugging and protection for task form state
   React.useEffect(() => {
@@ -465,19 +506,22 @@ export const ProjectDetailView = ({
         )}
       </Tabs>
 
-      {/* Task Form Modal - Local to ProjectDetailView */}
+      {/* Task Form Modal - With persistence to survive remounts */}
       <TaskFormOptimized
         key={selectedTask?.id || 'new'}
         isOpen={isTaskFormOpen}
         onClose={() => {
+          console.log('PROJECT_DETAIL - TaskForm onClose called');
           setIsTaskFormOpen(false);
           setSelectedTask(null);
+          // Clear persistence when explicitly closed
+          localStorage.removeItem(`taskForm_${project.name}`);
         }}
         onSave={handleSaveTaskLocal}
         onDelete={onDeleteTask}
         task={selectedTask}
         allTasks={allTasks}
-        allProjects={allProjects} // Pass the actual projects list
+        allProjects={allProjects}
         projectName={project.name}
         onEditRelatedTask={handleEditTaskLocal}
       />

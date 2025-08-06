@@ -118,6 +118,11 @@ const Index = () => {
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
   
+  // Debug activeView changes to see if this is causing Projects component remount
+  React.useEffect(() => {
+    console.log('INDEX - activeView changed:', activeView);
+  }, [activeView]);
+  
   // Track when projects page is in detail view
   const [isProjectDetailView, setIsProjectDetailView] = useState(false);
 
