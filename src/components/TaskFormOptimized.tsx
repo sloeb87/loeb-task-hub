@@ -33,6 +33,8 @@ interface TaskFormProps {
   projectName?: string | null;
   onEditRelatedTask?: (task: Task) => void;
   onNavigateToProject?: (projectName: string) => void;
+  persistedFormData?: any;
+  onFormDataChange?: (formData: any) => void;
 }
 
 interface FormData {
@@ -96,7 +98,9 @@ export const TaskFormOptimized = React.memo(({
   allProjects, 
   projectName, 
   onEditRelatedTask,
-  onNavigateToProject
+  onNavigateToProject,
+  persistedFormData,
+  onFormDataChange
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -156,19 +160,37 @@ export const TaskFormOptimized = React.memo(({
       setDate(new Date(task.dueDate));
       setProjectScope(task.scope || null);
     } else {
-      // Creating new task
-      const newFormData = {
-        ...DEFAULT_FORM_DATA,
-        project: projectName || "",
-        startDate: new Date().toISOString().split('T')[0],
-        dueDate: new Date()
-      };
-      
-      setFormData(newFormData);
-      setDate(new Date());
-      setProjectScope(null);
+      // Creating new task - check for persisted form data first
+      if (persistedFormData && !task) {
+        console.log('TASK_FORM - Restoring persisted form data:', persistedFormData);
+        setFormData(persistedFormData);
+        setDate(persistedFormData.dueDate ? new Date(persistedFormData.dueDate) : new Date());
+        setProjectScope(persistedFormData.scope || null);
+      } else {
+        const newFormData = {
+          ...DEFAULT_FORM_DATA,
+          project: projectName || "",
+          startDate: new Date().toISOString().split('T')[0],
+          dueDate: new Date()
+        };
+        
+        setFormData(newFormData);
+        setDate(new Date());
+        setProjectScope(null);
+      }
     }
-  }, [isOpen, task, projectName]);
+  }, [isOpen, task, projectName, persistedFormData]);
+
+  // Persist form data for new tasks
+  useEffect(() => {
+    if (!task && onFormDataChange && isOpen) {
+      const timeoutId = setTimeout(() => {
+        onFormDataChange(formData);
+      }, 500); // Debounce to avoid too frequent saves
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [formData, task, onFormDataChange, isOpen]);
 
   // Auto-set project scope for new tasks
   useEffect(() => {
@@ -192,7 +214,10 @@ export const TaskFormOptimized = React.memo(({
     if (field === 'taskType') {
       console.log('TaskForm - updateField called for taskType:', { field, value });
     }
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newFormData = { ...prev, [field]: value };
+      return newFormData;
+    });
   }, []);
 
   const updateLinkField = useCallback((linkType: keyof FormData['links'], value: string) => {

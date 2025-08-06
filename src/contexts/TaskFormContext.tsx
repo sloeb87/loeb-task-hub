@@ -6,6 +6,7 @@ interface TaskFormState {
   selectedTask: Task | null;
   projectName: string | null;
   contextKey: string; // To track which component opened it
+  formData?: any; // Store the form field values
 }
 
 interface TaskFormContextType {
@@ -13,6 +14,7 @@ interface TaskFormContextType {
   openTaskForm: (projectName?: string, task?: Task, contextKey?: string) => void;
   closeTaskForm: () => void;
   updateTaskForm: (task: Task | null) => void;
+  saveFormData: (formData: any) => void;
 }
 
 const TaskFormContext = createContext<TaskFormContextType | undefined>(undefined);
@@ -24,7 +26,8 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     isOpen: false,
     selectedTask: null,
     projectName: null,
-    contextKey: ''
+    contextKey: '',
+    formData: undefined
   });
 
   // Restore state from localStorage on mount
@@ -69,7 +72,8 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       isOpen: false,
       selectedTask: null,
       projectName: null,
-      contextKey: ''
+      contextKey: '',
+      formData: undefined
     });
   };
 
@@ -77,12 +81,18 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setTaskFormState(prev => ({ ...prev, selectedTask: task }));
   };
 
+  const saveFormData = (formData: any) => {
+    console.log('GLOBAL_TASK_FORM - Saving form data:', formData);
+    setTaskFormState(prev => ({ ...prev, formData }));
+  };
+
   return (
     <TaskFormContext.Provider value={{
       taskFormState,
       openTaskForm,
       closeTaskForm,
-      updateTaskForm
+      updateTaskForm,
+      saveFormData
     }}>
       {children}
     </TaskFormContext.Provider>

@@ -4,7 +4,7 @@ import { useTaskForm } from '@/contexts/TaskFormContext';
 import { useSupabaseStorage } from '@/hooks/useSupabaseStorage';
 
 export const GlobalTaskForm: React.FC = () => {
-  const { taskFormState, closeTaskForm, openTaskForm } = useTaskForm();
+  const { taskFormState, closeTaskForm, openTaskForm, saveFormData } = useTaskForm();
   const { 
     tasks, 
     projects, 
@@ -58,6 +58,8 @@ export const GlobalTaskForm: React.FC = () => {
       allProjects={projects}
       projectName={taskFormState.projectName}
       onEditRelatedTask={handleEditRelatedTask}
+      persistedFormData={taskFormState.formData}
+      onFormDataChange={saveFormData}
     />
   );
 };
