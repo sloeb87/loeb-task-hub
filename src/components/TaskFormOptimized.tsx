@@ -299,7 +299,7 @@ export const TaskFormOptimized = React.memo(({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={() => {}}>  {/* Prevent auto-close on focus loss */}
       <DialogContent className="max-w-[95vw] w-full max-h-[95vh] flex flex-col bg-background/95 backdrop-blur-sm border-2 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-3">
