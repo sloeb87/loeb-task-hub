@@ -65,13 +65,15 @@ const ProjectsPage = ({
     });
   }, [isTaskFormOpen, selectedTask]);
 
-  // Prevent task form from closing accidentally on window focus changes
+  // Prevent view mode and detail project from being reset during window focus changes
   React.useEffect(() => {
     const handleVisibilityChange = () => {
       console.log('PROJECTS - Visibility changed:', {
         visibilityState: document.visibilityState,
         isTaskFormOpen,
-        documentHasFocus: document.hasFocus()
+        documentHasFocus: document.hasFocus(),
+        viewMode,
+        detailProject: detailProject?.name
       });
       
       if (document.visibilityState === 'visible' && isTaskFormOpen) {
@@ -83,7 +85,9 @@ const ProjectsPage = ({
       console.log('PROJECTS - Window focus changed:', {
         hasFocus: document.hasFocus(),
         isTaskFormOpen,
-        activeElement: document.activeElement?.tagName
+        activeElement: document.activeElement?.tagName,
+        viewMode,
+        detailProject: detailProject?.name
       });
     };
 
@@ -96,18 +100,52 @@ const ProjectsPage = ({
       window.removeEventListener('focus', handleFocusChange);
       window.removeEventListener('blur', handleFocusChange);
     };
-  }, [isTaskFormOpen]);
+  }, [isTaskFormOpen, viewMode, detailProject]);
 
   // Handle initial detail project navigation
   React.useEffect(() => {
     if (initialDetailProject) {
       const project = projects.find(p => p.name === initialDetailProject);
       if (project) {
+        console.log('PROJECTS - Setting detail project from initialDetailProject:', project.name);
         setDetailProject(project);
         setViewMode('detail');
       }
     }
   }, [initialDetailProject, projects]);
+
+  // Store current state in sessionStorage to persist across window focus changes
+  React.useEffect(() => {
+    if (viewMode === 'detail' && detailProject) {
+      console.log('PROJECTS - Storing detail project in sessionStorage:', detailProject.name);
+      sessionStorage.setItem('currentDetailProject', JSON.stringify({
+        projectName: detailProject.name,
+        viewMode: 'detail'
+      }));
+    } else if (viewMode === 'list') {
+      console.log('PROJECTS - Clearing detail project from sessionStorage');
+      sessionStorage.removeItem('currentDetailProject');
+    }
+  }, [viewMode, detailProject]);
+
+  // Restore state from sessionStorage on component mount
+  React.useEffect(() => {
+    const storedState = sessionStorage.getItem('currentDetailProject');
+    if (storedState && !initialDetailProject) {
+      try {
+        const { projectName, viewMode: storedViewMode } = JSON.parse(storedState);
+        const project = projects.find(p => p.name === projectName);
+        if (project && storedViewMode === 'detail') {
+          console.log('PROJECTS - Restoring detail project from sessionStorage:', projectName);
+          setDetailProject(project);
+          setViewMode('detail');
+        }
+      } catch (error) {
+        console.error('Failed to parse stored project state:', error);
+        sessionStorage.removeItem('currentDetailProject');
+      }
+    }
+  }, [projects, initialDetailProject]);
 
   // Notify parent when entering/exiting detail view
   React.useEffect(() => {
