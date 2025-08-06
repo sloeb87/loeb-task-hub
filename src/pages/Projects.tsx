@@ -53,7 +53,7 @@ const ProjectsPage = ({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
-  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask);
+  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask, 'viewMode:', viewMode, 'detailProject:', detailProject?.name);
 
   // Add debugging and protection for task form state
   React.useEffect(() => {
