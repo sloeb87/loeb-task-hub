@@ -239,7 +239,10 @@ export const TaskFormOptimized = React.memo(({
     console.log('TaskForm - Form data being saved:', {
       originalTaskType: task?.taskType,
       formDataTaskType: formData.taskType,
-      finalTaskType: taskData.taskType
+      formDataEnvironment: formData.environment,
+      finalTaskType: taskData.taskType,
+      finalEnvironment: taskData.environment,
+      fullTaskData: taskData
     });
 
     onSave(taskData);

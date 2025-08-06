@@ -197,7 +197,11 @@ export function useSupabaseStorage() {
   const createTask = async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>): Promise<Task> => {
     if (!user) throw new Error('User not authenticated');
 
-    console.log('Creating task with data:', taskData);
+    console.log('Creating task with data:', {
+      taskType: taskData.taskType,
+      environment: taskData.environment,
+      fullData: taskData
+    });
     console.log('User:', user);
 
     try {
@@ -251,7 +255,13 @@ export function useSupabaseStorage() {
         throw error;
       }
 
-      console.log('Task created successfully:', data);
+      console.log('Task created successfully:', {
+        id: data.id,
+        task_number: data.task_number,
+        task_type: data.task_type,
+        environment: data.environment,
+        fullData: data
+      });
 
       const newTask = await convertSupabaseTaskToTask(data);
       setTasks(prev => [newTask, ...prev]);
