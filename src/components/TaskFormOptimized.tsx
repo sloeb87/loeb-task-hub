@@ -286,11 +286,24 @@ export const TaskFormOptimized = React.memo(({
     }
   };
 
+  // Add debugging for form state
+  console.log('TaskForm render - isOpen:', isOpen, 'task:', task?.id || 'new task');
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
+      console.log('TaskForm Dialog onOpenChange called:', { 
+        open, 
+        documentHasFocus: document.hasFocus(),
+        documentVisibilityState: document.visibilityState,
+        activeElement: document.activeElement?.tagName 
+      });
+      
       // Only allow closing if it's an explicit close action, not a focus loss
       if (!open && document.hasFocus()) {
+        console.log('TaskForm Dialog - Allowing close (document has focus)');
         onClose();
+      } else if (!open && !document.hasFocus()) {
+        console.log('TaskForm Dialog - Preventing close (document lost focus)');
       }
     }}>
       <DialogContent className="max-w-[95vw] w-full max-h-[95vh] flex flex-col bg-background/95 backdrop-blur-sm border-2 shadow-2xl">

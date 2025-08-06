@@ -67,18 +67,49 @@ const Index = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
+  // Add debugging for task form state changes
+  useEffect(() => {
+    console.log('INDEX - Task form state changed:', { 
+      isTaskFormOpen, 
+      selectedTaskId: selectedTask?.id || 'new task',
+      visibilityState: document.visibilityState,
+      documentHasFocus: document.hasFocus()
+    });
+  }, [isTaskFormOpen, selectedTask]);
+  
   // Prevent task form from closing accidentally on window focus changes
   useEffect(() => {
     const handleVisibilityChange = () => {
+      console.log('INDEX - Visibility changed:', {
+        visibilityState: document.visibilityState,
+        isTaskFormOpen,
+        documentHasFocus: document.hasFocus()
+      });
+      
       // Prevent any unintended state changes when window becomes visible/hidden
       if (document.visibilityState === 'visible' && isTaskFormOpen) {
         // Ensure form stays open when coming back to the window
-        console.log('Window became visible - keeping task form open');
+        console.log('INDEX - Window became visible - keeping task form open');
       }
     };
 
+    const handleFocusChange = () => {
+      console.log('INDEX - Window focus changed:', {
+        hasFocus: document.hasFocus(),
+        isTaskFormOpen,
+        activeElement: document.activeElement?.tagName
+      });
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocusChange);
+    window.addEventListener('blur', handleFocusChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocusChange);
+      window.removeEventListener('blur', handleFocusChange);
+    };
   }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
@@ -239,7 +270,10 @@ const Index = () => {
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <RunningTimerDisplay tasks={tasks} />
-                <Button onClick={() => setIsTaskFormOpen(true)} className="flex items-center gap-2">
+                <Button onClick={() => {
+                  console.log('INDEX - New Task button clicked');
+                  setIsTaskFormOpen(true);
+                }} className="flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   New Task
                 </Button>
