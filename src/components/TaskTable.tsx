@@ -574,19 +574,30 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   </TableCell>
 
                    {/* Due Date Column */}
-                   <TableCell>
-                     <div className="space-y-1 text-sm">
-                       <div className={`flex items-center font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
-                         {new Date(task.dueDate).toLocaleDateString()}
-                       </div>
-                       {task.completionDate && (
-                         <div className="flex items-center text-green-600 dark:text-green-400">
-                           <Calendar className="w-3 h-3 mr-1" />
-                           Completed: {new Date(task.completionDate).toLocaleDateString()}
-                         </div>
-                       )}
-                     </div>
-                   </TableCell>
+                    <TableCell>
+                      <div className="space-y-1 text-sm">
+                        <div className={`flex items-center font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </div>
+                        {(() => {
+                          // Debug completion date display
+                          if (task.id === 'T11' || task.id === 'T12' || task.id === 'T4') {
+                            console.log(`TaskTable rendering completion date for ${task.id}:`, {
+                              completionDate: task.completionDate,
+                              hasCompletionDate: !!task.completionDate,
+                              status: task.status
+                            });
+                          }
+                          
+                          return task.completionDate && (
+                            <div className="flex items-center text-green-600 dark:text-green-400">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              Completed: {new Date(task.completionDate).toLocaleDateString()}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </TableCell>
 
                   {/* Time Tracking Column */}
                    <TableCell>

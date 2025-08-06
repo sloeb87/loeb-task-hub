@@ -88,7 +88,7 @@ export function useSupabaseStorage() {
       projectName = projectData?.name || '';
     }
 
-    return {
+    const task = {
       id: supabaseTask.task_number, // Use task_number as the ID for compatibility
       scope: supabaseTask.scope,
       project: projectName,
@@ -110,6 +110,17 @@ export function useSupabaseStorage() {
       links: supabaseTask.links || {},
       stakeholders: supabaseTask.stakeholders || []
     };
+
+    // Debug logging for completion date issues
+    if (supabaseTask.task_number === 'T11' || supabaseTask.task_number === 'T12' || supabaseTask.task_number === 'T4') {
+      console.log(`Task ${supabaseTask.task_number} conversion:`, {
+        original_completion_date: supabaseTask.completion_date,
+        converted_completion_date: task.completionDate,
+        status: task.status
+      });
+    }
+
+    return task;
   }, []);
 
   const convertSupabaseProjectToProject = (supabaseProject: SupabaseProject): Project => {
@@ -577,6 +588,7 @@ export function useSupabaseStorage() {
   };
 
   const refreshTasks = () => {
+    console.log('Force refreshing tasks and projects...');
     loadTasks();
     loadProjects();
   };
