@@ -105,13 +105,6 @@ export const TaskFormOptimized = React.memo(({
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
   const { startTimer } = useTimeTracking();
 
-  // Debug: Check what functions are received
-  console.log('TaskFormOptimized received props:', {
-    hasOnAddFollowUp: !!onAddFollowUp,
-    hasOnUpdateFollowUp: !!onUpdateFollowUp,
-    onUpdateFollowUpType: typeof onUpdateFollowUp,
-    taskId: task?.id
-  });
 
   // Dropdown options - now coming from the database
   const dropdownOptions = useMemo(() => ({
@@ -236,14 +229,6 @@ export const TaskFormOptimized = React.memo(({
       })
     };
 
-    console.log('TaskForm - Form data being saved:', {
-      originalTaskType: task?.taskType,
-      formDataTaskType: formData.taskType,
-      formDataEnvironment: formData.environment,
-      finalTaskType: taskData.taskType,
-      finalEnvironment: taskData.environment,
-      fullTaskData: taskData
-    });
 
     onSave(taskData);
     onClose();
