@@ -15,21 +15,26 @@ export const GlobalTaskForm: React.FC = () => {
     updateFollowUp 
   } = useSupabaseStorage();
 
-  const handleSave = (taskData: any) => {
+  const handleSave = async (taskData: any) => {
     console.log('GLOBAL_TASK_FORM - Saving task:', taskData);
     
-    if ('id' in taskData) {
-      updateTask(taskData);
-    } else {
-      // Set the project name if creating task for specific project
-      const finalTaskData = {
-        ...taskData,
-        project: taskFormState.projectName || taskData.project
-      };
-      createTask(finalTaskData);
+    try {
+      if ('id' in taskData) {
+        await updateTask(taskData);
+      } else {
+        // Set the project name if creating task for specific project
+        const finalTaskData = {
+          ...taskData,
+          project: taskFormState.projectName || taskData.project
+        };
+        await createTask(finalTaskData);
+      }
+      
+      closeTaskForm();
+    } catch (error) {
+      console.error('Error saving task:', error);
+      // Don't close the form if there's an error
     }
-    
-    closeTaskForm();
   };
 
   const handleEditRelatedTask = (task: any) => {
