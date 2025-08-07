@@ -442,7 +442,7 @@ export const TaskFormOptimized = React.memo(({
                     <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
                     <Input
                       id="scope"
-                      value={projectScope || formData.scope.join(', ')}
+                      value={projectScope || (Array.isArray(formData.scope) ? formData.scope.join(', ') : formData.scope)}
                       readOnly={!!projectScope || !!task}
                       onChange={(e) => !projectScope && !task && updateField('scope', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
                       placeholder={projectScope ? "Auto-filled from project" : task ? "Scope from original project" : "Task scope"}
