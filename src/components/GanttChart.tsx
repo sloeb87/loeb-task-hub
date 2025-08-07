@@ -461,14 +461,17 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                                 <Edit3 className="w-3 h-3" />
                               </Button>
                             </div>
-                            <div className="flex items-center gap-1 text-xs">
-                               <Badge 
-                                 variant="outline" 
-                                 className="text-xs px-1"
-                                 style={getScopeStyle(task.scope.join(', '))}
-                               >
-                                 {task.scope.join(', ')}
-                               </Badge>
+                             <div className="flex items-center gap-1 text-xs">
+                               {task.scope.map((scopeName, index) => (
+                                 <Badge 
+                                   key={index}
+                                   variant="outline" 
+                                   className="text-xs px-1"
+                                   style={getScopeStyle(scopeName)}
+                                 >
+                                   {scopeName}
+                                 </Badge>
+                               ))}
                               <Badge 
                                 variant="outline" 
                                 className="text-xs px-1"

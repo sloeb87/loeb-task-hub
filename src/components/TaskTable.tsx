@@ -484,12 +484,17 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Scope & Project Column */}
                   <TableCell>
                     <div className="space-y-2">
-                        <Badge 
-                          className="text-base font-medium border"
-                          style={parametersLoading ? {} : getScopeStyle(task.scope.join(', '))}
-                        >
-                          {task.scope.join(', ')}
-                        </Badge>
+                       <div className="flex flex-wrap gap-1">
+                         {task.scope.map((scopeName, index) => (
+                           <Badge 
+                             key={index}
+                             className="text-base font-medium border"
+                             style={parametersLoading ? {} : getScopeStyle(scopeName)}
+                           >
+                             {scopeName}
+                           </Badge>
+                         ))}
+                       </div>
                       <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
                     </div>
                   </TableCell>

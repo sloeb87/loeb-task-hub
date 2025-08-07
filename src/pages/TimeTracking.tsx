@@ -534,14 +534,17 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        </TableCell>
                        
                         <TableCell>
-                          <div className="flex items-center">
-                             <Badge 
-                               style={getScopeStyle(task?.scope?.join(', ') || '')}
-                               className="text-sm"
-                             >
-                               {task?.scope?.join(', ') || '-'}
-                             </Badge>
-                          </div>
+                           <div className="flex items-center flex-wrap gap-1">
+                             {task?.scope?.map((scopeName, index) => (
+                               <Badge 
+                                 key={index}
+                                 style={getScopeStyle(scopeName)}
+                                 className="text-sm"
+                               >
+                                 {scopeName}
+                               </Badge>
+                             )) || <span>-</span>}
+                           </div>
                         </TableCell>
                         
                         <TableCell>
