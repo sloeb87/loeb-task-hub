@@ -338,6 +338,9 @@ export function useSupabaseStorage() {
     }
 
     console.log('Task updated successfully in DB, updating local state');
+    
+    // Dispatch custom event to notify components of task update
+    window.dispatchEvent(new CustomEvent('taskUpdated', { detail: updatedTask }));
 
     // Handle follow-ups separately - check if there are new follow-ups to save
     if (updatedTask.followUps && updatedTask.followUps.length > 0) {

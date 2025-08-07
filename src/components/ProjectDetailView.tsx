@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useScopeColor } from '@/hooks/useParameterColors';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,8 +49,28 @@ export const ProjectDetailView = ({
   const { getScopeStyle } = useScopeColor();
   const { openTaskForm } = useTaskForm();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Listen for task updates to refresh the view
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      console.log('ProjectDetailView - Task updated, refreshing view');
+      setRefreshKey(prev => prev + 1);
+    };
+
+    // Listen for custom task update events
+    window.addEventListener('taskUpdated', handleTaskUpdate);
+    
+    return () => {
+      window.removeEventListener('taskUpdated', handleTaskUpdate);
+    };
+  }, []);
   
-  const projectTasks = tasks.filter(task => task.project === project.name);
+  // Use useMemo to recalculate project tasks when tasks change or refresh key changes
+  const projectTasks = useMemo(() => {
+    return tasks.filter(task => task.project === project.name);
+  }, [tasks, project.name, refreshKey]);
+  
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
   const totalTasks = projectTasks.length;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
