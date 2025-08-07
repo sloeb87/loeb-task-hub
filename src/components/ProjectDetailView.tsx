@@ -448,7 +448,7 @@ export const ProjectDetailView = ({
       {/* Tasks and Gantt Section */}
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
-          <TabsTrigger value="tasks">Task List</TabsTrigger>
+          <TabsTrigger value="tasks">Opened Tasks</TabsTrigger>
           {completedProjectTasks.length > 0 && (
             <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
           )}
