@@ -317,13 +317,19 @@ export const TaskFormOptimized = React.memo(({
     }
   };
 
-  const handleStartTimer = () => {
+  const handleStartTimer = async () => {
     if (task) {
-      startTimer(task.id, task.title, task.project, task.responsible);
+      await startTimer(task.id, task.title, task.project, task.responsible);
       toast({
         title: "Timer Started",
         description: `Time tracking started for task: ${task.title}`,
       });
+      // Close the modal after starting timer
+      onClose();
+      // Force a small refresh to ensure timer display appears
+      setTimeout(() => {
+        window.dispatchEvent(new Event('timeEntriesUpdated'));
+      }, 100);
     }
   };
 
