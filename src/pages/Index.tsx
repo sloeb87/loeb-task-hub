@@ -115,6 +115,16 @@ const Index = () => {
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking" | "followups">("tasks");
+
+  // Handle view changes and trigger refresh for time tracking
+  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => {
+    setActiveView(view);
+    
+    // Trigger refresh when navigating to time tracking
+    if (view === 'timetracking') {
+      window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
+    }
+  };
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
@@ -252,9 +262,9 @@ const Index = () => {
       </div>;
   }
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <AppHeader 
-        activeView={activeView} 
-        onViewChange={setActiveView} 
+        <AppHeader 
+          activeView={activeView} 
+          onViewChange={handleViewChange}
         isDarkMode={isDarkMode} 
         onToggleDarkMode={toggleDarkMode} 
         onOpenParameters={() => setIsParametersOpen(true)}
