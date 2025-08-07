@@ -277,8 +277,9 @@ export function useTimeTracking() {
   }, [taskTimers]);
 
   const getTotalTimeForAllTasks = useCallback((): number => {
-    return Array.from(taskTimers.values()).reduce((total, taskData) => total + taskData.totalTime, 0);
-  }, [taskTimers]);
+    // Calculate from actual time entries to avoid inflated running timer values
+    return timeEntries.reduce((total, entry) => total + (entry.duration || 0), 0);
+  }, [timeEntries]);
 
   const getFilteredTimeEntries = useCallback((filters: TimeEntryFilters): TimeEntry[] => {
     return timeEntries.filter(entry => {
