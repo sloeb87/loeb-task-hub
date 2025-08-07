@@ -90,12 +90,19 @@ export const MobileProjectCard = ({
             <Badge className={`${getStatusColor(project.status)} text-xs px-2 py-1`}>
               {project.status}
             </Badge>
-            <Badge 
-              className="text-xs border"
-              style={parametersLoading ? {} : getScopeStyle(project.scope)}
-            >
-              {project.scope}
-            </Badge>
+            {project.scope.length > 0 ? (
+              project.scope.map((scopeItem, index) => (
+                <Badge 
+                  key={index}
+                  className="text-xs border"
+                  style={parametersLoading ? {} : getScopeStyle(scopeItem)}
+                >
+                  {scopeItem}
+                </Badge>
+              ))
+            ) : (
+              <span className="text-xs text-gray-500">No scope</span>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -193,7 +200,7 @@ export const MobileProjectCard = ({
                   project: project.name,
                   startDate: new Date().toISOString().split('T')[0],
                   dueDate: '',
-                  scope: project.scope,
+                  scope: project.scope[0] || '', // Use first scope as default for tasks
                   taskType: 'Development' as const,
                   environment: 'Development',
                   details: '',

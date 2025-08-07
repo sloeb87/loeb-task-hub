@@ -113,7 +113,7 @@ export type Database = {
           links: Json | null
           name: string
           owner: string | null
-          scope: string
+          scope: string[]
           start_date: string
           status: string
           team: string[] | null
@@ -129,7 +129,7 @@ export type Database = {
           links?: Json | null
           name: string
           owner?: string | null
-          scope: string
+          scope?: string[]
           start_date: string
           status?: string
           team?: string[] | null
@@ -145,7 +145,7 @@ export type Database = {
           links?: Json | null
           name?: string
           owner?: string | null
-          scope?: string
+          scope?: string[]
           start_date?: string
           status?: string
           team?: string[] | null

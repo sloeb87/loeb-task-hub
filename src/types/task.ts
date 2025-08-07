@@ -49,7 +49,7 @@ export interface Project {
   endDate: string;
   status: "Active" | "On Hold" | "Completed";
   tasks: string[]; // Task IDs
-  scope: string; // Added scope to Project
+  scope: string[]; // Changed to array to support multiple scopes
   cost_center?: string; // Added cost center to Project
   links?: {
     oneNote?: string;

@@ -35,7 +35,7 @@ interface SupabaseProject {
   description: string | null;
   owner: string | null;
   user_id: string;
-  scope: string;
+  scope: string[]; // Changed to array
   start_date: string;
   end_date: string;
   status: string;
@@ -123,7 +123,7 @@ export function useSupabaseStorage() {
       endDate: supabaseProject.end_date,
       status: supabaseProject.status as any,
       tasks: [], // Will be populated from tasks
-      scope: supabaseProject.scope,
+      scope: supabaseProject.scope || [], // Handle array scope
       cost_center: supabaseProject.cost_center || undefined,
       links: supabaseProject.links || {}
     };
@@ -510,7 +510,7 @@ export function useSupabaseStorage() {
         description: projectData.description,
         owner: projectData.owner,
         user_id: user.id,
-        scope: projectData.scope,
+        scope: projectData.scope || [], // Handle array scope
         start_date: projectData.startDate,
         end_date: projectData.endDate,
         status: projectData.status,
@@ -537,7 +537,7 @@ export function useSupabaseStorage() {
         name: updatedProject.name,
         description: updatedProject.description,
         owner: updatedProject.owner,
-        scope: updatedProject.scope,
+        scope: updatedProject.scope || [], // Handle array scope
         start_date: updatedProject.startDate,
         end_date: updatedProject.endDate,
         status: updatedProject.status,

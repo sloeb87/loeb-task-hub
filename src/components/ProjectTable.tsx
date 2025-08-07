@@ -86,7 +86,7 @@ export const ProjectTable = ({
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.owner?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.scope.toLowerCase().includes(searchTerm.toLowerCase())
+        p.scope.some(scope => scope.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -97,7 +97,7 @@ export const ProjectTable = ({
 
     // Apply scope filter
     if (selectedScopes.length > 0) {
-      filtered = filtered.filter(p => selectedScopes.includes(p.scope));
+      filtered = filtered.filter(p => selectedScopes.some(scope => p.scope.includes(scope)));
     }
 
     // Apply project name filter
@@ -112,7 +112,7 @@ export const ProjectTable = ({
 
   // Get unique values for filters
   const uniqueScopes = useMemo(() => {
-    return [...new Set(projects.map(p => p.scope))].sort();
+    return [...new Set(projects.flatMap(p => p.scope))].sort();
   }, [projects]);
   const uniqueProjectNames = useMemo(() => {
     return [...new Set(projects.map(p => p.name))].sort();
@@ -274,9 +274,15 @@ export const ProjectTable = ({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-48">
-                        {uniqueScopes.map(scope => <DropdownMenuCheckboxItem key={scope} checked={selectedScopes.includes(scope)} onCheckedChange={checked => handleScopeFilterChange(scope, checked || false)}>
+                        {uniqueScopes.map(scope => (
+                          <DropdownMenuCheckboxItem 
+                            key={scope} 
+                            checked={selectedScopes.includes(scope)} 
+                            onCheckedChange={checked => handleScopeFilterChange(scope, checked || false)}
+                          >
                             {scope}
-                          </DropdownMenuCheckboxItem>)}
+                          </DropdownMenuCheckboxItem>
+                        ))}
                         {selectedScopes.length > 0 && <div className="border-t pt-2 mt-2">
                             <Button size="sm" variant="outline" onClick={() => setSelectedScopes([])} className="w-full">
                               Clear All ({selectedScopes.length})
@@ -340,12 +346,21 @@ export const ProjectTable = ({
               return <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
-                       <Badge 
-                         className="text-base font-medium border" 
-                         style={parametersLoading ? {} : getScopeStyle(project.scope)}
-                       >
-                         {project.scope}
-                       </Badge>
+                      <div className="flex flex-wrap gap-1">
+                        {project.scope.length > 0 ? (
+                          project.scope.map((scopeItem, index) => (
+                            <Badge 
+                              key={index}
+                              className="text-base font-medium border" 
+                              style={parametersLoading ? {} : getScopeStyle(scopeItem)}
+                            >
+                              {scopeItem}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-sm text-gray-500">No scope</span>
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Project Name Column */}

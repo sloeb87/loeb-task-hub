@@ -35,7 +35,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     status: project?.status || 'Active' as Project['status'],
     team: project?.team || [] as string[],
     tasks: project?.tasks || [] as string[],
-    scope: project?.scope || '',
+    scope: project?.scope || [] as string[], // Changed to array
     links: {
       oneNote: project?.links?.oneNote || '',
       teams: project?.links?.teams || '',
@@ -87,6 +87,22 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     }));
   };
 
+  const addScope = (scope: string) => {
+    if (scope && !formData.scope.includes(scope)) {
+      setFormData(prev => ({
+        ...prev,
+        scope: [...prev.scope, scope]
+      }));
+    }
+  };
+
+  const removeScope = (scope: string) => {
+    setFormData(prev => ({
+      ...prev,
+      scope: prev.scope.filter(s => s !== scope)
+    }));
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -130,7 +146,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
         status: project.status,
         team: project.team,
         tasks: project.tasks,
-        scope: project.scope || '',
+        scope: project.scope || [], // Changed to array
         links: {
           oneNote: project.links?.oneNote || '',
           teams: project.links?.teams || '',
@@ -191,17 +207,37 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
-                <Select value={formData.scope} onValueChange={(value) => handleInputChange('scope', value)}>
-                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-                    <SelectValue placeholder="Select project scope" />
-                  </SelectTrigger>
-                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                    {availableScopes.map((scope) => (
-                      <SelectItem key={scope} value={scope} className="dark:text-white dark:focus:bg-gray-700">{scope}</SelectItem>
+                <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scopes</Label>
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {formData.scope.map((scopeItem, index) => (
+                      <Badge 
+                        key={index} 
+                        variant="outline" 
+                        className="text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+                      >
+                        {scopeItem}
+                        <button
+                          type="button"
+                          onClick={() => removeScope(scopeItem)}
+                          className="ml-2 text-red-500 hover:text-red-700"
+                        >
+                          ×
+                        </button>
+                      </Badge>
                     ))}
-                  </SelectContent>
-                </Select>
+                  </div>
+                  <Select onValueChange={(value) => addScope(value)}>
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Add project scope" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                      {availableScopes.filter(scope => !formData.scope.includes(scope)).map((scope) => (
+                        <SelectItem key={scope} value={scope} className="dark:text-white dark:focus:bg-gray-700">{scope}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div>
                 <Label htmlFor="cost_center" className="text-gray-700 dark:text-gray-300">Cost Center</Label>

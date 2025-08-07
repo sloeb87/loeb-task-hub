@@ -460,7 +460,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-03-15",
     status: "Active",
     tasks: ["T1", "T2", "T3", "T13", "T14"],
-    scope: "Development",
+    scope: ["Development"],
     links: {
       oneNote: "https://example.com/website-project-notes",
       teams: "https://teams.microsoft.com/website-redesign",
@@ -477,7 +477,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-04-30",
     status: "Active",
     tasks: ["T4", "T5", "T6", "T15", "T16"],
-    scope: "Development",
+    scope: ["Development"],
     links: {
       teams: "https://teams.microsoft.com/mobile-dev",
       folder: "https://sharepoint.com/mobile-project"
@@ -493,7 +493,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-03-01",
     status: "Active",
     tasks: ["T7", "T8", "T9", "T17", "T18"],
-    scope: "Development",
+    scope: ["Development"],
     links: {
       oneNote: "https://example.com/internal-tools-notes",
       file: "https://example.com/tools-specifications.pdf"
@@ -509,7 +509,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-05-15",
     status: "Active",
     tasks: ["T10", "T11", "T12", "T19", "T20"],
-    scope: "Development",
+    scope: ["Development"],
     links: {
       teams: "https://teams.microsoft.com/ecommerce-platform",
       folder: "https://sharepoint.com/ecommerce-docs",
@@ -526,7 +526,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-03-31",
     status: "Active",
     tasks: [],
-    scope: "Frontend",
+    scope: ["Frontend"],
     links: {
       oneNote: "https://onenote.com/customer-portal",
       teams: "https://teams.microsoft.com/portal-redesign"
@@ -542,7 +542,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-04-30",
     status: "Active",
     tasks: [],
-    scope: "Backend",
+    scope: ["Backend"],
     links: {
       oneNote: "https://onenote.com/api-platform",
       teams: "https://teams.microsoft.com/api-integration"
@@ -558,7 +558,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-06-30",
     status: "Active",
     tasks: [],
-    scope: "Mobile",
+    scope: ["Mobile"],
     links: {
       oneNote: "https://onenote.com/mobile-launch",
       teams: "https://teams.microsoft.com/mobile-launch"
@@ -574,7 +574,7 @@ export const mockProjects: Project[] = [
     endDate: "2024-07-31",
     status: "Active",
     tasks: [],
-    scope: "Analytics",
+    scope: ["Analytics"],
     links: {
       oneNote: "https://onenote.com/analytics-dashboard",
       teams: "https://teams.microsoft.com/analytics"

@@ -220,13 +220,22 @@ export const ProjectDetailView = ({
                 </Badge>
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Scope</p>
-                <Badge 
-                  className="text-sm font-medium border"
-                  style={getScopeStyle(project.scope)}
-                >
-                  {project.scope}
-                </Badge>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Scopes</p>
+                <div className="flex flex-wrap gap-2">
+                  {project.scope.length > 0 ? (
+                    project.scope.map((scopeItem, index) => (
+                      <Badge 
+                        key={index}
+                        className="text-sm font-medium border"
+                        style={getScopeStyle(scopeItem)}
+                      >
+                        {scopeItem}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-sm text-gray-500 dark:text-gray-400">No scopes assigned</span>
+                  )}
+                </div>
               </div>
             </div>
 

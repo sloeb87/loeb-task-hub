@@ -198,9 +198,9 @@ export const TaskFormOptimized = React.memo(({
   useEffect(() => {
     if (!task && formData.project && allProjects.length > 0) {
       const project = allProjects.find(p => p.name === formData.project);
-      if (project && project.scope !== formData.scope) {
-        setProjectScope(project.scope);
-        setFormData(prev => ({ ...prev, scope: project.scope }));
+      if (project && JSON.stringify(project.scope) !== JSON.stringify([formData.scope])) {
+        setProjectScope(project.scope[0] || ''); // Use first scope as default
+        setFormData(prev => ({ ...prev, scope: project.scope[0] || '' }));
       }
     }
   }, [formData.project, allProjects, task]);
