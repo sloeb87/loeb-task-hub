@@ -333,8 +333,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       setEditDialogOpen(false);
       setEditingEntry(null);
       
-      // The useTimeTracking hook should automatically refresh the data
-      window.location.reload(); // Simple way to refresh data
+      // Trigger a proper data reload from the useTimeTracking hook
+      window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
     } catch (error) {
       console.error('Failed to update time entry:', error);
       // You could add a toast notification here

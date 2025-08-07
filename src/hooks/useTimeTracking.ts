@@ -24,6 +24,20 @@ export function useTimeTracking() {
     }
   }, [user]);
 
+  // Listen for manual data refresh events
+  useEffect(() => {
+    const handleTimeEntriesUpdated = () => {
+      if (user) {
+        loadTimeData();
+      }
+    };
+
+    window.addEventListener('timeEntriesUpdated', handleTimeEntriesUpdated);
+    return () => {
+      window.removeEventListener('timeEntriesUpdated', handleTimeEntriesUpdated);
+    };
+  }, [user]);
+
   // Update running timers every minute
   useEffect(() => {
     const interval = setInterval(() => {
