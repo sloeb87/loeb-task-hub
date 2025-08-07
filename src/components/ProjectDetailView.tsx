@@ -74,15 +74,33 @@ export const ProjectDetailView = ({
   }, [tasks]);
   
   // Use useMemo to recalculate project tasks when tasks change or refresh key changes
+  // All project tasks (for stats calculation)
+  const allProjectTasks = useMemo(() => {
+    return tasks.filter(task => task.project === project.name);
+  }, [tasks, project.name, refreshKey]);
+
+  // Active project tasks (excluding completed ones, sorted)
   const projectTasks = useMemo(() => {
     console.log('ProjectDetailView - Recalculating project tasks for:', project.name);
-    const filtered = tasks.filter(task => task.project === project.name);
-    console.log('ProjectDetailView - Found', filtered.length, 'tasks for project');
+    const filtered = tasks
+      .filter(task => task.project === project.name && task.status !== 'Completed') // Exclude completed tasks
+      .sort((a, b) => {
+        // Sort by due date first (earliest first), then by priority
+        const dateA = new Date(a.dueDate);
+        const dateB = new Date(b.dueDate);
+        if (dateA.getTime() !== dateB.getTime()) {
+          return dateA.getTime() - dateB.getTime();
+        }
+        // If dates are equal, sort by priority (High > Medium > Low)
+        const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+        return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+      });
+    console.log('ProjectDetailView - Found', filtered.length, 'non-completed tasks for project');
     return filtered;
   }, [tasks, project.name, refreshKey]);
   
-  const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
-  const totalTasks = projectTasks.length;
+  const completedTasks = allProjectTasks.filter(task => task.status === 'Completed').length;
+  const totalTasks = allProjectTasks.length;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
   const overdueTasks = projectTasks.filter(task => 
     task.status !== 'Completed' && new Date(task.dueDate) < new Date()
@@ -204,7 +222,7 @@ export const ProjectDetailView = ({
             <FileBarChart className="w-4 h-4 mr-2" />
             Generate Report
           </Button>
-          {projectTasks.length > 0 && (
+          {allProjectTasks.length > 0 && (
             <Button variant="outline" onClick={handleOpenGanttWindow}>
               <ExternalLink className="w-4 h-4 mr-2" />
               Open Gantt
@@ -417,7 +435,7 @@ export const ProjectDetailView = ({
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Task List</TabsTrigger>
-          {projectTasks.length > 0 && (
+          {allProjectTasks.length > 0 && (
             <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
           )}
         </TabsList>
@@ -454,10 +472,10 @@ export const ProjectDetailView = ({
           </Card>
         </TabsContent>
 
-        {projectTasks.length > 0 && (
+        {allProjectTasks.length > 0 && (
           <TabsContent value="gantt">
             <GanttChart
-              tasks={projectTasks}
+              tasks={allProjectTasks}
               onTasksChange={handleTasksChange}
               projectStartDate={project.startDate}
               projectEndDate={project.endDate}
