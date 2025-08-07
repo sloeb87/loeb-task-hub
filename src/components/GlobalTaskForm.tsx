@@ -12,8 +12,52 @@ export const GlobalTaskForm: React.FC = () => {
     updateTask, 
     deleteTask, 
     addFollowUp, 
-    updateFollowUp 
+    updateFollowUp,
+    deleteFollowUp,
+    refreshTasks
   } = useSupabaseStorage();
+
+  const handleAddFollowUp = async (taskId: string, followUpText: string) => {
+    try {
+      await addFollowUp(taskId, followUpText);
+      // Force refresh the data to update the UI
+      refreshTasks();
+      // Small delay to ensure data is refreshed before re-rendering
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Error adding follow-up:', error);
+    }
+  };
+
+  const handleUpdateFollowUp = async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
+    try {
+      await updateFollowUp(followUpId, text, timestamp);
+      // Force refresh the data to update the UI
+      refreshTasks();
+      // Small delay to ensure data is refreshed before re-rendering
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Error updating follow-up:', error);
+    }
+  };
+
+  const handleDeleteFollowUp = async (followUpId: string) => {
+    try {
+      await deleteFollowUp(followUpId);
+      // Force refresh the data to update the UI
+      refreshTasks();
+      // Small delay to ensure data is refreshed before re-rendering
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } catch (error) {
+      console.error('Error deleting follow-up:', error);
+    }
+  };
 
   const handleSave = async (taskData: any) => {
     console.log('GLOBAL_TASK_FORM - Saving task:', taskData);
@@ -62,8 +106,8 @@ export const GlobalTaskForm: React.FC = () => {
       onClose={closeTaskForm}
       onSave={handleSave}
       onDelete={deleteTask}
-      onAddFollowUp={addFollowUp}
-      onUpdateFollowUp={updateFollowUp}
+      onAddFollowUp={handleAddFollowUp}
+      onUpdateFollowUp={handleUpdateFollowUp}
       onFollowUpTask={handleFollowUpTask}
       task={taskFormState.selectedTask}
       allTasks={tasks}
