@@ -19,6 +19,7 @@ import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import {
   DndContext,
   closestCenter,
@@ -481,30 +482,38 @@ export const TaskFormOptimized = React.memo(({
     }}>
       <DialogContent className="max-w-[95vw] w-full h-[95vh] flex flex-col bg-background/95 backdrop-blur-sm border-2 shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-3">
-            <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
-            {(projectName || formData.project) && (
-              <span className="text-green-600 dark:text-green-400 font-semibold">
-                {projectName || formData.project}
-              </span>
-            )}
-          </DialogTitle>
-          {(task || projectName) && formData.project && onNavigateToProject && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={handleNavigateToProject}
-              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
-              title={`Go to ${formData.project} project details`}
-            >
-              <ExternalLink className="w-4 h-4" />
-              Go to Project
-            </Button>
-          )}
-          <DialogDescription>
-            {task ? 'Edit task details, dependencies, and track progress.' : 'Create a new task with all necessary details and requirements.'}
-          </DialogDescription>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-3">
+                <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
+                {(projectName || formData.project) && (
+                  <span className="text-green-600 dark:text-green-400 font-semibold">
+                    {projectName || formData.project}
+                  </span>
+                )}
+              </DialogTitle>
+              {(task || projectName) && formData.project && onNavigateToProject && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleNavigateToProject}
+                  className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20 mt-2"
+                  title={`Go to ${formData.project} project details`}
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Go to Project
+                </Button>
+              )}
+              <DialogDescription>
+                {task ? 'Edit task details, dependencies, and track progress.' : 'Create a new task with all necessary details and requirements.'}
+              </DialogDescription>
+            </div>
+            {/* Running Timer Display */}
+            <div className="flex-shrink-0 ml-4">
+              <RunningTimerDisplay tasks={allTasks} />
+            </div>
+          </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0">
