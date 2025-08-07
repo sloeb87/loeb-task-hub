@@ -234,6 +234,9 @@ export const TaskFormOptimized = React.memo(({
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('TaskForm handleSubmit called with formData.scope:', formData.scope);
+    console.log('TaskForm projectScope:', projectScope);
+
     if (!formData.title.trim()) {
       toast({
         title: "Required Field Missing",
@@ -246,7 +249,7 @@ export const TaskFormOptimized = React.memo(({
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      scope: projectScope ? [projectScope] : (formData.scope || []), // Ensure array
+      scope: formData.scope || [], // Always use formData.scope (user's selections)
       taskType: formData.taskType as TaskType,
       status: formData.status as TaskStatus,
       priority: formData.priority as TaskPriority,
@@ -257,7 +260,7 @@ export const TaskFormOptimized = React.memo(({
       })
     };
 
-
+    console.log('TaskForm saving taskData.scope:', taskData.scope);
     onSave(taskData);
     onClose();
   }, [formData, date, projectScope, task, onSave, onClose]);
