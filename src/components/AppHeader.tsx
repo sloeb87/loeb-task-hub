@@ -122,23 +122,20 @@ export const AppHeader = ({
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex flex-col items-start">
-            <button 
-              onClick={() => {
-                if (onBack) {
-                  // If we're in project detail view, use the back function
-                  onBack();
-                } else {
-                  // Otherwise, navigate to main page with projects view
-                  navigate('/');
-                  onViewChange('projects');
-                }
-              }}
-              className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer"
-            >
+            <button onClick={() => {
+            if (onBack) {
+              // If we're in project detail view, use the back function
+              onBack();
+            } else {
+              // Otherwise, navigate to main page with projects view
+              navigate('/');
+              onViewChange('projects');
+            }
+          }} className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
               PMTask
             </button>
             
-            {user && <Badge variant="outline" className="text-xs mt-1">
+            {user && <Badge variant="outline" className="text-xs mt-1 px-0 my-0">
                 {user.email}
               </Badge>}
           </div>
