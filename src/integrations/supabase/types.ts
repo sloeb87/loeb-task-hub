@@ -156,6 +156,7 @@ export type Database = {
       }
       tasks: {
         Row: {
+          checklist: Json | null
           completion_date: string | null
           created_at: string
           creation_date: string
@@ -181,6 +182,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          checklist?: Json | null
           completion_date?: string | null
           created_at?: string
           creation_date?: string
@@ -206,6 +208,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          checklist?: Json | null
           completion_date?: string | null
           created_at?: string
           creation_date?: string

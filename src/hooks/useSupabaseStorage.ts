@@ -24,6 +24,7 @@ interface SupabaseTask {
   details: string | null;
   links: any;
   stakeholders: string[] | null;
+  checklist: any; // Add checklist field
   user_id: string;
   created_at: string;
   updated_at: string;
@@ -105,7 +106,7 @@ export function useSupabaseStorage() {
       completionDate: supabaseTask.completion_date || undefined,
       duration: supabaseTask.duration || undefined,
       dependencies: supabaseTask.dependencies || [],
-      checklist: [], // Add empty checklist for now since Supabase doesn't have this field yet
+      checklist: Array.isArray(supabaseTask.checklist) ? supabaseTask.checklist : (typeof supabaseTask.checklist === 'string' ? JSON.parse(supabaseTask.checklist) : []), // Parse checklist from JSON
       followUps,
       details: supabaseTask.details || '',
       links: supabaseTask.links || {},
@@ -237,6 +238,7 @@ export function useSupabaseStorage() {
           completion_date: taskData.completionDate || null,
           duration: taskData.duration || null,
           dependencies: taskData.dependencies || [],
+          checklist: JSON.stringify(taskData.checklist || []),
           details: taskData.details,
           links: taskData.links || {},
           stakeholders: taskData.stakeholders || [],
@@ -321,6 +323,7 @@ export function useSupabaseStorage() {
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       dependencies: updatedTask.dependencies || [],
+      checklist: JSON.stringify(updatedTask.checklist || []),
       details: updatedTask.details,
       links: updatedTask.links || {},
       stakeholders: updatedTask.stakeholders || []
