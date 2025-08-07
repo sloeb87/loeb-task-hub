@@ -15,10 +15,29 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2 } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -345,8 +364,97 @@ export const TaskFormOptimized = React.memo(({
     updateField('checklist', formData.checklist.filter(item => item.id !== itemId));
   };
 
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for checklist reordering
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (active.id !== over?.id) {
+      updateField('checklist', (items: ChecklistItem[]) => {
+        const oldIndex = items.findIndex(item => item.id === active.id);
+        const newIndex = items.findIndex(item => item.id === over?.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   // Add debugging for form state
   console.log('TaskForm render - isOpen:', isOpen, 'task:', task?.id || 'new task');
+
+  // Sortable checklist item component
+  const SortableChecklistItem = ({ item }: { item: ChecklistItem }) => {
+    const {
+      attributes,
+      listeners,
+      setNodeRef,
+      transform,
+      transition,
+      isDragging,
+    } = useSortable({ id: item.id });
+
+    const style = {
+      transform: CSS.Transform.toString(transform),
+      transition,
+      opacity: isDragging ? 0.5 : 1,
+    };
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
+      >
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => toggleChecklistItem(item.id)}
+          className={cn(
+            "h-6 w-6 p-0 border-2 rounded",
+            item.completed 
+              ? "bg-green-500 border-green-500 text-white hover:bg-green-600" 
+              : "border-gray-300 dark:border-gray-500 hover:border-green-400"
+          )}
+        >
+          {item.completed && <Check className="w-4 h-4" />}
+        </Button>
+        <span 
+          className={cn(
+            "flex-1 text-sm",
+            item.completed 
+              ? "line-through text-gray-500 dark:text-gray-400" 
+              : "text-gray-900 dark:text-white"
+          )}
+        >
+          {item.text}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => removeChecklistItem(item.id)}
+          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+        >
+          <Trash2 className="w-3 h-3" />
+        </Button>
+      </div>
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
@@ -998,47 +1106,22 @@ export const TaskFormOptimized = React.memo(({
 
                   {/* Checklist items */}
                   <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {formData.checklist.map((item) => (
-                      <div 
-                        key={item.id}
-                        className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
+                    {formData.checklist.length > 0 ? (
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
                       >
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleChecklistItem(item.id)}
-                          className={cn(
-                            "h-6 w-6 p-0 border-2 rounded",
-                            item.completed 
-                              ? "bg-green-500 border-green-500 text-white hover:bg-green-600" 
-                              : "border-gray-300 dark:border-gray-500 hover:border-green-400"
-                          )}
+                        <SortableContext 
+                          items={formData.checklist.map(item => item.id)}
+                          strategy={verticalListSortingStrategy}
                         >
-                          {item.completed && <Check className="w-4 h-4" />}
-                        </Button>
-                        <span 
-                          className={cn(
-                            "flex-1 text-sm",
-                            item.completed 
-                              ? "line-through text-gray-500 dark:text-gray-400" 
-                              : "text-gray-900 dark:text-white"
-                          )}
-                        >
-                          {item.text}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeChecklistItem(item.id)}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                    {formData.checklist.length === 0 && (
+                          {formData.checklist.map((item) => (
+                            <SortableChecklistItem key={item.id} item={item} />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+                    ) : (
                       <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                         <p className="text-sm">No checklist items yet</p>
                         <p className="text-xs">Add steps or points that need to be confirmed when done</p>
