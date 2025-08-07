@@ -308,12 +308,17 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
   };
 
   const handleRowClick = useCallback((task: Task, e: React.MouseEvent) => {
+    console.log('TaskTable - Row clicked for task:', task.title);
     // Ensure we're not clicking on interactive elements within the row
     const target = e.target as HTMLElement;
+    console.log('TaskTable - Click target:', target.tagName, target.className);
+    
     if (target.closest('button') || target.closest('a') || target.closest('.follow-up-section')) {
+      console.log('TaskTable - Click blocked by interactive element');
       return;
     }
     
+    console.log('TaskTable - Calling onEditTask for:', task.title);
     onEditTask(task);
   }, [onEditTask]);
 
