@@ -945,126 +945,134 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
 
-                <div className="flex-1">
-                  {task.followUps.length > 0 ? (
-                    <div className="space-y-3">
-                      {task.followUps
-                        .slice() // Create a copy to avoid mutating original
-                        .reverse() // Show most recent first
-                        .map((followUp) => (
-                           <div 
-                             key={followUp.id} 
-                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
-                             onClick={() => handleFollowUpClick(followUp.id)}
-                             title="Click to edit this follow-up"
-                           >
-                             <div className="flex items-center gap-3">
-                               <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
-                                 {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
-                                   month: '2-digit', 
-                                   day: '2-digit', 
-                                   year: '2-digit' 
-                                 })}
-                               </span>
-                               <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
-                             </div>
-                           </div>
-                        ))}
+                {/* Split into two equal columns */}
+                <div className="flex gap-6 h-full">
+                  {/* Follow-ups Section - Left Half */}
+                  <div className="flex-1 flex flex-col">
+                    <div className="flex-shrink-0">
+                      {task.followUps.length > 0 ? (
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                          {task.followUps
+                            .slice() // Create a copy to avoid mutating original
+                            .reverse() // Show most recent first
+                            .map((followUp) => (
+                               <div 
+                                 key={followUp.id} 
+                                 className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
+                                 onClick={() => handleFollowUpClick(followUp.id)}
+                                 title="Click to edit this follow-up"
+                               >
+                                 <div className="flex items-center gap-3">
+                                   <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
+                                     {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
+                                       month: '2-digit', 
+                                       day: '2-digit', 
+                                       year: '2-digit' 
+                                     })}
+                                   </span>
+                                   <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
+                                 </div>
+                               </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                          <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No follow-ups yet</p>
+                          <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No follow-ups yet</p>
-                      <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Checklist Section */}
-                <div className="space-y-4 mt-6">
-                  <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Checklist
-                    </h3>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
-                      {formData.checklist.filter(item => item.completed).length}/{formData.checklist.length} completed
-                    </span>
                   </div>
 
-                  {/* Add new checklist item */}
-                  <div className="flex gap-2">
-                    <Input
-                      value={newChecklistItem}
-                      onChange={(e) => setNewChecklistItem(e.target.value)}
-                      placeholder="Add a new step/point to confirm..."
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          addChecklistItem();
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={addChecklistItem}
-                      className="flex items-center gap-1"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add
-                    </Button>
-                  </div>
-
-                  {/* Checklist items */}
-                  <div className="space-y-2">
-                    {formData.checklist.map((item) => (
-                      <div 
-                        key={item.id}
-                        className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
-                      >
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleChecklistItem(item.id)}
-                          className={cn(
-                            "h-6 w-6 p-0 border-2 rounded",
-                            item.completed 
-                              ? "bg-green-500 border-green-500 text-white hover:bg-green-600" 
-                              : "border-gray-300 dark:border-gray-500 hover:border-green-400"
-                          )}
-                        >
-                          {item.completed && <Check className="w-4 h-4" />}
-                        </Button>
-                        <span 
-                          className={cn(
-                            "flex-1 text-sm",
-                            item.completed 
-                              ? "line-through text-gray-500 dark:text-gray-400" 
-                              : "text-gray-900 dark:text-white"
-                          )}
-                        >
-                          {item.text}
+                  {/* Checklist Section - Right Half */}
+                  <div className="flex-1 flex flex-col">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          Checklist
+                        </h3>
+                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                          {formData.checklist.filter(item => item.completed).length}/{formData.checklist.length} completed
                         </span>
+                      </div>
+
+                      {/* Add new checklist item */}
+                      <div className="flex gap-2">
+                        <Input
+                          value={newChecklistItem}
+                          onChange={(e) => setNewChecklistItem(e.target.value)}
+                          placeholder="Add a new step/point to confirm..."
+                          className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              addChecklistItem();
+                            }
+                          }}
+                        />
                         <Button
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => removeChecklistItem(item.id)}
-                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          onClick={addChecklistItem}
+                          className="flex items-center gap-1"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Plus className="w-4 h-4" />
+                          Add
                         </Button>
                       </div>
-                    ))}
-                    {formData.checklist.length === 0 && (
-                      <div className="text-center py-4 text-gray-500 dark:text-gray-400">
-                        <p className="text-sm">No checklist items yet</p>
-                        <p className="text-xs">Add steps or points that need to be confirmed when done</p>
+
+                      {/* Checklist items */}
+                      <div className="space-y-2 max-h-96 overflow-y-auto">
+                        {formData.checklist.map((item) => (
+                          <div 
+                            key={item.id}
+                            className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
+                          >
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleChecklistItem(item.id)}
+                              className={cn(
+                                "h-6 w-6 p-0 border-2 rounded",
+                                item.completed 
+                                  ? "bg-green-500 border-green-500 text-white hover:bg-green-600" 
+                                  : "border-gray-300 dark:border-gray-500 hover:border-green-400"
+                              )}
+                            >
+                              {item.completed && <Check className="w-4 h-4" />}
+                            </Button>
+                            <span 
+                              className={cn(
+                                "flex-1 text-sm",
+                                item.completed 
+                                  ? "line-through text-gray-500 dark:text-gray-400" 
+                                  : "text-gray-900 dark:text-white"
+                              )}
+                            >
+                              {item.text}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeChecklistItem(item.id)}
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        ))}
+                        {formData.checklist.length === 0 && (
+                          <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                            <p className="text-sm">No checklist items yet</p>
+                            <p className="text-xs">Add steps or points that need to be confirmed when done</p>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 </div>
               </div>
