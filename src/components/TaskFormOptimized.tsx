@@ -1032,12 +1032,9 @@ export const TaskFormOptimized = React.memo(({
                 </div>
 
                  {/* Follow-ups content - directly under Follow-ups title */}
-                <div className="mb-6 flex-1 flex flex-col">
+                <div className="mb-6">
                   {task.followUps.length > 0 ? (
-                    <div className={cn(
-                      "space-y-3 flex-1 overflow-y-auto",
-                      task.followUps.length > 4 ? "max-h-[calc(50vh-8rem)]" : "max-h-none"
-                    )}>
+                    <div className="space-y-3">
                       {task.followUps
                         .slice() // Create a copy to avoid mutating original
                         .reverse() // Show most recent first
@@ -1108,10 +1105,7 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   {/* Checklist items */}
-                  <div className={cn(
-                    "space-y-2 overflow-y-auto flex-1",
-                    formData.checklist.length > 6 ? "max-h-[calc(50vh-8rem)]" : "max-h-none"
-                  )}>
+                  <div className="space-y-2">
                     {formData.checklist.length > 0 ? (
                       <DndContext
                         sensors={sensors}
