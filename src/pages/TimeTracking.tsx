@@ -252,12 +252,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     return filtered;
   }, [getFilteredTimeEntries, filters, multiSelectFilters, searchTerm, tasks]);
 
-  // Calculate statistics for filtered entries (for table display)
-  const filteredStats = useMemo(() => getTimeEntryStats(filteredEntries), [getTimeEntryStats, filteredEntries]);
-  
-  // Calculate total statistics from all entries (for header cards)
-  const allTimeEntries = getFilteredTimeEntries({});
-  const totalStats = useMemo(() => getTimeEntryStats(allTimeEntries), [getTimeEntryStats, allTimeEntries]);
+  // Calculate statistics for filtered entries
+  const stats = useMemo(() => getTimeEntryStats(filteredEntries), [getTimeEntryStats, filteredEntries]);
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -416,7 +412,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatDetailedTime(totalStats.totalTime)}
+              {formatDetailedTime(stats.totalTime)}
             </div>
           </CardContent>
         </Card>
@@ -427,7 +423,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {totalStats.runningEntries}
+              {stats.runningEntries}
             </div>
           </CardContent>
         </Card>
@@ -438,7 +434,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {totalStats.totalEntries}
+              {stats.totalEntries}
             </div>
           </CardContent>
         </Card>
@@ -449,7 +445,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {formatTime(Math.round(totalStats.averageEntryDuration))}
+              {formatTime(Math.round(stats.averageEntryDuration))}
             </div>
           </CardContent>
         </Card>
