@@ -510,7 +510,7 @@ export const TaskFormOptimized = React.memo(({
               </DialogDescription>
             </div>
             {/* Running Timer Display */}
-            <div className="flex-shrink-0 ml-4">
+            <div className="flex-shrink-0 ml-4 mr-8">
               <RunningTimerDisplay tasks={allTasks} />
             </div>
           </div>
