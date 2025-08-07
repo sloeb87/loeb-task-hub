@@ -1034,7 +1034,10 @@ export const TaskFormOptimized = React.memo(({
                 {/* Follow-ups content - directly under Follow-ups title */}
                 <div className="mb-6">
                   {task.followUps.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className={cn(
+                      "space-y-3",
+                      task.followUps.length > 4 ? "max-h-80 overflow-y-auto" : "max-h-none"
+                    )}>
                       {task.followUps
                         .slice() // Create a copy to avoid mutating original
                         .reverse() // Show most recent first
