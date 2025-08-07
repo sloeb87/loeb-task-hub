@@ -543,36 +543,14 @@ export const TaskFormOptimized = React.memo(({
                      )}
                      
                      {/* Show project scopes as suggestions */}
-                     {projectScope && (
-                       <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                         <span className="font-medium">Project scopes:</span>
-                         <div className="flex flex-wrap gap-1 mt-1">
-                           {projectScope.split(',').map((scope, index) => {
-                             const trimmedScope = scope.trim();
-                             const isAlreadySelected = formData.scope.includes(trimmedScope);
-                             return (
-                               <button
-                                 key={index}
-                                 type="button"
-                                 onClick={() => {
-                                   if (!isAlreadySelected) {
-                                     updateField('scope', [...formData.scope, trimmedScope]);
-                                   }
-                                 }}
-                                 disabled={isAlreadySelected}
-                                 className={`px-2 py-1 rounded text-xs border ${
-                                   isAlreadySelected 
-                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                                     : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 cursor-pointer'
-                                 }`}
-                               >
-                                 {trimmedScope}
-                               </button>
-                             );
-                           })}
-                         </div>
-                       </div>
-                     )}
+                      {projectScope && (
+                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                          <span className="font-medium">Project scopes: </span>
+                          <span className="text-gray-700 dark:text-gray-300">
+                            {projectScope.split(',').map(scope => scope.trim()).join(', ')}
+                          </span>
+                        </div>
+                      )}
                    </div>
 
                   <div>
