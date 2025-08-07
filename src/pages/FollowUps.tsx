@@ -406,16 +406,17 @@ export const FollowUpsPage = ({
   const hasExpandedItems = expandedProjects.size > 0 || expandedTasks.size > 0;
 
   return <div className="space-y-6">
-      {/* Running Timer Display */}
-      <RunningTimerDisplay tasks={tasks} />
-
       {/* Header */}
-      <div className="flex items-center space-x-3">
-        <MessageSquare className="w-8 h-8 text-blue-600" />
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Follow-Ups</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-1">View and manage all task follow-ups</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <MessageSquare className="w-8 h-8 text-blue-600" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Follow-Ups</h1>
+            <p className="text-gray-600 dark:text-gray-300 mt-1">View and manage all task follow-ups</p>
+          </div>
         </div>
+        {/* Running Timer Display */}
+        <RunningTimerDisplay tasks={tasks} />
       </div>
 
       {/* Statistics Cards */}
