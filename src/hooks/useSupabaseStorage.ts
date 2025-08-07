@@ -105,6 +105,7 @@ export function useSupabaseStorage() {
       completionDate: supabaseTask.completion_date || undefined,
       duration: supabaseTask.duration || undefined,
       dependencies: supabaseTask.dependencies || [],
+      checklist: [], // Add empty checklist for now since Supabase doesn't have this field yet
       followUps,
       details: supabaseTask.details || '',
       links: supabaseTask.links || {},

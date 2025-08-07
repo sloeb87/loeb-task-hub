@@ -16,6 +16,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-16",
     dueDate: "2024-01-30",
     duration: 14,
+    checklist: [],
     followUps: [],
     details: "Create secure authentication system with JWT tokens and password encryption",
     links: {
@@ -40,6 +41,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-01-25",
     completionDate: "2024-01-24",
     duration: 12,
+    checklist: [],
     followUps: [],
     details: "Implement CSS Grid and Flexbox for responsive design across all devices",
     links: {
@@ -62,6 +64,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-01",
     dueDate: "2024-02-10",
     duration: 9,
+    checklist: [],
     followUps: [],
     details: "Test on Chrome, Firefox, Safari, and Edge browsers",
     links: {
@@ -84,6 +87,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-20",
     dueDate: "2024-02-05",
     duration: 16,
+    checklist: [],
     followUps: [],
     details: "Connect mobile app to backend services and handle API responses",
     links: {
@@ -107,6 +111,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-05",
     dueDate: "2024-02-15",
     duration: 10,
+    checklist: [],
     followUps: [],
     details: "Test app performance, memory usage, and battery consumption",
     links: {
@@ -129,6 +134,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-10",
     dueDate: "2024-02-25",
     duration: 15,
+    checklist: [],
     followUps: [],
     details: "Set up Firebase Cloud Messaging for push notifications",
     links: {
@@ -152,6 +158,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-01-25",
     completionDate: "2024-01-23",
     duration: 13,
+    checklist: [],
     followUps: [],
     details: "Step-by-step user guide with screenshots and video tutorials",
     links: {
@@ -175,6 +182,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-15",
     dueDate: "2024-02-01",
     duration: 17,
+    checklist: [],
     followUps: [],
     details: "Create interactive charts and KPI tracking dashboard",
     links: {
@@ -197,6 +205,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-01",
     dueDate: "2024-02-14",
     duration: 13,
+    checklist: [],
     followUps: [],
     details: "Penetration testing and vulnerability assessment",
     links: {
@@ -219,6 +228,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-16",
     dueDate: "2024-02-08",
     duration: 23,
+    checklist: [],
     followUps: [],
     details: "Secure payment processing with Stripe API and webhooks",
     links: {
@@ -242,6 +252,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-25",
     dueDate: "2024-02-15",
     duration: 21,
+    checklist: [],
     followUps: [],
     details: "Implement product search, filtering, and categorization features",
     links: {
@@ -264,6 +275,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-10",
     dueDate: "2024-02-20",
     duration: 10,
+    checklist: [],
     followUps: [],
     details: "Simulate high traffic scenarios and measure response times",
     links: {
@@ -286,6 +298,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-05",
     dueDate: "2024-02-18",
     duration: 13,
+    checklist: [],
     followUps: [],
     details: "Add structured data, optimize page titles, and improve site performance",
     links: {
@@ -308,6 +321,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-10",
     dueDate: "2024-02-20",
     duration: 10,
+    checklist: [],
     followUps: [],
     details: "Review copy, images, and brand messaging across all pages",
     links: {
@@ -330,6 +344,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-08",
     dueDate: "2024-02-28",
     duration: 20,
+    checklist: [],
     followUps: [],
     details: "Enable app functionality without internet connection",
     links: {
@@ -352,6 +367,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-03-01",
     dueDate: "2024-03-15",
     duration: 14,
+    checklist: [],
     followUps: [],
     details: "Screenshots, descriptions, and compliance documentation",
     links: {
@@ -374,6 +390,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-01-30",
     dueDate: "2024-02-22",
     duration: 23,
+    checklist: [],
     followUps: [],
     details: "Generate PDF and Excel reports with charts and KPIs",
     links: {
@@ -396,6 +413,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-15",
     dueDate: "2024-02-28",
     duration: 13,
+    checklist: [],
     followUps: [],
     details: "Test with actual users and gather feedback",
     links: {
@@ -418,6 +436,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-12",
     dueDate: "2024-03-05",
     duration: 21,
+    checklist: [],
     followUps: [],
     details: "Track stock levels, manage suppliers, and automate reordering",
     links: {
@@ -440,6 +459,7 @@ export const mockTasks: Task[] = [
     startDate: "2024-02-18",
     dueDate: "2024-03-08",
     duration: 18,
+    checklist: [],
     followUps: [],
     details: "Real-time customer support with chat history and file sharing",
     links: {

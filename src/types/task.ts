@@ -10,6 +10,13 @@ export interface FollowUp {
   taskStatus?: string;
 }
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+  timestamp: string;
+}
+
 export interface Task {
   id: string;
   scope: string[]; // Changed to array to support multiple scopes
@@ -28,6 +35,7 @@ export interface Task {
   duration?: number; // in days
   dependencies?: string[]; // Task IDs that this task depends on
   followUps: FollowUp[];
+  checklist: ChecklistItem[];
   details: string;
   links: {
     oneNote?: string;

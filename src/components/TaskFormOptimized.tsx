@@ -14,8 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X } from "lucide-react";
+import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem } from "@/types/task";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -52,6 +52,7 @@ interface FormData {
   description: string;
   details: string;
   dependencies: string[];
+  checklist: ChecklistItem[];
   links: {
     oneNote: string;
     teams: string;
@@ -76,6 +77,7 @@ const DEFAULT_FORM_DATA: FormData = {
   description: "",
   details: "",
   dependencies: [],
+  checklist: [],
   links: {
     oneNote: "",
     teams: "",
@@ -108,6 +110,7 @@ export const TaskFormOptimized = React.memo(({
   const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
+  const [newChecklistItem, setNewChecklistItem] = useState('');
   const { startTimer } = useTimeTracking();
 
 
@@ -149,6 +152,7 @@ export const TaskFormOptimized = React.memo(({
         description: task.description || "",
         details: task.details || "",
         dependencies: task.dependencies || [],
+        checklist: task.checklist || [],
         links: {
           oneNote: task.links?.oneNote || "",
           teams: task.links?.teams || "",
@@ -256,7 +260,8 @@ export const TaskFormOptimized = React.memo(({
       ...(task && { 
         id: task.id, 
         creationDate: task.creationDate, 
-        followUps: task.followUps 
+        followUps: task.followUps,
+        checklist: formData.checklist
       })
     };
 
@@ -315,6 +320,29 @@ export const TaskFormOptimized = React.memo(({
       onNavigateToProject(formData.project);
       onClose();
     }
+  };
+
+  const addChecklistItem = () => {
+    if (newChecklistItem.trim()) {
+      const newItem: ChecklistItem = {
+        id: Date.now().toString(),
+        text: newChecklistItem.trim(),
+        completed: false,
+        timestamp: new Date().toISOString()
+      };
+      updateField('checklist', [...formData.checklist, newItem]);
+      setNewChecklistItem('');
+    }
+  };
+
+  const toggleChecklistItem = (itemId: string) => {
+    updateField('checklist', formData.checklist.map(item => 
+      item.id === itemId ? { ...item, completed: !item.completed } : item
+    ));
+  };
+
+  const removeChecklistItem = (itemId: string) => {
+    updateField('checklist', formData.checklist.filter(item => item.id !== itemId));
   };
 
   // Add debugging for form state
@@ -950,6 +978,94 @@ export const TaskFormOptimized = React.memo(({
                       <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
                     </div>
                   )}
+                </div>
+
+                {/* Checklist Section */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Checklist
+                    </h3>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                      {formData.checklist.filter(item => item.completed).length}/{formData.checklist.length} completed
+                    </span>
+                  </div>
+
+                  {/* Add new checklist item */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newChecklistItem}
+                      onChange={(e) => setNewChecklistItem(e.target.value)}
+                      placeholder="Add a new step/point to confirm..."
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addChecklistItem();
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addChecklistItem}
+                      className="flex items-center gap-1"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add
+                    </Button>
+                  </div>
+
+                  {/* Checklist items */}
+                  <div className="space-y-2">
+                    {formData.checklist.map((item) => (
+                      <div 
+                        key={item.id}
+                        className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md"
+                      >
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleChecklistItem(item.id)}
+                          className={cn(
+                            "h-6 w-6 p-0 border-2 rounded",
+                            item.completed 
+                              ? "bg-green-500 border-green-500 text-white hover:bg-green-600" 
+                              : "border-gray-300 dark:border-gray-500 hover:border-green-400"
+                          )}
+                        >
+                          {item.completed && <Check className="w-4 h-4" />}
+                        </Button>
+                        <span 
+                          className={cn(
+                            "flex-1 text-sm",
+                            item.completed 
+                              ? "line-through text-gray-500 dark:text-gray-400" 
+                              : "text-gray-900 dark:text-white"
+                          )}
+                        >
+                          {item.text}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeChecklistItem(item.id)}
+                          className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    {formData.checklist.length === 0 && (
+                      <div className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        <p className="text-sm">No checklist items yet</p>
+                        <p className="text-xs">Add steps or points that need to be confirmed when done</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             )}

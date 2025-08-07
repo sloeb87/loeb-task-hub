@@ -204,6 +204,7 @@ export const MobileProjectCard = ({
                   taskType: 'Development' as const,
                   environment: 'Development',
                   details: '',
+                  checklist: [],
                   links: {},
                   stakeholders: []
                 })}
