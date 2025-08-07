@@ -18,6 +18,7 @@ interface TaskTableProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
   onFollowUp: (task: Task) => void;
+  hideProjectColumn?: boolean; // New prop to hide project name
 }
 
 type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
@@ -36,7 +37,12 @@ interface Filters {
   environment: string[];
 }
 
-export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => {
+export const TaskTable = ({
+  tasks,
+  onEditTask,
+  onFollowUp,
+  hideProjectColumn = false // Default to false for backward compatibility
+}: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [sortField, setSortField] = useState<SortField>('dueDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -454,7 +460,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
             <TableHeader>
               <TableRow className="bg-muted/50">
                 <TableHead style={{ minWidth: '180px' }}>
-                  <FilterableHeader field="scope" filterType="scope">Scope & Project</FilterableHeader>
+                  <FilterableHeader field="scope" filterType="scope">
+                    {hideProjectColumn ? 'Scope' : 'Scope & Project'}
+                  </FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '300px' }}>
                   <SortableHeader field="title">Task</SortableHeader>
@@ -500,7 +508,9 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                            </Badge>
                          ))}
                        </div>
-                      <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
+                      {!hideProjectColumn && (
+                        <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
+                      )}
                     </div>
                   </TableCell>
 
