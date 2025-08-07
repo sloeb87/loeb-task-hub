@@ -1105,7 +1105,10 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   {/* Checklist items */}
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                  <div className={cn(
+                    "space-y-2 overflow-y-auto",
+                    formData.checklist.length > 6 ? "max-h-80" : "max-h-none"
+                  )}>
                     {formData.checklist.length > 0 ? (
                       <DndContext
                         sensors={sensors}
