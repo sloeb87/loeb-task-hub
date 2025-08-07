@@ -3,6 +3,7 @@ import { Clock, Pause } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { useTaskForm } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
 
 interface RunningTimerDisplayProps {
@@ -12,6 +13,7 @@ interface RunningTimerDisplayProps {
 
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
   const { taskTimers, stopTimer } = useTimeTracking();
+  const { openTaskForm } = useTaskForm();
   const [currentDuration, setCurrentDuration] = useState<string>("");
 
   // Find the currently running task
@@ -59,9 +61,17 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     stopTimer(runningTaskData.task.id);
   };
 
+  const handleTimerClick = () => {
+    openTaskForm(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
+  };
+
   return (
     <div className={`flex items-center space-x-3 ${className}`}>
-      <div className="flex items-center space-x-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+      <div 
+        className="flex items-center space-x-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+        onClick={handleTimerClick}
+        title="Click to edit task"
+      >
         <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
           <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
