@@ -271,12 +271,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const formatDetailedTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    const days = Math.floor(hours / 8); // Assuming 8-hour workdays
-    const remainingHours = hours % 8;
     
-    if (days > 0) {
-      return `${days}d ${remainingHours}h ${mins}m`;
-    } else if (hours > 0) {
+    if (hours > 0) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
