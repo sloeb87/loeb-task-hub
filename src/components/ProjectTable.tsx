@@ -107,7 +107,19 @@ export const ProjectTable = ({
     return filtered;
   }, [projects, projectFilter, selectedScopes, selectedProjects, searchTerm]);
   const sortedProjects = useMemo(() => {
-    return [...filteredProjects].sort((a, b) => a.name.localeCompare(b.name));
+    return [...filteredProjects].sort((a, b) => {
+      // Primary sort: by scope (first scope alphabetically)
+      const aFirstScope = a.scope[0] || '';
+      const bFirstScope = b.scope[0] || '';
+      const scopeComparison = aFirstScope.localeCompare(bFirstScope);
+      
+      // Secondary sort: by project name if scopes are the same
+      if (scopeComparison === 0) {
+        return a.name.localeCompare(b.name);
+      }
+      
+      return scopeComparison;
+    });
   }, [filteredProjects]);
 
   // Get unique values for filters
