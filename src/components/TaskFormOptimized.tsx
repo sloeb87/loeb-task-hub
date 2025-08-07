@@ -11,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -438,26 +439,105 @@ export const TaskFormOptimized = React.memo(({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
-                    <Input
-                      id="scope"
-                      value={projectScope || (Array.isArray(formData.scope) ? formData.scope.join(', ') : formData.scope)}
-                      readOnly={!!projectScope || !!task}
-                      onChange={(e) => !projectScope && !task && updateField('scope', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
-                      placeholder={projectScope ? "Auto-filled from project" : task ? "Scope from original project" : "Task scope"}
-                      className={`dark:bg-gray-800 dark:border-gray-600 dark:text-white ${
-                        (projectScope || task)
-                          ? 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed' 
-                          : ''
-                      }`}
-                    />
-                    {(projectScope || task) && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {task ? "Scope cannot be changed when editing task" : "Scope automatically set from project"}
-                      </p>
-                    )}
-                  </div>
+                   <div>
+                     <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
+                     <Select 
+                       value="" 
+                       onValueChange={(value) => {
+                         if (value && !formData.scope.includes(value)) {
+                           updateField('scope', [...formData.scope, value]);
+                         }
+                       }}
+                     >
+                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                         <SelectValue placeholder="Add scope" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {parameters.scopes.map((scope) => (
+                           <SelectItem 
+                             key={scope.id} 
+                             value={scope.name}
+                             disabled={formData.scope.includes(scope.name)}
+                           >
+                             <div className="flex items-center">
+                               <div 
+                                 className="w-3 h-3 rounded-full mr-2" 
+                                 style={{ backgroundColor: scope.color }}
+                               ></div>
+                               {scope.name}
+                             </div>
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                     
+                     {/* Display selected scopes */}
+                     {formData.scope.length > 0 && (
+                       <div className="flex flex-wrap gap-2 mt-2">
+                         {formData.scope.map((scopeName, index) => {
+                           const scopeParam = parameters.scopes.find(s => s.name === scopeName);
+                           return (
+                             <Badge 
+                               key={index}
+                               variant="secondary"
+                               className="flex items-center gap-1"
+                               style={scopeParam ? { backgroundColor: scopeParam.color + '20', color: scopeParam.color, borderColor: scopeParam.color } : {}}
+                             >
+                               {scopeParam && (
+                                 <div 
+                                   className="w-2 h-2 rounded-full" 
+                                   style={{ backgroundColor: scopeParam.color }}
+                                 />
+                               )}
+                               {scopeName}
+                               <button
+                                 type="button"
+                                 onClick={() => {
+                                   const newScopes = formData.scope.filter((_, i) => i !== index);
+                                   updateField('scope', newScopes);
+                                 }}
+                                 className="ml-1 hover:bg-red-100 rounded-full p-0.5"
+                               >
+                                 <X className="w-3 h-3" />
+                               </button>
+                             </Badge>
+                           );
+                         })}
+                       </div>
+                     )}
+                     
+                     {/* Show project scopes as suggestions */}
+                     {projectScope && (
+                       <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                         <span className="font-medium">Project scopes:</span>
+                         <div className="flex flex-wrap gap-1 mt-1">
+                           {projectScope.split(',').map((scope, index) => {
+                             const trimmedScope = scope.trim();
+                             const isAlreadySelected = formData.scope.includes(trimmedScope);
+                             return (
+                               <button
+                                 key={index}
+                                 type="button"
+                                 onClick={() => {
+                                   if (!isAlreadySelected) {
+                                     updateField('scope', [...formData.scope, trimmedScope]);
+                                   }
+                                 }}
+                                 disabled={isAlreadySelected}
+                                 className={`px-2 py-1 rounded text-xs border ${
+                                   isAlreadySelected 
+                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                     : 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 cursor-pointer'
+                                 }`}
+                               >
+                                 {trimmedScope}
+                               </button>
+                             );
+                           })}
+                         </div>
+                       </div>
+                     )}
+                   </div>
 
                   <div>
                     <Label htmlFor="environment" className="text-gray-700 dark:text-gray-300">Environment</Label>
