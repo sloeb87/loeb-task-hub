@@ -72,6 +72,9 @@ export const AppHeader = ({
           <item.icon className="w-4 h-4 mr-2" />
           {item.label}
         </Button>)}
+    </div>;
+
+  const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-2">
       <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center gap-2">
         <Settings className="w-4 h-4" />
         
@@ -145,6 +148,7 @@ export const AppHeader = ({
           </div>
           
           <div className="flex items-center space-x-2">
+            <DesktopRightActions />
             <MobileNavigation />
           </div>
         </div>
