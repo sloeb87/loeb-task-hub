@@ -128,10 +128,12 @@ export const TaskFormOptimized = React.memo(({
 
   // Initialize form data when task changes
   useEffect(() => {
+    console.log('TaskForm useEffect triggered - isOpen:', isOpen, 'task id:', task?.id, 'task environment:', task?.environment);
     if (!isOpen) return;
 
     if (task) {
       // Editing existing task
+      console.log('TaskForm - Initializing form data with task:', task.id, 'environment:', task.environment);
       const newFormData: FormData = {
         title: task.title || "",
         project: task.project || "",

@@ -401,6 +401,8 @@ export function useSupabaseStorage() {
       completionDate: isBeingCompleted ? todayDate : updatedTask.completionDate
     } : task));
     
+    console.log('Task update complete, dispatching taskUpdated event for:', updatedTask.id);
+    
     // Also reload tasks to ensure we have the latest data
     await loadTasks();
   };
