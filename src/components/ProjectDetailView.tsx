@@ -98,6 +98,20 @@ export const ProjectDetailView = ({
     console.log('ProjectDetailView - Found', filtered.length, 'non-completed tasks for project');
     return filtered;
   }, [tasks, project.name, refreshKey]);
+
+  // Completed project tasks (for completed tasks view)
+  const completedProjectTasks = useMemo(() => {
+    const completed = tasks
+      .filter(task => task.project === project.name && task.status === 'Completed')
+      .sort((a, b) => {
+        // Sort by completion date (most recent first)
+        const dateA = new Date(a.completionDate || a.dueDate);
+        const dateB = new Date(b.completionDate || b.dueDate);
+        return dateB.getTime() - dateA.getTime();
+      });
+    console.log('ProjectDetailView - Found', completed.length, 'completed tasks for project');
+    return completed;
+  }, [tasks, project.name, refreshKey]);
   
   const completedTasks = allProjectTasks.filter(task => task.status === 'Completed').length;
   const totalTasks = allProjectTasks.length;
@@ -435,6 +449,9 @@ export const ProjectDetailView = ({
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Task List</TabsTrigger>
+          {completedProjectTasks.length > 0 && (
+            <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
+          )}
           {allProjectTasks.length > 0 && (
             <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
           )}
@@ -471,6 +488,32 @@ export const ProjectDetailView = ({
             </CardContent>
           </Card>
         </TabsContent>
+
+        {completedProjectTasks.length > 0 && (
+          <TabsContent value="completed">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-gray-900 dark:text-white flex items-center gap-3">
+                  Completed Tasks
+                  <span className="text-green-600 dark:text-green-400 font-semibold">
+                    {project.name}
+                  </span>
+                  <Badge variant="secondary" className="text-xs">
+                    {completedProjectTasks.length} completed
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TaskTable 
+                  tasks={completedProjectTasks} 
+                  onEditTask={handleEditTaskLocal}
+                  onFollowUp={handleFollowUpLocal}
+                  hideProjectColumn={true}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
         {allProjectTasks.length > 0 && (
           <TabsContent value="gantt">
