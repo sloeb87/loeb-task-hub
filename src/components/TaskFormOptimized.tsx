@@ -341,20 +341,25 @@ export const TaskFormOptimized = React.memo(({
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-3">
             <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
-            {(task || projectName) && formData.project && onNavigateToProject && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={handleNavigateToProject}
-                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
-                title={`Go to ${formData.project} project details`}
-              >
-                <ExternalLink className="w-4 h-4" />
-                Go to Project
-              </Button>
+            {(projectName || formData.project) && (
+              <span className="text-green-600 dark:text-green-400 font-semibold">
+                {projectName || formData.project}
+              </span>
             )}
           </DialogTitle>
+          {(task || projectName) && formData.project && onNavigateToProject && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleNavigateToProject}
+              className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+              title={`Go to ${formData.project} project details`}
+            >
+              <ExternalLink className="w-4 h-4" />
+              Go to Project
+            </Button>
+          )}
           <DialogDescription>
             {task ? 'Edit task details, dependencies, and track progress.' : 'Create a new task with all necessary details and requirements.'}
           </DialogDescription>
