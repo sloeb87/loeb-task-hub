@@ -3,7 +3,7 @@ import { Task, Project, KPIMetrics } from "@/types/task";
 export const mockTasks: Task[] = [
   {
     id: "T1",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Website Redesign",
     environment: "Production",
     taskType: "Development",
@@ -26,7 +26,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T2",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Website Redesign",
     environment: "Development",
     taskType: "Development",
@@ -49,7 +49,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T3",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "Website Redesign",
     environment: "Staging",
     taskType: "Testing",
@@ -71,7 +71,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T4",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Mobile App",
     environment: "Development",
     taskType: "Development",
@@ -94,7 +94,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T5",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "Mobile App",
     environment: "Staging",
     taskType: "Testing",
@@ -116,7 +116,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T6",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Mobile App",
     environment: "Production",
     taskType: "Development",
@@ -138,7 +138,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T7",
-    scope: "Documentation",
+    scope: ["Documentation"], // Changed to array
     project: "Internal Tools",
     environment: "Production",
     taskType: "Documentation",
@@ -162,7 +162,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T8",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Internal Tools",
     environment: "Development",
     taskType: "Development",
@@ -184,7 +184,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T9",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "Internal Tools",
     environment: "Staging",
     taskType: "Testing",
@@ -206,7 +206,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T10",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "E-commerce Platform",
     environment: "Development",
     taskType: "Development",
@@ -229,7 +229,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T11",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "E-commerce Platform",
     environment: "Development",
     taskType: "Development",
@@ -251,7 +251,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T12",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "E-commerce Platform",
     environment: "Staging",
     taskType: "Testing",
@@ -273,7 +273,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T13",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Website Redesign",
     environment: "Development",
     taskType: "Development",
@@ -295,7 +295,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T14",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "Website Redesign",
     environment: "Production",
     taskType: "Review",
@@ -317,7 +317,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T15",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Mobile App",
     environment: "Development",
     taskType: "Development",
@@ -339,7 +339,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T16",
-    scope: "Documentation",
+    scope: ["Documentation"], // Changed to array
     project: "Mobile App",
     environment: "Production",
     taskType: "Documentation",
@@ -361,7 +361,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T17",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "Internal Tools",
     environment: "Development",
     taskType: "Development",
@@ -383,7 +383,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T18",
-    scope: "Testing",
+    scope: ["Testing"], // Changed to array
     project: "Internal Tools",
     environment: "Staging",
     taskType: "Testing",
@@ -405,7 +405,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T19",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "E-commerce Platform",
     environment: "Development",
     taskType: "Development",
@@ -427,7 +427,7 @@ export const mockTasks: Task[] = [
   },
   {
     id: "T20",
-    scope: "Development",
+    scope: ["Development"], // Changed to array
     project: "E-commerce Platform",
     environment: "Production",
     taskType: "Development",

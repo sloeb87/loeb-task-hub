@@ -40,7 +40,7 @@ interface TaskFormProps {
 interface FormData {
   title: string;
   project: string;
-  scope: string;
+  scope: string[]; // Changed to array for multiple scopes
   environment: string;
   taskType: string;
   status: string;
@@ -64,7 +64,7 @@ interface FormData {
 const DEFAULT_FORM_DATA: FormData = {
   title: "",
   project: "",
-  scope: "",
+  scope: [], // Changed to array
   environment: "",
   taskType: "",
   status: "",
@@ -137,7 +137,7 @@ export const TaskFormOptimized = React.memo(({
       const newFormData: FormData = {
         title: task.title || "",
         project: task.project || "",
-        scope: task.scope || "",
+        scope: task.scope || [], // Changed to array
         environment: task.environment || "",
         taskType: task.taskType || "",
         status: task.status || "",
@@ -160,7 +160,7 @@ export const TaskFormOptimized = React.memo(({
       
       setFormData(newFormData);
       setDate(new Date(task.dueDate));
-      setProjectScope(task.scope || null);
+      setProjectScope(task.scope[0] || ''); // Use first scope as string for project scope state
     } else {
       // Creating new task - check for persisted form data first
       if (persistedFormData && !task) {
@@ -200,7 +200,7 @@ export const TaskFormOptimized = React.memo(({
       const project = allProjects.find(p => p.name === formData.project);
       if (project && JSON.stringify(project.scope) !== JSON.stringify([formData.scope])) {
         setProjectScope(project.scope[0] || ''); // Use first scope as default
-        setFormData(prev => ({ ...prev, scope: project.scope[0] || '' }));
+        setFormData(prev => ({ ...prev, scope: project.scope || [] }));
       }
     }
   }, [formData.project, allProjects, task]);
@@ -245,7 +245,7 @@ export const TaskFormOptimized = React.memo(({
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      scope: projectScope || formData.scope,
+      scope: projectScope ? [projectScope] : (formData.scope || []), // Ensure array
       taskType: formData.taskType as TaskType,
       status: formData.status as TaskStatus,
       priority: formData.priority as TaskPriority,
@@ -442,9 +442,9 @@ export const TaskFormOptimized = React.memo(({
                     <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
                     <Input
                       id="scope"
-                      value={projectScope || formData.scope}
+                      value={projectScope || formData.scope.join(', ')}
                       readOnly={!!projectScope || !!task}
-                      onChange={(e) => !projectScope && !task && updateField('scope', e.target.value)}
+                      onChange={(e) => !projectScope && !task && updateField('scope', e.target.value.split(',').map(s => s.trim()).filter(s => s))}
                       placeholder={projectScope ? "Auto-filled from project" : task ? "Scope from original project" : "Task scope"}
                       className={`dark:bg-gray-800 dark:border-gray-600 dark:text-white ${
                         (projectScope || task)

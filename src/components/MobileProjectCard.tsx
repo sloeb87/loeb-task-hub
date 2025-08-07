@@ -200,7 +200,7 @@ export const MobileProjectCard = ({
                   project: project.name,
                   startDate: new Date().toISOString().split('T')[0],
                   dueDate: '',
-                  scope: project.scope[0] || '', // Use first scope as default for tasks
+                  scope: project.scope, // Now an array
                   taskType: 'Development' as const,
                   environment: 'Development',
                   details: '',

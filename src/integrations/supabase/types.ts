@@ -170,7 +170,7 @@ export type Database = {
           priority: string
           project_id: string | null
           responsible: string
-          scope: string
+          scope: string[]
           stakeholders: string[] | null
           start_date: string
           status: string
@@ -195,7 +195,7 @@ export type Database = {
           priority?: string
           project_id?: string | null
           responsible: string
-          scope: string
+          scope?: string[]
           stakeholders?: string[] | null
           start_date: string
           status?: string
@@ -220,7 +220,7 @@ export type Database = {
           priority?: string
           project_id?: string | null
           responsible?: string
-          scope?: string
+          scope?: string[]
           stakeholders?: string[] | null
           start_date?: string
           status?: string

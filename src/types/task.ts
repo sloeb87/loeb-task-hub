@@ -12,7 +12,7 @@ export interface FollowUp {
 
 export interface Task {
   id: string;
-  scope: string;
+  scope: string[]; // Changed to array to support multiple scopes
   project: string;
   environment: string;
   taskType: TaskType;

@@ -6,7 +6,7 @@ import { useAuth } from './useAuth';
 interface SupabaseTask {
   id: string;
   task_number: string;
-  scope: string;
+  scope: string[]; // Changed to array
   project_id: string | null;
   environment: string;
   task_type: string;
@@ -90,7 +90,7 @@ export function useSupabaseStorage() {
 
     return {
       id: supabaseTask.task_number, // Use task_number as the ID for compatibility
-      scope: supabaseTask.scope,
+      scope: supabaseTask.scope || [], // Handle array scope
       project: projectName,
       environment: supabaseTask.environment,
       taskType: supabaseTask.task_type as any,
@@ -222,7 +222,7 @@ export function useSupabaseStorage() {
         .from('tasks')
         .insert({
           task_number: 'temp', // Will be replaced by trigger
-          scope: taskData.scope,
+          scope: taskData.scope || [], // Handle array scope
           project_id: projectId,
           environment: taskData.environment,
           task_type: taskData.taskType,
@@ -306,7 +306,7 @@ export function useSupabaseStorage() {
     const todayDate = new Date().toISOString().split('T')[0];
 
     const updateData = {
-      scope: updatedTask.scope,
+      scope: updatedTask.scope || [], // Handle array scope
       project_id: projectId,
       environment: updatedTask.environment,
       task_type: updatedTask.taskType,
