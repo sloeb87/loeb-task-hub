@@ -53,6 +53,7 @@ export const ProjectDetailView = ({
 
   // Listen for task updates to refresh the view
   useEffect(() => {
+    console.log('ProjectDetailView - Setting up task update listener');
     const handleTaskUpdate = () => {
       console.log('ProjectDetailView - Task updated, refreshing view');
       setRefreshKey(prev => prev + 1);
@@ -65,10 +66,19 @@ export const ProjectDetailView = ({
       window.removeEventListener('taskUpdated', handleTaskUpdate);
     };
   }, []);
+
+  // Add effect to refresh when tasks prop changes
+  useEffect(() => {
+    console.log('ProjectDetailView - Tasks prop changed, refreshing');
+    setRefreshKey(prev => prev + 1);
+  }, [tasks]);
   
   // Use useMemo to recalculate project tasks when tasks change or refresh key changes
   const projectTasks = useMemo(() => {
-    return tasks.filter(task => task.project === project.name);
+    console.log('ProjectDetailView - Recalculating project tasks for:', project.name);
+    const filtered = tasks.filter(task => task.project === project.name);
+    console.log('ProjectDetailView - Found', filtered.length, 'tasks for project');
+    return filtered;
   }, [tasks, project.name, refreshKey]);
   
   const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
@@ -107,13 +117,16 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
-    openTaskForm(project.name, task, 'project-detail-edit');
+    // Call the parent onEditTask handler which should open the task form
+    onEditTask(task);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {
     console.log('ProjectDetailView - handleFollowUpLocal called with:', updatedTask.title);
     if (onUpdateTask) {
       onUpdateTask(updatedTask);
+      // Force refresh the view
+      setRefreshKey(prev => prev + 1);
     }
   };
 
