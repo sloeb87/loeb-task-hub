@@ -473,7 +473,7 @@ export const TaskFormOptimized = React.memo(({
         console.log('TaskForm Dialog - Preventing close (document lost focus)');
       }
     }}>
-      <DialogContent className="max-w-[95vw] w-full max-h-[95vh] flex flex-col bg-background/95 backdrop-blur-sm border-2 shadow-2xl">
+      <DialogContent className="max-w-[95vw] w-full h-[95vh] flex flex-col bg-background/95 backdrop-blur-sm border-2 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="text-gray-900 dark:text-white flex items-center gap-3">
             <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
@@ -1031,12 +1031,12 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
 
-                {/* Follow-ups content - directly under Follow-ups title */}
-                <div className="mb-6">
+                 {/* Follow-ups content - directly under Follow-ups title */}
+                <div className="mb-6 flex-1 flex flex-col">
                   {task.followUps.length > 0 ? (
                     <div className={cn(
-                      "space-y-3",
-                      task.followUps.length > 4 ? "max-h-80 overflow-y-auto" : "max-h-none"
+                      "space-y-3 flex-1 overflow-y-auto",
+                      task.followUps.length > 4 ? "max-h-[calc(50vh-8rem)]" : "max-h-none"
                     )}>
                       {task.followUps
                         .slice() // Create a copy to avoid mutating original
@@ -1109,8 +1109,8 @@ export const TaskFormOptimized = React.memo(({
 
                   {/* Checklist items */}
                   <div className={cn(
-                    "space-y-2 overflow-y-auto",
-                    formData.checklist.length > 6 ? "max-h-80" : "max-h-none"
+                    "space-y-2 overflow-y-auto flex-1",
+                    formData.checklist.length > 6 ? "max-h-[calc(50vh-8rem)]" : "max-h-none"
                   )}>
                     {formData.checklist.length > 0 ? (
                       <DndContext
