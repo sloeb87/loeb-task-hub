@@ -12,6 +12,7 @@ import { formatDate } from "@/utils/taskOperations";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 interface FollowUpsPageProps {
   tasks: Task[];
   onEditTask?: (task: Task) => void;
@@ -405,6 +406,9 @@ export const FollowUpsPage = ({
   const hasExpandedItems = expandedProjects.size > 0 || expandedTasks.size > 0;
 
   return <div className="space-y-6">
+      {/* Running Timer Display */}
+      <RunningTimerDisplay tasks={tasks} />
+
       {/* Header */}
       <div className="flex items-center space-x-3">
         <MessageSquare className="w-8 h-8 text-blue-600" />
