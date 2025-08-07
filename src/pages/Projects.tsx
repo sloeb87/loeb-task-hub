@@ -284,6 +284,26 @@ const ProjectsPage = ({
           onSaveTask={handleSaveTask}
         />
 
+        {/* Task Form Modal - Also available in detail view */}
+        <TaskFormOptimized
+          key={selectedTask?.id || 'new'}
+          isOpen={isTaskFormOpen}
+          onClose={() => {
+            console.log('TaskForm onClose called from detail view');
+            setIsTaskFormOpen(false);
+            setSelectedTask(null);
+            setTaskProjectId(null);
+          }}
+          onSave={handleSaveTask}
+          onDelete={onDeleteTask}
+          onAddFollowUp={onAddFollowUp}
+          task={selectedTask}
+          allTasks={tasks}
+          allProjects={projects}
+          projectName={taskProjectId}
+          onEditRelatedTask={handleEditTask}
+        />
+
         {/* Report Modal - Also available in detail view */}
         {reportProject && (
           <ReportModal

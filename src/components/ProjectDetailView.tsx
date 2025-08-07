@@ -117,6 +117,7 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
+    console.log('ProjectDetailView - Calling parent onEditTask');
     // Call the parent onEditTask handler which should open the task form
     onEditTask(task);
   };
