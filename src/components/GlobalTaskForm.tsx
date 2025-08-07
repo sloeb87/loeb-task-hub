@@ -43,6 +43,12 @@ export const GlobalTaskForm: React.FC = () => {
     openTaskForm(task.project, task, 'related-task');
   };
 
+  const handleFollowUpTask = (task: any) => {
+    console.log('GLOBAL_TASK_FORM - Opening follow-up for task:', task.title);
+    // Close current form and open with the task for follow-up
+    openTaskForm(task.project, task, 'follow-up');
+  };
+
   if (!taskFormState.isOpen) {
     return null;
   }
@@ -58,6 +64,7 @@ export const GlobalTaskForm: React.FC = () => {
       onDelete={deleteTask}
       onAddFollowUp={addFollowUp}
       onUpdateFollowUp={updateFollowUp}
+      onFollowUpTask={handleFollowUpTask}
       task={taskFormState.selectedTask}
       allTasks={tasks}
       allProjects={projects}
