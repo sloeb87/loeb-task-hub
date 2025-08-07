@@ -121,7 +121,7 @@ export const AppHeader = ({
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-2 sm:space-x-4">
+          <div className="flex flex-col items-start">
             <button 
               onClick={() => {
                 if (onBack) {
@@ -138,7 +138,7 @@ export const AppHeader = ({
               PMTask
             </button>
             
-            {user && <Badge variant="outline" className="text-xs hidden lg:inline">
+            {user && <Badge variant="outline" className="text-xs mt-1 hidden lg:inline">
                 {user.email}
               </Badge>}
           </div>
