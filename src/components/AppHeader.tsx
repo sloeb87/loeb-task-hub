@@ -6,6 +6,8 @@ import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
+import { Task } from "@/types/task";
 interface AppHeaderProps {
   activeView: "tasks" | "dashboard" | "projects" | "timetracking" | "followups";
   onViewChange: (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => void;
@@ -13,6 +15,7 @@ interface AppHeaderProps {
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
   onBack?: () => void; // Optional back function for project detail view
+  tasks: Task[]; // Add tasks prop for RunningTimerDisplay
 }
 export const AppHeader = ({
   activeView,
@@ -20,7 +23,8 @@ export const AppHeader = ({
   isDarkMode,
   onToggleDarkMode,
   onOpenParameters,
-  onBack
+  onBack,
+  tasks
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -144,6 +148,7 @@ export const AppHeader = ({
           </div>
           
           <div className="flex items-center space-x-2">
+            <RunningTimerDisplay tasks={tasks} />
             <DesktopNavigation />
             <MobileNavigation />
           </div>

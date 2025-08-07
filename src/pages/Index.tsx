@@ -285,7 +285,7 @@ const Index = () => {
               </div>
               
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <RunningTimerDisplay tasks={tasks} />
+                
                 <Button onClick={() => {
                   console.log('INDEX - New Task button clicked');
                   setIsTaskFormOpen(true);
