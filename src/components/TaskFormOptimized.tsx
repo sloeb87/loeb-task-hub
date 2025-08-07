@@ -945,43 +945,8 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
 
-                <div className="flex-1">
-                  {task.followUps.length > 0 ? (
-                    <div className="space-y-3">
-                      {task.followUps
-                        .slice() // Create a copy to avoid mutating original
-                        .reverse() // Show most recent first
-                        .map((followUp) => (
-                           <div 
-                             key={followUp.id} 
-                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
-                             onClick={() => handleFollowUpClick(followUp.id)}
-                             title="Click to edit this follow-up"
-                           >
-                             <div className="flex items-center gap-3">
-                               <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
-                                 {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
-                                   month: '2-digit', 
-                                   day: '2-digit', 
-                                   year: '2-digit' 
-                                 })}
-                               </span>
-                               <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
-                             </div>
-                           </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No follow-ups yet</p>
-                      <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
-                    </div>
-                  )}
-                </div>
-
                 {/* Checklist Section */}
-                <div className="space-y-4 mt-6">
+                <div className="space-y-4 mt-4">
                   <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Checklist
@@ -1018,7 +983,7 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   {/* Checklist items */}
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {formData.checklist.map((item) => (
                       <div 
                         key={item.id}
@@ -1066,6 +1031,41 @@ export const TaskFormOptimized = React.memo(({
                       </div>
                     )}
                   </div>
+                </div>
+
+                <div className="flex-1 mt-6">
+                  {task.followUps.length > 0 ? (
+                    <div className="space-y-3">
+                      {task.followUps
+                        .slice() // Create a copy to avoid mutating original
+                        .reverse() // Show most recent first
+                        .map((followUp) => (
+                           <div 
+                             key={followUp.id} 
+                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
+                             onClick={() => handleFollowUpClick(followUp.id)}
+                             title="Click to edit this follow-up"
+                           >
+                             <div className="flex items-center gap-3">
+                               <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
+                                 {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
+                                   month: '2-digit', 
+                                   day: '2-digit', 
+                                   year: '2-digit' 
+                                 })}
+                               </span>
+                               <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
+                             </div>
+                           </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No follow-ups yet</p>
+                      <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
