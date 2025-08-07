@@ -425,7 +425,12 @@ export const ProjectDetailView = ({
         <TabsContent value="tasks">
           <Card>
             <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">Project Tasks</CardTitle>
+              <CardTitle className="text-gray-900 dark:text-white flex items-center gap-3">
+                Project Tasks
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">
+                  {project.name}
+                </span>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {projectTasks.length > 0 ? (
