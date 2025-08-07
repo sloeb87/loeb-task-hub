@@ -138,7 +138,7 @@ export const AppHeader = ({
               PMTask
             </button>
             
-            {user && <Badge variant="outline" className="text-xs mt-1 hidden lg:inline">
+            {user && <Badge variant="outline" className="text-xs mt-1">
                 {user.email}
               </Badge>}
           </div>
