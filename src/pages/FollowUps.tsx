@@ -113,7 +113,7 @@ export const FollowUpsPage = ({
           ...followUp,
           taskId: task.id,
           taskTitle: task.title,
-          taskScope: task.scope,
+          taskScope: task.scope.join(', '),
           taskType: task.taskType,
           taskEnvironment: task.environment,
           taskStatus: followUp.taskStatus || 'Unknown',

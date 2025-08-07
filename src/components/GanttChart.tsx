@@ -462,13 +462,13 @@ const GanttChart = ({ tasks, onTasksChange, projectStartDate, projectEndDate, on
                               </Button>
                             </div>
                             <div className="flex items-center gap-1 text-xs">
-                              <Badge 
-                                variant="outline" 
-                                className="text-xs px-1"
-                                style={getScopeStyle(task.scope)}
-                              >
-                                {task.scope}
-                              </Badge>
+                               <Badge 
+                                 variant="outline" 
+                                 className="text-xs px-1"
+                                 style={getScopeStyle(task.scope.join(', '))}
+                               >
+                                 {task.scope.join(', ')}
+                               </Badge>
                               <Badge 
                                 variant="outline" 
                                 className="text-xs px-1"

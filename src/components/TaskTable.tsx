@@ -176,7 +176,7 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
           task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
           task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
         if (!matchesSearch) return false;
-        if (filters.scope.length > 0 && !filters.scope.includes(task.scope)) return false;
+        if (filters.scope.length > 0 && !task.scope.some(scope => filters.scope.includes(scope))) return false;
         if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
         if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
         if (filters.project.length > 0 && !filters.project.includes(task.project)) return false;
@@ -205,8 +205,8 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
         return true;
       })
       .sort((a, b) => {
-        let aValue: string | number = a[sortField];
-        let bValue: string | number = b[sortField];
+        let aValue: string | number = sortField === 'scope' ? a[sortField].join(', ') : a[sortField];
+        let bValue: string | number = sortField === 'scope' ? b[sortField].join(', ') : b[sortField];
 
         if (sortField === 'dueDate') {
           aValue = new Date(aValue as string).getTime();
@@ -484,12 +484,12 @@ export const TaskTable = ({ tasks, onEditTask, onFollowUp }: TaskTableProps) => 
                   {/* Scope & Project Column */}
                   <TableCell>
                     <div className="space-y-2">
-                       <Badge 
-                         className="text-base font-medium border"
-                         style={parametersLoading ? {} : getScopeStyle(task.scope)}
-                       >
-                         {task.scope}
-                       </Badge>
+                        <Badge 
+                          className="text-base font-medium border"
+                          style={parametersLoading ? {} : getScopeStyle(task.scope.join(', '))}
+                        >
+                          {task.scope.join(', ')}
+                        </Badge>
                       <div className="text-base font-medium text-gray-900 dark:text-white">{task.project}</div>
                     </div>
                   </TableCell>

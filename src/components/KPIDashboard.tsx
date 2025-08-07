@@ -47,7 +47,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   const filteredTasks = useMemo(() => {
     return tasks.filter(task => {
       const projectMatch = selectedProject === "all" || task.project === selectedProject;
-      const scopeMatch = selectedScope === "all" || task.scope === selectedScope;
+      const scopeMatch = selectedScope === "all" || task.scope.includes(selectedScope);
       
       // Date range filtering
       let dateMatch = true;
@@ -71,7 +71,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   }, [tasks]);
 
   const availableScopes = useMemo(() => {
-    const scopeNames = [...new Set(tasks.map(task => task.scope))];
+    const scopeNames = [...new Set(tasks.flatMap(task => task.scope))];
     return scopeNames.map(name => ({ name, value: name }));
   }, [tasks]);
 
@@ -288,15 +288,15 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
             <SelectContent>
               <SelectItem value="all">All Scopes</SelectItem>
               {availableScopes.map((scope) => (
-                <SelectItem key={scope.value} value={scope.value}>
-                  <div className="flex items-center">
-                    <div 
-                      className="w-3 h-3 rounded-full mr-2" 
-                      style={{ backgroundColor: getScopeStyle(scope.name).color }}
-                    ></div>
-                    {scope.name}
-                  </div>
-                </SelectItem>
+                 <SelectItem key={scope.name} value={scope.name}>
+                   <div className="flex items-center">
+                     <div 
+                       className="w-3 h-3 rounded-full mr-2" 
+                       style={{ backgroundColor: getScopeStyle(scope.name).color }}
+                     ></div>
+                     {scope.name}
+                   </div>
+                 </SelectItem>
               ))}
             </SelectContent>
           </Select>

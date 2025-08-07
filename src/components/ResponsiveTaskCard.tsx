@@ -114,12 +114,12 @@ export const ResponsiveTaskCard = ({
         {/* Badges Section */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge 
-              className="text-xs border"
-              style={parametersLoading ? {} : getScopeStyle(task.scope)}
-            >
-              {task.scope}
-            </Badge>
+             <Badge 
+               className="text-xs border"
+               style={parametersLoading ? {} : getScopeStyle(task.scope.join(', '))}
+             >
+               {task.scope.join(', ')}
+             </Badge>
             <Badge 
               className="text-xs border"
               style={parametersLoading ? {} : getTaskTypeStyle(task.taskType)}

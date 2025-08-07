@@ -94,9 +94,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       case 'project':
         return [...new Set(baseEntries.map(e => e.projectName))].sort();
       case 'scope':
-        return [...new Set(baseEntries.map(e => {
+        return [...new Set(baseEntries.flatMap(e => {
           const task = tasks.find(t => t.id === e.taskId);
-          return task?.scope || '';
+          return task?.scope || [];
         }).filter(Boolean))].sort();
       case 'type':
         return [...new Set(baseEntries.map(e => {
@@ -220,7 +220,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     if (multiSelectFilters.scope.length > 0) {
       filtered = filtered.filter(e => {
         const task = tasks.find(t => t.id === e.taskId);
-        return task && multiSelectFilters.scope.includes(task.scope);
+        return task && task.scope.some(scope => multiSelectFilters.scope.includes(scope));
       });
     }
     if (multiSelectFilters.type.length > 0) {
@@ -535,12 +535,12 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        
                         <TableCell>
                           <div className="flex items-center">
-                            <Badge 
-                              style={getScopeStyle(task?.scope || '')}
-                              className="text-sm"
-                            >
-                              {task?.scope || '-'}
-                            </Badge>
+                             <Badge 
+                               style={getScopeStyle(task?.scope?.join(', ') || '')}
+                               className="text-sm"
+                             >
+                               {task?.scope?.join(', ') || '-'}
+                             </Badge>
                           </div>
                         </TableCell>
                         
