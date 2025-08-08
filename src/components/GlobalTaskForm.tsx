@@ -20,12 +20,8 @@ export const GlobalTaskForm: React.FC = () => {
   const handleAddFollowUp = async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);
-      // Force refresh the data to update the UI
+      // Refresh tasks in background without reloading the page
       refreshTasks();
-      // Small delay to ensure data is refreshed before re-rendering
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error('Error adding follow-up:', error);
     }
@@ -34,12 +30,8 @@ export const GlobalTaskForm: React.FC = () => {
   const handleUpdateFollowUp = async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
     try {
       await updateFollowUp(followUpId, text, timestamp);
-      // Force refresh the data to update the UI
+      // Refresh tasks in background without reloading the page
       refreshTasks();
-      // Small delay to ensure data is refreshed before re-rendering
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error('Error updating follow-up:', error);
     }
@@ -48,12 +40,8 @@ export const GlobalTaskForm: React.FC = () => {
   const handleDeleteFollowUp = async (followUpId: string) => {
     try {
       await deleteFollowUp(followUpId);
-      // Force refresh the data to update the UI
+      // Refresh tasks in background without reloading the page
       refreshTasks();
-      // Small delay to ensure data is refreshed before re-rendering
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
     } catch (error) {
       console.error('Error deleting follow-up:', error);
     }
