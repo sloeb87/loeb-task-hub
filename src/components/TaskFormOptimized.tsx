@@ -355,7 +355,10 @@ export const TaskFormOptimized = React.memo(({
   };
 
   const deleteFollowUpInline = async (id: string) => {
-    if (!onDeleteFollowUp) return;
+    if (!onDeleteFollowUp) {
+      toast({ title: 'Delete not available', description: 'This screen does not support deleting follow-ups.', variant: 'destructive' });
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this follow-up?')) return;
     try {
       await onDeleteFollowUp(id);
