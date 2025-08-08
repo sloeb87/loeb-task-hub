@@ -140,7 +140,8 @@ export const TaskFormOptimized = React.memo(({
   const { startTimer } = useTimeTracking();
   const lastTaskIdRef = useRef<string | null>(null);
   const lastInitTaskIdRef = useRef<string | null>(null);
-
+  // Prevent TaskForm from closing when opening FollowUp dialog
+  const ignoreNextCloseRef = useRef<boolean>(false);
 
   // Dropdown options - now coming from the database
   const dropdownOptions = useMemo(() => ({
