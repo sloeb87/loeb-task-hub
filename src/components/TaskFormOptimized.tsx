@@ -293,6 +293,16 @@ export const TaskFormOptimized = React.memo(({
       return;
     }
 
+    // Require explicit status selection when creating a new task
+    if (!task && !formData.status) {
+      toast({
+        title: "Status required",
+        description: "Please select a status before creating the task.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -1329,7 +1339,7 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={!task && !formData.status}>
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
