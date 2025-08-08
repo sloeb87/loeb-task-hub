@@ -434,13 +434,14 @@ export const TaskFormOptimized = React.memo(({
 
   const handleFollowUpClick = (followUpId?: string) => {
     console.log('Follow-up clicked - using parent follow-up system');
+    // Signal the dialog to ignore the next close triggered by focus changes/portals
+    ignoreNextCloseRef.current = true;
     if (task && onFollowUpTask) {
-      onFollowUpTask(task); // Use the parent's follow-up dialog system
+      onFollowUpTask(task); // Open separate FollowUp dialog without closing TaskForm
     } else {
       console.error('onFollowUpTask not available');
     }
   };
-
   const handleStartTimer = async () => {
     if (task) {
       await startTimer(task.id, task.title, task.project, task.responsible);
