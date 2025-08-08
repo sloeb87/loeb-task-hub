@@ -494,6 +494,15 @@ export function useSupabaseStorage() {
 
     if (findError) throw findError;
 
+    // Delete related follow-ups first to satisfy FK constraints
+    const { error: followUpsError } = await supabase
+      .from('follow_ups')
+      .delete()
+      .eq('task_id', existingTask.id);
+
+    if (followUpsError) throw followUpsError;
+
+    // Then delete the task
     const { error } = await supabase
       .from('tasks')
       .delete()
