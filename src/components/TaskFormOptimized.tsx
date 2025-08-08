@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem } from "@/types/task";
+import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem, FollowUp } from "@/types/task";
 import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
@@ -136,6 +136,7 @@ export const TaskFormOptimized = React.memo(({
   const [newFollowUpText, setNewFollowUpText] = useState('');
   const [editingFollowUpId, setEditingFollowUpId] = useState<string | null>(null);
   const [editingFollowUpText, setEditingFollowUpText] = useState('');
+  const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
   const { startTimer } = useTimeTracking();
 
 
@@ -235,6 +236,13 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [formData.project, allProjects, task]);
 
+  // Sync displayed follow-ups with current task when opening
+  useEffect(() => {
+    if (isOpen) {
+      setDisplayedFollowUps(task?.followUps || []);
+    }
+  }, [isOpen, task]);
+
   // Memoized related tasks
   const relatedTasks = useMemo(() => {
     if (!formData.dependencies.length) return [];
@@ -331,10 +339,13 @@ export const TaskFormOptimized = React.memo(({
     if (!task || !onUpdateFollowUp || !editingFollowUpId) return;
     try {
       await onUpdateFollowUp(task.id, editingFollowUpId, editingFollowUpText);
+      setDisplayedFollowUps(prev => prev.map(f => f.id === editingFollowUpId ? { ...f, text: editingFollowUpText } : f));
       setEditingFollowUpId(null);
       setEditingFollowUpText('');
+      toast({ title: 'Follow-up updated' });
     } catch (e) {
       console.error('Error saving follow-up edit:', e);
+      toast({ title: 'Error updating follow-up', variant: 'destructive' });
     }
   };
 
@@ -348,8 +359,11 @@ export const TaskFormOptimized = React.memo(({
     if (!window.confirm('Are you sure you want to delete this follow-up?')) return;
     try {
       await onDeleteFollowUp(id);
+      setDisplayedFollowUps(prev => prev.filter(f => f.id !== id));
+      toast({ title: 'Follow-up deleted' });
     } catch (e) {
       console.error('Error deleting follow-up:', e);
+      toast({ title: 'Error deleting follow-up', variant: 'destructive' });
     }
   };
 
@@ -1077,7 +1091,7 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                   <div className="flex items-center justify-between mt-3">
                     <span className="text-sm text-gray-600 dark:text-gray-300">
-                      {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
+                      {displayedFollowUps.length} follow-up{displayedFollowUps.length !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </div>
@@ -1110,9 +1124,9 @@ export const TaskFormOptimized = React.memo(({
 
                 {/* Follow-ups list */}
                 <div className="mb-6">
-                  {task.followUps.length > 0 ? (
+                  {displayedFollowUps.length > 0 ? (
                     <div className="space-y-3">
-                      {task.followUps
+                      {displayedFollowUps
                         .slice()
                         .reverse()
                         .map((followUp) => (
