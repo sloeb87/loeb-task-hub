@@ -303,6 +303,16 @@ export const TaskFormOptimized = React.memo(({
       return;
     }
 
+    // Require explicit priority selection when creating a new task
+    if (!task && !formData.priority) {
+      toast({
+        title: "Priority required",
+        description: "Please select a priority before creating the task.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const taskData = {
       ...formData,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -1339,7 +1349,7 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!task && !formData.status}>
+              <Button type="submit" disabled={!task && (!formData.status || !formData.priority)}>
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>

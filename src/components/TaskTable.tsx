@@ -215,8 +215,29 @@ export const TaskTable = ({
         let bValue: string | number = sortField === 'scope' ? b[sortField].join(', ') : b[sortField];
 
         if (sortField === 'dueDate') {
-          aValue = new Date(aValue as string).getTime();
-          bValue = new Date(bValue as string).getTime();
+          const aTime = new Date(aValue as string).getTime();
+          const bTime = new Date(bValue as string).getTime();
+
+          if (aTime !== bTime) {
+            return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+          }
+
+          // Tie-breaker: fixed priority order Critical > High > Medium > Low
+          const priorityOrder: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+          const aPri = priorityOrder[a.priority] || 0;
+          const bPri = priorityOrder[b.priority] || 0;
+          // Higher priority first regardless of date sort direction
+          if (aPri !== bPri) return bPri - aPri;
+
+          // Final tie-breaker: title
+          return a.title.localeCompare(b.title);
+        }
+
+        if (sortField === 'priority') {
+          const priorityOrder: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
+          const aPri = priorityOrder[a.priority] || 0;
+          const bPri = priorityOrder[b.priority] || 0;
+          return sortDirection === 'asc' ? aPri - bPri : bPri - aPri;
         }
 
         if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
