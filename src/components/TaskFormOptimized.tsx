@@ -599,7 +599,18 @@ export const TaskFormOptimized = React.memo(({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                    <div>
-                     <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">Scope</Label>
+                     <Label htmlFor="scope" className="text-gray-700 dark:text-gray-300">
+                       Scope
+                       {projectScope && (
+                         <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">
+                           {" - "}
+                           <span className="font-medium">Project scopes: </span>
+                           <span className="text-gray-700 dark:text-gray-300">
+                             {Array.isArray(projectScope) ? projectScope.join(', ') : projectScope}
+                           </span>
+                         </span>
+                       )}
+                     </Label>
                      <Select 
                        value="" 
                        onValueChange={(value) => {
@@ -665,15 +676,6 @@ export const TaskFormOptimized = React.memo(({
                        </div>
                      )}
                      
-                     {/* Show project scopes as suggestions */}
-                      {projectScope && (
-                        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                          <span className="font-medium">Project scopes: </span>
-                          <span className="text-gray-700 dark:text-gray-300">
-                            {Array.isArray(projectScope) ? projectScope.join(', ') : projectScope}
-                          </span>
-                        </div>
-                      )}
                    </div>
 
                   <div>
