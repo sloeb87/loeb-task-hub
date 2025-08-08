@@ -412,7 +412,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatDetailedTime(totalStats.totalTime)}
+              {formatDetailedTime(filteredStats.totalTime)}
             </div>
           </CardContent>
         </Card>
