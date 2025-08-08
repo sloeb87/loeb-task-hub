@@ -1,12 +1,10 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Filter, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Filter, X } from "lucide-react";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
-import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
 interface TimeEntryFiltersProps {
@@ -33,6 +31,39 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
       onFiltersChange({
         ...filters,
         dateRange: undefined
+      });
+    }
+  };
+
+  const handleNativeDateChange = (which: 'from' | 'to', value: string) => {
+    const date = value ? new Date(`${value}T00:00:00`) : undefined;
+    const newRange: DateRange | undefined = {
+      from: which === 'from' ? date : dateRange?.from,
+      to: which === 'to' ? date : dateRange?.to,
+    };
+
+    if (newRange?.from || newRange?.to) {
+      setDateRange(newRange);
+    } else {
+      setDateRange(undefined);
+    }
+
+    if (newRange?.from && newRange?.to) {
+      onFiltersChange({
+        ...filters,
+        dateRange: { from: newRange.from, to: newRange.to },
+        year: undefined,
+        month: undefined,
+      });
+    } else if (!newRange?.from && !newRange?.to) {
+      onFiltersChange({
+        ...filters,
+        dateRange: undefined,
+      });
+    } else {
+      onFiltersChange({
+        ...filters,
+        dateRange: undefined,
       });
     }
   };
@@ -82,11 +113,6 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
 
   const hasActiveFilters = filters.dateRange || filters.month || filters.year;
 
-  const formatDateRange = () => {
-    if (!dateRange?.from) return "Select date range";
-    if (!dateRange?.to) return format(dateRange.from, "MMM dd, yyyy");
-    return `${format(dateRange.from, "MMM dd")} - ${format(dateRange.to, "MMM dd, yyyy")}`;
-  };
 
   return (
     <Card>
@@ -98,82 +124,39 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-4 items-end">
-          {/* Date Range Picker */}
+          {/* Date Range Picker - native inputs */}
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Date Range
             </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formatDateRange()}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-3 border-b">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('thisMonth')}
-                    >
-                      This Month
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('lastMonth')}
-                    >
-                      Last Month
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('thisYear')}
-                    >
-                      This Year
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('lastYear')}
-                    >
-                      Last Year
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('last30Days')}
-                    >
-                      Last 30 Days
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('last90Days')}
-                    >
-                      Last 90 Days
-                    </Button>
-                  </div>
-                </div>
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  className={cn("p-3 pointer-events-auto")}
+            <div className="flex items-end gap-3 flex-wrap">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">From</span>
+                <Input
+                  type="date"
+                  value={dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => handleNativeDateChange('from', e.target.value)}
+                  className="w-[180px]"
                 />
-              </PopoverContent>
-            </Popover>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground">To</span>
+                <Input
+                  type="date"
+                  value={dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : ''}
+                  onChange={(e) => handleNativeDateChange('to', e.target.value)}
+                  className="w-[180px]"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisMonth')}>This Month</Button>
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastMonth')}>Last Month</Button>
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisYear')}>This Year</Button>
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastYear')}>Last Year</Button>
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last30Days')}>Last 30 Days</Button>
+              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last90Days')}>Last 90 Days</Button>
+            </div>
           </div>
 
           {hasActiveFilters && (
