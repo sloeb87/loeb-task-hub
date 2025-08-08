@@ -199,9 +199,6 @@ export const TaskTable = ({
     setFilters(prev => ({ ...prev, [filterType]: [] }));
   }, []);
 
-  const effectiveTasks = useMemo(() => {
-    return tasks.map(t => (previews[t.id] ? { ...t, ...previews[t.id] } : t));
-  }, [tasks, previews]);
 
   const filteredAndSortedTasks = useMemo(() => {
     return effectiveTasks
