@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
   Dialog, 
   DialogContent, 
@@ -138,6 +138,8 @@ export const TaskFormOptimized = React.memo(({
   const [editingFollowUpText, setEditingFollowUpText] = useState('');
   const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
   const { startTimer } = useTimeTracking();
+  const lastTaskIdRef = useRef<string | null>(null);
+  const lastInitTaskIdRef = useRef<string | null>(null);
 
 
   // Dropdown options - now coming from the database
@@ -156,12 +158,16 @@ export const TaskFormOptimized = React.memo(({
     priorities = []
   } = dropdownOptions;
 
-  // Initialize form data when task changes
+  // Initialize form data when task changes (only when opening or switching task id)
   useEffect(() => {
     console.log('TaskForm useEffect triggered - isOpen:', isOpen, 'task id:', task?.id, 'task environment:', task?.environment);
     if (!isOpen) return;
 
     if (task) {
+      if (lastInitTaskIdRef.current === task.id) {
+        // Same task id; avoid re-initializing to prevent flicker/reset on background refresh
+        return;
+      }
       // Editing existing task
       console.log('TaskForm - Initializing form data with task:', task.id, 'environment:', task.environment);
       const newFormData: FormData = {
@@ -192,6 +198,7 @@ export const TaskFormOptimized = React.memo(({
       setFormData(newFormData);
       setDate(new Date(task.dueDate));
       setProjectScope(task.scope[0] || ''); // Use first scope as string for project scope state
+      lastInitTaskIdRef.current = task.id;
     } else {
       // Creating new task - check for persisted form data first
       if (persistedFormData && !task) {
@@ -210,9 +217,10 @@ export const TaskFormOptimized = React.memo(({
         setFormData(newFormData);
         setDate(new Date());
         setProjectScope(null);
+        lastInitTaskIdRef.current = null;
       }
     }
-  }, [isOpen, task, projectName, persistedFormData]);
+  }, [isOpen, task?.id, projectName, persistedFormData]);
 
   // Persist form data for new tasks
   useEffect(() => {
@@ -236,12 +244,14 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [formData.project, allProjects, task]);
 
-  // Sync displayed follow-ups with current task when opening
+  // Sync displayed follow-ups with current task ONLY when opening or switching task id
   useEffect(() => {
-    if (isOpen) {
-      setDisplayedFollowUps(task?.followUps || []);
+    if (!isOpen || !task?.id) return;
+    if (lastTaskIdRef.current !== task.id) {
+      setDisplayedFollowUps(task.followUps || []);
+      lastTaskIdRef.current = task.id;
     }
-  }, [isOpen, task]);
+  }, [isOpen, task?.id]);
 
   // Memoized related tasks
   const relatedTasks = useMemo(() => {
