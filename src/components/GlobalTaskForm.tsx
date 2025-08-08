@@ -112,6 +112,7 @@ export const GlobalTaskForm: React.FC = () => {
       onDelete={deleteTask}
       onAddFollowUp={handleAddFollowUp}
       onUpdateFollowUp={handleUpdateFollowUp}
+      onDeleteFollowUp={handleDeleteFollowUp}
       onFollowUpTask={handleFollowUpTask}
       task={taskFormState.selectedTask}
       allTasks={tasks}

@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -47,6 +47,7 @@ interface TaskFormProps {
   onDelete?: (taskId: string) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
+  onDeleteFollowUp?: (followUpId: string) => void;
   onFollowUpTask?: (task: Task) => void; // Add this to open the main follow-up dialog
   task?: Task | null;
   allTasks: Task[];
@@ -115,6 +116,7 @@ export const TaskFormOptimized = React.memo(({
   onDelete,
   onAddFollowUp,
   onUpdateFollowUp,
+  onDeleteFollowUp,
   onFollowUpTask,
   task, 
   allTasks, 
@@ -131,6 +133,9 @@ export const TaskFormOptimized = React.memo(({
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
   const [newChecklistItem, setNewChecklistItem] = useState('');
+  const [newFollowUpText, setNewFollowUpText] = useState('');
+  const [editingFollowUpId, setEditingFollowUpId] = useState<string | null>(null);
+  const [editingFollowUpText, setEditingFollowUpText] = useState('');
   const { startTimer } = useTimeTracking();
 
 
@@ -306,6 +311,45 @@ export const TaskFormOptimized = React.memo(({
       // The parent component will receive the updated task through the database refresh
     } catch (error) {
       console.error('Error adding follow-up:', error);
+    }
+  };
+
+  // Inline follow-up helpers
+  const addFollowUpInline = async () => {
+    const text = newFollowUpText.trim();
+    if (!text) return;
+    await handleFollowUpAdd(text);
+    setNewFollowUpText('');
+  };
+
+  const startEditFollowUp = (id: string, text: string) => {
+    setEditingFollowUpId(id);
+    setEditingFollowUpText(text);
+  };
+
+  const saveEditFollowUp = async () => {
+    if (!task || !onUpdateFollowUp || !editingFollowUpId) return;
+    try {
+      await onUpdateFollowUp(task.id, editingFollowUpId, editingFollowUpText);
+      setEditingFollowUpId(null);
+      setEditingFollowUpText('');
+    } catch (e) {
+      console.error('Error saving follow-up edit:', e);
+    }
+  };
+
+  const cancelEditFollowUp = () => {
+    setEditingFollowUpId(null);
+    setEditingFollowUpText('');
+  };
+
+  const deleteFollowUpInline = async (id: string) => {
+    if (!onDeleteFollowUp) return;
+    if (!window.confirm('Are you sure you want to delete this follow-up?')) return;
+    try {
+      await onDeleteFollowUp(id);
+    } catch (e) {
+      console.error('Error deleting follow-up:', e);
     }
   };
 
@@ -1035,51 +1079,125 @@ export const TaskFormOptimized = React.memo(({
                     <span className="text-sm text-gray-600 dark:text-gray-300">
                       {task.followUps.length} follow-up{task.followUps.length !== 1 ? 's' : ''}
                     </span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleFollowUpClick()}
-                      className="flex items-center gap-2"
-                    >
-                      <MessageSquarePlus className="w-4 h-4" />
-                      Add Follow-up
-                    </Button>
                   </div>
                 </div>
 
-                 {/* Follow-ups content - directly under Follow-ups title */}
+                {/* Inline add bar under Follow-ups title */}
+                <div className="mb-4 flex gap-2">
+                  <Input
+                    value={newFollowUpText}
+                    onChange={(e) => setNewFollowUpText(e.target.value)}
+                    placeholder="Add a follow-up comment..."
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addFollowUpInline();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addFollowUpInline}
+                    className="flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add
+                  </Button>
+                </div>
+
+                {/* Follow-ups list */}
                 <div className="mb-6">
                   {task.followUps.length > 0 ? (
                     <div className="space-y-3">
                       {task.followUps
-                        .slice() // Create a copy to avoid mutating original
-                        .reverse() // Show most recent first
+                        .slice()
+                        .reverse()
                         .map((followUp) => (
-                           <div 
-                             key={followUp.id} 
-                             className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500 cursor-pointer"
-                             onClick={() => handleFollowUpClick(followUp.id)}
-                             title="Click to edit this follow-up"
-                           >
-                             <div className="flex items-center gap-3">
-                               <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md">
-                                 {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
-                                   month: '2-digit', 
-                                   day: '2-digit', 
-                                   year: '2-digit' 
-                                 })}
-                               </span>
-                               <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
-                             </div>
-                           </div>
+                          <div 
+                            key={followUp.id} 
+                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3 flex-1">
+                                <span className="text-sm font-semibold text-primary dark:text-primary bg-muted dark:bg-muted px-2 py-1 rounded-md whitespace-nowrap">
+                                  {new Date(followUp.timestamp).toLocaleDateString('en-US', { 
+                                    month: '2-digit', 
+                                    day: '2-digit', 
+                                    year: '2-digit' 
+                                  })}
+                                </span>
+                                {editingFollowUpId === followUp.id ? (
+                                  <Input
+                                    value={editingFollowUpText}
+                                    onChange={(e) => setEditingFollowUpText(e.target.value)}
+                                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                    autoFocus
+                                  />
+                                ) : (
+                                  <span className="text-sm text-foreground dark:text-foreground leading-relaxed">: {followUp.text}</span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {editingFollowUpId === followUp.id ? (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={saveEditFollowUp}
+                                      className="h-6 px-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                                      title="Save"
+                                    >
+                                      <Check className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={cancelEditFollowUp}
+                                      className="h-6 px-2 text-gray-600 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-700"
+                                      title="Cancel"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => startEditFollowUp(followUp.id, followUp.text)}
+                                      className="h-6 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                                      title="Edit"
+                                    >
+                                      <Pencil className="w-3 h-3" />
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => deleteFollowUpInline(followUp.id)}
+                                      className="h-6 px-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="w-3 h-3" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
                         ))}
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                       <MessageSquarePlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
                       <p className="text-sm">No follow-ups yet</p>
-                      <p className="text-xs">Click "Add Follow-up" to start tracking progress</p>
+                      <p className="text-xs">Use the bar above to add your first follow-up</p>
                     </div>
                   )}
                 </div>
