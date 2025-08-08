@@ -670,7 +670,7 @@ export const TaskFormOptimized = React.memo(({
                         <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-medium">Project scopes: </span>
                           <span className="text-gray-700 dark:text-gray-300">
-                            {projectScope.split(',').map(scope => scope.trim()).join(', ')}
+                            {Array.isArray(projectScope) ? projectScope.join(', ') : projectScope}
                           </span>
                         </div>
                       )}
