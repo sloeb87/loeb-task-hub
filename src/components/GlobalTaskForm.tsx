@@ -2,9 +2,10 @@ import React from 'react';
 import { TaskFormOptimized } from './TaskFormOptimized';
 import { useTaskForm } from '@/contexts/TaskFormContext';
 import { useSupabaseStorage } from '@/hooks/useSupabaseStorage';
+import type { Task, FollowUp } from '@/types/task';
 
 export const GlobalTaskForm: React.FC = () => {
-  const { taskFormState, closeTaskForm, openTaskForm, saveFormData } = useTaskForm();
+  const { taskFormState, closeTaskForm, openTaskForm, saveFormData, updateTaskForm } = useTaskForm();
   const { 
     tasks, 
     projects, 
@@ -20,6 +21,19 @@ export const GlobalTaskForm: React.FC = () => {
   const handleAddFollowUp = async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);
+      // Optimistically update current selected task to keep UI in sync
+      if (taskFormState.selectedTask) {
+        const optimistic: FollowUp = {
+          id: 'temp-' + Date.now().toString(),
+          text: followUpText,
+          timestamp: new Date().toISOString(),
+          taskStatus: taskFormState.selectedTask.status,
+        };
+        updateTaskForm({
+          ...taskFormState.selectedTask,
+          followUps: [...taskFormState.selectedTask.followUps, optimistic],
+        } as Task);
+      }
       // Refresh tasks in background without reloading the page
       refreshTasks();
     } catch (error) {
@@ -30,6 +44,15 @@ export const GlobalTaskForm: React.FC = () => {
   const handleUpdateFollowUp = async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
     try {
       await updateFollowUp(followUpId, text, timestamp);
+      // Optimistically update current selected task
+      if (taskFormState.selectedTask) {
+        updateTaskForm({
+          ...taskFormState.selectedTask,
+          followUps: taskFormState.selectedTask.followUps.map(f => 
+            f.id === followUpId ? { ...f, text, timestamp: timestamp || f.timestamp } : f
+          ),
+        } as Task);
+      }
       // Refresh tasks in background without reloading the page
       refreshTasks();
     } catch (error) {
@@ -40,6 +63,13 @@ export const GlobalTaskForm: React.FC = () => {
   const handleDeleteFollowUp = async (followUpId: string) => {
     try {
       await deleteFollowUp(followUpId);
+      // Optimistically update current selected task
+      if (taskFormState.selectedTask) {
+        updateTaskForm({
+          ...taskFormState.selectedTask,
+          followUps: taskFormState.selectedTask.followUps.filter(f => f.id !== followUpId),
+        } as Task);
+      }
       // Refresh tasks in background without reloading the page
       refreshTasks();
     } catch (error) {
