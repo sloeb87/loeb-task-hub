@@ -71,6 +71,39 @@ export const TaskTable = ({
   // Wait for all parameter colors to load to prevent the grey-to-color flash
   const parametersLoading = scopeLoading || taskTypeLoading || environmentLoading || statusLoading || priorityLoading;
 
+  // Live preview map for in-form edits (not yet saved to backend)
+  const [previews, setPreviews] = useState<Record<string, Partial<Task>>>({});
+
+  useEffect(() => {
+    const handleUpdate = (event: Event) => {
+      const e = event as CustomEvent;
+      const { id, changes } = (e.detail || {}) as { id: string; changes: Partial<Task> };
+      if (!id || !changes) return;
+      setPreviews(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...changes } }));
+    };
+    const handleClear = (event: Event) => {
+      const e = event as CustomEvent;
+      const { id } = (e.detail || {}) as { id: string };
+      if (!id) return;
+      setPreviews(prev => {
+        const { [id]: _, ...rest } = prev;
+        return rest;
+      });
+    };
+    window.addEventListener('taskPreviewUpdated', handleUpdate as EventListener);
+    window.addEventListener('taskPreviewClear', handleClear as EventListener);
+    return () => {
+      window.removeEventListener('taskPreviewUpdated', handleUpdate as EventListener);
+      window.removeEventListener('taskPreviewClear', handleClear as EventListener);
+    };
+  }, []);
+
+
+  // Merge live previews into tasks for immediate UI sync (not persisted)
+  const effectiveTasks = useMemo(() => {
+    return tasks.map(t => (previews[t.id] ? { ...t, ...previews[t.id] } : t));
+  }, [tasks, previews]);
+
   // Close filter dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -97,50 +130,42 @@ export const TaskTable = ({
 
   const getUniqueValues = useMemo(() => {
     return (filterType: keyof Filters): string[] => {
+      const sourceTasks = effectiveTasks;
       if (filterType === 'dueDate') {
-        return [...new Set(tasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
+        return [...new Set(sourceTasks.map(task => new Date(task.dueDate).toLocaleDateString()))].sort();
       }
-      
       if (filterType === 'followUps') {
-        // Only return options that actually exist in the data
-        const hasFollowUps = tasks.some(task => task.followUps && task.followUps.length > 0);
-        const hasNoFollowUps = tasks.some(task => !task.followUps || task.followUps.length === 0);
-        
-        const options = [];
+        const hasFollowUps = sourceTasks.some(task => task.followUps && task.followUps.length > 0);
+        const hasNoFollowUps = sourceTasks.some(task => !task.followUps || task.followUps.length === 0);
+        const options: string[] = [];
         if (hasFollowUps) options.push('Has Follow-ups');
         if (hasNoFollowUps) options.push('No Follow-ups');
         return options;
       }
-      
       if (filterType === 'timeTracking') {
-        // Only return options that actually exist in the data
-        const options = [];
-        const hasTimeLogged = tasks.some(task => {
+        const options: string[] = [];
+        const hasTimeLogged = sourceTasks.some(task => {
           const taskTime = getTaskTime(task.id);
           return taskTime.totalTime > 0 && !taskTime.isRunning;
         });
-        const hasNoTime = tasks.some(task => {
+        const hasNoTime = sourceTasks.some(task => {
           const taskTime = getTaskTime(task.id);
           return taskTime.totalTime === 0 && !taskTime.isRunning;
         });
-        const hasRunning = tasks.some(task => {
+        const hasRunning = sourceTasks.some(task => {
           const taskTime = getTaskTime(task.id);
           return taskTime.isRunning;
         });
-        
         if (hasTimeLogged) options.push('Has Time Logged');
         if (hasNoTime) options.push('No Time Logged');
         if (hasRunning) options.push('Currently Running');
         return options;
       }
-      
-      // For actual Task properties - only return values that exist in the data
       const field = filterType as keyof Task;
-      const values = [...new Set(tasks.map(task => task[field] as string))].filter(Boolean);
-      
+      const values = [...new Set(sourceTasks.map(task => task[field] as string))].filter(Boolean);
       return values.sort();
     };
-  }, [tasks, getTaskTime]);
+  }, [effectiveTasks, getTaskTime]);
 
   const handleSort = useCallback((field: SortField) => {
     if (sortField === field) {
@@ -174,8 +199,12 @@ export const TaskTable = ({
     setFilters(prev => ({ ...prev, [filterType]: [] }));
   }, []);
 
+  const effectiveTasks = useMemo(() => {
+    return tasks.map(t => (previews[t.id] ? { ...t, ...previews[t.id] } : t));
+  }, [tasks, previews]);
+
   const filteredAndSortedTasks = useMemo(() => {
-    return tasks
+    return effectiveTasks
       .filter(task => {
         const matchesSearch = searchTerm === "" || 
           task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -244,7 +273,7 @@ export const TaskTable = ({
         if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
         return 0;
       });
-  }, [tasks, searchTerm, filters, sortField, sortDirection, getTaskTime]);
+  }, [effectiveTasks, searchTerm, filters, sortField, sortDirection, getTaskTime]);
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <div 

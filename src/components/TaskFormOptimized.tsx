@@ -266,9 +266,20 @@ export const TaskFormOptimized = React.memo(({
     }
     setFormData(prev => {
       const newFormData = { ...prev, [field]: value };
+      // Live preview: broadcast changes for existing tasks only (UI sync without backend)
+      if (task?.id) {
+        const changes: any = {};
+        if (field === 'dueDate') {
+          const d = newFormData.dueDate as unknown as Date;
+          changes.dueDate = d ? new Date(d).toISOString().split('T')[0] : undefined;
+        } else {
+          changes[field] = value;
+        }
+        window.dispatchEvent(new CustomEvent('taskPreviewUpdated', { detail: { id: task.id, changes } }));
+      }
       return newFormData;
     });
-  }, []);
+  }, [task?.id]);
 
   const updateLinkField = useCallback((linkType: keyof FormData['links'], value: string) => {
     setFormData(prev => ({
@@ -330,15 +341,23 @@ export const TaskFormOptimized = React.memo(({
 
     console.log('TaskForm saving taskData.scope:', taskData.scope);
     onSave(taskData);
+    // Clear preview for this task after saving
+    if (task?.id) {
+      window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+    }
     onClose();
   }, [formData, date, projectScope, task, onSave, onClose]);
 
   const handleRelatedTaskClick = useCallback((relatedTask: Task) => {
     if (onEditRelatedTask) {
       onEditRelatedTask(relatedTask);
+      // Clear any live preview for current task before switching
+      if (task?.id) {
+        window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+      }
       onClose();
     }
-  }, [onEditRelatedTask, onClose]);
+  }, [onEditRelatedTask, onClose, task?.id]);
 
   const handleFollowUpAdd = async (text: string) => {
     if (!task || !onAddFollowUp) return;
@@ -429,6 +448,9 @@ export const TaskFormOptimized = React.memo(({
         description: `Time tracking started for task: ${task.title}`,
       });
       // Close the modal after starting timer
+      if (task?.id) {
+        window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+      }
       onClose();
       // Force a small refresh to ensure timer display appears
       setTimeout(() => {
@@ -440,6 +462,9 @@ export const TaskFormOptimized = React.memo(({
   const handleDelete = () => {
     if (task && onDelete && window.confirm('Are you sure you want to delete this task?')) {
       onDelete(task.id);
+      if (task?.id) {
+        window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+      }
       onClose();
     }
   };
@@ -447,6 +472,9 @@ export const TaskFormOptimized = React.memo(({
   const handleNavigateToProject = () => {
     if (onNavigateToProject && formData.project) {
       onNavigateToProject(formData.project);
+      if (task?.id) {
+        window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+      }
       onClose();
     }
   };
@@ -578,6 +606,9 @@ export const TaskFormOptimized = React.memo(({
       // Only allow closing if it's an explicit close action, not a focus loss
       if (!open && document.hasFocus()) {
         console.log('TaskForm Dialog - Allowing close (document has focus)');
+        if (task?.id) {
+          window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+        }
         onClose();
       } else if (!open && !document.hasFocus()) {
         console.log('TaskForm Dialog - Preventing close (document lost focus)');
@@ -911,7 +942,7 @@ export const TaskFormOptimized = React.memo(({
                          if (e.target.value) {
                            const selectedDate = new Date(e.target.value);
                            setDate(selectedDate);
-                           setFormData(prev => ({ ...prev, dueDate: selectedDate }));
+                           updateField('dueDate', selectedDate);
                          }
                        }}
                        required
@@ -1344,7 +1375,12 @@ export const TaskFormOptimized = React.memo(({
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={onClose}
+                onClick={() => {
+                  if (task?.id) {
+                    window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+                  }
+                  onClose();
+                }}
                 className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Cancel
