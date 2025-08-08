@@ -314,11 +314,23 @@ export const TaskFormOptimized = React.memo(({
     if (!task || !onAddFollowUp) return;
     
     try {
-      // Use the proper Supabase addFollowUp function and wait for completion
+      // Optimistic UI update
+      const optimistic: FollowUp = {
+        id: 'temp-' + Date.now().toString(),
+        text,
+        timestamp: new Date().toISOString(),
+        taskStatus: task.status,
+      };
+      setDisplayedFollowUps(prev => [...prev, optimistic]);
+
+      // Persist to Supabase
       await onAddFollowUp(task.id, text);
-      // The parent component will receive the updated task through the database refresh
+      // Parent refresh will reconcile real data
     } catch (error) {
       console.error('Error adding follow-up:', error);
+      // Revert optimistic add on failure
+      setDisplayedFollowUps(prev => prev.filter(f => !(f.id.startsWith('temp-') && f.text === text)));
+      toast({ title: 'Error adding follow-up', variant: 'destructive' });
     }
   };
 
