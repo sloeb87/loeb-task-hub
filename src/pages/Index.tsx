@@ -36,7 +36,8 @@ const Index = () => {
     deleteTask,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    refreshTasks
   } = useSupabaseStorage();
 
 
@@ -144,16 +145,18 @@ const Index = () => {
   } = useTaskFilters(tasks, activeFilter);
 
   // Event handlers using useCallback for optimization
-  const handleCreateTask = useCallback((taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    createTask(taskData);
+  const handleCreateTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    await createTask(taskData);
+    refreshTasks();
     setIsTaskFormOpen(false);
-  }, [createTask]);
-  const handleUpdateTask = useCallback((updatedTask: Task) => {
+  }, [createTask, refreshTasks]);
+  const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
-    updateTask(updatedTask);
+    await updateTask(updatedTask);
+    refreshTasks();
     setSelectedTask(null);
     setIsTaskFormOpen(false);
-  }, [updateTask]);
+  }, [updateTask, refreshTasks]);
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
@@ -265,11 +268,12 @@ const Index = () => {
         <AppHeader 
           activeView={activeView} 
           onViewChange={handleViewChange}
-        isDarkMode={isDarkMode} 
-        onToggleDarkMode={toggleDarkMode} 
-        onOpenParameters={() => setIsParametersOpen(true)}
-        onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
-      />
+          isDarkMode={isDarkMode} 
+          onToggleDarkMode={toggleDarkMode} 
+          onOpenParameters={() => setIsParametersOpen(true)}
+          onRefresh={refreshTasks}
+          onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
+        />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">

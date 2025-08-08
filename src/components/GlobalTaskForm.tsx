@@ -65,6 +65,8 @@ export const GlobalTaskForm: React.FC = () => {
     try {
       if ('id' in taskData) {
         await updateTask(taskData);
+        // Ensure UI reflects the latest data immediately
+        refreshTasks();
       } else {
         // Set the project name if creating task for specific project
         const finalTaskData = {
@@ -72,6 +74,8 @@ export const GlobalTaskForm: React.FC = () => {
           project: taskFormState.projectName || taskData.project
         };
         await createTask(finalTaskData);
+        // Ensure UI reflects the latest data immediately
+        refreshTasks();
       }
       
       closeTaskForm();

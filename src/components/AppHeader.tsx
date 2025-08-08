@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ interface AppHeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
+  onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
 }
 export const AppHeader = ({
@@ -20,6 +21,7 @@ export const AppHeader = ({
   isDarkMode,
   onToggleDarkMode,
   onOpenParameters,
+  onRefresh,
   onBack
 }: AppHeaderProps) => {
   const {
@@ -75,14 +77,16 @@ export const AppHeader = ({
     </div>;
 
   const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-2">
-      <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center gap-2">
-        <Settings className="w-4 h-4" />
-        
+      <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center gap-2" aria-label="Refresh">
+        <RotateCw className="w-4 h-4" />
       </Button>
-      <Button variant="outline" onClick={onToggleDarkMode} size="sm" className="flex items-center gap-2">
+      <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center gap-2" aria-label="Parameters">
+        <Settings className="w-4 h-4" />
+      </Button>
+      <Button variant="outline" onClick={onToggleDarkMode} size="sm" className="flex items-center gap-2" aria-label="Toggle theme">
         {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
       </Button>
-      <Button variant="outline" onClick={handleSignOut} size="sm" className="flex items-center gap-2">
+      <Button variant="outline" onClick={handleSignOut} size="sm" className="flex items-center gap-2" aria-label="Logout">
         <LogOut className="w-4 h-4" />
       </Button>
     </div>;
