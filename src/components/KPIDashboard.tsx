@@ -179,7 +179,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         data.push({
           date: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
           opened: openedTasks.length,
-          closed: closedTasks.length,
+          completed: closedTasks.length,
           wip: wipTasks,
         });
       }
@@ -220,7 +220,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         data.push({
           date: dateLabel,
           opened: openedTasks.length,
-          closed: closedTasks.length,
+          completed: closedTasks.length,
           wip: wipTasks,
         });
       }
