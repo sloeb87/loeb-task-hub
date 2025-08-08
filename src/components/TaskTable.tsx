@@ -495,7 +495,7 @@ export const TaskTable = ({
                   <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
-                  <FilterableHeader field="status" filterType="status">Priority & Status</FilterableHeader>
+                  <FilterableHeader field="priority" filterType="status">Priority & Status</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>
                   <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
