@@ -830,31 +830,6 @@ export const TaskFormOptimized = React.memo(({
                   </div>
 
                   <div>
-                    <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
-                    <Select 
-                      value={formData.status} 
-                      onValueChange={(value) => updateField('status', value)}
-                    >
-                      <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
-                        {statuses.map((status: string) => (
-                          <SelectItem 
-                            key={status} 
-                            value={status}
-                            className="dark:text-white dark:focus:bg-gray-700"
-                          >
-                            {status}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
                     <Label htmlFor="priority" className="text-gray-700 dark:text-gray-300">Priority</Label>
                     <Select 
                       value={formData.priority} 
@@ -871,6 +846,31 @@ export const TaskFormOptimized = React.memo(({
                             className="dark:text-white dark:focus:bg-gray-700"
                           >
                             {priority}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
+                    <Select 
+                      value={formData.status} 
+                      onValueChange={(value) => updateField('status', value)}
+                    >
+                      <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                        {statuses.map((status: string) => (
+                          <SelectItem 
+                            key={status} 
+                            value={status}
+                            className="dark:text-white dark:focus:bg-gray-700"
+                          >
+                            {status}
                           </SelectItem>
                         ))}
                       </SelectContent>

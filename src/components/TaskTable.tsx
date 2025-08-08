@@ -495,7 +495,7 @@ export const TaskTable = ({
                   <FilterableHeader field="responsible" filterType="responsible">Responsible</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '180px' }}>
-                  <FilterableHeader field="status" filterType="status">Status & Priority</FilterableHeader>
+                  <FilterableHeader field="status" filterType="status">Priority & Status</FilterableHeader>
                 </TableHead>
                 <TableHead style={{ minWidth: '120px' }}>
                   <FilterableHeader field="dueDate" filterType="dueDate">Due Date</FilterableHeader>
@@ -592,23 +592,23 @@ export const TaskTable = ({
                     </div>
                   </TableCell>
 
-                  {/* Status & Priority Column */}
+                  {/* Priority & Status Column */}
                   <TableCell>
                     <div className="space-y-2">
                       <div>
                          <Badge 
                            className="text-sm border"
-                           style={parametersLoading ? {} : getStatusStyle(task.status)}
+                           style={parametersLoading ? {} : getPriorityStyle(task.priority)}
                          >
-                           {task.status}
+                           {task.priority}
                          </Badge>
                        </div>
                        <div>
                          <Badge 
                            className="text-sm border"
-                           style={parametersLoading ? {} : getPriorityStyle(task.priority)}
+                           style={parametersLoading ? {} : getStatusStyle(task.status)}
                          >
-                           {task.priority}
+                           {task.status}
                          </Badge>
                       </div>
                     </div>
