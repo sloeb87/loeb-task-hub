@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo } from "lucide-react";
 import { Task, Project } from "@/types/task";
-import { mockProjects } from "@/data/mockData";
-import { useNavigate } from "react-router-dom";
+
+
 import { TaskTable } from "@/components/TaskTable";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { KPIDashboard } from "@/components/KPIDashboard";
@@ -19,7 +19,7 @@ import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 const Index = () => {
-  const navigate = useNavigate();
+  
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Custom hooks for optimized data management
@@ -116,6 +116,36 @@ const Index = () => {
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking" | "followups">("tasks");
+
+  // SEO: dynamic title, description, canonical per view
+  useEffect(() => {
+    const labels: Record<typeof activeView, string> = {
+      tasks: "Task Management",
+      dashboard: "KPI Dashboard",
+      projects: "Projects",
+      timetracking: "Time Tracking",
+      followups: "Follow Ups",
+    };
+    const appName = "Task Tracker";
+    document.title = `${labels[activeView]} | ${appName}`;
+
+    const descText = `Manage ${labels[activeView].toLowerCase()} in ${appName}.`;
+    let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = document.createElement('meta');
+      meta.name = 'description';
+      document.head.appendChild(meta);
+    }
+    meta.content = descText;
+
+    let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'canonical';
+      document.head.appendChild(link);
+    }
+    link.href = window.location.href;
+  }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => {
