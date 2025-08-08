@@ -69,6 +69,15 @@ const Index = () => {
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   
+  // Keep selectedTask in sync with latest tasks (so new follow-ups appear in edit form)
+  useEffect(() => {
+    if (!selectedTask) return;
+    const fresh = tasks.find(t => t.id === selectedTask.id);
+    if (fresh && fresh !== selectedTask) {
+      setSelectedTask(fresh);
+    }
+  }, [tasks, selectedTask?.id]);
+  
   // Add debugging for task form state changes
   useEffect(() => {
     console.log('INDEX - Task form state changed:', { 

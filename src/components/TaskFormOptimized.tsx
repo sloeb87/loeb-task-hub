@@ -245,14 +245,19 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [formData.project, allProjects, task]);
 
-  // Sync displayed follow-ups with current task ONLY when opening or switching task id
+  // Sync displayed follow-ups with current task; also update when follow-ups change for same task id
   useEffect(() => {
     if (!isOpen || !task?.id) return;
     if (lastTaskIdRef.current !== task.id) {
       setDisplayedFollowUps(task.followUps || []);
       lastTaskIdRef.current = task.id;
+    } else {
+      const countChanged = (task.followUps?.length || 0) !== displayedFollowUps.length;
+      if (countChanged) {
+        setDisplayedFollowUps(task.followUps || []);
+      }
     }
-  }, [isOpen, task?.id]);
+  }, [isOpen, task?.id, task?.followUps?.length]);
 
   // Memoized related tasks
   const relatedTasks = useMemo(() => {
