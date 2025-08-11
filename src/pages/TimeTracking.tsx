@@ -332,7 +332,13 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     return `${mins}m`;
   };
 
-  // Task Type distribution for Pie Chart (% by task type) based on filtered entries
+  const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
+  const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
+  const labelWithPercentHours = ({ name, percent, value }: any) => {
+    const pct = formatPercentComma(((percent || 0) * 100));
+    const hoursText = formatDetailedTime(typeof value === 'number' ? value : 0);
+    return `${abbreviate(name)} ${pct}% • ${hoursText}`;
+  };
   const taskTypePieData = useMemo(() => {
     const totals: Record<string, number> = {};
     const now = new Date();
@@ -627,7 +633,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={50}
                       outerRadius={80}
                       strokeWidth={2}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={labelWithPercentHours}
                       labelLine={false}
                     >
                     {projectPieData.map((entry, index) => (
