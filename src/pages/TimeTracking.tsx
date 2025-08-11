@@ -334,10 +334,21 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
   const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
   const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
-  const labelWithPercentHours = ({ name, percent, value }: any) => {
+  // Multiline inside-slice label: first line = name, second line = percent • time
+  const pieLabelMultiline = (props: any) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, name, percent, value } = props;
+    const RADIAN = Math.PI / 180;
+    const r = innerRadius + (outerRadius - innerRadius) * 0.58;
+    const x = cx + r * Math.cos(-midAngle * RADIAN);
+    const y = cy + r * Math.sin(-midAngle * RADIAN);
     const pct = formatPercentComma(((percent || 0) * 100));
-    const hoursText = formatDetailedTime(typeof value === 'number' ? value : 0);
-    return `${abbreviate(name)} ${pct}% • ${hoursText}`;
+    const minutesVal = typeof value === 'number' ? value : 0;
+    return (
+      <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className="fill-current text-foreground">
+        <tspan x={x} dy="-0.3em">{name}</tspan>
+        <tspan x={x} dy="1.2em">{`${pct}% • ${formatDetailedTime(minutesVal)}`}</tspan>
+      </text>
+    );
   };
   const taskTypePieData = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -633,7 +644,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        innerRadius={60}
                        outerRadius={100}
                       strokeWidth={2}
-                      label={labelWithPercentHours}
+                      label={pieLabelMultiline}
                       labelLine={false}
                     >
                     {projectPieData.map((entry, index) => (
@@ -688,7 +699,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
-                      label={labelWithPercentHours}
+                      label={pieLabelMultiline}
                       labelLine={false}
                     >
                       {taskTypePieData.map((entry, index) => (
@@ -736,7 +747,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
-                      label={labelWithPercentHours}
+                      label={pieLabelMultiline}
                       labelLine={false}
                     >
                       {scopePieData.map((entry, index) => (
