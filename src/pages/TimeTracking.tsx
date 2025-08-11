@@ -547,7 +547,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
   // Non-Project timer constants and handlers
   const NON_PROJECT_TASK_ID = 'non_project_time';
-  const NON_PROJECT_TASK_TITLE = 'Non-Project Time';
+  const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
   const nonProjectTimer = getTaskTime(NON_PROJECT_TASK_ID);

@@ -17,13 +17,28 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const [currentDuration, setCurrentDuration] = useState<string>("");
 
   // Find the currently running task
+  const NON_PROJECT_TASK_ID = 'non_project_time';
+  const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
+  const NON_PROJECT_PROJECT_NAME = 'Non Project';
+
   const runningTaskData = React.useMemo(() => {
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
     if (!runningTimerEntry) return null;
 
     const [taskId, timerData] = runningTimerEntry;
     const task = tasks.find(task => task.id === taskId);
-    return task ? { task, timerData } : null;
+    if (task) return { task, timerData, isNonProject: false };
+
+    if (taskId === NON_PROJECT_TASK_ID) {
+      const syntheticTask = {
+        id: NON_PROJECT_TASK_ID,
+        title: NON_PROJECT_TASK_TITLE,
+        project: NON_PROJECT_PROJECT_NAME,
+      } as Task;
+      return { task: syntheticTask, timerData, isNonProject: true };
+    }
+
+    return null;
   }, [taskTimers, tasks]);
 
   // Update duration display every second
@@ -62,6 +77,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   };
 
   const handleTimerClick = () => {
+    if (runningTaskData?.isNonProject) return; // Non-Project synthetic task is not editable
     openTaskForm(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
   };
 
