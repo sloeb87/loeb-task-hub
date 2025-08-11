@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Filter, X } from "lucide-react";
 import { TimeEntryFilters } from "@/types/timeEntry";
-import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
 import { DateRange } from "react-day-picker";
 
 interface TimeEntryFiltersProps {
@@ -73,6 +73,10 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
     let from: Date, to: Date;
 
     switch (preset) {
+      case 'today':
+        from = startOfDay(now);
+        to = endOfDay(now);
+        break;
       case 'thisMonth':
         from = startOfMonth(now);
         to = endOfMonth(now);
@@ -116,47 +120,39 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center text-lg">
+      <CardHeader className="py-3">
+        <CardTitle className="flex items-center text-base">
           <Filter className="w-5 h-5 mr-2" />
-          Filter Time Entries
+          Filters
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-4 items-end">
-          {/* Date Range Picker - native inputs */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Date Range
-            </label>
-            <div className="flex items-end gap-3 flex-wrap">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">From</span>
-                <Input
-                  type="date"
-                  value={dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => handleNativeDateChange('from', e.target.value)}
-                  className="w-[180px]"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">To</span>
-                <Input
-                  type="date"
-                  value={dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : ''}
-                  onChange={(e) => handleNativeDateChange('to', e.target.value)}
-                  className="w-[180px]"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisMonth')}>This Month</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastMonth')}>Last Month</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisYear')}>This Year</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastYear')}>Last Year</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last30Days')}>Last 30 Days</Button>
-              <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last90Days')}>Last 90 Days</Button>
-            </div>
+      <CardContent className="pt-0">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">From</span>
+            <Input
+              type="date"
+              value={dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : ''}
+              onChange={(e) => handleNativeDateChange('from', e.target.value)}
+              className="w-[160px] h-9"
+            />
+            <span className="text-xs text-muted-foreground">To</span>
+            <Input
+              type="date"
+              value={dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : ''}
+              onChange={(e) => handleNativeDateChange('to', e.target.value)}
+              className="w-[160px] h-9"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('today')}>Today</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisMonth')}>This Month</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastMonth')}>Last Month</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisYear')}>This Year</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastYear')}>Last Year</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last30Days')}>Last 30 Days</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last90Days')}>Last 90 Days</Button>
           </div>
 
           {hasActiveFilters && (
@@ -164,10 +160,10 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
               variant="outline" 
               size="sm" 
               onClick={onClearFilters}
-              className="flex items-center gap-2"
+              className="ml-auto flex items-center gap-2"
             >
               <X className="w-4 h-4" />
-              Clear Filters
+              Clear
             </Button>
           )}
         </div>

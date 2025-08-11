@@ -18,6 +18,8 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
+import { PieChart, Pie, Cell } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent, type ChartConfig } from "@/components/ui/chart";
 
 interface MultiSelectFilters {
   task: string[];
@@ -259,6 +261,46 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const allTimeEntries = getFilteredTimeEntries({});
   const totalStats = useMemo(() => getTimeEntryStats(allTimeEntries), [getTimeEntryStats, allTimeEntries]);
 
+  // Project distribution for Pie Chart (% by project) based on filtered entries
+  const projectPieData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const key = e.projectName || 'Unassigned';
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      totals[key] = (totals[key] || 0) + mins;
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries]);
+
+  const chartConfig = useMemo<ChartConfig>(() => {
+    return projectPieData.reduce((acc, item) => {
+      acc[item.name] = { label: item.name };
+      return acc;
+    }, {} as ChartConfig);
+  }, [projectPieData]);
+
+  const chartColors = useMemo(() => [
+    'hsl(var(--primary))',
+    'hsl(var(--secondary))',
+    'hsl(var(--accent))',
+    'hsl(var(--muted))',
+    'hsl(var(--destructive))',
+  ], []);
+
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -457,6 +499,54 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
         onFiltersChange={setFilters}
         onClearFilters={() => setFilters({})}
       />
+
+      {/* Project Distribution Pie Chart */}
+      {projectPieData.length > 0 ? (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Time by Project (%)</CardTitle>
+            <CardDescription>Based on current filters</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-64 w-full">
+              <PieChart>
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      formatter={(value: number, name: string, item: any) => {
+                        const data = item?.payload as { percent?: number } | undefined;
+                        const minutes = Number(value) || 0;
+                        const pct = data?.percent ?? 0;
+                        return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                      }}
+                    />
+                  }
+                />
+                <Pie
+                  data={projectPieData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={50}
+                  outerRadius={80}
+                  strokeWidth={2}
+                >
+                  {projectPieData.map((entry, index) => (
+                    <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
+                  ))}
+                </Pie>
+                <ChartLegend content={<ChartLegendContent />} />
+              </PieChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Time by Project (%)</CardTitle>
+            <CardDescription>No time data in current range</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
 
       {/* Export */}
       <TimeEntryExport
