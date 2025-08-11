@@ -61,18 +61,18 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 50%;
 
     /* Chart categorical palette (light) */
-    --chart-1: 221 83% 54%;
-    --chart-2: 262 83% 58%;
-    --chart-3: 158 64% 45%;
-    --chart-4: 17 90% 57%;
-    --chart-5: 199 89% 48%;
-    --chart-6: 338 78% 62%;
-    --chart-7: 271 81% 56%;
-    --chart-8: 43 96% 56%;
-    --chart-9: 189 94% 42%;
-    --chart-10: 142 72% 45%;
-    --chart-11: 6 78% 57%;
-    --chart-12: 316 74% 57%;
+    --chart-1: 190 100% 45%;   /* neon cyan */
+    --chart-2: 270 100% 60%;   /* electric violet */
+    --chart-3: 160 100% 45%;   /* neon green */
+    --chart-4: 200 100% 55%;   /* tech blue */
+    --chart-5: 315 100% 55%;   /* neon magenta */
+    --chart-6: 45 100% 60%;    /* neon amber */
+    --chart-7: 340 100% 60%;   /* neon pink-red */
+    --chart-8: 220 100% 60%;   /* azure glow */
+    --chart-9: 140 100% 50%;   /* laser lime */
+    --chart-10: 260 100% 65%;  /* ultraviolet */
+    --chart-11: 30 100% 60%;   /* neon orange */
+    --chart-12: 0 100% 60%;    /* neon red */
    }
 
   .dark {
@@ -120,18 +120,18 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 70%;
 
     /* Chart categorical palette (dark) */
-    --chart-1: 221 83% 66%;
-    --chart-2: 262 83% 70%;
-    --chart-3: 158 64% 62%;
-    --chart-4: 17 90% 68%;
-    --chart-5: 199 89% 62%;
-    --chart-6: 338 78% 70%;
-    --chart-7: 271 81% 68%;
-    --chart-8: 43 96% 68%;
-    --chart-9: 189 94% 64%;
-    --chart-10: 142 72% 62%;
-    --chart-11: 6 78% 65%;
-    --chart-12: 316 74% 68%;
+    --chart-1: 190 100% 60%;   /* neon cyan */
+    --chart-2: 270 100% 70%;   /* electric violet */
+    --chart-3: 160 100% 60%;   /* neon green */
+    --chart-4: 200 100% 66%;   /* tech blue */
+    --chart-5: 315 100% 68%;   /* neon magenta */
+    --chart-6: 45 100% 65%;    /* neon amber */
+    --chart-7: 340 100% 68%;   /* neon pink-red */
+    --chart-8: 220 100% 68%;   /* azure glow */
+    --chart-9: 140 100% 64%;   /* laser lime */
+    --chart-10: 260 100% 72%;  /* ultraviolet */
+    --chart-11: 30 100% 66%;   /* neon orange */
+    --chart-12: 0 100% 66%;    /* neon red */
    }
 }
 
