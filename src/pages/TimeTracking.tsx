@@ -610,7 +610,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
             <CardDescription>Based on current filters</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+            <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
               <ChartContainer config={projectChartConfig} className="h-72 w-full">
                 <PieChart>
                   <ChartTooltip
@@ -733,10 +733,10 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={scopePieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={60}
+                      outerRadius={100}
                       strokeWidth={2}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={labelWithPercentHours}
                       labelLine={false}
                     >
                       {scopePieData.map((entry, index) => (
