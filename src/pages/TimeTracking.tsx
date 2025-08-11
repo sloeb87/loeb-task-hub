@@ -325,6 +325,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   };
 
   const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
+  const formatPercentCeil = (num: number) => String(Math.min(100, Math.ceil(num)));
+
   const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
   // Outside multi-line label positioned near its slice; computes % from dataset total
   const makePieLabelOutside = (total: number) => (props: any) => {
@@ -336,7 +338,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     const alignRight = x > cx;
     const minutesVal = typeof value === 'number' ? value : 0;
     const pctNum = total > 0 ? (minutesVal / total) * 100 : 0;
-    const pct = formatPercentComma(pctNum);
+    const pct = formatPercentCeil(pctNum);
+
     return (
       <text x={x} y={y} textAnchor={alignRight ? "start" : "end"} dominantBaseline="central" className="fill-current text-foreground">
         <tspan x={x} dy="-0.5em">{name}</tspan>
@@ -630,8 +633,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       <ChartTooltipContent
                         formatter={(value: number, name: string) => {
                           const minutes = Number(value) || 0;
-                          const pct = projectTotal > 0 ? formatPercentComma((minutes / projectTotal) * 100) : '0,00';
-                          return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                           const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
+                           return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+
                         }}
                       />
                     }
@@ -683,8 +687,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                         <ChartTooltipContent
                           formatter={(value: number, name: string) => {
                             const minutes = Number(value) || 0;
-                            const pct = taskTypeTotal > 0 ? formatPercentComma((minutes / taskTypeTotal) * 100) : '0,00';
-                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                             const pct = taskTypeTotal > 0 ? formatPercentCeil((minutes / taskTypeTotal) * 100) : '0';
+                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+
                           }}
                         />
                       }
@@ -729,8 +734,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                         <ChartTooltipContent
                           formatter={(value: number, name: string) => {
                             const minutes = Number(value) || 0;
-                            const pct = scopeTotal > 0 ? formatPercentComma((minutes / scopeTotal) * 100) : '0,00';
-                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                             const pct = scopeTotal > 0 ? formatPercentCeil((minutes / scopeTotal) * 100) : '0';
+                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+
                           }}
                         />
                       }
