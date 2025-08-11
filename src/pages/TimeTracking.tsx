@@ -20,6 +20,7 @@ import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { toast } from "@/components/ui/use-toast";
 
 interface MultiSelectFilters {
   task: string[];
@@ -36,7 +37,7 @@ interface TimeTrackingPageProps {
 }
 
 export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
-  const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
+  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
@@ -544,6 +545,24 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }
   };
 
+  // Non-Project timer constants and handlers
+  const NON_PROJECT_TASK_ID = 'non_project_time';
+  const NON_PROJECT_TASK_TITLE = 'Non-Project Time';
+  const NON_PROJECT_PROJECT_NAME = 'Non Project';
+
+  const nonProjectTimer = getTaskTime(NON_PROJECT_TASK_ID);
+  const isNonProjectRunning = nonProjectTimer.isRunning;
+
+  const handleNonProjectToggle = () => {
+    if (isNonProjectRunning) {
+      stopTimer(NON_PROJECT_TASK_ID);
+      toast({ title: "Stopped Non-Project Timer" });
+    } else {
+      startTimer(NON_PROJECT_TASK_ID, NON_PROJECT_TASK_TITLE, NON_PROJECT_PROJECT_NAME, "Unknown");
+      toast({ title: "Started Non-Project Timer" });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -556,7 +575,15 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </div>
         </div>
         
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={isNonProjectRunning ? "destructive" : "secondary"}
+            onClick={handleNonProjectToggle}
+            aria-label="Toggle Non-Project Timer"
+          >
+            {isNonProjectRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isNonProjectRunning ? "Stop Non-Project" : "Start Non-Project"}
+          </Button>
           <RunningTimerDisplay tasks={tasks} />
         </div>
       </div>
