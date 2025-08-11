@@ -26,7 +26,7 @@ export const TaskStatusTimelineChart = ({ data }: TaskStatusTimelineChartProps) 
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <XAxis dataKey="date" tickFormatter={(val: any) => (val === (data && data.length ? data[data.length - 1].date : '')) ? `${val} (This Week)` : val} />
             <YAxis />
             <Tooltip />
             <Legend />
