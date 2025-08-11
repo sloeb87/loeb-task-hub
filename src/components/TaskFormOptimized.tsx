@@ -225,6 +225,13 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [isOpen, task?.id, projectName, persistedFormData]);
 
+  // Reset initialization guard when dialog closes so reopening re-initializes
+  useEffect(() => {
+    if (!isOpen) {
+      lastInitTaskIdRef.current = null;
+    }
+  }, [isOpen]);
+
   // Persist form data for new tasks
   useEffect(() => {
     if (!task && onFormDataChange && isOpen) {
