@@ -255,6 +255,11 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   }, [getFilteredTimeEntries, filters, multiSelectFilters, searchTerm, tasks]);
 
   // Calculate statistics for filtered entries (for table display)
+  const sortedEntries = useMemo(() => (
+    [...filteredEntries].sort(
+      (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
+    )
+  ), [filteredEntries]);
   const filteredStats = useMemo(() => getTimeEntryStats(filteredEntries), [getTimeEntryStats, filteredEntries]);
   
   // Calculate total statistics from all entries (for header cards)
@@ -643,7 +648,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                 {filteredEntries.map((entry) => {
+                 {sortedEntries.map((entry) => {
                    const startDate = new Date(entry.startTime);
                    const endDate = entry.endTime ? new Date(entry.endTime) : null;
                    const task = tasks.find(t => t.id === entry.taskId);
