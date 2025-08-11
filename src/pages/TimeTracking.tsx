@@ -332,6 +332,11 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     return `${mins}m`;
   };
 
+  // Map legacy project names to the updated display name (UI-only)
+  const normalizeProjectName = (name?: string) => {
+    if (!name) return "";
+    return name.toUpperCase() === "SAP4GENESIS" ? "SAP4Genesis" : name;
+  };
   const handleTimerToggle = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -663,7 +668,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        
                        <TableCell>
                           <div className="text-base text-gray-900 dark:text-white truncate">
-                            {entry.projectName}
+                            {normalizeProjectName(entry.projectName)}
                           </div>
                        </TableCell>
                        
