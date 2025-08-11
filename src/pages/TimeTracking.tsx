@@ -594,6 +594,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
         onClearFilters={() => setFilters({})}
       />
 
+      {/* Charts - 3-column responsive grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Project Distribution Pie Chart */}
       {projectPieData.length > 0 ? (
         <Card>
@@ -611,7 +613,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                         formatter={(value: number, name: string, item: any) => {
                           const data = item?.payload as { percent?: number } | undefined;
                           const minutes = Number(value) || 0;
-                          const pct = data?.percent ?? 0;
+                          const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
+                          const pct = pctNum.toFixed(2).replace('.', ',');
                           return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                         }}
                       />
@@ -647,7 +650,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       )}
 
       {/* Additional Charts: Task Type and Scope */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="contents">
         {/* Task Type Pie Chart */}
         <Card>
           <CardHeader className="pb-2">
@@ -665,7 +668,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                           formatter={(value: number, name: string, item: any) => {
                             const data = item?.payload as { percent?: number } | undefined;
                             const minutes = Number(value) || 0;
-                            const pct = data?.percent ?? 0;
+                            const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
+                            const pct = pctNum.toFixed(2).replace('.', ',');
                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                           }}
                         />
@@ -688,35 +692,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                   </PieChart>
                 </ChartContainer>
 
-                <div className="w-full overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Task Type</TableHead>
-                        <TableHead className="text-right">Time</TableHead>
-                        <TableHead className="text-right">% of total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {taskTypePieData.map((row, index) => (
-                        <TableRow key={row.name}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="h-3 w-3 rounded-sm inline-block"
-                                style={{ backgroundColor: taskTypeColors[index] }}
-                                aria-hidden="true"
-                              />
-                              <span className="truncate max-w-[220px]" title={row.name}>{row.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">{formatDetailedTime(row.value)}</TableCell>
-                          <TableCell className="text-right">{row.percent}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">No time data in current range</div>
@@ -741,7 +716,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                           formatter={(value: number, name: string, item: any) => {
                             const data = item?.payload as { percent?: number } | undefined;
                             const minutes = Number(value) || 0;
-                            const pct = data?.percent ?? 0;
+                            const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
+                            const pct = pctNum.toFixed(2).replace('.', ',');
                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                           }}
                         />
@@ -765,41 +741,14 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                   </PieChart>
                 </ChartContainer>
 
-                <div className="w-full overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Scope</TableHead>
-                        <TableHead className="text-right">Time</TableHead>
-                        <TableHead className="text-right">% of total</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {scopePieData.map((row, index) => (
-                        <TableRow key={row.name}>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span
-                                className="h-3 w-3 rounded-sm inline-block"
-                                style={{ backgroundColor: scopeColors[index] }}
-                                aria-hidden="true"
-                              />
-                              <span className="truncate max-w-[220px]" title={row.name}>{row.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">{formatDetailedTime(row.value)}</TableCell>
-                          <TableCell className="text-right">{row.percent}%</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">No time data in current range</div>
             )}
           </CardContent>
         </Card>
+      </div>
+
       </div>
 
       {/* Export */}
