@@ -427,6 +427,11 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     scopePieData.map((d, i) => getScopeColor(d.name) || chartColors[i % chartColors.length])
   ), [scopePieData, getScopeColor, chartColors]);
 
+  // Totals for consistent percent formatting
+  const projectTotal = useMemo(() => projectPieData.reduce((sum, d) => sum + (d.value || 0), 0), [projectPieData]);
+  const taskTypeTotal = useMemo(() => taskTypePieData.reduce((sum, d) => sum + (d.value || 0), 0), [taskTypePieData]);
+  const scopeTotal = useMemo(() => scopePieData.reduce((sum, d) => sum + (d.value || 0), 0), [scopePieData]);
+
   // Map legacy project names to the updated display name (UI-only)
   const normalizeProjectName = (name?: string) => {
     if (!name) return "";
@@ -628,11 +633,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
-                        formatter={(value: number, name: string, item: any) => {
-                          const data = item?.payload as { percent?: number } | undefined;
+                        formatter={(value: number, name: string) => {
                           const minutes = Number(value) || 0;
-                          const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
-                          const pct = pctNum.toFixed(2).replace('.', ',');
+                          const pct = projectTotal > 0 ? formatPercentComma((minutes / projectTotal) * 100) : '0,00';
                           return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                         }}
                       />
@@ -683,11 +686,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
-                          formatter={(value: number, name: string, item: any) => {
-                            const data = item?.payload as { percent?: number } | undefined;
+                          formatter={(value: number, name: string) => {
                             const minutes = Number(value) || 0;
-                            const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
-                            const pct = pctNum.toFixed(2).replace('.', ',');
+                            const pct = taskTypeTotal > 0 ? formatPercentComma((minutes / taskTypeTotal) * 100) : '0,00';
                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                           }}
                         />
@@ -731,11 +732,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
-                          formatter={(value: number, name: string, item: any) => {
-                            const data = item?.payload as { percent?: number } | undefined;
+                          formatter={(value: number, name: string) => {
                             const minutes = Number(value) || 0;
-                            const pctNum = typeof data?.percent === 'number' ? data.percent : 0;
-                            const pct = pctNum.toFixed(2).replace('.', ',');
+                            const pct = scopeTotal > 0 ? formatPercentComma((minutes / scopeTotal) * 100) : '0,00';
                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
                           }}
                         />
