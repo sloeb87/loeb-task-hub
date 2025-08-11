@@ -37,8 +37,8 @@ interface TimeTrackingPageProps {
 
 export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
-  const { getScopeStyle } = useScopeColor();
-  const { getTaskTypeStyle } = useTaskTypeColor();
+  const { getScopeStyle, getScopeColor } = useScopeColor();
+  const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
@@ -291,7 +291,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       .sort((a, b) => b.value - a.value);
   }, [filteredEntries]);
 
-  const chartConfig = useMemo<ChartConfig>(() => {
+  const projectChartConfig = useMemo<ChartConfig>(() => {
     return projectPieData.reduce((acc, item) => {
       acc[item.name] = { label: item.name };
       return acc;
@@ -331,6 +331,83 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }
     return `${mins}m`;
   };
+
+  // Task Type distribution for Pie Chart (% by task type) based on filtered entries
+  const taskTypePieData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const task = tasks.find(t => t.id === e.taskId);
+      const type = task?.taskType || 'Unassigned';
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      totals[type] = (totals[type] || 0) + mins;
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries, tasks]);
+
+  const taskTypeChartConfig = useMemo<ChartConfig>(() => {
+    return taskTypePieData.reduce((acc, item) => {
+      acc[item.name] = { label: item.name };
+      return acc;
+    }, {} as ChartConfig);
+  }, [taskTypePieData]);
+
+  const taskTypeColors = useMemo(() => (
+    taskTypePieData.map((d, i) => getTaskTypeColor(d.name) || chartColors[i % chartColors.length])
+  ), [taskTypePieData, getTaskTypeColor, chartColors]);
+
+  // Scope distribution for Pie Chart (% by scope) based on filtered entries
+  const scopePieData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const task = tasks.find(t => t.id === e.taskId);
+      const scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      const share = mins / scopes.length;
+      scopes.forEach((s) => {
+        totals[s] = (totals[s] || 0) + share;
+      });
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries, tasks]);
+
+  const scopeChartConfig = useMemo<ChartConfig>(() => {
+    return scopePieData.reduce((acc, item) => {
+      acc[item.name] = { label: item.name };
+      return acc;
+    }, {} as ChartConfig);
+  }, [scopePieData]);
+
+  const scopeColors = useMemo(() => (
+    scopePieData.map((d, i) => getScopeColor(d.name) || chartColors[i % chartColors.length])
+  ), [scopePieData, getScopeColor, chartColors]);
 
   // Map legacy project names to the updated display name (UI-only)
   const normalizeProjectName = (name?: string) => {
