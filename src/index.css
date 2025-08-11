@@ -144,20 +144,3 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
-
-@layer components {
-  /* Neon glow panel for charts */
-  .neon-chart {
-    border-radius: var(--radius);
-    box-shadow:
-      0 0 0 1px hsl(var(--border)),
-      0 0 30px hsl(var(--chart-1) / 0.25),
-      0 0 60px hsl(var(--chart-5) / 0.20);
-  }
-  .dark .neon-chart {
-    box-shadow:
-      0 0 0 1px hsl(var(--border)),
-      0 0 40px hsl(var(--chart-1) / 0.35),
-      0 0 90px hsl(var(--chart-5) / 0.35);
-  }
-}
