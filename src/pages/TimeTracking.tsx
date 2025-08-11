@@ -634,35 +634,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                 </PieChart>
               </ChartContainer>
 
-              <div className="w-full overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Project</TableHead>
-                      <TableHead className="text-right">Time</TableHead>
-                      <TableHead className="text-right">% of total</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projectPieData.map((row, index) => (
-                      <TableRow key={row.name}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span
-                              className="h-3 w-3 rounded-sm inline-block"
-                              style={{ backgroundColor: chartColors[index % chartColors.length] }}
-                              aria-hidden="true"
-                            />
-                            <span className="truncate max-w-[220px]" title={row.name}>{row.name}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{formatDetailedTime(row.value)}</TableCell>
-                        <TableCell className="text-right">{row.percent}%</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
             </div>
           </CardContent>
         </Card>
