@@ -219,6 +219,7 @@ export function useSupabaseStorage() {
       }
 
       console.log('Found project ID:', projectId, 'for project name:', taskData.project);
+      console.log('createTask payload (key fields):', { environment: taskData.environment, status: taskData.status, priority: taskData.priority, taskType: taskData.taskType, project: taskData.project, title: taskData.title });
 
       const { data, error } = await supabase
         .from('tasks')
@@ -253,6 +254,7 @@ export function useSupabaseStorage() {
       }
 
       console.log('Task created successfully:', data);
+      console.log('DB returned fields:', { task_number: data?.task_number, environment: data?.environment, status: data?.status });
 
       const newTask = await convertSupabaseTaskToTask(data);
       setTasks(prev => [newTask, ...prev]);

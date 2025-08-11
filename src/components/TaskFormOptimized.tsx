@@ -129,6 +129,8 @@ export const TaskFormOptimized = React.memo(({
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const formDataRef = useRef<FormData>(DEFAULT_FORM_DATA);
+  useEffect(() => { formDataRef.current = formData; }, [formData]);
   const { parameters } = useParameters();
   const [projectScope, setProjectScope] = useState<string | null>(null);
   const [isTaskDetailsCollapsed, setIsTaskDetailsCollapsed] = useState(false);
@@ -330,22 +332,24 @@ export const TaskFormOptimized = React.memo(({
       return;
     }
 
+    const current = formDataRef.current;
+
     const taskData = {
-      ...formData,
+      ...current,
       dueDate: date ? date.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-      scope: formData.scope || [], // Always use formData.scope (user's selections)
-      taskType: formData.taskType as TaskType,
-      status: formData.status as TaskStatus,
-      priority: formData.priority as TaskPriority,
+      scope: current.scope || [], // Always use latest selections
+      taskType: current.taskType as TaskType,
+      status: current.status as TaskStatus,
+      priority: current.priority as TaskPriority,
       ...(task && { 
         id: task.id, 
         creationDate: task.creationDate, 
         followUps: task.followUps,
-        checklist: formData.checklist
+        checklist: current.checklist
       })
     };
 
-    console.log('TaskForm saving taskData.scope:', taskData.scope);
+    console.log('TaskForm saving key fields:', { environment: current.environment, status: current.status, priority: current.priority });
     onSave(taskData);
     // Clear preview for this task after saving
     if (task?.id) {
