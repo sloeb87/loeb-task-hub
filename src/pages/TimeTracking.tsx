@@ -714,7 +714,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           <CardContent>
             {scopePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                <ChartContainer config={scopeChartConfig} className="h-64 w-full">
+                <ChartContainer config={scopeChartConfig} className="h-72 w-full">
                   <PieChart>
                     <ChartTooltip
                       content={
