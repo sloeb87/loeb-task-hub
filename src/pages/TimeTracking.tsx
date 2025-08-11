@@ -867,7 +867,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                      <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
                        <TableCell>
                          <div className="font-medium text-gray-900 dark:text-white truncate">
-                           {entry.taskId}_{entry.taskTitle}
+                           {entry.taskId === NON_PROJECT_TASK_ID ? 'Non_Project_Task' : `${entry.taskId}_${entry.taskTitle}`}
                          </div>
                        </TableCell>
                        
