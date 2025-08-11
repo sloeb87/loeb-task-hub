@@ -13,10 +13,10 @@ interface TaskChartsProps {
 }
 
 const STATUS_COLORS = {
-  'Open': '#f97316',
-  'In Progress': '#3b82f6',
-  'Completed': '#10b981',
-  'On Hold': '#6b7280'
+  'Open': 'hsl(var(--chart-8))',
+  'In Progress': 'hsl(var(--chart-4))',
+  'Completed': 'hsl(var(--chart-1))',
+  'On Hold': 'hsl(var(--chart-10))'
 };
 
 const PRIORITY_COLORS = {

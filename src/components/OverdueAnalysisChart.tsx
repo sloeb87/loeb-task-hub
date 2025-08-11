@@ -11,8 +11,8 @@ interface OverdueAnalysisChartProps {
 
 export const OverdueAnalysisChart = ({ overdueCount, notOverdueCount }: OverdueAnalysisChartProps) => {
   const data = [
-    { name: 'Overdue', value: overdueCount, color: '#ef4444' },
-    { name: 'On Track', value: notOverdueCount, color: '#10b981' }
+    { name: 'Overdue', value: overdueCount, color: 'hsl(var(--chart-8))' },
+    { name: 'On Track', value: notOverdueCount, color: 'hsl(var(--chart-4))' }
   ];
 
   const RADIAN = Math.PI / 180;
@@ -54,7 +54,7 @@ export const OverdueAnalysisChart = ({ overdueCount, notOverdueCount }: OverdueA
               labelLine={false}
               label={renderCustomizedLabel}
               outerRadius={120}
-              fill="#8884d8"
+              fill="hsl(var(--chart-8))"
               dataKey="value"
             >
               {data.map((entry, index) => (
