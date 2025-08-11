@@ -611,7 +611,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-              <ChartContainer config={projectChartConfig} className="h-64 w-full">
+              <ChartContainer config={projectChartConfig} className="h-72 w-full">
                 <PieChart>
                   <ChartTooltip
                     content={
@@ -630,8 +630,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={projectPieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={50}
-                      outerRadius={80}
+                       innerRadius={60}
+                       outerRadius={100}
                       strokeWidth={2}
                       label={labelWithPercentHours}
                       labelLine={false}
@@ -666,7 +666,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           <CardContent>
             {taskTypePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                <ChartContainer config={taskTypeChartConfig} className="h-64 w-full">
+                <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
                   <PieChart>
                     <ChartTooltip
                       content={
@@ -685,10 +685,10 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={taskTypePieData}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={50}
-                      outerRadius={80}
+                      innerRadius={60}
+                      outerRadius={100}
                       strokeWidth={2}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      label={labelWithPercentHours}
                       labelLine={false}
                     >
                       {taskTypePieData.map((entry, index) => (
