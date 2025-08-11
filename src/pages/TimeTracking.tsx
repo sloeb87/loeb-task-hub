@@ -591,7 +591,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {totalStats.totalEntries}
+              {filteredStats.totalEntries}
             </div>
           </CardContent>
         </Card>
@@ -602,7 +602,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {formatTime(Math.round(totalStats.averageEntryDuration))}
+              {formatTime(Math.round(filteredStats.averageEntryDuration))}
             </div>
           </CardContent>
         </Card>
