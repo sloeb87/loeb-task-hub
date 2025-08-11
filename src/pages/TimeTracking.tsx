@@ -376,9 +376,10 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }, {} as ChartConfig);
   }, [taskTypePieData]);
 
-  const taskTypeColors = useMemo(() => (
-    taskTypePieData.map((d, i) => getTaskTypeColor(d.name) || chartColors[i % chartColors.length])
-  ), [taskTypePieData, getTaskTypeColor, chartColors]);
+  const taskTypeColors = useMemo(
+    () => taskTypePieData.map((_, i) => chartColors[i % chartColors.length]),
+    [taskTypePieData, chartColors]
+  );
 
   // Scope distribution for Pie Chart (% by scope) based on filtered entries
   const scopePieData = useMemo(() => {
@@ -416,9 +417,10 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }, {} as ChartConfig);
   }, [scopePieData]);
 
-  const scopeColors = useMemo(() => (
-    scopePieData.map((d, i) => getScopeColor(d.name) || chartColors[i % chartColors.length])
-  ), [scopePieData, getScopeColor, chartColors]);
+  const scopeColors = useMemo(
+    () => scopePieData.map((_, i) => chartColors[i % chartColors.length]),
+    [scopePieData, chartColors]
+  );
 
   // Totals for consistent percent formatting
   const projectTotal = useMemo(() => projectPieData.reduce((sum, d) => sum + (d.value || 0), 0), [projectPieData]);
