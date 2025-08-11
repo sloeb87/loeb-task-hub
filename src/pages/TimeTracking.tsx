@@ -334,19 +334,20 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
   const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
   const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
-  // Multiline inside-slice label: first line = name, second line = percent • time
-  const pieLabelMultiline = (props: any) => {
-    const { cx, cy, midAngle, innerRadius, outerRadius, name, percent, value } = props;
+  // Outside multi-line label positioned near its slice
+  const pieLabelOutside = (props: any) => {
+    const { cx, cy, midAngle, outerRadius, name, percent, value } = props;
     const RADIAN = Math.PI / 180;
-    const r = innerRadius + (outerRadius - innerRadius) * 0.58;
+    const r = (outerRadius || 0) + 18;
     const x = cx + r * Math.cos(-midAngle * RADIAN);
     const y = cy + r * Math.sin(-midAngle * RADIAN);
+    const alignRight = x > cx;
     const pct = formatPercentComma(((percent || 0) * 100));
     const minutesVal = typeof value === 'number' ? value : 0;
     return (
-      <text x={x} y={y} textAnchor="middle" dominantBaseline="central" className="fill-current text-foreground">
-        <tspan x={x} dy="-0.3em">{name}</tspan>
-        <tspan x={x} dy="1.2em">{`${pct}% • ${formatDetailedTime(minutesVal)}`}</tspan>
+      <text x={x} y={y} textAnchor={alignRight ? "start" : "end"} dominantBaseline="central" className="fill-current text-foreground">
+        <tspan x={x} dy="-0.5em">{name}</tspan>
+        <tspan x={x} dy="1.1em">{`${pct}% • ${formatDetailedTime(minutesVal)}`}</tspan>
       </text>
     );
   };
@@ -644,8 +645,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        innerRadius={60}
                        outerRadius={100}
                       strokeWidth={2}
-                      label={pieLabelMultiline}
-                      labelLine={false}
+                      label={pieLabelOutside}
+                      labelLine={true}
                     >
                     {projectPieData.map((entry, index) => (
                       <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
@@ -699,8 +700,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
-                      label={pieLabelMultiline}
-                      labelLine={false}
+                      label={pieLabelOutside}
+                      labelLine={true}
                     >
                       {taskTypePieData.map((entry, index) => (
                         <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />
@@ -747,8 +748,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
-                      label={pieLabelMultiline}
-                      labelLine={false}
+                      label={pieLabelOutside}
+                      labelLine={true}
                     >
                       {scopePieData.map((entry, index) => (
                         <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />
