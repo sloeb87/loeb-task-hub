@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Filter, X } from "lucide-react";
 import { TimeEntryFilters } from "@/types/timeEntry";
-import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, subYears } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears } from "date-fns";
 import { DateRange } from "react-day-picker";
 
 interface TimeEntryFiltersProps {
@@ -77,6 +77,14 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
         from = startOfDay(now);
         to = endOfDay(now);
         break;
+      case 'thisWeek':
+        from = startOfWeek(now);
+        to = endOfWeek(now);
+        break;
+      case 'lastWeek':
+        from = startOfWeek(subWeeks(now, 1));
+        to = endOfWeek(subWeeks(now, 1));
+        break;
       case 'thisMonth':
         from = startOfMonth(now);
         to = endOfMonth(now);
@@ -147,6 +155,8 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
 
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('today')}>Today</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisWeek')}>This Week</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastWeek')}>Last Week</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisMonth')}>This Month</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastMonth')}>Last Month</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisYear')}>This Year</Button>
