@@ -644,6 +644,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={projectPieData}
                       dataKey="value"
                       nameKey="name"
+                      startAngle={90}
+                      endAngle={-270}
                        innerRadius={60}
                        outerRadius={100}
                       strokeWidth={2}
@@ -698,6 +700,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={taskTypePieData}
                       dataKey="value"
                       nameKey="name"
+                      startAngle={90}
+                      endAngle={-270}
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
@@ -745,6 +749,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       data={scopePieData}
                       dataKey="value"
                       nameKey="name"
+                      startAngle={90}
+                      endAngle={-270}
                       innerRadius={60}
                       outerRadius={100}
                       strokeWidth={2}
