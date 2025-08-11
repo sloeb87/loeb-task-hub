@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Filter, Calendar as CalendarIcon, BarChart3 } from "lucide-react";
-import { format } from "date-fns";
+import { format, startOfWeek, addWeeks, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task } from "@/types/task";
 import { TaskCharts } from "@/components/TaskCharts";
@@ -184,28 +184,25 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         });
       }
     } else {
-      // Generate data for the last 12 weeks
+      // Generate data for the last 12 ISO weeks (Mon-Sun), including the current week
       for (let i = 11; i >= 0; i--) {
-        const weekStart = new Date();
-        const weekEnd = new Date();
-        
-        weekStart.setDate(now.getDate() - (i * 7) - 7);
-        weekEnd.setDate(now.getDate() - (i * 7));
-        
-        const dateLabel = weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        
+        const weekStart = startOfWeek(addWeeks(now, -i), { weekStartsOn: 1 });
+        const weekEnd = addDays(weekStart, 7);
+
+        const dateLabel = format(weekStart, 'MMM d');
+
         // Tasks opened in this week
         const openedTasks = filteredTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
           return taskDate >= weekStart && taskDate < weekEnd;
         });
-        
+
         // Tasks closed in this week
         const closedTasks = filteredTasks.filter(task => {
           const completionDate = task.completionDate ? new Date(task.completionDate) : null;
           return completionDate && completionDate >= weekStart && completionDate < weekEnd;
         });
-        
+
         // WIP tasks at the end of this week (all tasks created before or during this week minus completed tasks)
         const allTasksUpToWeek = filteredTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
@@ -216,7 +213,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
           return completionDate && completionDate < weekEnd;
         });
         const wipTasks = allTasksUpToWeek.length - completedTasksUpToWeek.length;
-        
+
         data.push({
           date: dateLabel,
           opened: openedTasks.length,
