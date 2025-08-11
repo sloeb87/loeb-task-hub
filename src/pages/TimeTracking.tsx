@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Search, Edit3, Trash2, Filter } from "lucide-react";
+import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
@@ -20,8 +20,7 @@ import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-
-
+import { toast } from "@/components/ui/use-toast";
 interface MultiSelectFilters {
   task: string[];
   project: string[];
@@ -30,17 +29,34 @@ interface MultiSelectFilters {
   environment: string[];
   date: string[];
 }
-
 interface TimeTrackingPageProps {
   tasks: Task[];
   projects: Project[];
 }
-
-export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
-  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
-  const { getScopeStyle, getScopeColor } = useScopeColor();
-  const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
-  const { getEnvironmentStyle } = useEnvironmentColor();
+export const TimeTrackingPage = ({
+  tasks,
+  projects
+}: TimeTrackingPageProps) => {
+  const {
+    timeEntries,
+    startTimer,
+    stopTimer,
+    getTaskTime,
+    getFilteredTimeEntries,
+    getTimeEntryStats,
+    deleteTimeEntry
+  } = useTimeTracking();
+  const {
+    getScopeStyle,
+    getScopeColor
+  } = useScopeColor();
+  const {
+    getTaskTypeStyle,
+    getTaskTypeColor
+  } = useTaskTypeColor();
+  const {
+    getEnvironmentStyle
+  } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>({
     year: new Date().getFullYear()
@@ -55,7 +71,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     environment: [],
     date: []
   });
-  
   const [showFilters, setShowFilters] = useState<Record<keyof MultiSelectFilters, boolean>>({
     task: false,
     project: false,
@@ -64,7 +79,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     environment: false,
     date: false
   });
-  
   const filterRefs = useRef<Record<keyof MultiSelectFilters, HTMLDivElement | null>>({
     task: null,
     project: null,
@@ -77,7 +91,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   // Task editing state
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
   const [editFormData, setEditFormData] = useState({
@@ -90,7 +103,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   // Get unique values for multi-select filters
   const getUniqueValues = (filterType: keyof MultiSelectFilters): string[] => {
     const baseEntries = getFilteredTimeEntries(filters);
-    
     switch (filterType) {
       case 'task':
         return [...new Set(baseEntries.map(e => e.taskTitle))].sort();
@@ -122,97 +134,66 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const handleFilterChange = (filterType: keyof MultiSelectFilters, value: string, checked: boolean) => {
     setMultiSelectFilters(prev => ({
       ...prev,
-      [filterType]: checked 
-        ? [...prev[filterType], value]
-        : prev[filterType].filter(item => item !== value)
+      [filterType]: checked ? [...prev[filterType], value] : prev[filterType].filter(item => item !== value)
     }));
   };
-
   const clearFilter = (filterType: keyof MultiSelectFilters) => {
     setMultiSelectFilters(prev => ({
       ...prev,
       [filterType]: []
     }));
   };
-
   const toggleFilterDropdown = (filterType: keyof MultiSelectFilters, event: React.MouseEvent) => {
     event.stopPropagation();
     setShowFilters(prev => ({
-      ...Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {} as Record<keyof MultiSelectFilters, boolean>),
+      ...Object.keys(prev).reduce((acc, key) => ({
+        ...acc,
+        [key]: false
+      }), {} as Record<keyof MultiSelectFilters, boolean>),
       [filterType]: !prev[filterType]
     }));
   };
 
   // Filter component for table headers
-  const FilterableHeader = ({ 
-    filterType, 
-    children 
-  }: { 
-    filterType: keyof MultiSelectFilters; 
+  const FilterableHeader = ({
+    filterType,
+    children
+  }: {
+    filterType: keyof MultiSelectFilters;
     children: React.ReactNode;
-  }) => (
-    <div className="flex items-center justify-between min-w-0">
+  }) => <div className="flex items-center justify-between min-w-0">
       <div className="flex items-center gap-1">
         <span>{children}</span>
         <div className="relative" ref={el => filterRefs.current[filterType] = el}>
-          <Button
-            size="sm"
-            variant="ghost"
-            className={`p-1 h-6 w-6 shrink-0 ${multiSelectFilters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}
-            onClick={(e) => toggleFilterDropdown(filterType, e)}
-          >
+          <Button size="sm" variant="ghost" className={`p-1 h-6 w-6 shrink-0 ${multiSelectFilters[filterType].length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`} onClick={e => toggleFilterDropdown(filterType, e)}>
             <Filter className="w-3 h-3" />
           </Button>
-          {multiSelectFilters[filterType].length > 0 && (
-            <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+          {multiSelectFilters[filterType].length > 0 && <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
               {multiSelectFilters[filterType].length}
-            </span>
-          )}
-          {showFilters[filterType] && (
-            <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
+            </span>}
+          {showFilters[filterType] && <div className="absolute top-full left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-lg shadow-lg p-3 w-64 max-w-xs">
               <div className="space-y-2 max-h-80 overflow-y-auto">
-                {getUniqueValues(filterType).map(value => (
-                  <div key={value} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`${filterType}-${value}`}
-                      checked={multiSelectFilters[filterType].includes(value)}
-                      onCheckedChange={(checked) => 
-                        handleFilterChange(filterType, value, checked as boolean)
-                      }
-                    />
-                    <label 
-                      htmlFor={`${filterType}-${value}`}
-                      className="text-base cursor-pointer flex-1 text-gray-900 dark:text-white truncate"
-                      title={value}
-                    >
+                {getUniqueValues(filterType).map(value => <div key={value} className="flex items-center space-x-2">
+                    <Checkbox id={`${filterType}-${value}`} checked={multiSelectFilters[filterType].includes(value)} onCheckedChange={checked => handleFilterChange(filterType, value, checked as boolean)} />
+                    <label htmlFor={`${filterType}-${value}`} className="text-base cursor-pointer flex-1 text-gray-900 dark:text-white truncate" title={value}>
                       {value}
                     </label>
-                  </div>
-                ))}
+                  </div>)}
               </div>
-              {multiSelectFilters[filterType].length > 0 && (
-                <div className="mt-2 pt-2 border-t dark:border-gray-600">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => clearFilter(filterType)}
-                    className="w-full"
-                  >
+              {multiSelectFilters[filterType].length > 0 && <div className="mt-2 pt-2 border-t dark:border-gray-600">
+                  <Button size="sm" variant="outline" onClick={() => clearFilter(filterType)} className="w-full">
                     Clear All ({multiSelectFilters[filterType].length})
                   </Button>
-                </div>
-              )}
-            </div>
-          )}
+                </div>}
+            </div>}
         </div>
       </div>
-    </div>
-  );
+    </div>;
 
   // Get filtered entries based on search and filters
   const filteredEntries = useMemo(() => {
     let filtered = getFilteredTimeEntries(filters);
-    
+
     // Apply multi-select filters
     if (multiSelectFilters.task.length > 0) {
       filtered = filtered.filter(e => multiSelectFilters.task.includes(e.taskTitle));
@@ -241,28 +222,18 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     if (multiSelectFilters.date.length > 0) {
       filtered = filtered.filter(e => multiSelectFilters.date.includes(new Date(e.startTime).toLocaleDateString()));
     }
-    
+
     // Apply search filter
     if (searchTerm) {
-      filtered = filtered.filter(entry => 
-        entry.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.taskId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        entry.responsible.toLowerCase().includes(searchTerm.toLowerCase())
-      );
+      filtered = filtered.filter(entry => entry.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) || entry.projectName.toLowerCase().includes(searchTerm.toLowerCase()) || entry.taskId.toLowerCase().includes(searchTerm.toLowerCase()) || entry.responsible.toLowerCase().includes(searchTerm.toLowerCase()));
     }
-    
     return filtered;
   }, [getFilteredTimeEntries, filters, multiSelectFilters, searchTerm, tasks]);
 
   // Calculate statistics for filtered entries (for table display)
-  const sortedEntries = useMemo(() => (
-    [...filteredEntries].sort(
-      (a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()
-    )
-  ), [filteredEntries]);
+  const sortedEntries = useMemo(() => [...filteredEntries].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime()), [filteredEntries]);
   const filteredStats = useMemo(() => getTimeEntryStats(filteredEntries), [getTimeEntryStats, filteredEntries]);
-  
+
   // Calculate total statistics from all entries (for header cards)
   const allTimeEntries = getFilteredTimeEntries({});
   const totalStats = useMemo(() => getTimeEntryStats(allTimeEntries), [getTimeEntryStats, allTimeEntries]);
@@ -271,41 +242,34 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const projectPieData = useMemo(() => {
     const totals: Record<string, number> = {};
     const now = new Date();
-    filteredEntries.forEach((e) => {
+    filteredEntries.forEach(e => {
       const key = e.projectName || 'Unassigned';
-      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
-        ? e.duration
-        : e.endTime
-          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
-          : e.isRunning
-            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
-            : 0;
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration) ? e.duration : e.endTime ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000)) : e.isRunning ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000)) : 0;
       totals[key] = (totals[key] || 0) + mins;
     });
     const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
-    return Object.entries(totals)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
+    return Object.entries(totals).map(([name, value]) => ({
+      name,
+      value,
+      percent: total ? Math.round(value / total * 1000) / 10 : 0
+    })).sort((a, b) => b.value - a.value);
   }, [filteredEntries]);
-
   const projectChartConfig = useMemo<ChartConfig>(() => {
     return projectPieData.reduce((acc, item) => {
-      acc[item.name] = { label: item.name };
+      acc[item.name] = {
+        label: item.name
+      };
       return acc;
     }, {} as ChartConfig);
   }, [projectPieData]);
-
-  const chartColors = useMemo(() => [
-    'hsl(var(--chart-8))', // azure glow
-    'hsl(var(--chart-4))', // tech blue
-    'hsl(var(--chart-1))', // neon cyan
-    'hsl(var(--chart-10))', // ultraviolet
+  const chartColors = useMemo(() => ['hsl(var(--chart-8))',
+  // azure glow
+  'hsl(var(--chart-4))',
+  // tech blue
+  'hsl(var(--chart-1))',
+  // neon cyan
+  'hsl(var(--chart-10))' // ultraviolet
   ], []);
-
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -314,117 +278,95 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }
     return `${mins}m`;
   };
-
   const formatDetailedTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    
     if (hours > 0) {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
   };
-
   const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
   const formatPercentCeil = (num: number) => String(Math.min(100, Math.ceil(num)));
-
-  const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
+  const abbreviate = (text: string, max = 18) => text && text.length > max ? `${text.slice(0, max - 1)}…` : text;
   // Outside multi-line label positioned near its slice; computes % from dataset total
   const makePieLabelOutside = (total: number) => (props: any) => {
-    const { cx, cy, midAngle, outerRadius, name, value } = props;
+    const {
+      cx,
+      cy,
+      midAngle,
+      outerRadius,
+      name,
+      value
+    } = props;
     const RADIAN = Math.PI / 180;
     const r = (outerRadius || 0) + 18;
     const x = cx + r * Math.cos(-midAngle * RADIAN);
     const y = cy + r * Math.sin(-midAngle * RADIAN);
     const alignRight = x > cx;
     const minutesVal = typeof value === 'number' ? value : 0;
-    const pctNum = total > 0 ? (minutesVal / total) * 100 : 0;
+    const pctNum = total > 0 ? minutesVal / total * 100 : 0;
     const pct = formatPercentCeil(pctNum);
-
-    return (
-      <text x={x} y={y} textAnchor={alignRight ? "start" : "end"} dominantBaseline="central" className="fill-current text-foreground">
+    return <text x={x} y={y} textAnchor={alignRight ? "start" : "end"} dominantBaseline="central" className="fill-current text-foreground">
         <tspan x={x} dy="-0.5em">{name}</tspan>
         <tspan x={x} dy="1.1em">{`${pct}% • ${formatDetailedTime(minutesVal)}`}</tspan>
-      </text>
-    );
+      </text>;
   };
   const taskTypePieData = useMemo(() => {
     const totals: Record<string, number> = {};
     const now = new Date();
-    filteredEntries.forEach((e) => {
+    filteredEntries.forEach(e => {
       const task = tasks.find(t => t.id === e.taskId);
       const type = task?.taskType || 'Unassigned';
-      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
-        ? e.duration
-        : e.endTime
-          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
-          : e.isRunning
-            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
-            : 0;
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration) ? e.duration : e.endTime ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000)) : e.isRunning ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000)) : 0;
       totals[type] = (totals[type] || 0) + mins;
     });
     const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
-    return Object.entries(totals)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
+    return Object.entries(totals).map(([name, value]) => ({
+      name,
+      value,
+      percent: total ? Math.round(value / total * 1000) / 10 : 0
+    })).sort((a, b) => b.value - a.value);
   }, [filteredEntries, tasks]);
-
   const taskTypeChartConfig = useMemo<ChartConfig>(() => {
     return taskTypePieData.reduce((acc, item) => {
-      acc[item.name] = { label: item.name };
+      acc[item.name] = {
+        label: item.name
+      };
       return acc;
     }, {} as ChartConfig);
   }, [taskTypePieData]);
-
-  const taskTypeColors = useMemo(
-    () => taskTypePieData.map((_, i) => chartColors[i % chartColors.length]),
-    [taskTypePieData, chartColors]
-  );
+  const taskTypeColors = useMemo(() => taskTypePieData.map((_, i) => chartColors[i % chartColors.length]), [taskTypePieData, chartColors]);
 
   // Scope distribution for Pie Chart (% by scope) based on filtered entries
   const scopePieData = useMemo(() => {
     const totals: Record<string, number> = {};
     const now = new Date();
-    filteredEntries.forEach((e) => {
+    filteredEntries.forEach(e => {
       const task = tasks.find(t => t.id === e.taskId);
-      const scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
-      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
-        ? e.duration
-        : e.endTime
-          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
-          : e.isRunning
-            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
-            : 0;
+      const scopes = task?.scope && task.scope.length > 0 ? task.scope : ['Unassigned'];
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration) ? e.duration : e.endTime ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000)) : e.isRunning ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000)) : 0;
       const share = mins / scopes.length;
-      scopes.forEach((s) => {
+      scopes.forEach(s => {
         totals[s] = (totals[s] || 0) + share;
       });
     });
     const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
-    return Object.entries(totals)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
+    return Object.entries(totals).map(([name, value]) => ({
+      name,
+      value,
+      percent: total ? Math.round(value / total * 1000) / 10 : 0
+    })).sort((a, b) => b.value - a.value);
   }, [filteredEntries, tasks]);
-
   const scopeChartConfig = useMemo<ChartConfig>(() => {
     return scopePieData.reduce((acc, item) => {
-      acc[item.name] = { label: item.name };
+      acc[item.name] = {
+        label: item.name
+      };
       return acc;
     }, {} as ChartConfig);
   }, [scopePieData]);
-
-  const scopeColors = useMemo(
-    () => scopePieData.map((_, i) => chartColors[i % chartColors.length]),
-    [scopePieData, chartColors]
-  );
+  const scopeColors = useMemo(() => scopePieData.map((_, i) => chartColors[i % chartColors.length]), [scopePieData, chartColors]);
 
   // Totals for consistent percent formatting
   const projectTotal = useMemo(() => projectPieData.reduce((sum, d) => sum + (d.value || 0), 0), [projectPieData]);
@@ -439,7 +381,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const handleTimerToggle = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
-    
     const runningEntry = filteredEntries.find(entry => entry.taskId === taskId && entry.isRunning);
     if (runningEntry) {
       stopTimer(taskId);
@@ -447,10 +388,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       startTimer(taskId, task.title, task.project, task.responsible);
     }
   };
-
   const handleEditTimeEntry = (entry: TimeEntry) => {
     const startDate = new Date(entry.startTime);
-    
     setEditingEntry(entry);
     setEditFormData({
       date: startDate.toISOString().split('T')[0],
@@ -460,10 +399,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     });
     setEditDialogOpen(true);
   };
-
   const handleSaveTimeEntry = async () => {
     if (!editingEntry) return;
-
     try {
       // Create updated time entry with new values
       const updatedStartTime = new Date(`${editFormData.date}T${editFormData.startTime}`);
@@ -471,22 +408,20 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       const duration = editFormData.totalMinutes;
 
       // Update the entry in Supabase
-      const { error } = await supabase
-        .from('time_entries')
-        .update({
-          start_time: updatedStartTime.toISOString(),
-          end_time: updatedEndTime?.toISOString(),
-          duration: duration,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', editingEntry.id);
-
+      const {
+        error
+      } = await supabase.from('time_entries').update({
+        start_time: updatedStartTime.toISOString(),
+        end_time: updatedEndTime?.toISOString(),
+        duration: duration,
+        updated_at: new Date().toISOString()
+      }).eq('id', editingEntry.id);
       if (error) throw error;
 
       // Close dialog and refresh data
       setEditDialogOpen(false);
       setEditingEntry(null);
-      
+
       // Trigger a proper data reload from the useTimeTracking hook
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
     } catch (error) {
@@ -494,34 +429,30 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       // You could add a toast notification here
     }
   };
-
   const calculateDuration = (startTime: string, endTime: string) => {
     if (!startTime || !endTime) return 0;
-    
     const start = new Date(`1970-01-01T${startTime}`);
     const end = new Date(`1970-01-01T${endTime}`);
-    
     if (end <= start) {
       // Handle next day scenario
       end.setDate(end.getDate() + 1);
     }
-    
     return Math.floor((end.getTime() - start.getTime()) / (1000 * 60));
   };
-
   const handleFormChange = (field: string, value: string) => {
-    const newFormData = { ...editFormData, [field]: value };
-    
+    const newFormData = {
+      ...editFormData,
+      [field]: value
+    };
+
     // Auto-calculate duration when both start and end times are set
     if (field === 'startTime' || field === 'endTime') {
       if (newFormData.startTime && newFormData.endTime) {
         newFormData.totalMinutes = calculateDuration(newFormData.startTime, newFormData.endTime);
       }
     }
-    
     setEditFormData(newFormData);
   };
-
   const handleRowClick = (entry: TimeEntry) => {
     const task = tasks.find(t => t.id === entry.taskId);
     if (task) {
@@ -529,27 +460,45 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       setIsTaskFormOpen(true);
     }
   };
-
   const handleTaskFormClose = () => {
     setIsTaskFormOpen(false);
     setSelectedTask(null);
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Completed": return "bg-green-100 text-green-800";
-      case "In Progress": return "bg-blue-100 text-blue-800";
-      case "Open": return "bg-orange-100 text-orange-800";
-      case "On Hold": return "bg-gray-100 text-gray-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "Completed":
+        return "bg-green-100 text-green-800";
+      case "In Progress":
+        return "bg-blue-100 text-blue-800";
+      case "Open":
+        return "bg-orange-100 text-orange-800";
+      case "On Hold":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  // Non-Project timer constant (for display mapping)
+  // Non-Project timer constants and handlers
   const NON_PROJECT_TASK_ID = 'non_project_time';
-
-  return (
-    <div className="space-y-6">
+  const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
+  const NON_PROJECT_PROJECT_NAME = 'Non Project';
+  const nonProjectTimer = getTaskTime(NON_PROJECT_TASK_ID);
+  const isNonProjectRunning = nonProjectTimer.isRunning;
+  const handleNonProjectToggle = () => {
+    if (isNonProjectRunning) {
+      stopTimer(NON_PROJECT_TASK_ID);
+      toast({
+        title: "Stopped Non-Project Timer"
+      });
+    } else {
+      startTimer(NON_PROJECT_TASK_ID, NON_PROJECT_TASK_TITLE, NON_PROJECT_PROJECT_NAME, "Unknown");
+      toast({
+        title: "Started Non-Project Timer"
+      });
+    }
+  };
+  return <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
         <div className="flex items-center space-x-3">
@@ -560,9 +509,10 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </div>
         </div>
         
-          <div className="flex items-center gap-2">
-            <RunningTimerDisplay tasks={tasks} />
-          </div>
+        <div className="flex items-center gap-2">
+          
+          <RunningTimerDisplay tasks={tasks} />
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -613,17 +563,12 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       </div>
 
       {/* Filters */}
-      <TimeEntryFiltersComponent
-        filters={filters}
-        onFiltersChange={setFilters}
-        onClearFilters={() => setFilters({})}
-      />
+      <TimeEntryFiltersComponent filters={filters} onFiltersChange={setFilters} onClearFilters={() => setFilters({})} />
 
       {/* Charts - 3-column responsive grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Project Distribution Pie Chart */}
-      {projectPieData.length > 0 ? (
-        <Card>
+      {projectPieData.length > 0 ? <Card>
           <CardHeader className="pb-2">
             <CardTitle>Time by Project (%)</CardTitle>
             <CardDescription>Based on current filters</CardDescription>
@@ -632,48 +577,25 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
             <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
               <ChartContainer config={projectChartConfig} className="h-72 w-full">
                 <PieChart>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: number, name: string) => {
-                          const minutes = Number(value) || 0;
-                           const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
-                           return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
-
-                        }}
-                      />
-                    }
-                  />
-                    <Pie
-                      data={projectPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                       innerRadius={60}
-                       outerRadius={100}
-                      strokeWidth={2}
-                      label={makePieLabelOutside(projectTotal)}
-                      labelLine={true}
-                    >
-                    {projectPieData.map((entry, index) => (
-                      <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
-                    ))}
+                  <ChartTooltip content={<ChartTooltipContent formatter={(value: number, name: string) => {
+                  const minutes = Number(value) || 0;
+                  const pct = projectTotal > 0 ? formatPercentCeil(minutes / projectTotal * 100) : '0';
+                  return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                }} />} />
+                    <Pie data={projectPieData} dataKey="value" nameKey="name" startAngle={90} endAngle={-270} innerRadius={60} outerRadius={100} strokeWidth={2} label={makePieLabelOutside(projectTotal)} labelLine={true}>
+                    {projectPieData.map((entry, index) => <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />)}
                   </Pie>
                 </PieChart>
               </ChartContainer>
 
             </div>
           </CardContent>
-        </Card>
-      ) : (
-        <Card>
+        </Card> : <Card>
           <CardHeader className="pb-2">
             <CardTitle>Time by Project (%)</CardTitle>
             <CardDescription>No time data in current range</CardDescription>
           </CardHeader>
-        </Card>
-      )}
+        </Card>}
 
       {/* Additional Charts: Task Type and Scope */}
       <div className="contents">
@@ -684,45 +606,21 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
             <CardDescription>Based on current filters</CardDescription>
           </CardHeader>
           <CardContent>
-            {taskTypePieData.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 items-center">
+            {taskTypePieData.length > 0 ? <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
                   <PieChart>
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value: number, name: string) => {
-                            const minutes = Number(value) || 0;
-                             const pct = taskTypeTotal > 0 ? formatPercentCeil((minutes / taskTypeTotal) * 100) : '0';
-                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
-
-                          }}
-                        />
-                      }
-                    />
-                    <Pie
-                      data={taskTypePieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={60}
-                      outerRadius={100}
-                      strokeWidth={2}
-                      label={makePieLabelOutside(taskTypeTotal)}
-                      labelLine={true}
-                    >
-                      {taskTypePieData.map((entry, index) => (
-                        <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />
-                      ))}
+                    <ChartTooltip content={<ChartTooltipContent formatter={(value: number, name: string) => {
+                    const minutes = Number(value) || 0;
+                    const pct = taskTypeTotal > 0 ? formatPercentCeil(minutes / taskTypeTotal * 100) : '0';
+                    return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                  }} />} />
+                    <Pie data={taskTypePieData} dataKey="value" nameKey="name" startAngle={90} endAngle={-270} innerRadius={60} outerRadius={100} strokeWidth={2} label={makePieLabelOutside(taskTypeTotal)} labelLine={true}>
+                      {taskTypePieData.map((entry, index) => <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />)}
                     </Pie>
                   </PieChart>
                 </ChartContainer>
 
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">No time data in current range</div>
-            )}
+              </div> : <div className="text-sm text-muted-foreground">No time data in current range</div>}
           </CardContent>
         </Card>
 
@@ -733,46 +631,22 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
             <CardDescription>Based on current filters</CardDescription>
           </CardHeader>
           <CardContent>
-            {scopePieData.length > 0 ? (
-              <div className="grid grid-cols-1 gap-6 items-center">
+            {scopePieData.length > 0 ? <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
                   <PieChart>
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value: number, name: string) => {
-                            const minutes = Number(value) || 0;
-                             const pct = scopeTotal > 0 ? formatPercentCeil((minutes / scopeTotal) * 100) : '0';
-                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
-
-                          }}
-                        />
-                      }
-                    />
-                    <Pie
-                      data={scopePieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={60}
-                      outerRadius={100}
-                      strokeWidth={2}
-                      label={makePieLabelOutside(scopeTotal)}
-                      labelLine={true}
-                    >
-                      {scopePieData.map((entry, index) => (
-                        <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />
-                      ))}
+                    <ChartTooltip content={<ChartTooltipContent formatter={(value: number, name: string) => {
+                    const minutes = Number(value) || 0;
+                    const pct = scopeTotal > 0 ? formatPercentCeil(minutes / scopeTotal * 100) : '0';
+                    return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                  }} />} />
+                    <Pie data={scopePieData} dataKey="value" nameKey="name" startAngle={90} endAngle={-270} innerRadius={60} outerRadius={100} strokeWidth={2} label={makePieLabelOutside(scopeTotal)} labelLine={true}>
+                      {scopePieData.map((entry, index) => <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />)}
                     </Pie>
                     
                   </PieChart>
                 </ChartContainer>
 
-              </div>
-            ) : (
-              <div className="text-sm text-muted-foreground">No time data in current range</div>
-            )}
+              </div> : <div className="text-sm text-muted-foreground">No time data in current range</div>}
           </CardContent>
         </Card>
       </div>
@@ -780,11 +654,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       </div>
 
       {/* Export */}
-      <TimeEntryExport
-        entries={filteredEntries}
-        filters={filters}
-        onExport={() => console.log('Export functionality')}
-      />
+      <TimeEntryExport entries={filteredEntries} filters={filters} onExport={() => console.log('Export functionality')} />
 
       {/* Time Entries Table */}
       <Card>
@@ -796,12 +666,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search entries..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Search entries..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
             </div>
           </div>
 
@@ -835,13 +700,11 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                 {sortedEntries.map((entry) => {
-                   const startDate = new Date(entry.startTime);
-                   const endDate = entry.endTime ? new Date(entry.endTime) : null;
-                   const task = tasks.find(t => t.id === entry.taskId);
-                   
-                   return (
-                     <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
+                 {sortedEntries.map(entry => {
+                const startDate = new Date(entry.startTime);
+                const endDate = entry.endTime ? new Date(entry.endTime) : null;
+                const task = tasks.find(t => t.id === entry.taskId);
+                return <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
                        <TableCell>
                          <div className="font-medium text-gray-900 dark:text-white truncate">
                            {entry.taskId === NON_PROJECT_TASK_ID ? 'Non_Project_Task' : `${entry.taskId}_${entry.taskTitle}`}
@@ -856,24 +719,15 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        
                         <TableCell>
                            <div className="flex items-center flex-wrap gap-1">
-                             {task?.scope?.map((scopeName, index) => (
-                               <Badge 
-                                 key={index}
-                                 style={getScopeStyle(scopeName)}
-                                 className="text-sm"
-                               >
+                             {task?.scope?.map((scopeName, index) => <Badge key={index} style={getScopeStyle(scopeName)} className="text-sm">
                                  {scopeName}
-                               </Badge>
-                             )) || <span>-</span>}
+                               </Badge>) || <span>-</span>}
                            </div>
                         </TableCell>
                         
                         <TableCell>
                           <div className="flex items-center">
-                            <Badge 
-                              style={getTaskTypeStyle(task?.taskType || '')}
-                              className="text-sm border"
-                            >
+                            <Badge style={getTaskTypeStyle(task?.taskType || '')} className="text-sm border">
                               {task?.taskType || '-'}
                             </Badge>
                           </div>
@@ -881,10 +735,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                         
                         <TableCell>
                           <div className="flex items-center">
-                            <Badge 
-                              style={getEnvironmentStyle(task?.environment || '')}
-                              className="text-sm border"
-                            >
+                            <Badge style={getEnvironmentStyle(task?.environment || '')} className="text-sm border">
                               {task?.environment || '-'}
                             </Badge>
                           </div>
@@ -904,11 +755,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        
                        <TableCell>
                          <div className="text-base text-gray-900 dark:text-white">
-                           {entry.isRunning ? (
-                             <span className="text-green-600 dark:text-green-400">In Progress</span>
-                           ) : (
-                             endDate ? endDate.toLocaleTimeString() : '-'
-                           )}
+                           {entry.isRunning ? <span className="text-green-600 dark:text-green-400">In Progress</span> : endDate ? endDate.toLocaleTimeString() : '-'}
                          </div>
                        </TableCell>
                        
@@ -919,45 +766,29 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        </TableCell>
                       
                        <TableCell>
-                         <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                         <div className="flex items-center space-x-2" onClick={e => e.stopPropagation()}>
                           
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleEditTimeEntry(entry)}
-                            title="Edit Time Entry"
-                          >
+                          <Button size="sm" variant="ghost" onClick={() => handleEditTimeEntry(entry)} title="Edit Time Entry">
                             <Edit3 className="w-4 h-4" />
                           </Button>
                           
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => deleteTimeEntry(entry.id)}
-                            title="Delete Time Entry"
-                          >
+                          <Button size="sm" variant="ghost" onClick={() => deleteTimeEntry(entry.id)} title="Delete Time Entry">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  );
-                })}
+                    </TableRow>;
+              })}
               </TableBody>
             </Table>
           </div>
 
-          {filteredEntries.length === 0 && (
-            <div className="text-center py-12">
+          {filteredEntries.length === 0 && <div className="text-center py-12">
               <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 dark:text-gray-400">
-                {searchTerm || Object.keys(filters).length > 1
-                  ? "No time entries found matching your filters."
-                  : "No time entries yet. Start a timer on a task to begin tracking time."
-                }
+                {searchTerm || Object.keys(filters).length > 1 ? "No time entries found matching your filters." : "No time entries yet. Start a timer on a task to begin tracking time."}
               </p>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
@@ -975,39 +806,21 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
               <Label htmlFor="date" className="text-right">
                 Date
               </Label>
-              <Input
-                id="date"
-                type="date"
-                value={editFormData.date}
-                onChange={(e) => handleFormChange('date', e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="date" type="date" value={editFormData.date} onChange={e => handleFormChange('date', e.target.value)} className="col-span-3" />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="start-time" className="text-right">
                 Start Time
               </Label>
-              <Input
-                id="start-time"
-                type="time"
-                value={editFormData.startTime}
-                onChange={(e) => handleFormChange('startTime', e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="start-time" type="time" value={editFormData.startTime} onChange={e => handleFormChange('startTime', e.target.value)} className="col-span-3" />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="end-time" className="text-right">
                 End Time
               </Label>
-              <Input
-                id="end-time"
-                type="time"
-                value={editFormData.endTime}
-                onChange={(e) => handleFormChange('endTime', e.target.value)}
-                className="col-span-3"
-              />
+              <Input id="end-time" type="time" value={editFormData.endTime} onChange={e => handleFormChange('endTime', e.target.value)} className="col-span-3" />
             </div>
             
             <div className="grid grid-cols-4 items-center gap-4">
@@ -1032,20 +845,11 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       </Dialog>
 
       {/* Task Edit Dialog */}
-      <TaskFormOptimized
-        task={selectedTask}
-        isOpen={isTaskFormOpen}
-        onClose={handleTaskFormClose}
-        onSave={() => {
-          // Task save logic would be handled by the TaskFormOptimized component
-          setIsTaskFormOpen(false);
-          setSelectedTask(null);
-        }}
-        allTasks={tasks}
-        allProjects={projects}
-      />
-    </div>
-  );
+      <TaskFormOptimized task={selectedTask} isOpen={isTaskFormOpen} onClose={handleTaskFormClose} onSave={() => {
+      // Task save logic would be handled by the TaskFormOptimized component
+      setIsTaskFormOpen(false);
+      setSelectedTask(null);
+    }} allTasks={tasks} allProjects={projects} />
+    </div>;
 };
-
 export default TimeTrackingPage;
