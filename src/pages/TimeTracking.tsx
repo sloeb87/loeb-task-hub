@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
+import { Clock, Search, Edit3, Trash2, Filter } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
@@ -20,7 +20,7 @@ import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { toast } from "@/components/ui/use-toast";
+
 
 interface MultiSelectFilters {
   task: string[];
@@ -545,23 +545,8 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }
   };
 
-  // Non-Project timer constants and handlers
+  // Non-Project timer constant (for display mapping)
   const NON_PROJECT_TASK_ID = 'non_project_time';
-  const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
-  const NON_PROJECT_PROJECT_NAME = 'Non Project';
-
-  const nonProjectTimer = getTaskTime(NON_PROJECT_TASK_ID);
-  const isNonProjectRunning = nonProjectTimer.isRunning;
-
-  const handleNonProjectToggle = () => {
-    if (isNonProjectRunning) {
-      stopTimer(NON_PROJECT_TASK_ID);
-      toast({ title: "Stopped Non-Project Timer" });
-    } else {
-      startTimer(NON_PROJECT_TASK_ID, NON_PROJECT_TASK_TITLE, NON_PROJECT_PROJECT_NAME, "Unknown");
-      toast({ title: "Started Non-Project Timer" });
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -575,17 +560,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button
-            variant={isNonProjectRunning ? "destructive" : "secondary"}
-            onClick={handleNonProjectToggle}
-            aria-label="Toggle Non-Project Timer"
-          >
-            {isNonProjectRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            {isNonProjectRunning ? "Stop Non-Project" : "Start Non-Project"}
-          </Button>
-          <RunningTimerDisplay tasks={tasks} />
-        </div>
+          <div className="flex items-center gap-2">
+            <RunningTimerDisplay tasks={tasks} />
+          </div>
       </div>
 
       {/* Statistics Cards */}
