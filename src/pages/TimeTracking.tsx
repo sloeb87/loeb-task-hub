@@ -603,7 +603,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-              <ChartContainer config={chartConfig} className="h-64 w-full">
+              <ChartContainer config={projectChartConfig} className="h-64 w-full">
                 <PieChart>
                   <ChartTooltip
                     content={
@@ -673,6 +673,159 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </CardHeader>
         </Card>
       )}
+
+      {/* Additional Charts: Task Type and Scope */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Task Type Pie Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Time by Task Type (%)</CardTitle>
+            <CardDescription>Based on current filters</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {taskTypePieData.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 items-center">
+                <ChartContainer config={taskTypeChartConfig} className="h-64 w-full">
+                  <PieChart>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value: number, name: string, item: any) => {
+                            const data = item?.payload as { percent?: number } | undefined;
+                            const minutes = Number(value) || 0;
+                            const pct = data?.percent ?? 0;
+                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                          }}
+                        />
+                      }
+                    />
+                    <Pie
+                      data={taskTypePieData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={50}
+                      outerRadius={80}
+                      strokeWidth={2}
+                    >
+                      {taskTypePieData.map((entry, index) => (
+                        <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />
+                      ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+                </ChartContainer>
+
+                <div className="w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Task Type</TableHead>
+                        <TableHead className="text-right">Time</TableHead>
+                        <TableHead className="text-right">% of total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {taskTypePieData.map((row, index) => (
+                        <TableRow key={row.name}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-3 w-3 rounded-sm inline-block"
+                                style={{ backgroundColor: taskTypeColors[index] }}
+                                aria-hidden="true"
+                              />
+                              <span className="truncate max-w-[220px]" title={row.name}>{row.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">{formatDetailedTime(row.value)}</TableCell>
+                          <TableCell className="text-right">{row.percent}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">No time data in current range</div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Scope Pie Chart */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle>Time by Scope (%)</CardTitle>
+            <CardDescription>Based on current filters</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {scopePieData.length > 0 ? (
+              <div className="grid grid-cols-1 gap-6 items-center">
+                <ChartContainer config={scopeChartConfig} className="h-64 w-full">
+                  <PieChart>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value: number, name: string, item: any) => {
+                            const data = item?.payload as { percent?: number } | undefined;
+                            const minutes = Number(value) || 0;
+                            const pct = data?.percent ?? 0;
+                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                          }}
+                        />
+                      }
+                    />
+                    <Pie
+                      data={scopePieData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={50}
+                      outerRadius={80}
+                      strokeWidth={2}
+                    >
+                      {scopePieData.map((entry, index) => (
+                        <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />
+                      ))}
+                    </Pie>
+                    <ChartLegend content={<ChartLegendContent />} />
+                  </PieChart>
+                </ChartContainer>
+
+                <div className="w-full overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Scope</TableHead>
+                        <TableHead className="text-right">Time</TableHead>
+                        <TableHead className="text-right">% of total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {scopePieData.map((row, index) => (
+                        <TableRow key={row.name}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className="h-3 w-3 rounded-sm inline-block"
+                                style={{ backgroundColor: scopeColors[index] }}
+                                aria-hidden="true"
+                              />
+                              <span className="truncate max-w-[220px]" title={row.name}>{row.name}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">{formatDetailedTime(row.value)}</TableCell>
+                          <TableCell className="text-right">{row.percent}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-muted-foreground">No time data in current range</div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Export */}
       <TimeEntryExport
