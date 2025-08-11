@@ -617,19 +617,20 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       />
                     }
                   />
-                  <Pie
-                    data={projectPieData}
-                    dataKey="value"
-                    nameKey="name"
-                    innerRadius={50}
-                    outerRadius={80}
-                    strokeWidth={2}
-                  >
+                    <Pie
+                      data={projectPieData}
+                      dataKey="value"
+                      nameKey="name"
+                      innerRadius={50}
+                      outerRadius={80}
+                      strokeWidth={2}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
+                    >
                     {projectPieData.map((entry, index) => (
                       <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
                     ))}
                   </Pie>
-                  <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
               </ChartContainer>
 
@@ -706,12 +707,13 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={50}
                       outerRadius={80}
                       strokeWidth={2}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
                     >
                       {taskTypePieData.map((entry, index) => (
                         <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />
                       ))}
                     </Pie>
-                    <ChartLegend content={<ChartLegendContent />} />
                   </PieChart>
                 </ChartContainer>
 
@@ -781,12 +783,14 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                       innerRadius={50}
                       outerRadius={80}
                       strokeWidth={2}
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      labelLine={false}
                     >
                       {scopePieData.map((entry, index) => (
                         <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />
                       ))}
                     </Pie>
-                    <ChartLegend content={<ChartLegendContent />} />
+                    
                   </PieChart>
                 </ChartContainer>
 
