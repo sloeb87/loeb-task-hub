@@ -442,7 +442,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       d.setDate(d.getDate() - (29 - i));
       return d;
     });
-    const key = (d: Date) => d.toISOString().slice(0, 10);
+    const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     const totals: Record<string, number> = {};
     days.forEach(d => { totals[key(d)] = 0; });
 
