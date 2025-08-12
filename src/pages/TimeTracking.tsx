@@ -18,7 +18,7 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/components/ui/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
@@ -468,6 +468,14 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     }));
   }, [timeEntries]);
 
+  // Average minutes excluding zero days (for reference line)
+  const avgMinutesExcludingZero = useMemo(() => {
+    const nonZero = dailyHistoryData.filter(d => d.minutes > 0);
+    if (nonZero.length === 0) return 0;
+    const total = nonZero.reduce((sum, d) => sum + d.minutes, 0);
+    return Math.round(total / nonZero.length);
+  }, [dailyHistoryData]);
+
   // Map legacy project names to the updated display name (UI-only)
   const normalizeProjectName = (name?: string) => {
     if (!name) return "";
@@ -847,7 +855,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-80 w-full">
-            <AreaChart data={dailyHistoryData}>
+            <BarChart data={dailyHistoryData}>
               <defs>
                 <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
@@ -864,8 +872,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                   />
                 }
               />
-              <Area type="monotone" dataKey="minutes" stroke="hsl(var(--chart-1))" fill="url(#dailyMinutesGradient)" strokeWidth={2} />
-            </AreaChart>
+              <ReferenceLine y={avgMinutesExcludingZero} stroke="hsl(var(--chart-10))" strokeDasharray="4 4" />
+              <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
+            </BarChart>
           </ChartContainer>
         </CardContent>
       </Card>
