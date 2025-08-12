@@ -47,6 +47,9 @@ interface FollowUpWithTask extends FollowUp {
   taskStatus: string;
   projectName: string;
 }
+// Wrapper component to avoid passing attributes to React.Fragment in dev overlay
+const Group = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+
 export const FollowUpsPage = ({
   tasks,
   onEditTask,
@@ -512,7 +515,7 @@ export const FollowUpsPage = ({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.entries(groupedFollowUps).map(([projectName, tasks]) => <React.Fragment key={projectName}>
+                {Object.entries(groupedFollowUps).map(([projectName, tasks]) => <Group key={projectName}>
                     {/* Project Header Row */}
                     <TableRow className="bg-muted/50 hover:bg-muted/50 cursor-pointer" onClick={() => toggleProjectExpansion(projectName)}>
                       <TableCell colSpan={4} className="font-semibold text-lg py-3">
@@ -531,7 +534,7 @@ export const FollowUpsPage = ({
                     </TableRow>
                     
                     {/* Only show tasks if project is expanded */}
-                    {expandedProjects.has(projectName) && Object.entries(tasks).map(([taskTitle, followUps]) => <React.Fragment key={`${projectName}-${taskTitle}`}>
+                    {expandedProjects.has(projectName) && Object.entries(tasks).map(([taskTitle, followUps]) => <Group key={`${projectName}-${taskTitle}`}>
                         {/* Task Header Row with Scope, Type, Environment */}
                         <TableRow className="bg-muted/30 hover:bg-muted/30 cursor-pointer" onClick={() => toggleTaskExpansion(projectName, taskTitle)}>
                           <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
@@ -612,8 +615,8 @@ export const FollowUpsPage = ({
                               </div>
                             </TableCell>
                           </TableRow>)}
-                      </React.Fragment>)}
-                  </React.Fragment>)}
+                      </Group>)}
+                  </Group>)}
               </TableBody>
             </Table>
           </div>
