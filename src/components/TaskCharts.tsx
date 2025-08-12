@@ -20,10 +20,10 @@ const STATUS_COLORS = {
 };
 
 const PRIORITY_COLORS = {
-  'Low': '#10b981',
-  'Medium': '#f59e0b',
-  'High': '#f97316',
-  'Critical': '#ef4444'
+  'Low': 'hsl(var(--chart-8))',
+  'Medium': 'hsl(var(--chart-4))',
+  'High': 'hsl(var(--chart-1))',
+  'Critical': 'hsl(var(--chart-10))'
 };
 
 export const TaskCharts = React.memo(({ statusChartData, priorityChartData, tasks = [], onMetricClick }: TaskChartsProps) => {
@@ -62,13 +62,13 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
                 labelLine={false}
                 label={({ status, percentage }) => `${status}: ${percentage}%`}
                 outerRadius={80}
-                fill="#8884d8"
+                fill="hsl(var(--chart-8))"
                 dataKey="count"
                 onClick={handleStatusClick}
                 style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
               >
                 {statusChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || '#3b82f6'} />
+                  <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || 'hsl(var(--chart-4))'} />
                 ))}
               </Pie>
               <Tooltip formatter={(value, name) => [value, name]} />
@@ -97,7 +97,7 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
                 style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
               >
                 {priorityChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || '#3b82f6'} />
+                  <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || 'hsl(var(--chart-4))'} />
                 ))}
               </Bar>
             </BarChart>

@@ -30,15 +30,15 @@ export const TaskStatusTimelineChart = React.memo(({ data }: TaskStatusTimelineC
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="opened" fill="#3b82f6" name="Opened Tasks" />
-            <Bar dataKey="completed" fill="#10b981" name="Completed Tasks" />
+            <Bar dataKey="opened" fill="hsl(var(--chart-8))" name="Opened Tasks" />
+            <Bar dataKey="completed" fill="hsl(var(--chart-4))" name="Completed Tasks" />
             <Line 
               type="monotone" 
               dataKey="wip" 
-              stroke="#f59e0b" 
+              stroke="hsl(var(--chart-1))" 
               strokeWidth={3}
               name="WIP Tasks"
-              dot={{ fill: '#f59e0b', r: 4 }}
+              dot={{ fill: 'hsl(var(--chart-1))', r: 4 }}
             />
           </ComposedChart>
         </ResponsiveContainer>
