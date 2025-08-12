@@ -65,6 +65,11 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
     });
   }, [tasks, selectedProject, selectedScope, selectedTimeRange, customDateFrom, customDateTo]);
 
+  // Exclude Meeting tasks from all KPI calculations and charts
+  const kpiTasks = useMemo(() => {
+    return filteredTasks.filter(task => task.taskType !== "Meeting");
+  }, [filteredTasks]);
+
   const availableProjects = useMemo(() => {
     const projectNames = [...new Set(tasks.map(task => task.project))];
     return projectNames.map(name => ({ name, value: name }));
@@ -76,7 +81,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   }, [tasks]);
 
   const filteredFollowUps = useMemo(() => {
-    const followUps = filteredTasks.flatMap(task => 
+    const followUps = kpiTasks.flatMap(task => 
       task.followUps.map(followUp => ({
         id: followUp.id,
         text: followUp.text,
@@ -87,9 +92,9 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
       }))
     );
     return followUps.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [filteredTasks]);
+  }, [kpiTasks]);
 
-  const metrics = useKPIMetrics(filteredTasks);
+  const metrics = useKPIMetrics(kpiTasks);
 
   const handleMetricClick = (metricType: string, title: string, tasks: Task[]) => {
     console.log('Metric clicked:', metricType, 'tasks:', tasks.length);
@@ -135,7 +140,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   // Generate timeline data for status chart - now respects the filtered tasks
   const generateTimelineData = () => {
     const now = new Date();
-    const data = [];
+    const data = [] as Array<{ date: string; opened: number; completed: number; wip: number }>;
     
     // Use custom date range if set, otherwise use default periods
     let startDate: Date;
@@ -154,19 +159,19 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         const weekEnd = new Date(startDate.getTime() + ((i + 1) * 7 * 24 * 60 * 60 * 1000));
         
         // Tasks opened in this week
-        const openedTasks = filteredTasks.filter(task => {
+        const openedTasks = kpiTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
           return taskDate >= weekStart && taskDate < weekEnd;
         });
         
         // Tasks closed in this week
-        const closedTasks = filteredTasks.filter(task => {
+        const closedTasks = kpiTasks.filter(task => {
           const completionDate = task.completionDate ? new Date(task.completionDate) : null;
           return completionDate && completionDate >= weekStart && completionDate < weekEnd;
         });
         
         // WIP tasks at the end of this week (all tasks created before or during this week minus completed tasks)
-        const allTasksUpToWeek = filteredTasks.filter(task => {
+        const allTasksUpToWeek = kpiTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
           return taskDate < weekEnd;
         });
@@ -192,19 +197,19 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
         const dateLabel = format(weekStart, 'MMM d');
 
         // Tasks opened in this week
-        const openedTasks = filteredTasks.filter(task => {
+        const openedTasks = kpiTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
           return taskDate >= weekStart && taskDate < weekEnd;
         });
 
         // Tasks closed in this week
-        const closedTasks = filteredTasks.filter(task => {
+        const closedTasks = kpiTasks.filter(task => {
           const completionDate = task.completionDate ? new Date(task.completionDate) : null;
           return completionDate && completionDate >= weekStart && completionDate < weekEnd;
         });
 
         // WIP tasks at the end of this week (all tasks created before or during this week minus completed tasks)
-        const allTasksUpToWeek = filteredTasks.filter(task => {
+        const allTasksUpToWeek = kpiTasks.filter(task => {
           const taskDate = new Date(task.creationDate);
           return taskDate < weekEnd;
         });
@@ -229,12 +234,12 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
   const timelineData = generateTimelineData();
 
   // Calculate overdue analysis
-  const overdueTasks = filteredTasks.filter(t => {
+  const overdueTasks = kpiTasks.filter(t => {
     const today = new Date();
     const dueDate = new Date(t.dueDate);
     return t.status !== "Completed" && dueDate < today;
   });
-  const notOverdueTasks = filteredTasks.filter(t => {
+  const notOverdueTasks = kpiTasks.filter(t => {
     const today = new Date();
     const dueDate = new Date(t.dueDate);
     return t.status === "Completed" || dueDate >= today;
@@ -393,7 +398,7 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
 
       {/* Professional Metrics Cards */}
       <ProfessionalMetricsCards 
-        tasks={filteredTasks} 
+        tasks={kpiTasks} 
         onMetricClick={handleMetricClick}
         timeRange={selectedTimeRange}
       />
@@ -402,10 +407,10 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
       <TaskCharts 
         statusChartData={statusChartData} 
         priorityChartData={priorityChartData}
-        tasks={filteredTasks}
+        tasks={kpiTasks}
         onMetricClick={handleMetricClick}
       />
-      
+
       {/* New Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <TaskStatusTimelineChart data={timelineData} />
