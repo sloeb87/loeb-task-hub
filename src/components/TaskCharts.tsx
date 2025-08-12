@@ -87,6 +87,12 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={priorityChartData} onClick={handlePriorityClick}>
+              <defs>
+                <linearGradient id="kpiBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="priority" />
               <YAxis />
@@ -95,11 +101,10 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
                 dataKey="count" 
                 onClick={handlePriorityClick}
                 style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
-              >
-                {priorityChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={PRIORITY_COLORS[entry.priority as keyof typeof PRIORITY_COLORS] || 'hsl(var(--chart-4))'} />
-                ))}
-              </Bar>
+                fill="url(#kpiBarGradient)"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={1.5}
+              />
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
