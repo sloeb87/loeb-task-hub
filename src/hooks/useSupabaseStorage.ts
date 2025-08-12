@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, Project, FollowUp } from '@/types/task';
 import { useAuth } from './useAuth';
-
+import { useToast } from '@/hooks/use-toast';
 interface SupabaseTask {
   id: string;
   task_number: string;
@@ -52,8 +52,8 @@ export function useSupabaseStorage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, isAuthenticated } = useAuth();
-
+const { user, isAuthenticated } = useAuth();
+const { toast } = useToast();
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
     // Fetch follow-ups for this task
     const { data: followUpsData, error: followUpsError } = await supabase
@@ -84,7 +84,7 @@ export function useSupabaseStorage() {
         .from('projects')
         .select('name')
         .eq('id', supabaseTask.project_id)
-        .single();
+        .maybeSingle();
       
       projectName = projectData?.name || '';
     }
@@ -209,7 +209,7 @@ export function useSupabaseStorage() {
           .select('id')
           .eq('name', taskData.project)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
         
         if (projectError) {
           console.error('Error finding project:', projectError);
@@ -258,9 +258,11 @@ export function useSupabaseStorage() {
 
       const newTask = await convertSupabaseTaskToTask(data);
       setTasks(prev => [newTask, ...prev]);
+      toast({ title: 'Task created', description: newTask.title });
       return newTask;
     } catch (err) {
       console.error('Error in createTask:', err);
+      toast({ title: 'Failed to create task', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
       throw err;
     }
   };
@@ -336,7 +338,8 @@ export function useSupabaseStorage() {
     const { error } = await supabase
       .from('tasks')
       .update(updateData)
-      .eq('id', existingTask.id);
+      .eq('id', existingTask.id)
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Supabase update error:', error);
@@ -411,6 +414,7 @@ export function useSupabaseStorage() {
     
     // Also reload tasks to ensure we have the latest data
     await loadTasks();
+    toast({ title: 'Task updated', description: updatedTask.title });
   };
 
   const addFollowUp = async (taskId: string, followUpText: string): Promise<void> => {
@@ -508,11 +512,13 @@ export function useSupabaseStorage() {
     const { error } = await supabase
       .from('tasks')
       .delete()
-      .eq('id', existingTask.id);
+      .eq('id', existingTask.id)
+      .eq('user_id', user.id);
 
     if (error) throw error;
 
     setTasks(prev => prev.filter(task => task.id !== taskId));
+    toast({ title: 'Task deleted' });
   };
 
   const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
