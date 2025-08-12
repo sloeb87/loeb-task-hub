@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
 import { TimeEntry, TimeEntryFilters, TimeEntryStats } from '@/types/timeEntry';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface TaskTimeData {
   taskId: string;
@@ -13,6 +14,7 @@ export interface TaskTimeData {
 
 export function useTimeTracking() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [taskTimers, setTaskTimers] = useState<Map<string, TaskTimeData>>(new Map());
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -178,6 +180,7 @@ export function useTimeTracking() {
 
       if (error) {
         console.error('Error creating time entry:', error);
+        toast({ title: 'Failed to start timer', variant: 'destructive' });
         return;
       }
 
@@ -240,10 +243,12 @@ export function useTimeTracking() {
           duration: duration,
           is_running: false
         })
-        .eq('id', taskData.currentEntryId);
+        .eq('id', taskData.currentEntryId)
+        .eq('user_id', user.id);
 
       if (error) {
         console.error('Error updating time entry:', error);
+        toast({ title: 'Failed to stop timer', variant: 'destructive' });
         return;
       }
 
@@ -364,6 +369,7 @@ export function useTimeTracking() {
 
       if (error) {
         console.error('Error deleting time entry:', error);
+        toast({ title: 'Failed to delete time entry', variant: 'destructive' });
         return;
       }
 

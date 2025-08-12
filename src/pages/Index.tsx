@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo } from "lucide-react";
 import { Task, Project } from "@/types/task";
@@ -6,20 +6,21 @@ import { Task, Project } from "@/types/task";
 
 import { TaskTable } from "@/components/TaskTable";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
-import { KPIDashboard } from "@/components/KPIDashboard";
-import { FollowUpDialog } from "@/components/FollowUpDialog";
-import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
-import { AppHeader } from "@/components/AppHeader";
-import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
-import ProjectsPage from "./Projects";
-import TimeTrackingPage from "./TimeTracking";
-import { FollowUpsPage } from "./FollowUps";
+// Lazy-load heavy views
+const KPIDashboard = lazy(() => import("@/components/KPIDashboard").then(m => ({ default: m.KPIDashboard })));
+const FollowUpDialog = lazy(() => import("@/components/FollowUpDialog").then(m => ({ default: m.FollowUpDialog })));
+const ProjectsPage = lazy(() => import("./Projects"));
+const TimeTrackingPage = lazy(() => import("./TimeTracking"));
+const FollowUpsPage = lazy(() => import("./FollowUps").then(m => ({ default: m.FollowUpsPage })));
 import Parameters from "@/components/Parameters";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { GlobalTaskForm } from "@/components/GlobalTaskForm";
-const Index = () => {
+import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
+import { AppHeader } from "@/components/AppHeader";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
   
+const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Custom hooks for optimized data management
@@ -316,50 +317,68 @@ const Index = () => {
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
         <div className="space-y-6">
-          {activeView === "tasks" ? <>
-            {/* Task Management Header */}
-            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
-              <div className="flex items-center space-x-3">
-                <ListTodo className="w-8 h-8 text-blue-600" />
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Task Management</h1>
-                  <p className="text-gray-600 dark:text-gray-300 mt-1">Create, assign, and track individual tasks</p>
+          {activeView === "tasks" ? (
+            <>
+              {/* Task Management Header */}
+              <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+                <div className="flex items-center space-x-3">
+                  <ListTodo className="w-8 h-8 text-blue-600" />
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Task Management</h1>
+                    <p className="text-gray-600 dark:text-gray-300 mt-1">Create, assign, and track individual tasks</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <RunningTimerDisplay tasks={tasks} />
+                  <Button onClick={() => {
+                    console.log('INDEX - New Task button clicked');
+                    setIsTaskFormOpen(true);
+                  }} className="flex items-center gap-2">
+                    <Plus className="w-4 h-4" />
+                    New Task
+                  </Button>
                 </div>
               </div>
+
+              {/* Controls */}
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                <RunningTimerDisplay tasks={tasks} />
-                <Button onClick={() => {
-                  console.log('INDEX - New Task button clicked');
-                  setIsTaskFormOpen(true);
-                }} className="flex items-center gap-2">
-                  <Plus className="w-4 h-4" />
-                  New Task
-                </Button>
-              </div>
-            </div>
 
-            {/* Controls */}
-            
+              <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-            <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
-
-            <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
-          </> : activeView === "dashboard" ? <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} /> : activeView === "timetracking" ? <TimeTrackingPage tasks={tasks} projects={projects} /> : activeView === "followups" ? <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} /> : <ProjectsPage 
-            tasks={tasks} 
-            projects={projects} 
-            onCreateProject={handleCreateProject} 
-            onUpdateProject={handleUpdateProject} 
-            onDeleteProject={handleDeleteProject} 
-            onCreateTask={handleCreateTask} 
-            onUpdateTask={handleUpdateTask} 
-            onDeleteTask={handleDeleteTask} 
-            projectFilter={projectFilter} 
-            setProjectFilter={setProjectFilter} 
-            onAddFollowUp={handleAddFollowUpWrapper} 
-            initialDetailProject={projectToShowDetails}
-            onBackToList={() => setIsProjectDetailView(false)}
-          />}
+              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+            </>
+          ) : activeView === "dashboard" ? (
+            <Suspense fallback={<div className="py-10 text-center">Loading dashboard…</div>}>
+              <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} />
+            </Suspense>
+          ) : activeView === "timetracking" ? (
+            <Suspense fallback={<div className="py-10 text-center">Loading time tracking…</div>}>
+              <TimeTrackingPage tasks={tasks} projects={projects} />
+            </Suspense>
+          ) : activeView === "followups" ? (
+            <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
+              <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
+            </Suspense>
+          ) : (
+            <Suspense fallback={<div className="py-10 text-center">Loading projects…</div>}>
+              <ProjectsPage 
+                tasks={tasks} 
+                projects={projects} 
+                onCreateProject={handleCreateProject} 
+                onUpdateProject={handleUpdateProject} 
+                onDeleteProject={handleDeleteProject} 
+                onCreateTask={handleCreateTask} 
+                onUpdateTask={handleUpdateTask} 
+                onDeleteTask={handleDeleteTask} 
+                projectFilter={projectFilter} 
+                setProjectFilter={setProjectFilter} 
+                onAddFollowUp={handleAddFollowUpWrapper} 
+                initialDetailProject={projectToShowDetails}
+                onBackToList={() => setIsProjectDetailView(false)}
+              />
+            </Suspense>
+          )}
         </div>
 
         {/* Task Form Dialog */}
@@ -383,14 +402,16 @@ const Index = () => {
 
         {/* Follow Up Dialog */}
         {followUpTask && (
-          <FollowUpDialog 
-            isOpen={!!followUpTask} 
-            onClose={() => setFollowUpTask(null)} 
-            onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
-            onUpdateFollowUp={handleUpdateFollowUpWrapper}
-            onDeleteFollowUp={handleDeleteFollowUpWrapper}
-            task={followUpTask} 
-          />
+          <Suspense fallback={<div className="py-4 text-center">Loading…</div>}>
+            <FollowUpDialog 
+              isOpen={!!followUpTask} 
+              onClose={() => setFollowUpTask(null)} 
+              onAddFollowUp={text => handleAddFollowUpWrapper(followUpTask.id, text)} 
+              onUpdateFollowUp={handleUpdateFollowUpWrapper}
+              onDeleteFollowUp={handleDeleteFollowUpWrapper}
+              task={followUpTask} 
+            />
+          </Suspense>
         )}
 
         {/* Global Task Form - Persists across all component remounts */}

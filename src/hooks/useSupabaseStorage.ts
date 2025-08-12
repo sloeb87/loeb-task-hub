@@ -282,11 +282,12 @@ const { toast } = useToast();
       .select('id, status')
       .eq('task_number', updatedTask.id)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (findError) {
+    if (findError || !existingTask) {
       console.error('Error finding task for update:', findError);
-      throw findError;
+      toast({ title: 'Task not found', description: updatedTask.id, variant: 'destructive' });
+      throw findError || new Error('Task not found');
     }
 
     console.log('Found existing task in DB:', existingTask);
@@ -427,15 +428,18 @@ const { toast } = useToast();
       .select('id, status')
       .eq('task_number', taskId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (findError) throw findError;
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
 
     const { data: profileData } = await supabase
       .from('profiles')
       .select('display_name')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     const { error } = await supabase
       .from('follow_ups')
@@ -467,11 +471,13 @@ const { toast } = useToast();
 
     if (error) {
       console.error('Error updating follow-up:', error);
+      toast({ title: 'Error updating follow-up', variant: 'destructive' });
       throw error;
     }
 
     console.log('Follow-up successfully updated');
     await loadTasks();
+    toast({ title: 'Follow-up updated' });
   };
 
   const deleteFollowUp = async (followUpId: string): Promise<void> => {
@@ -482,9 +488,13 @@ const { toast } = useToast();
       .delete()
       .eq('id', followUpId);
 
-    if (error) throw error;
+    if (error) {
+      toast({ title: 'Error deleting follow-up', variant: 'destructive' });
+      throw error;
+    }
 
     await loadTasks();
+    toast({ title: 'Follow-up deleted' });
   };
 
   const deleteTask = async (taskId: string): Promise<void> => {
@@ -496,9 +506,12 @@ const { toast } = useToast();
       .select('id')
       .eq('task_number', taskId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
-    if (findError) throw findError;
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
 
     // Delete related follow-ups first to satisfy FK constraints
     const { error: followUpsError } = await supabase
@@ -524,29 +537,35 @@ const { toast } = useToast();
   const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
-      .from('projects')
-      .insert({
-        name: projectData.name,
-        description: projectData.description,
-        owner: projectData.owner,
-        user_id: user.id,
-        scope: projectData.scope || [], // Handle array scope
-        start_date: projectData.startDate,
-        end_date: projectData.endDate,
-        status: projectData.status,
-        cost_center: projectData.cost_center,
-        team: projectData.team || [],
-        links: projectData.links || {}
-      })
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .insert({
+          name: projectData.name,
+          description: projectData.description,
+          owner: projectData.owner,
+          user_id: user.id,
+          scope: projectData.scope || [], // Handle array scope
+          start_date: projectData.startDate,
+          end_date: projectData.endDate,
+          status: projectData.status,
+          cost_center: projectData.cost_center,
+          team: projectData.team || [],
+          links: projectData.links || {}
+        })
+        .select()
+        .single();
 
-    if (error) throw error;
+      if (error) throw error;
 
-    const newProject = convertSupabaseProjectToProject(data);
-    setProjects(prev => [newProject, ...prev]);
-    return newProject;
+      const newProject = convertSupabaseProjectToProject(data);
+      setProjects(prev => [newProject, ...prev]);
+      toast({ title: 'Project created', description: newProject.name });
+      return newProject;
+    } catch (err) {
+      toast({ title: 'Failed to create project', variant: 'destructive' });
+      throw err;
+    }
   };
 
   const updateProject = async (updatedProject: Project): Promise<void> => {
@@ -569,35 +588,45 @@ const { toast } = useToast();
       .eq('id', updatedProject.id)
       .eq('user_id', user.id);
 
-    if (error) throw error;
+    if (error) {
+      toast({ title: 'Failed to update project', variant: 'destructive' });
+      throw error;
+    }
 
     setProjects(prev => prev.map(project => project.id === updatedProject.id ? updatedProject : project));
+    toast({ title: 'Project updated', description: updatedProject.name });
   };
 
   const deleteProject = async (projectId: string): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
-    // First delete all tasks associated with this project
-    const { error: tasksError } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('project_id', projectId)
-      .eq('user_id', user.id);
+    try {
+      // First delete all tasks associated with this project
+      const { error: tasksError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('project_id', projectId)
+        .eq('user_id', user.id);
 
-    if (tasksError) throw tasksError;
+      if (tasksError) throw tasksError;
 
-    // Then delete the project
-    const { error } = await supabase
-      .from('projects')
-      .delete()
-      .eq('id', projectId)
-      .eq('user_id', user.id);
+      // Then delete the project
+      const { error } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+        .eq('user_id', user.id);
 
-    if (error) throw error;
+      if (error) throw error;
 
-    setProjects(prev => prev.filter(project => project.id !== projectId));
-    // Refresh tasks to remove deleted project tasks from UI
-    loadTasks();
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+      // Refresh tasks to remove deleted project tasks from UI
+      loadTasks();
+      toast({ title: 'Project deleted' });
+    } catch (err) {
+      toast({ title: 'Failed to delete project', variant: 'destructive' });
+      throw err;
+    }
   };
 
   const refreshTasks = () => {
