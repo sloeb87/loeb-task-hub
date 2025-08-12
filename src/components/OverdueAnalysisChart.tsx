@@ -9,7 +9,7 @@ interface OverdueAnalysisChartProps {
   notOverdueCount: number;
 }
 
-export const OverdueAnalysisChart = ({ overdueCount, notOverdueCount }: OverdueAnalysisChartProps) => {
+export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount }: OverdueAnalysisChartProps) => {
   const data = [
     { name: 'Overdue', value: overdueCount, color: 'hsl(var(--chart-8))' },
     { name: 'On Track', value: notOverdueCount, color: 'hsl(var(--chart-4))' }
@@ -68,4 +68,4 @@ export const OverdueAnalysisChart = ({ overdueCount, notOverdueCount }: OverdueA
       </CardContent>
     </Card>
   );
-};
+});

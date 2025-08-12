@@ -26,24 +26,20 @@ const PRIORITY_COLORS = {
   'Critical': '#ef4444'
 };
 
-export const TaskCharts = ({ statusChartData, priorityChartData, tasks = [], onMetricClick }: TaskChartsProps) => {
+export const TaskCharts = React.memo(({ statusChartData, priorityChartData, tasks = [], onMetricClick }: TaskChartsProps) => {
   const handleStatusClick = (data: any) => {
     if (!onMetricClick || !tasks.length) return;
-    
     const status = data.status;
     const filteredTasks = tasks.filter(task => task.status === status);
     const metricType = status.toLowerCase().replace(' ', '');
-    
     onMetricClick(metricType, `${status} Tasks`, filteredTasks);
   };
 
   const handlePriorityClick = (data: any) => {
     if (!onMetricClick || !tasks.length) return;
-    
     const priority = data.priority;
     const filteredTasks = tasks.filter(task => task.priority === priority);
     const metricType = priority.toLowerCase();
-    
     onMetricClick(metricType, `${priority} Priority Tasks`, filteredTasks);
   };
 
@@ -110,4 +106,4 @@ export const TaskCharts = ({ statusChartData, priorityChartData, tasks = [], onM
       </Card>
     </div>
   );
-};
+});

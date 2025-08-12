@@ -196,6 +196,29 @@ const { toast } = useToast();
     }
   }, [isAuthenticated, loadTasks, loadProjects]);
 
+  // Realtime subscriptions for tasks, projects, and follow-ups
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+        loadTasks();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        loadProjects();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'follow_ups' }, () => {
+        // Follow-ups affect tasks list
+        loadTasks();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated, user, loadTasks, loadProjects]);
+
   const createTask = async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>): Promise<Task> => {
     if (!user) throw new Error('User not authenticated');
 

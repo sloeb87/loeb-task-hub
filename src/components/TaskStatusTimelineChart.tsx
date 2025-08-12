@@ -13,7 +13,7 @@ interface TaskStatusTimelineChartProps {
   }>;
 }
 
-export const TaskStatusTimelineChart = ({ data }: TaskStatusTimelineChartProps) => {
+export const TaskStatusTimelineChart = React.memo(({ data }: TaskStatusTimelineChartProps) => {
   return (
     <Card>
       <CardHeader>
@@ -45,4 +45,4 @@ export const TaskStatusTimelineChart = ({ data }: TaskStatusTimelineChartProps) 
       </CardContent>
     </Card>
   );
-};
+});

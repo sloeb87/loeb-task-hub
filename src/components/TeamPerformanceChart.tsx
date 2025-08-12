@@ -14,7 +14,7 @@ interface TeamPerformanceChartProps {
   }>;
 }
 
-export const TeamPerformanceChart = ({ userPerformanceData }: TeamPerformanceChartProps) => {
+export const TeamPerformanceChart = React.memo(({ userPerformanceData }: TeamPerformanceChartProps) => {
   return (
     <Card>
       <CardHeader>
@@ -46,4 +46,4 @@ export const TeamPerformanceChart = ({ userPerformanceData }: TeamPerformanceCha
       </CardContent>
     </Card>
   );
-};
+});

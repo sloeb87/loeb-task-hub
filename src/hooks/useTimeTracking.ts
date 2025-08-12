@@ -40,6 +40,22 @@ export function useTimeTracking() {
     };
   }, [user]);
 
+  // Realtime subscription for time_entries
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'time_entries' }, () => {
+        loadTimeData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   // Update running timers every minute
   useEffect(() => {
     const interval = setInterval(() => {
