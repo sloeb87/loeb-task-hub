@@ -18,7 +18,7 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell } from "recharts";
+import { PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/components/ui/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
@@ -433,6 +433,41 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const taskTypeTotal = useMemo(() => taskTypePieData.reduce((sum, d) => sum + (d.value || 0), 0), [taskTypePieData]);
   const scopeTotal = useMemo(() => scopePieData.reduce((sum, d) => sum + (d.value || 0), 0), [scopePieData]);
 
+  // Historical daily totals (last 30 days, ending today)
+  const dailyHistoryData = useMemo(() => {
+    const now = new Date();
+    const today = startOfDay(now);
+    const days: Date[] = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (29 - i));
+      return d;
+    });
+    const key = (d: Date) => d.toISOString().slice(0, 10);
+    const totals: Record<string, number> = {};
+    days.forEach(d => { totals[key(d)] = 0; });
+
+    timeEntries.forEach(e => {
+      const start = new Date(e.startTime);
+      const k = key(start);
+      if (totals[k] !== undefined) {
+        const minutes = typeof e.duration === 'number' && !isNaN(e.duration)
+          ? e.duration
+          : e.endTime
+            ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - start.getTime()) / 60000))
+            : e.isRunning
+              ? Math.max(0, Math.floor((now.getTime() - start.getTime()) / 60000))
+              : 0;
+        totals[k] += minutes;
+      }
+    });
+
+    return days.map(d => ({
+      dateISO: key(d),
+      dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      minutes: totals[key(d)] || 0,
+    }));
+  }, [timeEntries]);
+
   // Map legacy project names to the updated display name (UI-only)
   const normalizeProjectName = (name?: string) => {
     if (!name) return "";
@@ -803,6 +838,37 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
       </div>
 
       </div>
+
+      {/* Daily Hours History */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle>Daily Hours (Last 30 Days)</CardTitle>
+          <CardDescription>Total hours per day. Ends today.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ChartContainer config={{}} className="h-80 w-full">
+            <AreaChart data={dailyHistoryData}>
+              <defs>
+                <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="dateLabel" tickMargin={8} />
+              <YAxis tickFormatter={(v) => `${(Number(v) / 60).toFixed(1)}h`} />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    formatter={(value: number) => [`${(Number(value) / 60).toFixed(2)}h`, 'Total']}
+                  />
+                }
+              />
+              <Area type="monotone" dataKey="minutes" stroke="hsl(var(--chart-1))" fill="url(#dailyMinutesGradient)" strokeWidth={2} />
+            </AreaChart>
+          </ChartContainer>
+        </CardContent>
+      </Card>
 
       {/* Export */}
       <TimeEntryExport
