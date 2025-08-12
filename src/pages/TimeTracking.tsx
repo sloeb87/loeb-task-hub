@@ -921,7 +921,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                        
                        <TableCell>
                           <div className="text-base text-gray-900 dark:text-white">
-                            {startDate.toLocaleTimeString()}
+                            {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
                        </TableCell>
                        
@@ -930,7 +930,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                            {entry.isRunning ? (
                              <span className="text-green-600 dark:text-green-400">In Progress</span>
                            ) : (
-                             endDate ? endDate.toLocaleTimeString() : '-'
+                             endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
                            )}
                          </div>
                        </TableCell>
