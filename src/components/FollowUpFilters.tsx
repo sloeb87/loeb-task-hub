@@ -25,9 +25,10 @@ interface FollowUpFiltersProps {
   onFiltersChange: (filters: FollowUpFilters) => void;
   onClearFilters: () => void;
   availableProjects?: string[];
+  hideDateRange?: boolean;
 }
 
-export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters, availableProjects = [] }: FollowUpFiltersProps) => {
+export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters, availableProjects = [], hideDateRange = false }: FollowUpFiltersProps) => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
     filters.dateRange ? { from: filters.dateRange.from, to: filters.dateRange.to } : undefined
   );
@@ -92,7 +93,8 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
     });
   };
 
-  const hasActiveFilters = filters.dateRange || filters.month || filters.year ||
+  const hasActiveFilters =
+    (!hideDateRange && (filters.dateRange || filters.month || filters.year)) ||
     filters.projects?.length || filters.scopes?.length || 
     filters.taskTypes?.length || filters.environments?.length;
 
@@ -113,82 +115,84 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
       <CardContent>
         <div className="flex flex-wrap gap-4 items-end">
           {/* Date Range Picker */}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Date Range
-            </label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !dateRange && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formatDateRange()}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-3 border-b">
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('thisMonth')}
-                    >
-                      This Month
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('lastMonth')}
-                    >
-                      Last Month
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('thisYear')}
-                    >
-                      This Year
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('lastYear')}
-                    >
-                      Last Year
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('last30Days')}
-                    >
-                      Last 30 Days
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePresetSelection('last90Days')}
-                    >
-                      Last 90 Days
-                    </Button>
+          {!hideDateRange && (
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Date Range
+              </label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-[300px] justify-start text-left font-normal",
+                      !dateRange && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formatDateRange()}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-3 border-b">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('thisMonth')}
+                      >
+                        This Month
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('lastMonth')}
+                      >
+                        Last Month
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('thisYear')}
+                      >
+                        This Year
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('lastYear')}
+                      >
+                        Last Year
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('last30Days')}
+                      >
+                        Last 30 Days
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePresetSelection('last90Days')}
+                      >
+                        Last 90 Days
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={handleDateRangeChange}
-                  numberOfMonths={2}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={handleDateRangeChange}
+                    numberOfMonths={2}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+          )}
 
           {/* Project Filter */}
           <div className="flex flex-col gap-2">

@@ -13,6 +13,9 @@ import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } 
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
+import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
+import { TimeEntryFilters } from "@/types/timeEntry";
+import { startOfDay, endOfDay } from "date-fns";
 interface FollowUpsPageProps {
   tasks: Task[];
   onEditTask?: (task: Task) => void;
@@ -68,8 +71,24 @@ export const FollowUpsPage = ({
     getStatusStyle
   } = useStatusColor();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<FollowUpFilters>({});
+  const [filters, setFilters] = useState<FollowUpFilters>(() => {
+    const now = new Date();
+    return { dateRange: { from: startOfDay(now), to: endOfDay(now) } };
+  });
   
+  // Date filter proxy for TimeEntryFilters
+  const dateFilters: TimeEntryFilters = {
+    dateRange: filters.dateRange ? { from: filters.dateRange.from, to: filters.dateRange.to } : undefined,
+  };
+
+  const handleDateFiltersChange = (newDateFilters: TimeEntryFilters) => {
+    setFilters(prev => ({ ...prev, dateRange: newDateFilters.dateRange }));
+  };
+
+  const handleDateClear = () => {
+    setFilters(prev => ({ ...prev, dateRange: undefined }));
+  };
+
   // State for collapsible project groups
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
   
@@ -459,7 +478,18 @@ export const FollowUpsPage = ({
       </div>
 
       {/* Filters */}
-      <FollowUpFiltersComponent filters={filters} onFiltersChange={setFilters} onClearFilters={clearFilters} availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]} />
+      <TimeEntryFiltersComponent
+        filters={dateFilters}
+        onFiltersChange={handleDateFiltersChange}
+        onClearFilters={handleDateClear}
+      />
+      <FollowUpFiltersComponent 
+        filters={filters} 
+        onFiltersChange={setFilters} 
+        onClearFilters={clearFilters} 
+        availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]} 
+        hideDateRange
+      />
 
       {/* Export */}
       <FollowUpExport followUps={filteredFollowUps} filters={filters} />
