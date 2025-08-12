@@ -99,7 +99,9 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
         heightLeft -= pageHeight;
       }
       
-      pdf.save(`${project.name}_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+      const d = new Date();
+      const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      pdf.save(`${project.name}_Report_${dateStr}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
     }

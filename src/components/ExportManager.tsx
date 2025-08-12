@@ -218,7 +218,9 @@ export const ExportManager = ({ tasks, projects }: ExportManagerProps) => {
     const url = URL.createObjectURL(blob);
     
     link.setAttribute('href', url);
-    link.setAttribute('download', `${type}_export_${new Date().toISOString().split('T')[0]}.csv`);
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    link.setAttribute('download', `${type}_export_${dateStr}.csv`);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);

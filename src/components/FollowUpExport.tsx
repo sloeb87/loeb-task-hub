@@ -72,7 +72,9 @@ export const FollowUpExport = ({ followUps, filters }: FollowUpExportProps) => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `follow-ups-export-${new Date().toISOString().split('T')[0]}.csv`);
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    link.setAttribute('download', `follow-ups-export-${dateStr}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -140,7 +142,9 @@ export const FollowUpExport = ({ followUps, filters }: FollowUpExportProps) => {
     XLSX.utils.book_append_sheet(wb, ws, 'Follow-ups');
 
     // Write file
-    XLSX.writeFile(wb, `follow-ups-export-${new Date().toISOString().split('T')[0]}.xlsx`);
+    const d = new Date();
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    XLSX.writeFile(wb, `follow-ups-export-${dateStr}.xlsx`);
   };
 
   return (
