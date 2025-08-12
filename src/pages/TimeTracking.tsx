@@ -21,6 +21,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/components/ui/use-toast";
+import { startOfDay, endOfDay } from "date-fns";
 
 interface MultiSelectFilters {
   task: string[];
@@ -42,8 +43,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<TimeEntryFilters>({
-    year: new Date().getFullYear()
+  const [filters, setFilters] = useState<TimeEntryFilters>(() => {
+    const now = new Date();
+    return { dateRange: { from: startOfDay(now), to: endOfDay(now) } };
   });
 
   // Multi-select filters
