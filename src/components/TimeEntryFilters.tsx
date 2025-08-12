@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Filter, X } from "lucide-react";
 import { TimeEntryFilters } from "@/types/timeEntry";
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subWeeks, subMonths, subYears } from "date-fns";
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays, subWeeks, subMonths, subYears } from "date-fns";
 import { DateRange } from "react-day-picker";
 
 interface TimeEntryFiltersProps {
@@ -77,6 +77,10 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
         from = startOfDay(now);
         to = endOfDay(now);
         break;
+      case 'yesterday':
+        from = startOfDay(subDays(now, 1));
+        to = endOfDay(subDays(now, 1));
+        break;
       case 'thisWeek':
         from = startOfWeek(now);
         to = endOfWeek(now);
@@ -129,10 +133,23 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
   return (
     <Card>
       <CardHeader className="py-3">
-        <CardTitle className="flex items-center text-base">
-          <Filter className="w-5 h-5 mr-2" />
-          Filters
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center text-base">
+            <Filter className="w-5 h-5 mr-2" />
+            Filters
+          </CardTitle>
+          {hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onClearFilters}
+              className="flex items-center gap-2"
+            >
+              <X className="w-4 h-4" />
+              Clear
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex flex-wrap items-center gap-3">
@@ -153,8 +170,9 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
             />
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('today')}>Today</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePresetSelection('yesterday')}>Yesterday</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisWeek')}>This Week</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('lastWeek')}>Last Week</Button>
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('thisMonth')}>This Month</Button>
@@ -165,17 +183,6 @@ export const TimeEntryFiltersComponent = ({ filters, onFiltersChange, onClearFil
             <Button variant="outline" size="sm" onClick={() => handlePresetSelection('last90Days')}>Last 90 Days</Button>
           </div>
 
-          {hasActiveFilters && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onClearFilters}
-              className="ml-auto flex items-center gap-2"
-            >
-              <X className="w-4 h-4" />
-              Clear
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>
