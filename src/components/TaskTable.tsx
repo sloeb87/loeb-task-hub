@@ -17,7 +17,6 @@ import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 interface TaskTableProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
-  onEditTaskDetails?: (task: Task) => void; // Optional prop for opening task details view
   onFollowUp: (task: Task) => void;
   hideProjectColumn?: boolean; // New prop to hide project name
 }
@@ -41,7 +40,6 @@ interface Filters {
 export const TaskTable = ({
   tasks,
   onEditTask,
-  onEditTaskDetails,
   onFollowUp,
   hideProjectColumn = false // Default to false for backward compatibility
 }: TaskTableProps) => {

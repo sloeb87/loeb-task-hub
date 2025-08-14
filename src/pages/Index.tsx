@@ -20,11 +20,9 @@ import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
-import { ResponsiveTaskCard } from "@/components/ResponsiveTaskCard";
   
 const Index = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
-  const [selectedTaskForDetails, setSelectedTaskForDetails] = useState<Task | null>(null); // For task details view
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Custom hooks for optimized data management
@@ -129,7 +127,7 @@ const Index = () => {
   }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
-  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "task-details" | "timetracking" | "followups">("tasks");
+  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups">("tasks");
 
   // SEO: dynamic title, description, canonical per view
   useEffect(() => {
@@ -138,7 +136,6 @@ const Index = () => {
       dashboard: "KPI Dashboard", 
       projects: "Projects",
       "project-details": "Project Details",
-      "task-details": "Task Details",
       timetracking: "Time Tracking",
       followups: "Follow Ups",
     };
@@ -164,7 +161,7 @@ const Index = () => {
   }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
-  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "task-details" | "timetracking" | "followups") => {
+  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => {
     setActiveView(view);
     
     // Trigger refresh when navigating to time tracking
@@ -299,20 +296,6 @@ const Index = () => {
     }
   }, [activeView]);
 
-  // Handler for when a task is selected for detail view
-  const handleEditTaskForDetails = useCallback((task: Task) => {
-    setSelectedTaskForDetails(task);
-    setActiveView("task-details");
-  }, []);
-
-  // Handler to explicitly clear selected task (can be used for "close" functionality)
-  const handleClearSelectedTask = useCallback(() => {
-    setSelectedTaskForDetails(null);
-    if (activeView === "task-details") {
-      setActiveView("tasks"); // Navigate back to tasks if we're on task details
-    }
-  }, [activeView]);
-
   const handleNavigateToProject = useCallback((projectName: string) => {
     setProjectToShowDetails(projectName);
     setActiveView("projects");
@@ -351,7 +334,6 @@ const Index = () => {
           onRefresh={refreshTasks}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
-          selectedTaskTitle={selectedTaskForDetails?.title}
         />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
@@ -385,11 +367,11 @@ const Index = () => {
 
               <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-              <TaskTable tasks={filteredTasks} onEditTask={handleEditTaskForDetails} onFollowUp={handleFollowUpTask} />
+              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
             </>
           ) : activeView === "dashboard" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading dashboard…</div>}>
-              <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTaskForDetails} />
+              <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} />
             </Suspense>
           ) : activeView === "timetracking" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading time tracking…</div>}>
@@ -397,46 +379,7 @@ const Index = () => {
             </Suspense>
           ) : activeView === "followups" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
-              <FollowUpsPage tasks={tasks} onEditTask={handleEditTaskForDetails} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
-            </Suspense>
-          ) : activeView === "task-details" && selectedTaskForDetails ? (
-            <Suspense fallback={<div className="py-10 text-center">Loading task details…</div>}>
-              <div className="space-y-6">
-                {/* Task Details Header */}
-                <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
-                  <div className="flex items-center space-x-3">
-                    <ListTodo className="w-8 h-8 text-blue-600" />
-                    <div>
-                      <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Task Details</h1>
-                      <p className="text-gray-600 dark:text-gray-300 mt-1">Detailed view of {selectedTaskForDetails.title}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <RunningTimerDisplay tasks={tasks} />
-                    <Button onClick={handleClearSelectedTask} variant="outline" className="flex items-center gap-2">
-                      Back to Tasks
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Task Edit Form Content - Rendered inline */}
-                <TaskFormOptimized 
-                  isOpen={false}
-                  onClose={handleClearSelectedTask}
-                  onSave={handleSaveTask} 
-                  onDelete={handleDeleteTask} 
-                  onAddFollowUp={handleAddFollowUpWrapper}
-                  onUpdateFollowUp={handleUpdateFollowUpWrapper}
-                  onDeleteFollowUp={handleDeleteFollowUpWrapper}
-                  onFollowUpTask={handleFollowUpTask}
-                  task={selectedTaskForDetails} 
-                  allTasks={tasks} 
-                  allProjects={projects}
-                  onNavigateToProject={handleNavigateToProject}
-                  renderInline={true}
-                />
-              </div>
+              <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
             </Suspense>
           ) : activeView === "project-details" && selectedProject ? (
             <Suspense fallback={<div className="py-10 text-center">Loading project details…</div>}>
@@ -450,7 +393,7 @@ const Index = () => {
                 onUpdateProject={handleUpdateProject}
                 onDeleteProject={handleDeleteProject}
                 onCreateTask={() => {}} // Handled by global task form
-                onEditTask={handleEditTaskForDetails} // Use task details view instead of edit form
+                onEditTask={() => {}} // Handled by global task form
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
