@@ -173,28 +173,36 @@ export const TaskFormOptimized = React.memo(({
     if (task) {
       if (lastInitTaskIdRef.current === task.id) {
         // Same task id - check if critical fields have changed in the task data
+        console.log('TaskForm - Checking for field sync. Task ID:', task.id, 'Task environment:', task.environment, 'Form environment:', formData.environment);
+        
         const needsSync = formData.environment !== (task.environment || "") || 
             formData.taskType !== (task.taskType || "") ||
             formData.status !== (task.status || "") ||
             formData.priority !== (task.priority || "");
             
         if (needsSync) {
-          console.log('TaskForm - Syncing critical fields due to task data change:', {
+          console.log('TaskForm - SYNCING fields due to task data change:', {
             taskId: task.id,
-            environment: { form: formData.environment, task: task.environment },
+            environment: { form: formData.environment, task: task.environment, willSet: task.environment || "" },
             taskType: { form: formData.taskType, task: task.taskType },
             status: { form: formData.status, task: task.status },
             priority: { form: formData.priority, task: task.priority }
           });
           
-          // Preserve user input for editable fields, sync critical fields from task data
-          setFormData(prev => ({
-            ...prev,
-            environment: task.environment || "",
-            taskType: task.taskType || prev.taskType,
-            status: task.status || prev.status,
-            priority: task.priority || prev.priority
-          }));
+          // Always use task data as source of truth for environment
+          setFormData(prev => {
+            const updated = {
+              ...prev,
+              environment: task.environment || "",
+              taskType: task.taskType || prev.taskType,
+              status: task.status || prev.status,
+              priority: task.priority || prev.priority
+            };
+            console.log('TaskForm - Updated form data:', { environment: updated.environment });
+            return updated;
+          });
+        } else {
+          console.log('TaskForm - No sync needed. Environment values match.');
         }
         return;
       }
@@ -871,8 +879,8 @@ export const TaskFormOptimized = React.memo(({
 
                    <div>
                      <Label htmlFor="environment" className="text-gray-700 dark:text-gray-300">Environment</Label>
-                     {task?.id === 'T34' && (() => { console.log('DEBUG T34 - formData.environment in render:', formData.environment); return null; })()}
-                     <Select 
+                     {task?.id === 'T34' && (() => { console.log('DEBUG T34 - Rendering environment field. formData.environment:', formData.environment, 'task.environment:', task?.environment); return null; })()}
+                     <Select
                        value={formData.environment} 
                        onValueChange={(value) => updateField('environment', value)}
                      >
