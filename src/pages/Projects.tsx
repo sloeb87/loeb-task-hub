@@ -71,52 +71,13 @@ const ProjectsPage = ({
     setDetailProject(project);
   };
 
-  // Add debugging and protection for task form state
+  // Add debugging for task form state
   React.useEffect(() => {
     console.log('PROJECTS - Task form state changed:', { 
       isTaskFormOpen, 
-      selectedTaskId: selectedTask?.id || 'new task',
-      visibilityState: document.visibilityState,
-      documentHasFocus: document.hasFocus()
+      selectedTaskId: selectedTask?.id || 'new task'
     });
   }, [isTaskFormOpen, selectedTask]);
-
-  // Prevent view mode and detail project from being reset during window focus changes
-  React.useEffect(() => {
-    const handleVisibilityChange = () => {
-      console.log('PROJECTS - Visibility changed:', {
-        visibilityState: document.visibilityState,
-        isTaskFormOpen,
-        documentHasFocus: document.hasFocus(),
-        viewMode,
-        detailProject: detailProject?.name
-      });
-      
-      if (document.visibilityState === 'visible' && isTaskFormOpen) {
-        console.log('PROJECTS - Window became visible - keeping task form open');
-      }
-    };
-
-    const handleFocusChange = () => {
-      console.log('PROJECTS - Window focus changed:', {
-        hasFocus: document.hasFocus(),
-        isTaskFormOpen,
-        activeElement: document.activeElement?.tagName,
-        viewMode,
-        detailProject: detailProject?.name
-      });
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocusChange);
-    window.addEventListener('blur', handleFocusChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocusChange);
-      window.removeEventListener('blur', handleFocusChange);
-    };
-  }, [isTaskFormOpen, viewMode, detailProject]);
 
   // Handle initial detail project navigation
   React.useEffect(() => {
@@ -130,38 +91,6 @@ const ProjectsPage = ({
     }
   }, [initialDetailProject, projects]);
 
-  // Store current state in sessionStorage to persist across window focus changes
-  React.useEffect(() => {
-    if (viewMode === 'detail' && detailProject) {
-      console.log('PROJECTS - Storing detail project in sessionStorage:', detailProject.name);
-      sessionStorage.setItem('currentDetailProject', JSON.stringify({
-        projectName: detailProject.name,
-        viewMode: 'detail'
-      }));
-    } else if (viewMode === 'list') {
-      console.log('PROJECTS - Clearing detail project from sessionStorage');
-      sessionStorage.removeItem('currentDetailProject');
-    }
-  }, [viewMode, detailProject]);
-
-  // Restore state from sessionStorage on component mount
-  React.useEffect(() => {
-    const storedState = sessionStorage.getItem('currentDetailProject');
-    if (storedState && !initialDetailProject) {
-      try {
-        const { projectName, viewMode: storedViewMode } = JSON.parse(storedState);
-        const project = projects.find(p => p.name === projectName);
-        if (project && storedViewMode === 'detail') {
-          console.log('PROJECTS - Restoring detail project from sessionStorage:', projectName);
-          debugSetDetailProject(project);
-          debugSetViewMode('detail');
-        }
-      } catch (error) {
-        console.error('Failed to parse stored project state:', error);
-        sessionStorage.removeItem('currentDetailProject');
-      }
-    }
-  }, [projects, initialDetailProject]);
 
   // Notify parent when entering/exiting detail view
   React.useEffect(() => {
