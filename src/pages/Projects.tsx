@@ -25,6 +25,7 @@ interface ProjectsPageProps {
   initialDetailProject?: string | null;
   onBackToList?: () => void; // Callback when back action is needed
   isInDetailView?: boolean; // Flag to indicate if in detail view
+  onEditProject?: (project: Project) => void; // Handler for opening project details
 }
 
 const ProjectsPage = ({ 
@@ -41,7 +42,8 @@ const ProjectsPage = ({
   setProjectFilter,
   initialDetailProject = null,
   onBackToList,
-  isInDetailView
+  isInDetailView,
+  onEditProject
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -101,12 +103,11 @@ const ProjectsPage = ({
   }, [viewMode, onBackToList]);
 
   const handleEditProject = (project: Project) => {
-    console.log('Opening project detail in new window:', project.name);
-    // Open project detail view in a new window using current browser window size
-    const projectDetailUrl = `/project-detail?projectId=${project.id}&projectName=${encodeURIComponent(project.name)}`;
-    const currentWidth = window.innerWidth;
-    const currentHeight = window.innerHeight;
-    window.open(projectDetailUrl, '_blank', `width=${currentWidth},height=${currentHeight},scrollbars=yes,resizable=yes`);
+    console.log('Navigating to project details for:', project.name);
+    // Call parent handler to set selected project and switch to project details view
+    if (onEditProject) {
+      onEditProject(project);
+    }
   };
 
   const handleEditProjectForm = () => {

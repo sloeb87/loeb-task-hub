@@ -7,13 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 interface AppHeaderProps {
-  activeView: "tasks" | "dashboard" | "projects" | "timetracking" | "followups";
-  onViewChange: (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => void;
+  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups";
+  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
   onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
+  selectedProjectName?: string; // Optional project name for project details tab
 }
 export const AppHeader = ({
   activeView,
@@ -22,7 +23,8 @@ export const AppHeader = ({
   onToggleDarkMode,
   onOpenParameters,
   onRefresh,
-  onBack
+  onBack,
+  selectedProjectName
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -53,6 +55,11 @@ export const AppHeader = ({
     label: 'Projects',
     icon: FolderKanban
   }, {
+    key: 'project-details',
+    label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
+    icon: FolderKanban,
+    disabled: !selectedProjectName
+  }, {
     key: 'tasks',
     label: 'Tasks',
     icon: ListTodo
@@ -70,7 +77,14 @@ export const AppHeader = ({
     icon: BarChart3
   }];
   const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-2">
-      {navigationItems.map(item => <Button key={item.key} variant={activeView === item.key ? "default" : "outline"} onClick={() => onViewChange(item.key as any)} size="sm">
+      {navigationItems.map(item => <Button 
+        key={item.key} 
+        variant={activeView === item.key ? "default" : "outline"} 
+        onClick={() => onViewChange(item.key as any)} 
+        size="sm"
+        disabled={item.disabled}
+        className={item.disabled ? "opacity-50 cursor-not-allowed" : ""}
+      >
           <item.icon className="w-4 h-4 mr-2" />
           {item.label}
         </Button>)}

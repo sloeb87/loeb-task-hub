@@ -10,6 +10,7 @@ import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 const KPIDashboard = lazy(() => import("@/components/KPIDashboard").then(m => ({ default: m.KPIDashboard })));
 const FollowUpDialog = lazy(() => import("@/components/FollowUpDialog").then(m => ({ default: m.FollowUpDialog })));
 const ProjectsPage = lazy(() => import("./Projects"));
+const ProjectDetailView = lazy(() => import("@/components/ProjectDetailView").then(m => ({ default: m.ProjectDetailView })));
 const TimeTrackingPage = lazy(() => import("./TimeTracking"));
 const FollowUpsPage = lazy(() => import("./FollowUps").then(m => ({ default: m.FollowUpsPage })));
 import Parameters from "@/components/Parameters";
@@ -21,6 +22,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
   
 const Index = () => {
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Custom hooks for optimized data management
@@ -125,14 +127,15 @@ const Index = () => {
   }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
-  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "timetracking" | "followups">("tasks");
+  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups">("tasks");
 
   // SEO: dynamic title, description, canonical per view
   useEffect(() => {
     const labels: Record<typeof activeView, string> = {
       tasks: "Task Management",
-      dashboard: "KPI Dashboard",
+      dashboard: "KPI Dashboard", 
       projects: "Projects",
+      "project-details": "Project Details",
       timetracking: "Time Tracking",
       followups: "Follow Ups",
     };
@@ -158,12 +161,17 @@ const Index = () => {
   }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
-  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "timetracking" | "followups") => {
+  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => {
     setActiveView(view);
     
     // Trigger refresh when navigating to time tracking
     if (view === 'timetracking') {
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
+    }
+    
+    // Clear selected project when navigating away from project details
+    if (view !== 'project-details') {
+      setSelectedProject(null);
     }
   };
   const [isParametersOpen, setIsParametersOpen] = useState(false);
@@ -276,6 +284,12 @@ const Index = () => {
     }
   }, [handleUpdateTask, handleCreateTask]);
 
+  // Handler for when a project is selected for detail view
+  const handleEditProject = useCallback((project: Project) => {
+    setSelectedProject(project);
+    setActiveView("project-details");
+  }, []);
+
   const handleNavigateToProject = useCallback((projectName: string) => {
     setProjectToShowDetails(projectName);
     setActiveView("projects");
@@ -313,6 +327,7 @@ const Index = () => {
           onOpenParameters={() => setIsParametersOpen(true)}
           onRefresh={refreshTasks}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
+          selectedProjectName={selectedProject?.name}
         />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
@@ -360,6 +375,25 @@ const Index = () => {
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
               <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
             </Suspense>
+          ) : activeView === "project-details" && selectedProject ? (
+            <Suspense fallback={<div className="py-10 text-center">Loading project details…</div>}>
+              <ProjectDetailView
+                project={selectedProject}
+                tasks={tasks}
+                allTasks={tasks}
+                allProjects={projects}
+                onBack={() => setActiveView("projects")}
+                onEditProject={() => {}} // Not needed in this context
+                onUpdateProject={handleUpdateProject}
+                onDeleteProject={handleDeleteProject}
+                onCreateTask={() => {}} // Handled by global task form
+                onEditTask={() => {}} // Handled by global task form
+                onGenerateReport={() => {}} // Could be implemented later
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+                onSaveTask={handleCreateTask}
+              />
+            </Suspense>
           ) : (
             <Suspense fallback={<div className="py-10 text-center">Loading projects…</div>}>
               <ProjectsPage 
@@ -378,6 +412,7 @@ const Index = () => {
                 initialDetailProject={projectToShowDetails}
                 onBackToList={() => setIsProjectDetailView(false)}
                 isInDetailView={isProjectDetailView}
+                onEditProject={handleEditProject}
               />
             </Suspense>
           )}
