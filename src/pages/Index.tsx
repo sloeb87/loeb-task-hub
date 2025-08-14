@@ -450,7 +450,7 @@ const Index = () => {
                 onUpdateProject={handleUpdateProject}
                 onDeleteProject={handleDeleteProject}
                 onCreateTask={() => {}} // Handled by global task form
-                onEditTask={() => {}} // Handled by global task form
+                onEditTask={handleEditTaskForDetails} // Use task details view instead of edit form
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}

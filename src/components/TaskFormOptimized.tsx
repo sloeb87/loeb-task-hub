@@ -697,6 +697,36 @@ export const TaskFormOptimized = React.memo(({
     );
   };
 
+  // If renderInline is true, return the form without Dialog wrapper
+  if (renderInline && task) {
+    return (
+      <div className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Edit Task: {task.title}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">
+            Task ID: {task.id}
+          </p>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Simplified inline form - will be expanded */}
+          <div className="text-center py-8 border border-gray-200 dark:border-gray-600 rounded">
+            <p className="text-gray-600 dark:text-gray-300 mb-4">
+              Inline task editing form (coming soon)
+            </p>
+            <div className="flex space-x-2 justify-center">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Back to Tasks
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       console.log('TaskForm Dialog onOpenChange called:', { 
