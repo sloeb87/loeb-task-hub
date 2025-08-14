@@ -89,6 +89,15 @@ const { toast } = useToast();
       projectName = projectData?.name || '';
     }
 
+    if (supabaseTask.task_number === 'T34') {
+      console.log('Converting T34 from Supabase:', { 
+        environment: supabaseTask.environment,
+        task_type: supabaseTask.task_type,
+        priority: supabaseTask.priority,
+        status: supabaseTask.status
+      });
+    }
+
     return {
       id: supabaseTask.task_number, // Use task_number as the ID for compatibility
       scope: supabaseTask.scope || [], // Handle array scope
@@ -358,6 +367,7 @@ const { toast } = useToast();
     };
 
     console.log('Update data being sent to DB:', updateData);
+    console.log('Environment value in update:', updatedTask.environment);
 
     const { error } = await supabase
       .from('tasks')

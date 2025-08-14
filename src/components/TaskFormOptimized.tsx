@@ -357,6 +357,7 @@ export const TaskFormOptimized = React.memo(({
     };
 
     console.log('TaskForm saving key fields:', { environment: current.environment, status: current.status, priority: current.priority });
+    console.log('TaskForm saving complete task data:', taskData);
     onSave(taskData);
     // Clear preview for this task after saving
     if (task?.id) {
