@@ -172,19 +172,28 @@ export const TaskFormOptimized = React.memo(({
 
     if (task) {
       if (lastInitTaskIdRef.current === task.id) {
-        // Same task id - check if critical fields like environment have changed due to data refresh
-        if (formData.environment !== task.environment || 
+        // Same task id - always sync critical fields from the latest task data to prevent data loss
+        const shouldUpdate = formData.environment !== task.environment || 
             formData.taskType !== task.taskType ||
             formData.status !== task.status ||
-            formData.priority !== task.priority) {
-          console.log('TaskForm - Critical fields changed, updating form data for task:', task.id);
-          // Update only the fields that may have been affected by external updates
+            formData.priority !== task.priority;
+            
+        if (shouldUpdate) {
+          console.log('TaskForm - Syncing fields from refreshed task data:', {
+            taskId: task.id,
+            oldEnvironment: formData.environment,
+            newEnvironment: task.environment,
+            oldTaskType: formData.taskType,
+            newTaskType: task.taskType
+          });
+          
+          // Always use the task data as the source of truth for these fields
           setFormData(prev => ({
             ...prev,
-            environment: task.environment || prev.environment,
-            taskType: task.taskType || prev.taskType,
-            status: task.status || prev.status,
-            priority: task.priority || prev.priority
+            environment: task.environment || "",
+            taskType: task.taskType || "",
+            status: task.status || "",
+            priority: task.priority || ""
           }));
         }
         return;
