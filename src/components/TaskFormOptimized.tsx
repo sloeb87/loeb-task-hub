@@ -172,7 +172,21 @@ export const TaskFormOptimized = React.memo(({
 
     if (task) {
       if (lastInitTaskIdRef.current === task.id) {
-        // Same task id; avoid re-initializing to prevent flicker/reset on background refresh
+        // Same task id - check if critical fields like environment have changed due to data refresh
+        if (formData.environment !== task.environment || 
+            formData.taskType !== task.taskType ||
+            formData.status !== task.status ||
+            formData.priority !== task.priority) {
+          console.log('TaskForm - Critical fields changed, updating form data for task:', task.id);
+          // Update only the fields that may have been affected by external updates
+          setFormData(prev => ({
+            ...prev,
+            environment: task.environment || prev.environment,
+            taskType: task.taskType || prev.taskType,
+            status: task.status || prev.status,
+            priority: task.priority || prev.priority
+          }));
+        }
         return;
       }
       // Editing existing task
@@ -268,12 +282,20 @@ export const TaskFormOptimized = React.memo(({
       setDisplayedFollowUps(task.followUps || []);
       lastTaskIdRef.current = task.id;
     } else {
-      const countChanged = (task.followUps?.length || 0) !== displayedFollowUps.length;
-      if (countChanged) {
-        setDisplayedFollowUps(task.followUps || []);
+      // Check if follow-ups have changed (count or content)
+      const currentFollowUps = task.followUps || [];
+      const hasChanged = currentFollowUps.length !== displayedFollowUps.length || 
+        currentFollowUps.some((followUp, index) => {
+          const displayed = displayedFollowUps[index];
+          return !displayed || followUp.text !== displayed.text || followUp.timestamp !== displayed.timestamp;
+        });
+      
+      if (hasChanged) {
+        console.log('Follow-ups changed, updating displayed follow-ups');
+        setDisplayedFollowUps(currentFollowUps);
       }
     }
-  }, [isOpen, task?.id, task?.followUps?.length]);
+  }, [isOpen, task?.id, task?.followUps, displayedFollowUps]);
 
   // Memoized related tasks
   const relatedTasks = useMemo(() => {
