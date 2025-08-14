@@ -179,6 +179,9 @@ export const TaskFormOptimized = React.memo(({
 
     if (task) {
       if (lastInitTaskIdRef.current === task.id) {
+        if (task.id === 'T34') {
+          console.log('DEBUG T34 - SYNC CHECK: lastInitTaskIdRef.current:', lastInitTaskIdRef.current, 'task.id:', task.id);
+        }
         // Same task id - check if critical fields have changed in the task data
         console.log('TaskForm - Checking for field sync. Task ID:', task.id, 'Task environment:', task.environment, 'Form environment:', formData.environment);
         
