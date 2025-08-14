@@ -102,9 +102,11 @@ const ProjectsPage = ({
 
   const handleEditProject = (project: Project) => {
     console.log('Opening project detail in new window:', project.name);
-    // Open project detail view in a new window with higher resolution for more content
+    // Open project detail view in a new window using current browser window size
     const projectDetailUrl = `/project-detail?projectId=${project.id}&projectName=${encodeURIComponent(project.name)}`;
-    window.open(projectDetailUrl, '_blank', 'width=1920,height=1080,scrollbars=yes,resizable=yes');
+    const currentWidth = window.innerWidth;
+    const currentHeight = window.innerHeight;
+    window.open(projectDetailUrl, '_blank', `width=${currentWidth},height=${currentHeight},scrollbars=yes,resizable=yes`);
   };
 
   const handleEditProjectForm = () => {
