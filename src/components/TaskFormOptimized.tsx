@@ -278,6 +278,34 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [isOpen, task?.id, task?.environment, task?.taskType, task?.status, task?.priority, projectName, persistedFormData]);
 
+  // Re-sync form data when parameters change (especially environments)
+  useEffect(() => {
+    if (!isOpen || !task) return;
+    
+    // Check if current environment value exists in the current environments list
+    const environmentExists = environments.includes(formData.environment);
+    const taskEnvironmentExists = task.environment && environments.includes(task.environment);
+    
+    if (task.id === 'T34') {
+      console.log('DEBUG T34 - Parameters changed check:', {
+        environmentExists,
+        taskEnvironmentExists,
+        formDataEnvironment: formData.environment,
+        taskEnvironment: task.environment,
+        environments: environments
+      });
+    }
+    
+    // If form environment is empty but task has environment and it exists in current list
+    if (!formData.environment && task.environment && taskEnvironmentExists) {
+      console.log('DEBUG T34 - Fixing empty environment field with:', task.environment);
+      setFormData(prev => ({
+        ...prev,
+        environment: task.environment || ""
+      }));
+    }
+  }, [environments, formData.environment, task?.environment, task?.id, isOpen]);
+
   // Reset initialization guard when dialog closes so reopening re-initializes
   useEffect(() => {
     if (!isOpen) {
