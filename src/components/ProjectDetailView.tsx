@@ -149,9 +149,9 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
-    console.log('ProjectDetailView - Calling parent onEditTask');
-    // Call the parent onEditTask handler which should open the task form
-    onEditTask(task);
+    console.log('ProjectDetailView - Opening task form for editing from detail view');
+    // Open the task form directly from detail view with return flag
+    openTaskForm(task.project, task, 'project-detail-edit', true);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {
@@ -179,7 +179,7 @@ export const ProjectDetailView = ({
 
   const handleCreateTaskForProject = () => {
     console.log('ProjectDetailView - Creating new task for project:', project.name);
-    openTaskForm(project.name, undefined, 'project-detail-new');
+    openTaskForm(project.name, undefined, 'project-detail-new', true);
   };
 
   const handleEditProjectLocal = () => {

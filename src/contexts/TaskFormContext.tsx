@@ -7,11 +7,12 @@ interface TaskFormState {
   projectName: string | null;
   contextKey: string; // To track which component opened it
   formData?: any; // Store the form field values
+  returnToDetailView?: boolean; // Track if we should return to detail view
 }
 
 interface TaskFormContextType {
   taskFormState: TaskFormState;
-  openTaskForm: (projectName?: string, task?: Task, contextKey?: string) => void;
+  openTaskForm: (projectName?: string, task?: Task, contextKey?: string, returnToDetailView?: boolean) => void;
   closeTaskForm: () => void;
   updateTaskForm: (task: Task | null) => void;
   saveFormData: (formData: any) => void;
@@ -27,7 +28,8 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     selectedTask: null,
     projectName: null,
     contextKey: '',
-    formData: undefined
+    formData: undefined,
+    returnToDetailView: false
   });
 
   // Restore state from localStorage on mount
@@ -56,13 +58,14 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [taskFormState]);
 
-  const openTaskForm = (projectName?: string, task?: Task, contextKey = 'unknown') => {
-    console.log('GLOBAL_TASK_FORM - Opening task form:', { projectName, taskId: task?.id, contextKey });
+  const openTaskForm = (projectName?: string, task?: Task, contextKey = 'unknown', returnToDetailView = false) => {
+    console.log('GLOBAL_TASK_FORM - Opening task form:', { projectName, taskId: task?.id, contextKey, returnToDetailView });
     setTaskFormState({
       isOpen: true,
       selectedTask: task || null,
       projectName: projectName || null,
-      contextKey
+      contextKey,
+      returnToDetailView
     });
   };
 
@@ -73,7 +76,8 @@ export const TaskFormProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       selectedTask: null,
       projectName: null,
       contextKey: '',
-      formData: undefined
+      formData: undefined,
+      returnToDetailView: false
     });
   };
 
