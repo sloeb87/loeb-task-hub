@@ -934,17 +934,526 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              {/* Continue with rest of form fields... */}
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded">
-                <p>Additional form fields will be added...</p>
+              {/* Responsible Person */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Responsible Person
+                </Label>
+                <Input
+                  value={formData.responsible}
+                  onChange={(e) => setFormData(prev => ({ ...prev, responsible: e.target.value }))}
+                  placeholder="Person responsible"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Dates Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Start Date
+                  </Label>
+                  <Input
+                    type="date"
+                    value={formData.startDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Due Date *
+                  </Label>
+                  <Input
+                    type="date"
+                    value={date ? date.toISOString().split('T')[0] : ''}
+                    onChange={(e) => {
+                      if (e.target.value) {
+                        const selectedDate = new Date(e.target.value);
+                        setDate(selectedDate);
+                        setFormData(prev => ({ ...prev, dueDate: selectedDate }));
+                      }
+                    }}
+                    required
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Description
+                </Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Task description"
+                  rows={3}
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Details */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Details
+                </Label>
+                <Textarea
+                  value={formData.details}
+                  onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
+                  placeholder="Additional details"
+                  rows={3}
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
               </div>
             </div>
 
-            {/* Right Column */}
+            {/* Right Column - Links, Dependencies, Checklist */}
             <div className="space-y-6">
-              <div className="text-center py-4 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded">
-                <p>Right column form fields will be added here...</p>
+              {/* Links Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Links & Resources
+                </h3>
+                
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">OneNote</Label>
+                      {formData.links.oneNote && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                          onClick={() => window.open(formData.links.oneNote, '_blank')}
+                          title="Open OneNote link"
+                        >
+                          <FileText className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      value={formData.links.oneNote}
+                      onChange={(e) => updateLinkField('oneNote', e.target.value)}
+                      placeholder="OneNote link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Teams</Label>
+                      {formData.links.teams && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                          onClick={() => window.open(formData.links.teams, '_blank')}
+                          title="Open Teams link"
+                        >
+                          <Users className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      value={formData.links.teams}
+                      onChange={(e) => updateLinkField('teams', e.target.value)}
+                      placeholder="Teams link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</Label>
+                      {formData.links.email && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                          onClick={() => window.open(`mailto:${formData.links.email}`, '_blank')}
+                          title="Open email"
+                        >
+                          <Mail className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      value={formData.links.email}
+                      onChange={(e) => updateLinkField('email', e.target.value)}
+                      placeholder="Email"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">File</Label>
+                      {formData.links.file && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-900/20"
+                          onClick={() => window.open(formData.links.file, '_blank')}
+                          title="Open file link"
+                        >
+                          <File className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      value={formData.links.file}
+                      onChange={(e) => updateLinkField('file', e.target.value)}
+                      placeholder="File link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Folder</Label>
+                    </div>
+                    <Input
+                      value={formData.links.folder}
+                      onChange={(e) => updateLinkField('folder', e.target.value)}
+                      placeholder="Folder link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
               </div>
+
+              {/* Dependencies Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Dependencies
+                </h3>
+                
+                <div className="space-y-2">
+                  <Select
+                    value=""
+                    onValueChange={(value) => {
+                      if (value && !formData.dependencies.includes(value)) {
+                        setFormData(prev => ({ ...prev, dependencies: [...prev.dependencies, value] }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Add dependency" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                      {allTasks
+                        .filter(t => t.id !== task?.id && !formData.dependencies.includes(t.id))
+                        .map((t) => (
+                          <SelectItem key={t.id} value={t.id} className="dark:text-white dark:hover:bg-gray-700">
+                            {t.id} - {t.title}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  {/* Display selected dependencies */}
+                  {formData.dependencies.length > 0 && (
+                    <div className="space-y-2">
+                      {formData.dependencies.map((depId) => {
+                        const depTask = allTasks.find(t => t.id === depId);
+                        return depTask ? (
+                          <div key={depId} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <span className="text-sm text-gray-900 dark:text-white">
+                              {depTask.id} - {depTask.title}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  dependencies: prev.dependencies.filter(id => id !== depId)
+                                }));
+                              }}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Checklist Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Checklist
+                </h3>
+                
+                <div className="flex gap-2">
+                  <Input
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    placeholder="Add checklist item"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addChecklistItem();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addChecklistItem}
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Checklist Items */}
+                {formData.checklist.length > 0 && (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={formData.checklist.map(item => item.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="space-y-2">
+                        {formData.checklist.map((item) => (
+                          <SortableChecklistItem key={item.id} item={item} />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
+
+              {/* Stakeholders Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                  Stakeholders
+                </h3>
+                
+                <div className="flex gap-2">
+                  <Input
+                    value=""
+                    onChange={(e) => {
+                      if (e.target.value && e.target.value.includes(',')) {
+                        const newStakeholder = e.target.value.replace(',', '').trim();
+                        if (newStakeholder && !formData.stakeholders.includes(newStakeholder)) {
+                          setFormData(prev => ({ ...prev, stakeholders: [...prev.stakeholders, newStakeholder] }));
+                        }
+                        e.target.value = '';
+                      }
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const value = (e.target as HTMLInputElement).value.trim();
+                        if (value && !formData.stakeholders.includes(value)) {
+                          setFormData(prev => ({ ...prev, stakeholders: [...prev.stakeholders, value] }));
+                          (e.target as HTMLInputElement).value = '';
+                        }
+                      }
+                    }}
+                    placeholder="Add stakeholder (press Enter)"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
+
+                {/* Display stakeholders */}
+                {formData.stakeholders.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {formData.stakeholders.map((stakeholder, index) => (
+                      <Badge 
+                        key={index}
+                        variant="secondary"
+                        className="flex items-center gap-1"
+                      >
+                        <User className="w-3 h-3" />
+                        {stakeholder}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-4 w-4 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              stakeholders: prev.stakeholders.filter((_, i) => i !== index)
+                            }));
+                          }}
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Related Tasks Section */}
+              {relatedTasks.length > 0 && (
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                    Related Tasks
+                  </h3>
+                  <div className="space-y-2">
+                    {relatedTasks.map((relatedTask) => (
+                      <div 
+                        key={relatedTask.id}
+                        className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                        onClick={() => handleRelatedTaskClick(relatedTask)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium text-gray-900 dark:text-white">{relatedTask.title}</div>
+                            <div className="text-sm text-gray-600 dark:text-gray-300">{relatedTask.id} - {relatedTask.status}</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Follow-ups Section for existing tasks */}
+              {task && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Follow-ups ({displayedFollowUps.length})
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleStartTimer}
+                      className="flex items-center gap-1 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                      title="Start time tracking"
+                    >
+                      <Play className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Add follow-up input */}
+                  <div className="flex gap-2">
+                    <Input
+                      value={newFollowUpText}
+                      onChange={(e) => setNewFollowUpText(e.target.value)}
+                      placeholder="Add follow-up..."
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && newFollowUpText.trim()) {
+                          e.preventDefault();
+                          handleFollowUpAdd(newFollowUpText.trim());
+                          setNewFollowUpText('');
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (newFollowUpText.trim()) {
+                          handleFollowUpAdd(newFollowUpText.trim());
+                          setNewFollowUpText('');
+                        }
+                      }}
+                      disabled={!newFollowUpText.trim()}
+                      className="flex items-center gap-1"
+                    >
+                      <MessageSquarePlus className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Follow-ups list */}
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {displayedFollowUps.map((followUp) => (
+                      <div key={followUp.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                        {editingFollowUpId === followUp.id ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editingFollowUpText}
+                              onChange={(e) => setEditingFollowUpText(e.target.value)}
+                              className="w-full text-sm dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                              rows={2}
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={saveEditFollowUp}
+                                className="text-xs"
+                              >
+                                Save
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={cancelEditFollowUp}
+                                className="text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="flex justify-between items-start mb-2">
+                              <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                                <span>{new Date(followUp.timestamp).toLocaleDateString()}</span>
+                                <span>{new Date(followUp.timestamp).toLocaleTimeString()}</span>
+                                {followUp.taskStatus && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {followUp.taskStatus}
+                                  </Badge>
+                                )}
+                              </div>
+                              <div className="flex gap-1">
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => startEditFollowUp(followUp.id, followUp.text)}
+                                  className="h-6 w-6 p-0 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                >
+                                  <Pencil className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => deleteFollowUpInline(followUp.id)}
+                                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                >
+                                  <Trash2 className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                              {followUp.text}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
