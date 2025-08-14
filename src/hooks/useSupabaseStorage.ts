@@ -368,6 +368,9 @@ const { toast } = useToast();
 
     console.log('Update data being sent to DB:', updateData);
     console.log('Environment value in update:', updatedTask.environment);
+    if (updatedTask.id === 'T34') {
+      console.error('CRITICAL: T34 is being updated! Task data:', updatedTask);
+    }
 
     const { error } = await supabase
       .from('tasks')
