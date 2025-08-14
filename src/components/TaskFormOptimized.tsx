@@ -164,6 +164,10 @@ export const TaskFormOptimized = React.memo(({
   // Initialize form data when task changes (only when opening or switching task id)
   useEffect(() => {
     console.log('TaskForm useEffect triggered - isOpen:', isOpen, 'task id:', task?.id, 'task environment:', task?.environment);
+    if (task?.id === 'T34') {
+      console.log('DEBUG T34 - Full task object in form:', task);
+      console.log('DEBUG T34 - task.environment specifically:', task.environment);
+    }
     if (!isOpen) return;
 
     if (task) {
@@ -173,6 +177,9 @@ export const TaskFormOptimized = React.memo(({
       }
       // Editing existing task
       console.log('TaskForm - Initializing form data with task:', task.id, 'environment:', task.environment);
+      if (task.id === 'T34') {
+        console.log('DEBUG T34 - Initializing form with environment:', task.environment);
+      }
       const newFormData: FormData = {
         title: task.title || "",
         project: task.project || "",
@@ -831,12 +838,13 @@ export const TaskFormOptimized = React.memo(({
                      
                    </div>
 
-                  <div>
-                    <Label htmlFor="environment" className="text-gray-700 dark:text-gray-300">Environment</Label>
-                    <Select 
-                      value={formData.environment} 
-                      onValueChange={(value) => updateField('environment', value)}
-                    >
+                   <div>
+                     <Label htmlFor="environment" className="text-gray-700 dark:text-gray-300">Environment</Label>
+                     {task?.id === 'T34' && (() => { console.log('DEBUG T34 - formData.environment in render:', formData.environment); return null; })()}
+                     <Select 
+                       value={formData.environment} 
+                       onValueChange={(value) => updateField('environment', value)}
+                     >
                       <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                         <SelectValue placeholder="Select environment" />
                       </SelectTrigger>
