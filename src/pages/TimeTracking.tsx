@@ -873,6 +873,7 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
                 }
               />
               <ReferenceLine y={avgMinutesExcludingZero} stroke="hsl(var(--chart-10))" strokeDasharray="4 4" />
+              <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
               <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
             </BarChart>
           </ChartContainer>
