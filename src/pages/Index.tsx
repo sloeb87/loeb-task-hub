@@ -169,10 +169,8 @@ const Index = () => {
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
     }
     
-    // Clear selected project when navigating away from project details
-    if (view !== 'project-details') {
-      setSelectedProject(null);
-    }
+    // Don't clear selected project when navigating between tabs
+    // Selected project should persist until a new project is explicitly selected
   };
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
@@ -289,6 +287,14 @@ const Index = () => {
     setSelectedProject(project);
     setActiveView("project-details");
   }, []);
+
+  // Handler to explicitly clear selected project (can be used for "close" functionality)
+  const handleClearSelectedProject = useCallback(() => {
+    setSelectedProject(null);
+    if (activeView === "project-details") {
+      setActiveView("projects"); // Navigate back to projects if we're on project details
+    }
+  }, [activeView]);
 
   const handleNavigateToProject = useCallback((projectName: string) => {
     setProjectToShowDetails(projectName);

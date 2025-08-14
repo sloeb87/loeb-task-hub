@@ -58,7 +58,7 @@ export const AppHeader = ({
     key: 'project-details',
     label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
     icon: FolderKanban,
-    disabled: !selectedProjectName
+    disabled: !selectedProjectName // Only disabled if no project is selected
   }, {
     key: 'tasks',
     label: 'Tasks',
