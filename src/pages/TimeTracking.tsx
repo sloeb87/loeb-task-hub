@@ -598,14 +598,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   const nonProjectTimer = getTaskTime(NON_PROJECT_TASK_ID);
   const isNonProjectRunning = nonProjectTimer.isRunning;
 
-  const handleNonProjectToggle = () => {
-    if (isNonProjectRunning) {
-      stopTimer(NON_PROJECT_TASK_ID);
-      toast({ title: "Stopped Non-Project Timer" });
-    } else {
-      startTimer(NON_PROJECT_TASK_ID, NON_PROJECT_TASK_TITLE, NON_PROJECT_PROJECT_NAME, "Unknown");
-      toast({ title: "Started Non-Project Timer" });
-    }
+  const handleStartNonProject = () => {
+    startTimer(NON_PROJECT_TASK_ID, NON_PROJECT_TASK_TITLE, NON_PROJECT_PROJECT_NAME, "Unknown");
+    toast({ title: "Started Non-Project Timer" });
   };
 
   return (
@@ -621,14 +616,16 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
         </div>
         
         <div className="flex items-center gap-2">
-          <Button
-            variant={isNonProjectRunning ? "destructive" : "secondary"}
-            onClick={handleNonProjectToggle}
-            aria-label="Toggle Non-Project Timer"
-          >
-            {isNonProjectRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            {isNonProjectRunning ? "Stop Non-Project" : "Start Non-Project"}
-          </Button>
+          {!isNonProjectRunning && (
+            <Button
+              variant="secondary"
+              onClick={handleStartNonProject}
+              aria-label="Start Non-Project Timer"
+            >
+              <Play className="w-4 h-4" />
+              Start Non-Project
+            </Button>
+          )}
           <RunningTimerDisplay tasks={tasks} />
         </div>
       </div>
