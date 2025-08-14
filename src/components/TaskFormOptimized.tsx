@@ -377,7 +377,7 @@ export const TaskFormOptimized = React.memo(({
       return;
     }
 
-    const current = formDataRef.current;
+    const current = formData; // Use current formData state instead of ref to avoid timing issues
 
     const taskData = {
       ...current,
