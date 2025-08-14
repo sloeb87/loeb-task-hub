@@ -101,13 +101,10 @@ const ProjectsPage = ({
   }, [viewMode, onBackToList]);
 
   const handleEditProject = (project: Project) => {
-    console.log('handleEditProject called with:', project.name);
-    debugSetDetailProject(project);
-    debugSetViewMode('detail');
-    // Notify parent we're entering detail view
-    if (onBackToList) {
-      // Parent can now set up the back functionality
-    }
+    console.log('Opening project detail in new window:', project.name);
+    // Open project detail view in a new window
+    const projectDetailUrl = `/project-detail?projectId=${project.id}&projectName=${encodeURIComponent(project.name)}`;
+    window.open(projectDetailUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
   };
 
   const handleEditProjectForm = () => {
@@ -190,65 +187,7 @@ const ProjectsPage = ({
     console.log('After setting modal to true');
   };
 
-  if (viewMode === 'detail' && detailProject) {
-    return (
-      <>
-        <ProjectDetailView
-          project={detailProject}
-          tasks={tasks}
-          allTasks={tasks}
-          allProjects={projects} // Pass the projects list
-          onBack={() => {
-            debugSetViewMode('list');
-            onBackToList?.();
-          }}
-          onEditProject={handleEditProjectForm}
-          onUpdateProject={onUpdateProject}
-          onDeleteProject={onDeleteProject}
-          onCreateTask={() => handleCreateTaskForProject()}
-          onEditTask={handleEditTask}
-          onGenerateReport={() => handleGenerateReport(detailProject)}
-          onUpdateTask={onUpdateTask}
-          onDeleteTask={onDeleteTask}
-          onSaveTask={handleSaveTask}
-        />
-
-        {/* Task Form Modal - Also available in detail view */}
-        <TaskFormOptimized
-          key={selectedTask?.id || 'new'}
-          isOpen={isTaskFormOpen}
-          onClose={() => {
-            console.log('TaskForm onClose called from detail view');
-            setIsTaskFormOpen(false);
-            setSelectedTask(null);
-            setTaskProjectId(null);
-          }}
-          onSave={handleSaveTask}
-          onDelete={onDeleteTask}
-          onAddFollowUp={onAddFollowUp}
-          task={selectedTask}
-          allTasks={tasks}
-          allProjects={projects}
-          projectName={taskProjectId}
-          onEditRelatedTask={handleEditTask}
-        />
-
-        {/* Report Modal - Also available in detail view */}
-        {reportProject && (
-          <ReportModal
-            isOpen={isReportModalOpen}
-            onClose={() => {
-              console.log('ReportModal closing');
-              setIsReportModalOpen(false);
-              setReportProject(null);
-            }}
-            project={reportProject}
-            tasks={tasks}
-          />
-        )}
-      </>
-    );
-  }
+  // Detail view is now handled in separate window, no conditional rendering needed
 
   return (
     <div className="space-y-6">
@@ -342,7 +281,7 @@ const ProjectsPage = ({
           projects={projects}
           tasks={tasks}
           onCreateProject={onCreateProject}
-          onUpdateProject={handleEditProject}
+          onUpdateProject={onUpdateProject}
           onDeleteProject={onDeleteProject}
           onCreateTask={onCreateTask}
           onUpdateTask={onUpdateTask}
@@ -350,6 +289,7 @@ const ProjectsPage = ({
           projectFilter={projectFilter}
           setProjectFilter={setProjectFilter}
           onAddFollowUp={onAddFollowUp}
+          onViewProject={handleEditProject}
         />
       ) : (
         <Card>

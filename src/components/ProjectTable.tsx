@@ -24,6 +24,7 @@ interface ProjectTableProps {
   projectFilter: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
   onAddFollowUp: (taskId: string, followUpText: string) => void;
+  onViewProject?: (project: Project) => void; // New prop for viewing project details
 }
 export const ProjectTable = ({
   projects,
@@ -36,7 +37,8 @@ export const ProjectTable = ({
   onDeleteTask,
   projectFilter,
   setProjectFilter,
-  onAddFollowUp
+  onAddFollowUp,
+  onViewProject
 }: ProjectTableProps) => {
   const isMobile = useIsMobile();
   const { getScopeStyle, loading: scopeLoading } = useScopeColor();
@@ -146,7 +148,12 @@ export const ProjectTable = ({
     }
   };
   const handleRowClick = (project: Project) => {
-    onUpdateProject(project);
+    if (onViewProject) {
+      onViewProject(project);
+    } else {
+      // Fallback to edit project if onViewProject is not provided
+      onUpdateProject(project);
+    }
   };
 
   // Mobile view
@@ -219,7 +226,16 @@ export const ProjectTable = ({
         <div className="space-y-4">
           {sortedProjects.map(project => {
           const projectTasks = tasks.filter(task => task.project === project.name);
-          return <MobileProjectCard key={project.id} project={project} projectTasks={projectTasks} onEditProject={onUpdateProject} onDeleteProject={onDeleteProject} onCreateTask={onCreateTask} onEditTask={onUpdateTask} onDeleteTask={onDeleteTask} />;
+          return <MobileProjectCard 
+            key={project.id} 
+            project={project} 
+            projectTasks={projectTasks} 
+            onEditProject={onViewProject || onUpdateProject} 
+            onDeleteProject={onDeleteProject} 
+            onCreateTask={onCreateTask} 
+            onEditTask={onUpdateTask} 
+            onDeleteTask={onDeleteTask} 
+          />;
         })}
         </div>
 
