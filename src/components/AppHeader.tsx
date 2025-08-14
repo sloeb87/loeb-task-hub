@@ -7,14 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 interface AppHeaderProps {
-  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups";
-  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => void;
+  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit";
+  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
   onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
+  editingTaskTitle?: string; // Optional task title for task edit tab
 }
 export const AppHeader = ({
   activeView,
@@ -24,7 +25,8 @@ export const AppHeader = ({
   onOpenParameters,
   onRefresh,
   onBack,
-  selectedProjectName
+  selectedProjectName,
+  editingTaskTitle
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -71,6 +73,11 @@ export const AppHeader = ({
     key: 'timetracking',
     label: 'Time Tracking',
     icon: Clock
+  }, {
+    key: 'task-edit',
+    label: editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
+    icon: ListTodo,
+    disabled: !editingTaskTitle // Only show if editing a task
   }, {
     key: 'dashboard',
     label: 'KPIs',

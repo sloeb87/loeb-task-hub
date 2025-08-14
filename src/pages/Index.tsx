@@ -127,7 +127,7 @@ const Index = () => {
   }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
-  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups">("tasks");
+  const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit">("tasks");
 
   // SEO: dynamic title, description, canonical per view
   useEffect(() => {
@@ -138,6 +138,7 @@ const Index = () => {
       "project-details": "Project Details",
       timetracking: "Time Tracking",
       followups: "Follow Ups",
+      "task-edit": "Task Edit",
     };
     const appName = "Task Tracker";
     document.title = `${labels[activeView]} | ${appName}`;
@@ -161,7 +162,7 @@ const Index = () => {
   }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
-  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => {
+  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     setActiveView(view);
     
     // Trigger refresh when navigating to time tracking
@@ -194,20 +195,20 @@ const Index = () => {
   const handleCreateTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     await createTask(taskData);
     refreshTasks();
-    setIsTaskFormOpen(false);
+    setActiveView("tasks");
   }, [createTask, refreshTasks]);
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     await updateTask(updatedTask);
     refreshTasks();
     setSelectedTask(null);
-    setIsTaskFormOpen(false);
+    setActiveView("tasks");
   }, [updateTask, refreshTasks]);
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
-    setIsTaskFormOpen(true);
+    setActiveView("task-edit");
   }, []);
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {
@@ -334,6 +335,7 @@ const Index = () => {
           onRefresh={refreshTasks}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
+          editingTaskTitle={selectedTask?.title}
         />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
@@ -354,7 +356,8 @@ const Index = () => {
                   <RunningTimerDisplay tasks={tasks} />
                   <Button onClick={() => {
                     console.log('INDEX - New Task button clicked');
-                    setIsTaskFormOpen(true);
+                    setSelectedTask(null);
+                    setActiveView("task-edit");
                   }} className="flex items-center gap-2">
                     <Plus className="w-4 h-4" />
                     New Task
@@ -381,6 +384,44 @@ const Index = () => {
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
               <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
             </Suspense>
+          ) : activeView === "task-edit" ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                  {selectedTask ? `Edit Task: ${selectedTask.title}` : 'Create New Task'}
+                </h1>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedTask(null);
+                    setActiveView("tasks");
+                  }}
+                >
+                  Back to Tasks
+                </Button>
+              </div>
+              <TaskFormOptimized 
+                isOpen={true}
+                onClose={() => {
+                  setSelectedTask(null);
+                  setActiveView("tasks");
+                }}
+                onSave={handleSaveTask}
+                onDelete={handleDeleteTask}
+                onAddFollowUp={handleAddFollowUpWrapper}
+                onUpdateFollowUp={handleUpdateFollowUpWrapper}
+                onDeleteFollowUp={handleDeleteFollowUpWrapper}
+                onFollowUpTask={handleFollowUpTask}
+                task={selectedTask}
+                allTasks={tasks}
+                allProjects={projects}
+                onEditRelatedTask={handleEditTask}
+                onNavigateToProject={handleNavigateToProject}
+                persistedFormData={undefined}
+                onFormDataChange={undefined}
+                renderInline={true}
+              />
+            </div>
           ) : activeView === "project-details" && selectedProject ? (
             <Suspense fallback={<div className="py-10 text-center">Loading project details…</div>}>
               <ProjectDetailView
@@ -423,25 +464,6 @@ const Index = () => {
             </Suspense>
           )}
         </div>
-
-        {/* Task Form Dialog */}
-        <TaskFormOptimized 
-          isOpen={isTaskFormOpen} 
-          onClose={() => {
-            setIsTaskFormOpen(false);
-            setSelectedTask(null);
-          }} 
-          onSave={handleSaveTask} 
-          onDelete={handleDeleteTask} 
-          onAddFollowUp={handleAddFollowUpWrapper}
-          onUpdateFollowUp={handleUpdateFollowUpWrapper}
-          onDeleteFollowUp={handleDeleteFollowUpWrapper}
-          onFollowUpTask={handleFollowUpTask}
-          task={selectedTask} 
-          allTasks={tasks} 
-          allProjects={projects}
-          onNavigateToProject={handleNavigateToProject}
-        />
 
         {/* Follow Up Dialog */}
         {followUpTask && (

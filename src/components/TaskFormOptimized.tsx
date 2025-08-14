@@ -43,6 +43,7 @@ import { CSS } from '@dnd-kit/utilities';
 interface TaskFormProps {
   isOpen: boolean;
   onClose: () => void;
+  renderInline?: boolean; // New prop to control inline rendering
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onDelete?: (taskId: string) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
@@ -57,6 +58,7 @@ interface TaskFormProps {
   onNavigateToProject?: (projectName: string) => void;
   persistedFormData?: any;
   onFormDataChange?: (formData: any) => void;
+  renderInline?: boolean;
 }
 
 interface FormData {
@@ -125,7 +127,8 @@ export const TaskFormOptimized = React.memo(({
   onEditRelatedTask,
   onNavigateToProject,
   persistedFormData,
-  onFormDataChange
+  onFormDataChange,
+  renderInline = false
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -1492,8 +1495,25 @@ export const TaskFormOptimized = React.memo(({
             </div>
           </div>
         </form>
-      </DialogContent>
+  );
 
+  // Return inline version if requested
+  if (renderInline || isOpen) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        {formContent}
+      </div>
+    );
+  }
+
+  // Return dialog version for modal usage
+  // Return inline version if requested
+  if (renderInline) {
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
+        {formContent}
+      </DialogContent>
     </Dialog>
   );
 });
