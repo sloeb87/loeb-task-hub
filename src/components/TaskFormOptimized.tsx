@@ -172,28 +172,28 @@ export const TaskFormOptimized = React.memo(({
 
     if (task) {
       if (lastInitTaskIdRef.current === task.id) {
-        // Same task id - always sync critical fields from the latest task data to prevent data loss
-        const shouldUpdate = formData.environment !== task.environment || 
-            formData.taskType !== task.taskType ||
-            formData.status !== task.status ||
-            formData.priority !== task.priority;
+        // Same task id - check if critical fields have changed in the task data
+        const needsSync = formData.environment !== (task.environment || "") || 
+            formData.taskType !== (task.taskType || "") ||
+            formData.status !== (task.status || "") ||
+            formData.priority !== (task.priority || "");
             
-        if (shouldUpdate) {
-          console.log('TaskForm - Syncing fields from refreshed task data:', {
+        if (needsSync) {
+          console.log('TaskForm - Syncing critical fields due to task data change:', {
             taskId: task.id,
-            oldEnvironment: formData.environment,
-            newEnvironment: task.environment,
-            oldTaskType: formData.taskType,
-            newTaskType: task.taskType
+            environment: { form: formData.environment, task: task.environment },
+            taskType: { form: formData.taskType, task: task.taskType },
+            status: { form: formData.status, task: task.status },
+            priority: { form: formData.priority, task: task.priority }
           });
           
-          // Always use the task data as the source of truth for these fields
+          // Preserve user input for editable fields, sync critical fields from task data
           setFormData(prev => ({
             ...prev,
             environment: task.environment || "",
-            taskType: task.taskType || "",
-            status: task.status || "",
-            priority: task.priority || ""
+            taskType: task.taskType || prev.taskType,
+            status: task.status || prev.status,
+            priority: task.priority || prev.priority
           }));
         }
         return;
@@ -253,7 +253,7 @@ export const TaskFormOptimized = React.memo(({
         lastInitTaskIdRef.current = null;
       }
     }
-  }, [isOpen, task?.id, projectName, persistedFormData]);
+  }, [isOpen, task?.id, task?.environment, task?.taskType, task?.status, task?.priority, projectName, persistedFormData]);
 
   // Reset initialization guard when dialog closes so reopening re-initializes
   useEffect(() => {
