@@ -385,7 +385,7 @@ const Index = () => {
 
               <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onEditTaskDetails={handleEditTaskForDetails} onFollowUp={handleFollowUpTask} />
+              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
             </>
           ) : activeView === "dashboard" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading dashboard…</div>}>

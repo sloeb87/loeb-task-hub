@@ -373,15 +373,9 @@ export const TaskTable = ({
       return;
     }
     
-    // Use onEditTaskDetails if available (for task details view), otherwise use onEditTask (for edit form)
-    if (onEditTaskDetails) {
-      console.log('TaskTable - Calling onEditTaskDetails for:', task.title);
-      onEditTaskDetails(task);
-    } else {
-      console.log('TaskTable - Calling onEditTask for:', task.title);
-      onEditTask(task);
-    }
-  }, [onEditTask, onEditTaskDetails]);
+    console.log('TaskTable - Calling onEditTask for:', task.title);
+    onEditTask(task);
+  }, [onEditTask]);
 
   const handleFollowUpClick = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
