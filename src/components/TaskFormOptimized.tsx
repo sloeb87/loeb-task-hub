@@ -219,7 +219,8 @@ export const TaskFormOptimized = React.memo(({
       // Editing existing task
       console.log('TaskForm - Initializing form data with task:', task.id, 'environment:', task.environment);
       if (task.id === 'T34') {
-        console.log('DEBUG T34 - Initializing form with environment:', task.environment);
+        console.log('DEBUG T34 - Full initialization. Task environment:', task.environment);
+        console.log('DEBUG T34 - Will set formData.environment to:', task.environment || "");
       }
       const newFormData: FormData = {
         title: task.title || "",
@@ -245,6 +246,10 @@ export const TaskFormOptimized = React.memo(({
         },
         stakeholders: task.stakeholders || []
       };
+      
+      if (task.id === 'T34') {
+        console.log('DEBUG T34 - Created newFormData with environment:', newFormData.environment);
+      }
       
       setFormData(newFormData);
       setDate(new Date(task.dueDate));
