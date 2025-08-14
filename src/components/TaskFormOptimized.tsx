@@ -57,6 +57,7 @@ interface TaskFormProps {
   onNavigateToProject?: (projectName: string) => void;
   persistedFormData?: any;
   onFormDataChange?: (formData: any) => void;
+  renderInline?: boolean; // New prop to render inline without Dialog wrapper
 }
 
 interface FormData {
@@ -125,7 +126,8 @@ export const TaskFormOptimized = React.memo(({
   onEditRelatedTask,
   onNavigateToProject,
   persistedFormData,
-  onFormDataChange
+  onFormDataChange,
+  renderInline = false
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
   const [date, setDate] = useState<Date | undefined>(new Date());
