@@ -701,24 +701,285 @@ export const TaskFormOptimized = React.memo(({
   if (renderInline && task) {
     return (
       <div className="w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Edit Task: {task.title}
-          </h2>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">
-            Task ID: {task.id}
-          </p>
+        <div className="flex items-start justify-between border-b border-gray-200 dark:border-gray-700 pb-4 mb-6">
+          <div className="flex-1">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+              <span>{task ? `Edit Task: ${task.id} - ${task.title}` : 'Create New Task'}</span>
+              {(projectName || formData.project) && (
+                <span className="text-green-600 dark:text-green-400 font-semibold">
+                  {projectName || formData.project}
+                </span>
+              )}
+            </h2>
+            {(task || projectName) && formData.project && onNavigateToProject && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleNavigateToProject}
+                className="flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20 mt-2"
+                title={`Go to ${formData.project} project details`}
+              >
+                <ExternalLink className="w-4 h-4" />
+                Go to Project
+              </Button>
+            )}
+            <p className="text-gray-600 dark:text-gray-300 mt-2">
+              {task ? 'Edit task details, dependencies, and track progress.' : 'Create a new task with all necessary details and requirements.'}
+            </p>
+          </div>
+          <div className="flex-shrink-0 ml-4">
+            <RunningTimerDisplay tasks={allTasks} />
+          </div>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Simplified inline form - will be expanded */}
-          <div className="text-center py-8 border border-gray-200 dark:border-gray-600 rounded">
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Inline task editing form (coming soon)
-            </p>
-            <div className="flex space-x-2 justify-center">
-              <Button type="button" variant="outline" onClick={onClose}>
-                Back to Tasks
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left Column - Basic Task Information */}
+            <div className="space-y-6">
+              {/* Task Title */}
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Task Title *
+                </Label>
+                <Input
+                  id="title"
+                  type="text"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter task title"
+                  required
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+
+              {/* Project Selection */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Project *
+                </Label>
+                <Select
+                  value={formData.project}
+                  onValueChange={(value) => {
+                    setFormData(prev => ({ ...prev, project: value }));
+                    setFormData(prev => ({ ...prev, scope: [] }));
+                  }}
+                >
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="">Select project</SelectItem>
+                    {allProjects.map((project) => (
+                      <SelectItem key={project.id} value={project.name} className="dark:text-white dark:hover:bg-gray-700">
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Scope Selection - Multiple scopes allowed */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Scope *
+                </Label>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    if (value && !formData.scope.includes(value)) {
+                      setFormData(prev => ({ ...prev, scope: [...prev.scope, value] }));
+                    }
+                  }}
+                >
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                    <SelectValue placeholder="Add scope" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    {dropdownOptions.scopes
+                      .filter(scope => !formData.scope.includes(scope))
+                      .map((scope) => (
+                        <SelectItem key={scope} value={scope} className="dark:text-white dark:hover:bg-gray-700">
+                          {scope}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Display selected scopes */}
+                {formData.scope.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.scope.map((scopeName, index) => {
+                      const scopeParam = parameters.scopes.find(s => s.name === scopeName);
+                      return (
+                        <Badge 
+                          key={index}
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                          style={scopeParam ? { backgroundColor: scopeParam.color + '20', color: scopeParam.color, borderColor: scopeParam.color } : {}}
+                        >
+                          {scopeParam && (
+                            <div 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: scopeParam.color }}
+                            />
+                          )}
+                          {scopeName}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                scope: prev.scope.filter(s => s !== scopeName)
+                              }));
+                            }}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Environment */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Environment *
+                </Label>
+                <Select
+                  value={formData.environment}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, environment: value }))}
+                >
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                    <SelectValue placeholder="Select environment" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="">Select environment</SelectItem>
+                    {dropdownOptions.environments.map((env) => (
+                      <SelectItem key={env} value={env} className="dark:text-white dark:hover:bg-gray-700">
+                        {env}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Task Type */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Task Type *
+                </Label>
+                <Select
+                  value={formData.taskType}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, taskType: value }))}
+                >
+                  <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                    <SelectValue placeholder="Select task type" />
+                  </SelectTrigger>
+                  <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                    <SelectItem value="">Select task type</SelectItem>
+                    {dropdownOptions.taskTypes.map((type) => (
+                      <SelectItem key={type} value={type} className="dark:text-white dark:hover:bg-gray-700">
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status & Priority Row */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Status *
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+                  >
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                      <SelectItem value="">Select status</SelectItem>
+                      {dropdownOptions.statuses.map((status) => (
+                        <SelectItem key={status} value={status} className="dark:text-white dark:hover:bg-gray-700">
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Priority *
+                  </Label>
+                  <Select
+                    value={formData.priority}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value }))}
+                  >
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-gray-800 dark:border-gray-600">
+                      <SelectItem value="">Select priority</SelectItem>
+                      {dropdownOptions.priorities.map((priority) => (
+                        <SelectItem key={priority} value={priority} className="dark:text-white dark:hover:bg-gray-700">
+                          {priority}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Continue with rest of form fields... */}
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded">
+                <p>Additional form fields will be added...</p>
+              </div>
+            </div>
+
+            {/* Right Column */}
+            <div className="space-y-6">
+              <div className="text-center py-4 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded">
+                <p>Right column form fields will be added here...</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Form Actions */}
+          <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+            {task && onDelete && (
+              <Button 
+                type="button" 
+                variant="destructive" 
+                onClick={handleDelete}
+              >
+                Delete Task
+              </Button>
+            )}
+            <div className="flex space-x-2 ml-auto">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  if (task?.id) {
+                    window.dispatchEvent(new CustomEvent('taskPreviewClear', { detail: { id: task.id } }));
+                  }
+                  onClose();
+                }}
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={!task && (!formData.status || !formData.priority)}>
+                {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
           </div>
