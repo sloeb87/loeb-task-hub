@@ -385,11 +385,11 @@ const Index = () => {
 
               <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+              <TaskTable tasks={filteredTasks} onEditTask={handleEditTaskForDetails} onFollowUp={handleFollowUpTask} />
             </>
           ) : activeView === "dashboard" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading dashboard…</div>}>
-              <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTask} />
+              <KPIDashboard tasks={tasks} projects={projects} onEditTask={handleEditTaskForDetails} />
             </Suspense>
           ) : activeView === "timetracking" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading time tracking…</div>}>
@@ -397,7 +397,7 @@ const Index = () => {
             </Suspense>
           ) : activeView === "followups" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
-              <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
+              <FollowUpsPage tasks={tasks} onEditTask={handleEditTaskForDetails} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
             </Suspense>
           ) : activeView === "task-details" && selectedTaskForDetails ? (
             <Suspense fallback={<div className="py-10 text-center">Loading task details…</div>}>
@@ -420,31 +420,21 @@ const Index = () => {
                   </div>
                 </div>
 
-                {/* Task Details Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
-                    <ResponsiveTaskCard 
-                      task={selectedTaskForDetails}
-                      onEditTask={handleEditTask}
-                      onFollowUp={handleFollowUpTask}
-                    />
-                  </div>
-                  
-                  <div className="space-y-6">
-                    {/* Quick Actions */}
-                    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">Quick Actions</h3>
-                      <div className="space-y-2">
-                        <Button onClick={() => handleEditTask(selectedTaskForDetails)} className="w-full justify-start">
-                          Edit Task
-                        </Button>
-                        <Button onClick={() => handleFollowUpTask(selectedTaskForDetails)} variant="outline" className="w-full justify-start">
-                          Add Follow-up
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* Task Edit Form Content */}
+                <TaskFormOptimized 
+                  isOpen={true} 
+                  onClose={handleClearSelectedTask}
+                  onSave={handleSaveTask} 
+                  onDelete={handleDeleteTask} 
+                  onAddFollowUp={handleAddFollowUpWrapper}
+                  onUpdateFollowUp={handleUpdateFollowUpWrapper}
+                  onDeleteFollowUp={handleDeleteFollowUpWrapper}
+                  onFollowUpTask={handleFollowUpTask}
+                  task={selectedTaskForDetails} 
+                  allTasks={tasks} 
+                  allProjects={projects}
+                  onNavigateToProject={handleNavigateToProject}
+                />
               </div>
             </Suspense>
           ) : activeView === "project-details" && selectedProject ? (
