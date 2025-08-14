@@ -363,6 +363,7 @@ const Index = () => {
           ) : (
             <Suspense fallback={<div className="py-10 text-center">Loading projects…</div>}>
               <ProjectsPage 
+                key="projects-page-stable" // Stable key to prevent remounts
                 tasks={tasks} 
                 projects={projects} 
                 onCreateProject={handleCreateProject} 
@@ -376,6 +377,7 @@ const Index = () => {
                 onAddFollowUp={handleAddFollowUpWrapper} 
                 initialDetailProject={projectToShowDetails}
                 onBackToList={() => setIsProjectDetailView(false)}
+                isInDetailView={isProjectDetailView}
               />
             </Suspense>
           )}
