@@ -161,6 +161,13 @@ export const TaskFormOptimized = React.memo(({
     priorities = []
   } = dropdownOptions;
 
+  // Debug parameters loading for T34
+  if (task?.id === 'T34') {
+    console.log('DEBUG T34 - environments array:', environments);
+    console.log('DEBUG T34 - parameters.environments:', parameters.environments);
+    console.log('DEBUG T34 - parameters loaded?', parameters.environments.length > 0);
+  }
+
   // Initialize form data when task changes (only when opening or switching task id)
   useEffect(() => {
     console.log('TaskForm useEffect triggered - isOpen:', isOpen, 'task id:', task?.id, 'task environment:', task?.environment);
