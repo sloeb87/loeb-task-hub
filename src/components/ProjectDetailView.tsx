@@ -12,6 +12,7 @@ import { TaskTable } from "@/components/TaskTable";
 import { GanttChart } from "@/components/GanttChart";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useTaskForm } from "@/contexts/TaskFormContext";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -227,7 +228,8 @@ export const ProjectDetailView = ({
             <p className="text-gray-600 dark:text-gray-300 mt-1">{project.description}</p>
           </div>
         </div>
-        <div className="flex space-x-2">
+        <div className="flex items-center space-x-2">
+          <RunningTimerDisplay tasks={tasks} />
           <Button variant="outline" onClick={handleEditProjectLocal}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Project
