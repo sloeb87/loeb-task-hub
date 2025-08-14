@@ -17,6 +17,7 @@ import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 interface TaskTableProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
+  onEditTaskDetails?: (task: Task) => void; // Optional prop for opening task details view
   onFollowUp: (task: Task) => void;
   hideProjectColumn?: boolean; // New prop to hide project name
 }
@@ -40,6 +41,7 @@ interface Filters {
 export const TaskTable = ({
   tasks,
   onEditTask,
+  onEditTaskDetails,
   onFollowUp,
   hideProjectColumn = false // Default to false for backward compatibility
 }: TaskTableProps) => {
@@ -371,9 +373,15 @@ export const TaskTable = ({
       return;
     }
     
-    console.log('TaskTable - Calling onEditTask for:', task.title);
-    onEditTask(task);
-  }, [onEditTask]);
+    // Use onEditTaskDetails if available (for task details view), otherwise use onEditTask (for edit form)
+    if (onEditTaskDetails) {
+      console.log('TaskTable - Calling onEditTaskDetails for:', task.title);
+      onEditTaskDetails(task);
+    } else {
+      console.log('TaskTable - Calling onEditTask for:', task.title);
+      onEditTask(task);
+    }
+  }, [onEditTask, onEditTaskDetails]);
 
   const handleFollowUpClick = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();

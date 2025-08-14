@@ -7,14 +7,15 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 interface AppHeaderProps {
-  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups";
-  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups") => void;
+  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "task-details" | "timetracking" | "followups";
+  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "task-details" | "timetracking" | "followups") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
   onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
+  selectedTaskTitle?: string; // Optional task title for task details tab
 }
 export const AppHeader = ({
   activeView,
@@ -24,7 +25,8 @@ export const AppHeader = ({
   onOpenParameters,
   onRefresh,
   onBack,
-  selectedProjectName
+  selectedProjectName,
+  selectedTaskTitle
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -63,6 +65,11 @@ export const AppHeader = ({
     key: 'tasks',
     label: 'Tasks',
     icon: ListTodo
+  }, {
+    key: 'task-details',
+    label: selectedTaskTitle ? `Task: ${selectedTaskTitle}` : 'Task Details',
+    icon: ListTodo,
+    disabled: !selectedTaskTitle // Only disabled if no task is selected
   }, {
     key: 'followups',
     label: 'Follow-Ups',
