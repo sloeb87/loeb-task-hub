@@ -102,9 +102,9 @@ const ProjectsPage = ({
 
   const handleEditProject = (project: Project) => {
     console.log('Opening project detail in new window:', project.name);
-    // Open project detail view in a new window
+    // Open project detail view in a new window with same size as main dashboard
     const projectDetailUrl = `/project-detail?projectId=${project.id}&projectName=${encodeURIComponent(project.name)}`;
-    window.open(projectDetailUrl, '_blank', 'width=1400,height=900,scrollbars=yes,resizable=yes');
+    window.open(projectDetailUrl, '_blank', 'width=1600,height=1000,scrollbars=yes,resizable=yes');
   };
 
   const handleEditProjectForm = () => {

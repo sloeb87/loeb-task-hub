@@ -8,7 +8,7 @@ import { TaskFormProvider } from '@/contexts/TaskFormContext';
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/toaster";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, ArrowLeft } from "lucide-react";
+import { Moon, Sun, ArrowLeft, RotateCw } from "lucide-react";
 import { useTheme } from "next-themes";
 import type { Project, Task } from '@/types/task';
 
@@ -94,6 +94,10 @@ const ProjectDetailWindow = () => {
     refreshTasks();
   };
 
+  const handleRefresh = () => {
+    refreshTasks();
+  };
+
   const handleBackToMain = () => {
     // Try to focus the main window, or navigate there
     if (window.opener) {
@@ -132,6 +136,16 @@ const ProjectDetailWindow = () => {
             </div>
             
             <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                className="flex items-center gap-2"
+                title="Refresh data"
+              >
+                <RotateCw className="w-4 h-4" />
+                Refresh
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
