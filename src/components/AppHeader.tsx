@@ -205,15 +205,15 @@ export const AppHeader = ({
       {/* Second Header Row - Project & Task Details */}
       <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
         <div className="flex items-center h-12">
-          {/* Spacer to align with first row navigation - matches logo + spacing */}
-          <div className="w-[120px] sm:w-[140px]"></div>
-          
-          {/* Email badge before Project Details */}
+          {/* Email badge aligned with PMTask */}
           {user && (
-            <Badge variant="outline" className="text-xs mr-4">
+            <Badge variant="outline" className="text-xs">
               {user.email}
             </Badge>
           )}
+          
+          {/* Spacer to align Project Details with Projects from first row */}
+          <div className="w-6"></div>
           
           <div className="hidden md:flex items-center space-x-2">
             <Button 
