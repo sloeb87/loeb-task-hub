@@ -99,7 +99,7 @@ export const AppHeader = ({
     icon: Clock
   }, {
     key: 'task-edit',
-    label: editingTaskTitle && editingTaskId ? `Edit ${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
+    label: editingTaskTitle && editingTaskId ? `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
     icon: ListTodo,
     disabled: !editingTaskTitle // Only show if editing a task
   }, {
@@ -238,7 +238,7 @@ export const AppHeader = ({
             >
               <ListTodo className="w-4 h-4 mr-2" />
               {editingTaskTitle && editingTaskId ? (
-                `Edit ${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
+                `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
               ) : (
                 'Task Details'
               )}
