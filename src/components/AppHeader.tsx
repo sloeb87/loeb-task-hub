@@ -187,13 +187,9 @@ export const AppHeader = ({
                 navigate('/');
                 onViewChange('projects');
               }
-            }} className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+            }} className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
                 PMTask
               </button>
-              
-              {user && <Badge variant="outline" className="text-xs mt-1 px-0 my-0">
-                  {user.email}
-                </Badge>}
             </div>
             
             <DesktopNavigation />
@@ -208,32 +204,41 @@ export const AppHeader = ({
       
       {/* Second Header Row - Project & Task Details */}
       <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
-        <div className="flex items-center h-12">
-          {/* Spacer to align with first row navigation - matches logo + spacing */}
-          <div className="w-[120px] sm:w-[140px]"></div>
-          <div className="hidden md:flex items-center space-x-2">
-            <Button 
-              variant={activeView === 'project-details' ? "default" : "outline"} 
-              onClick={() => onViewChange('project-details')} 
-              size="sm"
-              disabled={!selectedProjectName}
-              className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <FolderKanban className="w-4 h-4 mr-2" />
-              {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
-            </Button>
-            
-            <Button 
-              variant={activeView === 'task-edit' ? "default" : "outline"} 
-              onClick={() => onViewChange('task-edit')} 
-              size="sm"
-              disabled={!editingTaskTitle}
-              className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <ListTodo className="w-4 h-4 mr-2" />
-              {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
-            </Button>
+        <div className="flex items-center justify-between h-12">
+          <div className="flex items-center">
+            {/* Spacer to align with first row navigation - matches logo + spacing */}
+            <div className="w-[120px] sm:w-[140px]"></div>
+            <div className="hidden md:flex items-center space-x-2">
+              <Button 
+                variant={activeView === 'project-details' ? "default" : "outline"} 
+                onClick={() => onViewChange('project-details')} 
+                size="sm"
+                disabled={!selectedProjectName}
+                className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <FolderKanban className="w-4 h-4 mr-2" />
+                {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
+              </Button>
+              
+              <Button 
+                variant={activeView === 'task-edit' ? "default" : "outline"} 
+                onClick={() => onViewChange('task-edit')} 
+                size="sm"
+                disabled={!editingTaskTitle}
+                className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <ListTodo className="w-4 h-4 mr-2" />
+                {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
+              </Button>
+            </div>
           </div>
+          
+          {/* Email badge on the right */}
+          {user && (
+            <Badge variant="outline" className="text-xs">
+              {user.email}
+            </Badge>
+          )}
         </div>
       </div>
     </header>;
