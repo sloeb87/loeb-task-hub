@@ -436,8 +436,13 @@ const Index = () => {
                 onCreateTask={() => {}} // Handled by global task form
                 onEditTask={(task) => {
                   setSelectedTask(task);
+                  // Find and set the corresponding project for the task
+                  const taskProject = projects.find(project => project.name === task.project);
+                  if (taskProject) {
+                    setSelectedProject(taskProject);
+                  }
                   setActiveView("task-edit");
-                }} // Switch to task-edit view when task is clicked
+                }} // Switch to task-edit view and update project when task is clicked
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
