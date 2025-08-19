@@ -224,7 +224,9 @@ export const ProjectDetailView = ({
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{project.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              <span className="text-green-700 dark:text-green-400">{project.id}</span> {project.name}
+            </h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">{project.description}</p>
           </div>
         </div>
