@@ -57,6 +57,28 @@ export const AppHeader = ({
     label: 'Projects',
     icon: FolderKanban
   }, {
+    key: 'tasks',
+    label: 'Tasks',
+    icon: ListTodo
+  }, {
+    key: 'followups',
+    label: 'Follow-Ups',
+    icon: MessageSquare
+  }, {
+    key: 'timetracking',
+    label: 'Time Tracking',
+    icon: Clock
+  }, {
+    key: 'dashboard',
+    label: 'KPIs',
+    icon: BarChart3
+  }];
+
+  const allNavigationItems = [{
+    key: 'projects',
+    label: 'Projects',
+    icon: FolderKanban
+  }, {
     key: 'project-details',
     label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
     icon: FolderKanban,
@@ -89,8 +111,6 @@ export const AppHeader = ({
         variant={activeView === item.key ? "default" : "outline"} 
         onClick={() => onViewChange(item.key as any)} 
         size="sm"
-        disabled={item.disabled}
-        className={item.disabled ? "opacity-50 cursor-not-allowed" : ""}
       >
           <item.icon className="w-4 h-4 mr-2" />
           {item.label}
@@ -119,10 +139,16 @@ export const AppHeader = ({
       </SheetTrigger>
       <SheetContent side="right" className="w-64">
         <div className="flex flex-col space-y-4 mt-6">
-          {navigationItems.map(item => <Button key={item.key} variant={activeView === item.key ? "default" : "ghost"} onClick={() => {
-          onViewChange(item.key as any);
-          setMobileMenuOpen(false);
-        }} className="justify-start">
+          {allNavigationItems.map(item => <Button 
+            key={item.key} 
+            variant={activeView === item.key ? "default" : "ghost"} 
+            onClick={() => {
+              onViewChange(item.key as any);
+              setMobileMenuOpen(false);
+            }} 
+            className="justify-start"
+            disabled={item.disabled}
+          >
               <item.icon className="w-4 h-4 mr-2" />
               {item.label}
             </Button>)}
@@ -147,6 +173,7 @@ export const AppHeader = ({
       </SheetContent>
     </Sheet>;
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
+      {/* First Header Row */}
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-6">
@@ -175,6 +202,35 @@ export const AppHeader = ({
           <div className="flex items-center space-x-2">
             <DesktopRightActions />
             <MobileNavigation />
+          </div>
+        </div>
+      </div>
+      
+      {/* Second Header Row - Project & Task Details */}
+      <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
+        <div className="flex items-center h-12 space-x-4">
+          <div className="hidden md:flex items-center space-x-2">
+            <Button 
+              variant={activeView === 'project-details' ? "default" : "outline"} 
+              onClick={() => onViewChange('project-details')} 
+              size="sm"
+              disabled={!selectedProjectName}
+              className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              <FolderKanban className="w-4 h-4 mr-2" />
+              {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
+            </Button>
+            
+            <Button 
+              variant={activeView === 'task-edit' ? "default" : "outline"} 
+              onClick={() => onViewChange('task-edit')} 
+              size="sm"
+              disabled={!editingTaskTitle}
+              className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              <ListTodo className="w-4 h-4 mr-2" />
+              {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
+            </Button>
           </div>
         </div>
       </div>
