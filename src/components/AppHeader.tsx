@@ -213,7 +213,7 @@ export const AppHeader = ({
           )}
           
           {/* Spacer to align Project Details with Projects from first row */}
-          <div className="w-6"></div>
+          <div className="w-3"></div>
           
           <div className="hidden md:flex items-center space-x-2">
             <Button 
