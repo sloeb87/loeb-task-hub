@@ -393,7 +393,13 @@ const Index = () => {
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {selectedTask ? `Edit Task ${selectedTask.id}: ${selectedTask.title}` : "Create New Task"}
+                  {selectedTask ? (
+                    <>
+                      Edit Task <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span>: {selectedTask.title}
+                    </>
+                  ) : (
+                    "Create New Task"
+                  )}
                 </h1>
                 <Button
                   variant="outline"
