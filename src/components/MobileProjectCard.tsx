@@ -78,6 +78,7 @@ export const MobileProjectCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               <FolderOpen className="w-4 h-4 text-primary" />
+              <span className="font-medium text-base text-green-700 dark:text-green-400">{project.id}</span>
               <h3 className="font-semibold text-base truncate text-foreground">
                 {project.name}
               </h3>

@@ -394,7 +394,10 @@ export const ProjectTable = ({
                     {/* Project Name Column */}
                     <TableCell>
                       <div className="space-y-1">
-                        <h3 className="text-base font-medium text-foreground">{project.name}</h3>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-base font-medium text-green-700 dark:text-green-400">{project.id}</span>
+                          <h3 className="text-base font-medium text-foreground">{project.name}</h3>
+                        </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
                       </div>
                     </TableCell>
