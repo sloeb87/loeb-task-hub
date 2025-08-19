@@ -341,6 +341,7 @@ const Index = () => {
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
           editingTaskTitle={selectedTask?.title}
+          editingTaskId={selectedTask?.id}
         />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">

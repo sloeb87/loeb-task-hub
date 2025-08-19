@@ -16,6 +16,7 @@ interface AppHeaderProps {
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
   editingTaskTitle?: string; // Optional task title for task edit tab
+  editingTaskId?: string; // Optional task ID for task edit tab
 }
 export const AppHeader = ({
   activeView,
@@ -26,7 +27,8 @@ export const AppHeader = ({
   onRefresh,
   onBack,
   selectedProjectName,
-  editingTaskTitle
+  editingTaskTitle,
+  editingTaskId
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -97,7 +99,7 @@ export const AppHeader = ({
     icon: Clock
   }, {
     key: 'task-edit',
-    label: editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
+    label: editingTaskTitle && editingTaskId ? `Edit ${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
     icon: ListTodo,
     disabled: !editingTaskTitle // Only show if editing a task
   }, {
@@ -235,7 +237,13 @@ export const AppHeader = ({
               className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
             >
               <ListTodo className="w-4 h-4 mr-2" />
-              {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
+              {editingTaskTitle && editingTaskId ? (
+                <>
+                  Edit <span className="text-blue-600 dark:text-blue-400">{editingTaskId}</span>: {editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}
+                </>
+              ) : (
+                'Task Details'
+              )}
             </Button>
           </div>
         </div>
