@@ -208,7 +208,9 @@ export const AppHeader = ({
       
       {/* Second Header Row - Project & Task Details */}
       <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
-        <div className="flex items-center h-12 space-x-4">
+        <div className="flex items-center h-12">
+          {/* Spacer to align with first row navigation - matches logo + spacing */}
+          <div className="w-[120px] sm:w-[140px]"></div>
           <div className="hidden md:flex items-center space-x-2">
             <Button 
               variant={activeView === 'project-details' ? "default" : "outline"} 
