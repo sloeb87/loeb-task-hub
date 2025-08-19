@@ -238,9 +238,7 @@ export const AppHeader = ({
             >
               <ListTodo className="w-4 h-4 mr-2" />
               {editingTaskTitle && editingTaskId ? (
-                <>
-                  Edit <span className="text-blue-600 dark:text-blue-400">{editingTaskId}</span>: {editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}
-                </>
+                `Edit ${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
               ) : (
                 'Task Details'
               )}
