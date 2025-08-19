@@ -15,6 +15,7 @@ interface AppHeaderProps {
   onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
+  selectedProjectId?: string; // Optional project ID for project details tab
   editingTaskTitle?: string; // Optional task title for task edit tab
   editingTaskId?: string; // Optional task ID for task edit tab
 }
@@ -27,6 +28,7 @@ export const AppHeader = ({
   onRefresh,
   onBack,
   selectedProjectName,
+  selectedProjectId,
   editingTaskTitle,
   editingTaskId
 }: AppHeaderProps) => {
@@ -226,7 +228,7 @@ export const AppHeader = ({
               className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
             >
               <FolderKanban className="w-4 h-4 mr-2" />
-              {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
+              {selectedProjectName && selectedProjectId ? `${selectedProjectId} : ${selectedProjectName}` : 'Project Details'}
             </Button>
             
             <Button 

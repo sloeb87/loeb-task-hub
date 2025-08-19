@@ -340,6 +340,7 @@ const Index = () => {
           onRefresh={refreshTasks}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
+          selectedProjectId={selectedProject?.id}
           editingTaskTitle={selectedTask?.title}
           editingTaskId={selectedTask?.id}
         />
