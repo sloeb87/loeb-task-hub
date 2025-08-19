@@ -52,47 +52,37 @@ export const AppHeader = ({
       });
     }
   };
-  const navigationItems = [
-    {
-      key: 'projects',
-      label: 'Projects',
-      icon: FolderKanban
-    },
-    {
-      key: 'project-details',
-      label: selectedProjectName ? `Edit Project: ${selectedProjectName}` : 'Edit Project',
-      icon: Settings,
-      disabled: !selectedProjectName,
-      isSubItem: true
-    },
-    {
-      key: 'tasks',
-      label: 'Tasks',
-      icon: ListTodo
-    },
-    {
-      key: 'task-edit',
-      label: editingTaskTitle ? `Edit Task: ${editingTaskTitle.length > 15 ? editingTaskTitle.substring(0, 15) + '...' : editingTaskTitle}` : 'Edit Task',
-      icon: Settings,
-      disabled: !editingTaskTitle,
-      isSubItem: true
-    },
-    {
-      key: 'followups',
-      label: 'Follow Ups',
-      icon: MessageSquare
-    },
-    {
-      key: 'timetracking',
-      label: 'Time Tracking',
-      icon: Clock
-    },
-    {
-      key: 'dashboard',
-      label: 'KPIs',
-      icon: BarChart3
-    }
-  ];
+  const navigationItems = [{
+    key: 'projects',
+    label: 'Projects',
+    icon: FolderKanban
+  }, {
+    key: 'project-details',
+    label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
+    icon: FolderKanban,
+    disabled: !selectedProjectName // Only disabled if no project is selected
+  }, {
+    key: 'tasks',
+    label: 'Tasks',
+    icon: ListTodo
+  }, {
+    key: 'followups',
+    label: 'Follow-Ups',
+    icon: MessageSquare
+  }, {
+    key: 'timetracking',
+    label: 'Time Tracking',
+    icon: Clock
+  }, {
+    key: 'task-edit',
+    label: editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
+    icon: ListTodo,
+    disabled: !editingTaskTitle // Only show if editing a task
+  }, {
+    key: 'dashboard',
+    label: 'KPIs',
+    icon: BarChart3
+  }];
   const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-2">
       {navigationItems.map(item => <Button 
         key={item.key} 
@@ -100,10 +90,7 @@ export const AppHeader = ({
         onClick={() => onViewChange(item.key as any)} 
         size="sm"
         disabled={item.disabled}
-        className={`
-          ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}
-          ${item.isSubItem ? "ml-2 text-xs bg-gray-50 dark:bg-gray-700 border-gray-300 dark:border-gray-600" : ""}
-        `}
+        className={item.disabled ? "opacity-50 cursor-not-allowed" : ""}
       >
           <item.icon className="w-4 h-4 mr-2" />
           {item.label}
@@ -132,20 +119,10 @@ export const AppHeader = ({
       </SheetTrigger>
       <SheetContent side="right" className="w-64">
         <div className="flex flex-col space-y-4 mt-6">
-          {navigationItems.map(item => <Button 
-            key={item.key} 
-            variant={activeView === item.key ? "default" : "ghost"} 
-            onClick={() => {
-              onViewChange(item.key as any);
-              setMobileMenuOpen(false);
-            }} 
-            disabled={item.disabled}
-            className={`
-              justify-start
-              ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}
-              ${item.isSubItem ? "ml-4 text-sm bg-gray-50 dark:bg-gray-700" : ""}
-            `}
-          >
+          {navigationItems.map(item => <Button key={item.key} variant={activeView === item.key ? "default" : "ghost"} onClick={() => {
+          onViewChange(item.key as any);
+          setMobileMenuOpen(false);
+        }} className="justify-start">
               <item.icon className="w-4 h-4 mr-2" />
               {item.label}
             </Button>)}
