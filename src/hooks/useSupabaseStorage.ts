@@ -570,13 +570,45 @@ const { toast } = useToast();
     toast({ title: 'Task deleted' });
   };
 
+  const generateNextProjectId = async (): Promise<string> => {
+    if (!user) throw new Error('User not authenticated');
+    
+    // Get all existing projects for this user to find the highest number
+    const { data: existingProjects, error } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Find the highest project number (P1, P2, P3, etc.)
+    let maxNumber = 0;
+    if (existingProjects) {
+      for (const project of existingProjects) {
+        if (project.id.startsWith('P')) {
+          const numberPart = parseInt(project.id.substring(1));
+          if (!isNaN(numberPart) && numberPart > maxNumber) {
+            maxNumber = numberPart;
+          }
+        }
+      }
+    }
+    
+    return `P${maxNumber + 1}`;
+  };
+
   const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
     if (!user) throw new Error('User not authenticated');
 
     try {
+      // Generate the next sequential project ID (P1, P2, P3, etc.)
+      const nextProjectId = await generateNextProjectId();
+      
       const { data, error } = await supabase
         .from('projects')
         .insert({
+          id: nextProjectId,
           name: projectData.name,
           description: projectData.description,
           owner: projectData.owner,
