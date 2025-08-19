@@ -204,41 +204,40 @@ export const AppHeader = ({
       
       {/* Second Header Row - Project & Task Details */}
       <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
-        <div className="flex items-center justify-between h-12">
-          <div className="flex items-center">
-            {/* Spacer to align with first row navigation - matches logo + spacing */}
-            <div className="w-[120px] sm:w-[140px]"></div>
-            <div className="hidden md:flex items-center space-x-2">
-              <Button 
-                variant={activeView === 'project-details' ? "default" : "outline"} 
-                onClick={() => onViewChange('project-details')} 
-                size="sm"
-                disabled={!selectedProjectName}
-                className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
-              >
-                <FolderKanban className="w-4 h-4 mr-2" />
-                {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
-              </Button>
-              
-              <Button 
-                variant={activeView === 'task-edit' ? "default" : "outline"} 
-                onClick={() => onViewChange('task-edit')} 
-                size="sm"
-                disabled={!editingTaskTitle}
-                className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
-              >
-                <ListTodo className="w-4 h-4 mr-2" />
-                {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
-              </Button>
-            </div>
-          </div>
+        <div className="flex items-center h-12">
+          {/* Spacer to align with first row navigation - matches logo + spacing */}
+          <div className="w-[120px] sm:w-[140px]"></div>
           
-          {/* Email badge on the right */}
+          {/* Email badge before Project Details */}
           {user && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-xs mr-4">
               {user.email}
             </Badge>
           )}
+          
+          <div className="hidden md:flex items-center space-x-2">
+            <Button 
+              variant={activeView === 'project-details' ? "default" : "outline"} 
+              onClick={() => onViewChange('project-details')} 
+              size="sm"
+              disabled={!selectedProjectName}
+              className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              <FolderKanban className="w-4 h-4 mr-2" />
+              {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
+            </Button>
+            
+            <Button 
+              variant={activeView === 'task-edit' ? "default" : "outline"} 
+              onClick={() => onViewChange('task-edit')} 
+              size="sm"
+              disabled={!editingTaskTitle}
+              className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              <ListTodo className="w-4 h-4 mr-2" />
+              {editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
+            </Button>
+          </div>
         </div>
       </div>
     </header>;
