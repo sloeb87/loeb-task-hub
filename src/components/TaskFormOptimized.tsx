@@ -427,7 +427,7 @@ export const TaskFormOptimized = React.memo(({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Side - Main Form */}
-            <div className="space-y-6">
+            <div className="bg-gray-50 dark:bg-black/50 rounded-lg p-6 space-y-6 border border-gray-200 dark:border-gray-800">
               {/* Basic Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -697,7 +697,7 @@ export const TaskFormOptimized = React.memo(({
             </div>
 
             {/* Right Side - Follow-ups */}
-            <div className="space-y-4">
+            <div className="bg-gray-50 dark:bg-black/50 rounded-lg p-6 space-y-4 border border-gray-200 dark:border-gray-800">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Follow-ups</h3>
                 {task && onFollowUpTask && (
