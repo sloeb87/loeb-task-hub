@@ -208,8 +208,13 @@ const Index = () => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
+    // Find and set the corresponding project for the task
+    const taskProject = projects.find(project => project.name === task.project);
+    if (taskProject) {
+      setSelectedProject(taskProject);
+    }
     setActiveView("task-edit");
-  }, []);
+  }, [projects]);
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);
