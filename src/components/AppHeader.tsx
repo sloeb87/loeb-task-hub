@@ -212,8 +212,8 @@ export const AppHeader = ({
             </Badge>
           )}
           
-          {/* Spacer to align Project Details with Projects from first row */}
-          <div className="w-3"></div>
+          {/* Spacer to align Project Details with Projects from first row - matches space-x-6 */}
+          <div className="w-6"></div>
           
           <div className="hidden md:flex items-center space-x-2">
             <Button 
