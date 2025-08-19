@@ -150,9 +150,9 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
-    console.log('ProjectDetailView - Opening task form for editing from detail view');
-    // Open the task form directly from detail view with return flag
-    openTaskForm(task.project, task, 'project-detail-edit', true);
+    console.log('ProjectDetailView - Switching to Task Details tab');
+    // Use the parent's onEditTask to switch to task-edit view
+    onEditTask(task);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {
