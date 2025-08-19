@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, ListTodo } from "lucide-react";
+import { Plus, ListTodo, ArrowLeft } from "lucide-react";
 import { Task, Project } from "@/types/task";
 
 
@@ -394,24 +394,22 @@ const Index = () => {
           ) : activeView === "task-edit" ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {selectedTask ? (
-                    <>
-                      <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span> {selectedTask.title}
-                    </>
-                  ) : (
-                    "Create New Task"
-                  )}
-                </h1>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedTask(null);
-                    setActiveView("tasks");
-                  }}
-                >
-                  Back to Tasks
-                </Button>
+                <div className="flex items-center space-x-4">
+                  <Button variant="ghost" onClick={() => setActiveView("tasks")} className="p-2">
+                    <ArrowLeft className="w-4 h-4" />
+                  </Button>
+                  <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {selectedTask ? (
+                        <>
+                          <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span> {selectedTask.title}
+                        </>
+                      ) : (
+                        "Create New Task"
+                      )}
+                    </h1>
+                  </div>
+                </div>
               </div>
               <TaskFormOptimized 
                 isOpen={true}
