@@ -39,6 +39,72 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Checkbox } from "@/components/ui/checkbox";
+
+// Sortable Checklist Item Component
+interface SortableChecklistItemProps {
+  item: ChecklistItem;
+  onToggle: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+const SortableChecklistItem = ({ item, onToggle, onDelete }: SortableChecklistItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+      
+      <Checkbox
+        checked={item.completed}
+        onCheckedChange={() => onToggle(item.id)}
+        className="flex-shrink-0"
+      />
+      
+      <span 
+        className={cn(
+          "flex-1 text-sm",
+          item.completed 
+            ? "line-through text-gray-500 dark:text-gray-400" 
+            : "text-gray-900 dark:text-white"
+        )}
+      >
+        {item.text}
+      </span>
+      
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={() => onDelete(item.id)}
+        className="flex-shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+};
 
 interface TaskFormProps {
   isOpen: boolean;
@@ -297,10 +363,67 @@ export const TaskFormOptimized = React.memo(({
     setNewFollowUpText('');
   };
 
+  // Checklist management
+  const addChecklistItem = useCallback(() => {
+    if (!newChecklistItem.trim()) return;
+    
+    const newItem: ChecklistItem = {
+      id: Date.now().toString(),
+      text: newChecklistItem.trim(),
+      completed: false,
+      timestamp: new Date().toISOString()
+    };
+    
+    setFormData(prev => ({
+      ...prev,
+      checklist: [...prev.checklist, newItem]
+    }));
+    setNewChecklistItem('');
+  }, [newChecklistItem]);
+
+  const toggleChecklistItem = useCallback((id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      checklist: prev.checklist.map(item =>
+        item.id === id ? { ...item, completed: !item.completed } : item
+      )
+    }));
+  }, []);
+
+  const deleteChecklistItem = useCallback((id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      checklist: prev.checklist.filter(item => item.id !== id)
+    }));
+  }, []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setFormData(prev => {
+        const oldIndex = prev.checklist.findIndex(item => item.id === active.id);
+        const newIndex = prev.checklist.findIndex(item => item.id === over.id);
+
+        return {
+          ...prev,
+          checklist: arrayMove(prev.checklist, oldIndex, newIndex)
+        };
+      });
+    }
+  }, []);
+
   // Return inline version if requested
   if (renderInline) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Side - Main Form */}
@@ -316,14 +439,14 @@ export const TaskFormOptimized = React.memo(({
                     onChange={(e) => updateField('title', e.target.value)}
                     placeholder="Enter task title"
                     required
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
                 
                 <div>
                   <Label htmlFor="project">Project</Label>
                   <Select value={formData.project} onValueChange={(value) => updateField('project', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
@@ -341,7 +464,7 @@ export const TaskFormOptimized = React.memo(({
                 <div>
                   <Label htmlFor="environment">Environment</Label>
                   <Select value={formData.environment} onValueChange={(value) => updateField('environment', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select environment" />
                     </SelectTrigger>
                     <SelectContent>
@@ -357,7 +480,7 @@ export const TaskFormOptimized = React.memo(({
                 <div>
                   <Label htmlFor="taskType">Task Type</Label>
                   <Select value={formData.taskType} onValueChange={(value) => updateField('taskType', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select task type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -375,7 +498,7 @@ export const TaskFormOptimized = React.memo(({
                 <div>
                   <Label htmlFor="status">Status *</Label>
                   <Select value={formData.status} onValueChange={(value) => updateField('status', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
@@ -391,7 +514,7 @@ export const TaskFormOptimized = React.memo(({
                 <div>
                   <Label htmlFor="priority">Priority *</Label>
                   <Select value={formData.priority} onValueChange={(value) => updateField('priority', value)}>
-                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
                     <SelectContent>
@@ -414,7 +537,7 @@ export const TaskFormOptimized = React.memo(({
                     value={formData.responsible}
                     onChange={(e) => updateField('responsible', e.target.value)}
                     placeholder="Enter responsible person"
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
 
@@ -425,7 +548,7 @@ export const TaskFormOptimized = React.memo(({
                     type="date"
                     value={date ? format(date, 'yyyy-MM-dd') : ''}
                     onChange={(e) => setDate(new Date(e.target.value))}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                 </div>
               </div>
@@ -438,7 +561,7 @@ export const TaskFormOptimized = React.memo(({
                   onChange={(e) => updateField('description', e.target.value)}
                   placeholder="Enter task description"
                   rows={3}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
               </div>
 
@@ -450,8 +573,74 @@ export const TaskFormOptimized = React.memo(({
                   onChange={(e) => updateField('details', e.target.value)}
                   placeholder="Enter detailed information, requirements, or notes"
                   rows={4}
-                  className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                 />
+              </div>
+
+              {/* Links Section */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="oneNote" className="flex items-center gap-2">
+                      <FileText className="w-4 h-4" />
+                      OneNote
+                    </Label>
+                    <Input
+                      id="oneNote"
+                      type="url"
+                      value={formData.links.oneNote}
+                      onChange={(e) => updateLinkField('oneNote', e.target.value)}
+                      placeholder="OneNote link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="teams" className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Teams
+                    </Label>
+                    <Input
+                      id="teams"
+                      type="url"
+                      value={formData.links.teams}
+                      onChange={(e) => updateLinkField('teams', e.target.value)}
+                      placeholder="Teams link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email" className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.links.email}
+                      onChange={(e) => updateLinkField('email', e.target.value)}
+                      placeholder="Email address"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="file" className="flex items-center gap-2">
+                      <File className="w-4 h-4" />
+                      File
+                    </Label>
+                    <Input
+                      id="file"
+                      type="url"
+                      value={formData.links.file}
+                      onChange={(e) => updateLinkField('file', e.target.value)}
+                      placeholder="File link"
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -480,7 +669,7 @@ export const TaskFormOptimized = React.memo(({
                     onChange={(e) => setNewFollowUpText(e.target.value)}
                     placeholder="Add a follow-up note..."
                     rows={2}
-                    className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                   />
                   <Button 
                     type="button" 
@@ -495,10 +684,10 @@ export const TaskFormOptimized = React.memo(({
               )}
 
               {/* Follow-ups List */}
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+              <div className="space-y-3 max-h-64 overflow-y-auto">
                 {displayedFollowUps.length > 0 ? (
                   displayedFollowUps.map((followUp) => (
-                    <div key={followUp.id} className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                    <div key={followUp.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
                       <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
                         {followUp.text}
                       </p>
@@ -514,6 +703,68 @@ export const TaskFormOptimized = React.memo(({
                     <p className="text-xs">Add notes to track progress and updates</p>
                   </div>
                 )}
+              </div>
+
+              {/* Checklist Section */}
+              <div className="space-y-4 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Checklist</h3>
+                
+                {/* Add Checklist Item */}
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      value={newChecklistItem}
+                      onChange={(e) => setNewChecklistItem(e.target.value)}
+                      placeholder="Add checklist item..."
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addChecklistItem();
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      size="sm" 
+                      onClick={addChecklistItem}
+                      disabled={!newChecklistItem.trim()}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Checklist Items */}
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={formData.checklist.map(item => item.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {formData.checklist.length > 0 ? (
+                        formData.checklist.map((item) => (
+                          <SortableChecklistItem
+                            key={item.id}
+                            item={item}
+                            onToggle={toggleChecklistItem}
+                            onDelete={deleteChecklistItem}
+                          />
+                        ))
+                      ) : (
+                        <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                          <Check className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                          <p className="text-sm">No checklist items yet</p>
+                          <p className="text-xs">Add items to track task progress</p>
+                        </div>
+                      )}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           </div>
