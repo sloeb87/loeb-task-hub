@@ -52,49 +52,105 @@ export const AppHeader = ({
       });
     }
   };
-  const navigationItems = [{
-    key: 'projects',
-    label: 'Projects',
-    icon: FolderKanban
-  }, {
-    key: 'project-details',
-    label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
-    icon: FolderKanban,
-    disabled: !selectedProjectName // Only disabled if no project is selected
-  }, {
-    key: 'tasks',
-    label: 'Tasks',
-    icon: ListTodo
-  }, {
-    key: 'followups',
-    label: 'Follow-Ups',
-    icon: MessageSquare
-  }, {
-    key: 'timetracking',
-    label: 'Time Tracking',
-    icon: Clock
-  }, {
-    key: 'task-edit',
-    label: editingTaskTitle ? `Edit: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
-    icon: ListTodo,
-    disabled: !editingTaskTitle // Only show if editing a task
-  }, {
-    key: 'dashboard',
-    label: 'KPIs',
-    icon: BarChart3
-  }];
-  const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-2">
-      {navigationItems.map(item => <Button 
-        key={item.key} 
-        variant={activeView === item.key ? "default" : "outline"} 
-        onClick={() => onViewChange(item.key as any)} 
-        size="sm"
-        disabled={item.disabled}
-        className={item.disabled ? "opacity-50 cursor-not-allowed" : ""}
-      >
-          <item.icon className="w-4 h-4 mr-2" />
-          {item.label}
-        </Button>)}
+  const navigationSections = [
+    // First Row: Project section
+    {
+      title: "Project",
+      items: [
+        {
+          key: 'projects',
+          label: 'Project',
+          icon: FolderKanban,
+          isMain: true
+        },
+        {
+          key: 'project-details',
+          label: selectedProjectName ? `Project Details` : 'Project Details',
+          icon: FolderKanban,
+          disabled: !selectedProjectName,
+          isSubItem: true
+        }
+      ]
+    },
+    // Second Row: Task section
+    {
+      title: "Task",
+      items: [
+        {
+          key: 'tasks',
+          label: 'Task',
+          icon: ListTodo,
+          isMain: true
+        },
+        {
+          key: 'task-edit',
+          label: editingTaskTitle ? `Task Details` : 'Task Details',
+          icon: ListTodo,
+          disabled: !editingTaskTitle,
+          isSubItem: true
+        }
+      ]
+    },
+    // Third Row: Follow Ups
+    {
+      title: "Follow Ups",
+      items: [
+        {
+          key: 'followups',
+          label: 'Follow Ups',
+          icon: MessageSquare,
+          isMain: true
+        }
+      ]
+    },
+    // Fourth Row: Time Tracking
+    {
+      title: "Time Tracking",
+      items: [
+        {
+          key: 'timetracking',
+          label: 'Time Tracking',
+          icon: Clock,
+          isMain: true
+        }
+      ]
+    },
+    // Fifth Row: KPI
+    {
+      title: "KPI",
+      items: [
+        {
+          key: 'dashboard',
+          label: 'KPI',
+          icon: BarChart3,
+          isMain: true
+        }
+      ]
+    }
+  ];
+
+  const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-4">
+      {navigationSections.map((section, sectionIndex) => (
+        <div key={section.title} className="flex flex-col space-y-1">
+          {section.items.map((item, itemIndex) => (
+            <Button 
+              key={item.key} 
+              variant={activeView === item.key ? "default" : "outline"} 
+              onClick={() => onViewChange(item.key as any)} 
+              size="sm"
+              disabled={item.disabled}
+              className={`
+                ${item.disabled ? "opacity-50 cursor-not-allowed" : ""} 
+                ${item.isSubItem ? "ml-4 bg-muted/50 text-muted-foreground" : ""}
+                ${item.isMain && itemIndex === 0 ? "font-medium" : ""}
+              `}
+            >
+              <item.icon className="w-4 h-4 mr-2" />
+              {item.label}
+            </Button>
+          ))}
+        </div>
+      ))}
     </div>;
 
   const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-2">
@@ -119,13 +175,29 @@ export const AppHeader = ({
       </SheetTrigger>
       <SheetContent side="right" className="w-64">
         <div className="flex flex-col space-y-4 mt-6">
-          {navigationItems.map(item => <Button key={item.key} variant={activeView === item.key ? "default" : "ghost"} onClick={() => {
-          onViewChange(item.key as any);
-          setMobileMenuOpen(false);
-        }} className="justify-start">
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </Button>)}
+          {navigationSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              {section.items.map((item) => (
+                <Button 
+                  key={item.key} 
+                  variant={activeView === item.key ? "default" : "ghost"} 
+                  onClick={() => {
+                    onViewChange(item.key as any);
+                    setMobileMenuOpen(false);
+                  }} 
+                  disabled={item.disabled}
+                  className={`
+                    justify-start w-full
+                    ${item.isSubItem ? "ml-4 bg-muted/30" : ""}
+                    ${item.disabled ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
+                >
+                  <item.icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                </Button>
+              ))}
+            </div>
+          ))}
           <div className="border-t pt-4 space-y-2">
             <Button variant="ghost" onClick={() => {
             onOpenParameters();
