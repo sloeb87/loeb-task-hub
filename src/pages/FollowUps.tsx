@@ -386,46 +386,40 @@ export const FollowUpsPage = ({
   }, [tasks]);
 
   // Handle chart clicks - navigate to projects page with date filter
-  const handleProjectChartClick = (event: any) => {
-    console.log('Project chart clicked:', event);
-    if (event && event.activeLabel) {
-      // Find the data point based on the activeLabel (week)
-      const clickedData = projectsChartData.find(item => item.week === event.activeLabel);
-      if (clickedData) {
-        const weekStart = startOfWeek(clickedData.date);
-        const weekEnd = endOfWeek(clickedData.date);
-        
-        navigate('/projects', {
-          state: {
-            dateFilter: {
-              from: weekStart,
-              to: weekEnd
-            }
+  const handleProjectChartClick = (data: any, index: number) => {
+    console.log('Project chart clicked:', data, index);
+    if (data && projectsChartData[index]) {
+      const clickedData = projectsChartData[index];
+      const weekStart = startOfWeek(clickedData.date);
+      const weekEnd = endOfWeek(clickedData.date);
+      
+      navigate('/projects', {
+        state: {
+          dateFilter: {
+            from: weekStart,
+            to: weekEnd
           }
-        });
-      }
+        }
+      });
     }
   };
 
   // Handle chart clicks - navigate to tasks page with date filter  
-  const handleTaskChartClick = (event: any) => {
-    console.log('Task chart clicked:', event);
-    if (event && event.activeLabel) {
-      // Find the data point based on the activeLabel (week)
-      const clickedData = tasksChartData.find(item => item.week === event.activeLabel);
-      if (clickedData) {
-        const weekStart = startOfWeek(clickedData.date);
-        const weekEnd = endOfWeek(clickedData.date);
-        
-        navigate('/', {
-          state: {
-            dateFilter: {
-              from: weekStart,
-              to: weekEnd
-            }
+  const handleTaskChartClick = (data: any, index: number) => {
+    console.log('Task chart clicked:', data, index);
+    if (data && tasksChartData[index]) {
+      const clickedData = tasksChartData[index];
+      const weekStart = startOfWeek(clickedData.date);
+      const weekEnd = endOfWeek(clickedData.date);
+      
+      navigate('/', {
+        state: {
+          dateFilter: {
+            from: weekStart,
+            to: weekEnd
           }
-        });
-      }
+        }
+      });
     }
   };
 
@@ -603,18 +597,31 @@ export const FollowUpsPage = ({
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Projects Open Over Time</CardTitle>
             <CardDescription>Weekly count of active projects</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                openProjects: {
-                  label: "Open Projects",
-                  color: "hsl(var(--chart-4))",
-                },
-              }}
-              className="h-[300px]"
-            >
+           <CardContent>
+             <div className="relative cursor-pointer group" onClick={(e) => {
+               // Find the closest data point based on mouse position
+               const rect = e.currentTarget.getBoundingClientRect();
+               const x = e.clientX - rect.left;
+               const chartWidth = rect.width;
+               const dataIndex = Math.round((x / chartWidth) * (projectsChartData.length - 1));
+               
+               if (projectsChartData[dataIndex]) {
+                 console.log('Project chart area clicked, data index:', dataIndex);
+                 handleProjectChartClick(null, dataIndex);
+               }
+             }}>
+               <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-10 bg-blue-500 transition-opacity pointer-events-none rounded" />
+               <ChartContainer
+                 config={{
+                   openProjects: {
+                     label: "Open Projects",
+                     color: "hsl(var(--chart-4))",
+                   },
+                 }}
+                 className="h-[300px]"
+               >
                <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={projectsChartData} onClick={handleProjectChartClick}>
+                 <AreaChart data={projectsChartData}>
                   <defs>
                     <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
@@ -643,9 +650,10 @@ export const FollowUpsPage = ({
                     dot={false}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
+               </ResponsiveContainer>
+             </ChartContainer>
+           </div>
+           </CardContent>
         </Card>
 
         {/* Tasks Open Over Time Chart */}
@@ -654,18 +662,31 @@ export const FollowUpsPage = ({
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
             <CardDescription>Weekly count of active tasks</CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer
-              config={{
-                openTasks: {
-                  label: "Open Tasks",
-                  color: "hsl(var(--chart-1))",
-                },
-              }}
-              className="h-[300px]"
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={tasksChartData} onClick={handleTaskChartClick}>
+           <CardContent>
+             <div className="relative cursor-pointer group" onClick={(e) => {
+               // Find the closest data point based on mouse position
+               const rect = e.currentTarget.getBoundingClientRect();
+               const x = e.clientX - rect.left;
+               const chartWidth = rect.width;
+               const dataIndex = Math.round((x / chartWidth) * (tasksChartData.length - 1));
+               
+               if (tasksChartData[dataIndex]) {
+                 console.log('Task chart area clicked, data index:', dataIndex);
+                 handleTaskChartClick(null, dataIndex);
+               }
+             }}>
+               <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-10 bg-blue-500 transition-opacity pointer-events-none rounded" />
+               <ChartContainer
+                 config={{
+                   openTasks: {
+                     label: "Open Tasks",
+                     color: "hsl(var(--chart-1))",
+                   },
+                 }}
+                 className="h-[300px]"
+               >
+               <ResponsiveContainer width="100%" height="100%">
+                 <AreaChart data={tasksChartData}>
                   <defs>
                     <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
@@ -694,9 +715,10 @@ export const FollowUpsPage = ({
                     dot={false}
                   />
                 </AreaChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
+               </ResponsiveContainer>
+             </ChartContainer>
+           </div>
+           </CardContent>
         </Card>
       </div>
 
