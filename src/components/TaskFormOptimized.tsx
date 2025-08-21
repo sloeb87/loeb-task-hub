@@ -342,6 +342,11 @@ export const TaskFormOptimized = React.memo(({
       taskType: formData.taskType as TaskType,
       status: formData.status as TaskStatus,
       priority: formData.priority as TaskPriority,
+      // Include recurrence fields
+      isRecurring: formData.isRecurring,
+      recurrenceType: formData.recurrenceType,
+      recurrenceInterval: formData.recurrenceInterval,
+      recurrenceEndDate: formData.recurrenceEndDate,
       ...(task && { 
         id: task.id, 
         creationDate: task.creationDate, 

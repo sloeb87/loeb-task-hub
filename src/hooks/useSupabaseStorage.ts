@@ -119,7 +119,14 @@ const { toast } = useToast();
       followUps,
       details: supabaseTask.details || '',
       links: supabaseTask.links || {},
-      stakeholders: supabaseTask.stakeholders || []
+      stakeholders: supabaseTask.stakeholders || [],
+      // Recurrence fields
+      isRecurring: (supabaseTask as any).is_recurring || false,
+      recurrenceType: (supabaseTask as any).recurrence_type,
+      recurrenceInterval: (supabaseTask as any).recurrence_interval || 1,
+      parentTaskId: (supabaseTask as any).parent_task_id,
+      nextRecurrenceDate: (supabaseTask as any).next_recurrence_date,
+      recurrenceEndDate: (supabaseTask as any).recurrence_end_date
     };
   }, []);
 
@@ -275,7 +282,12 @@ const { toast } = useToast();
           details: taskData.details,
           links: taskData.links || {},
           stakeholders: taskData.stakeholders || [],
-          user_id: user.id
+          user_id: user.id,
+          // Recurrence fields
+          is_recurring: taskData.isRecurring || false,
+          recurrence_type: taskData.recurrenceType,
+          recurrence_interval: taskData.recurrenceInterval || 1,
+          recurrence_end_date: taskData.recurrenceEndDate
         })
         .select()
         .single();
@@ -308,10 +320,10 @@ const { toast } = useToast();
       fullTask: updatedTask
     });
 
-    // Find the task by task_number and get current status to check for completion
+    // Find the task by task_number and get current values to check for changes
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
-      .select('id, status')
+      .select('id, status, priority, task_type, due_date')
       .eq('task_number', updatedTask.id)
       .eq('user_id', user.id)
       .maybeSingle();
@@ -363,7 +375,12 @@ const { toast } = useToast();
       checklist: JSON.stringify(updatedTask.checklist || []),
       details: updatedTask.details,
       links: updatedTask.links || {},
-      stakeholders: updatedTask.stakeholders || []
+      stakeholders: updatedTask.stakeholders || [],
+      // Recurrence fields
+      is_recurring: updatedTask.isRecurring || false,
+      recurrence_type: updatedTask.recurrenceType,
+      recurrence_interval: updatedTask.recurrenceInterval || 1,
+      recurrence_end_date: updatedTask.recurrenceEndDate
     };
 
     console.log('Update data being sent to DB:', updateData);
@@ -439,6 +456,62 @@ const { toast } = useToast();
 
       if (followUpError) {
         console.error('Error adding completion follow-up:', followUpError);
+      }
+    }
+
+    // Create follow-ups for tracked field changes
+    const followUpsToCreate = [];
+    
+    // Check for Status change (excluding completion as it's handled above)
+    if (existingTask.status !== updatedTask.status && !isBeingCompleted) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Status changed from "${existingTask.status}" to "${updatedTask.status}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Priority change
+    if (existingTask.priority !== updatedTask.priority) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Priority changed from "${existingTask.priority}" to "${updatedTask.priority}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Task Type change
+    if (existingTask.task_type !== updatedTask.taskType) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Task type changed from "${existingTask.task_type}" to "${updatedTask.taskType}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Due Date change
+    if (existingTask.due_date !== updatedTask.dueDate) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Due date changed from "${existingTask.due_date}" to "${updatedTask.dueDate}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Insert all change follow-ups at once
+    if (followUpsToCreate.length > 0) {
+      const { error: changeFollowUpError } = await supabase
+        .from('follow_ups')
+        .insert(followUpsToCreate);
+
+      if (changeFollowUpError) {
+        console.error('Error adding change follow-ups:', changeFollowUpError);
+      } else {
+        console.log(`Added ${followUpsToCreate.length} change follow-up(s)`);
       }
     }
 
