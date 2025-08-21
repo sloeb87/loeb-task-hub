@@ -600,37 +600,45 @@ export const FollowUpsPage = ({
                  }}
                  className="h-[300px]"
                >
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={projectsChartData}>
-                  <defs>
-                    <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis 
-                    dataKey="week" 
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs"
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs"
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="hsl(var(--chart-4))" 
-                    strokeWidth={3}
-                    fill="url(#projectsGradient)"
-                    dot={false}
-                  />
-                </AreaChart>
-               </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={projectsChartData} onClick={(data, index) => {
+                    if (data && data.activePayload && data.activePayload[0]) {
+                      const clickedIndex = data.activeTooltipIndex;
+                      if (typeof clickedIndex === 'number') {
+                        handleProjectChartClick(data.activePayload[0].payload, clickedIndex);
+                      }
+                    }
+                  }}>
+                   <defs>
+                     <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
+                       <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}/>
+                     </linearGradient>
+                   </defs>
+                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                   <XAxis 
+                     dataKey="week" 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                   />
+                   <YAxis 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                   />
+                   <ChartTooltip content={<ChartTooltipContent />} />
+                   <Area 
+                     type="monotone" 
+                     dataKey="count" 
+                     stroke="hsl(var(--chart-4))" 
+                     strokeWidth={3}
+                     fill="url(#projectsGradient)"
+                     dot={false}
+                     style={{ cursor: 'pointer' }}
+                   />
+                 </AreaChart>
+                </ResponsiveContainer>
              </ChartContainer>
            </div>
            </CardContent>
@@ -653,37 +661,45 @@ export const FollowUpsPage = ({
                  }}
                  className="h-[300px]"
                >
-               <ResponsiveContainer width="100%" height="100%">
-                 <AreaChart data={tasksChartData}>
-                  <defs>
-                    <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                  <XAxis 
-                    dataKey="week" 
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs"
-                  />
-                  <YAxis 
-                    axisLine={false}
-                    tickLine={false}
-                    className="text-xs"
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Area 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="hsl(var(--chart-1))" 
-                    strokeWidth={3}
-                    fill="url(#tasksGradient)"
-                    dot={false}
-                  />
-                </AreaChart>
-               </ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={tasksChartData} onClick={(data, index) => {
+                    if (data && data.activePayload && data.activePayload[0]) {
+                      const clickedIndex = data.activeTooltipIndex;
+                      if (typeof clickedIndex === 'number') {
+                        handleTaskChartClick(data.activePayload[0].payload, clickedIndex);
+                      }
+                    }
+                  }}>
+                   <defs>
+                     <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                       <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                     </linearGradient>
+                   </defs>
+                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                   <XAxis 
+                     dataKey="week" 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                   />
+                   <YAxis 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                   />
+                   <ChartTooltip content={<ChartTooltipContent />} />
+                   <Area 
+                     type="monotone" 
+                     dataKey="count" 
+                     stroke="hsl(var(--chart-1))" 
+                     strokeWidth={3}
+                     fill="url(#tasksGradient)"
+                     dot={false}
+                     style={{ cursor: 'pointer' }}
+                   />
+                 </AreaChart>
+                </ResponsiveContainer>
              </ChartContainer>
            </div>
            </CardContent>
