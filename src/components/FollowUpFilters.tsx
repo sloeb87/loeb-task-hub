@@ -114,131 +114,131 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Date Range
               </label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-[300px] justify-start text-left font-normal",
-                      !dateRange && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formatDateRange()}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-3 border-b">
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('thisMonth')}
-                      >
-                        This Month
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('lastMonth')}
-                      >
-                        Last Month
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('thisYear')}
-                      >
-                        This Year
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('lastYear')}
-                      >
-                        Last Year
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('last30Days')}
-                      >
-                        Last 30 Days
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handlePresetSelection('last90Days')}
-                      >
-                        Last 90 Days
-                      </Button>
+              <div className="flex gap-4 items-center">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[300px] justify-start text-left font-normal",
+                        !dateRange && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {formatDateRange()}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="p-3 border-b">
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('thisMonth')}
+                        >
+                          This Month
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('lastMonth')}
+                        >
+                          Last Month
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('thisYear')}
+                        >
+                          This Year
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('lastYear')}
+                        >
+                          Last Year
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('last30Days')}
+                        >
+                          Last 30 Days
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handlePresetSelection('last90Days')}
+                        >
+                          Last 90 Days
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange?.from}
-                    selected={dateRange}
-                    onSelect={handleDateRangeChange}
-                    numberOfMonths={2}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={handleDateRangeChange}
+                      numberOfMonths={2}
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                {/* Project Filter */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[200px] justify-between"
+                    >
+                      {filters.projects?.length 
+                        ? `${filters.projects.length} project(s) selected`
+                        : "Select projects"
+                      }
+                      <Filter className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-0">
+                    <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
+                      {availableProjects.map((project) => (
+                        <div key={project} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`project-${project}`}
+                            checked={filters.projects?.includes(project) || false}
+                            onCheckedChange={(checked) => {
+                              const currentProjects = filters.projects || [];
+                              const updatedProjects = checked
+                                ? [...currentProjects, project]
+                                : currentProjects.filter(p => p !== project);
+                              onFiltersChange({
+                                ...filters,
+                                projects: updatedProjects.length > 0 ? updatedProjects : undefined
+                              });
+                            }}
+                          />
+                          <label 
+                            htmlFor={`project-${project}`}
+                            className="text-sm cursor-pointer flex-1 truncate"
+                            title={project}
+                          >
+                            {project}
+                          </label>
+                        </div>
+                      ))}
+                      {availableProjects.length === 0 && (
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          No projects available
+                        </p>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           )}
-
-          {/* Project Filter */}
-          <div className="flex flex-col gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[200px] justify-between"
-                >
-                  {filters.projects?.length 
-                    ? `${filters.projects.length} project(s) selected`
-                    : "Select projects"
-                  }
-                  <Filter className="ml-2 h-4 w-4 shrink-0" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[200px] p-0">
-                <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
-                  {availableProjects.map((project) => (
-                    <div key={project} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`project-${project}`}
-                        checked={filters.projects?.includes(project) || false}
-                        onCheckedChange={(checked) => {
-                          const currentProjects = filters.projects || [];
-                          const updatedProjects = checked
-                            ? [...currentProjects, project]
-                            : currentProjects.filter(p => p !== project);
-                          onFiltersChange({
-                            ...filters,
-                            projects: updatedProjects.length > 0 ? updatedProjects : undefined
-                          });
-                        }}
-                      />
-                      <label 
-                        htmlFor={`project-${project}`}
-                        className="text-sm cursor-pointer flex-1 truncate"
-                        title={project}
-                      >
-                        {project}
-                      </label>
-                    </div>
-                  ))}
-                  {availableProjects.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-2">
-                      No projects available
-                    </p>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-          </div>
 
           {hasActiveFilters && (
             <Button 
