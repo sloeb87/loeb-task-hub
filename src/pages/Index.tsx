@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, ListTodo, ArrowLeft } from "lucide-react";
+import { Plus, ListTodo, ArrowLeft, Play } from "lucide-react";
 import { Task, Project } from "@/types/task";
 
 
@@ -19,10 +19,14 @@ import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
+import { useTimeTracking } from "@/hooks/useTimeTracking";
   
-const Index = () => {
+  const Index = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Time tracking hook
+  const { startTimer } = useTimeTracking();
 
   // Custom hooks for optimized data management
   const {
@@ -395,7 +399,7 @@ const Index = () => {
                   <Button variant="ghost" onClick={() => setActiveView("tasks")} className="p-2">
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
-                  <div>
+                  <div className="flex items-center space-x-3">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                       {selectedTask ? (
                         <>
@@ -405,6 +409,18 @@ const Index = () => {
                         "Create New Task"
                       )}
                     </h1>
+                    {selectedTask && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startTimer(selectedTask.id, selectedTask.title, selectedTask.project, selectedTask.responsible)}
+                        className="flex items-center gap-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
+                        title="Start time tracking for this task"
+                      >
+                        <Play className="w-4 h-4" fill="currentColor" />
+                        Start Timer
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
