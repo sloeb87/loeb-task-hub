@@ -168,6 +168,12 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     setActiveView(view);
     
+    // Clear any navigation state/filters when switching to main views
+    if (view === "tasks" || view === "projects" || view === "followups" || view === "dashboard" || view === "timetracking") {
+      // Replace current history state to clear any date filters from chart clicks
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    
     // Trigger refresh when navigating to time tracking
     if (view === 'timetracking') {
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
