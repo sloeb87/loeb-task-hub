@@ -2,11 +2,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
 import { Repeat, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface RecurrenceSelectorProps {
   isRecurring: boolean;
@@ -147,44 +144,14 @@ export const RecurrenceSelector = ({
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium mb-2 block">End recurrence (optional)</label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !recurrenceEndDate && "text-muted-foreground"
-                        )}
-                      >
-                        {recurrenceEndDate ? format(new Date(recurrenceEndDate), "PPP") : "No end date"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={recurrenceEndDate ? new Date(recurrenceEndDate) : undefined}
-                        onSelect={(date) =>
-                          handleRecurrenceUpdate({ 
-                            recurrenceEndDate: date ? format(date, 'yyyy-MM-dd') : undefined 
-                          })
-                        }
-                        initialFocus
-                      />
-                      {recurrenceEndDate && (
-                        <div className="p-3 border-t">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRecurrenceUpdate({ recurrenceEndDate: undefined })}
-                            className="w-full"
-                          >
-                            Clear End Date
-                          </Button>
-                        </div>
-                      )}
-                    </PopoverContent>
-                  </Popover>
+                  <label className="text-sm font-medium mb-2 block">End recurrence *</label>
+                  <input
+                    type="date"
+                    value={recurrenceEndDate || ''}
+                    onChange={(e) => handleRecurrenceUpdate({ recurrenceEndDate: e.target.value })}
+                    className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    required
+                  />
                 </div>
               </div>
             </PopoverContent>
