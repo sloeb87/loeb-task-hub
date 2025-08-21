@@ -16,6 +16,7 @@ import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
 import { TaskStatusTimelineChart } from "@/components/TaskStatusTimelineChart";
 import { OverdueAnalysisChart } from "@/components/OverdueAnalysisChart";
 import { useKPIMetrics } from "@/hooks/useKPIMetrics";
+import { useNavigate } from 'react-router-dom';
 
 interface KPIDashboardProps {
   tasks: Task[];
@@ -25,6 +26,7 @@ interface KPIDashboardProps {
 
 export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps) => {
   const { getScopeStyle } = useScopeColor();
+  const navigate = useNavigate();
   console.log('KPIDashboard rendered with onEditTask:', !!onEditTask);
   
   const [selectedProject, setSelectedProject] = useState<string>("all");
@@ -98,12 +100,24 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
 
   const handleMetricClick = (metricType: string, title: string, tasks: Task[]) => {
     console.log('Metric clicked:', metricType, 'tasks:', tasks.length);
-    setDetailModal({
-      isOpen: true,
-      title,
-      tasks,
-      metricType
-    });
+    
+    // Navigate to tasks view with filtered tasks by creating a date filter
+    // that includes all the filtered tasks by their creation dates
+    const taskDates = tasks.map(task => new Date(task.creationDate));
+    if (taskDates.length > 0) {
+      const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
+      const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
+      
+      navigate('/', {
+        state: {
+          activeView: 'tasks',
+          dateFilter: {
+            from: minDate,
+            to: maxDate
+          }
+        }
+      });
+    }
   };
 
   const handleCloseDetail = () => {

@@ -407,6 +407,7 @@ export const FollowUpsPage = ({
       
       navigate('/', {
         state: {
+          activeView: 'tasks',
           dateFilter: {
             from: monthStart,
             to: monthEnd

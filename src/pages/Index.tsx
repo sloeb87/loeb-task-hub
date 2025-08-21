@@ -139,11 +139,15 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   useEffect(() => {
     if (location.state) {
       const state = location.state as any;
-      if (state.view && state.dateFilter) {
+      if (state.activeView && state.dateFilter) {
         // Switch to the requested view
+        setActiveView(state.activeView);
+        
+        console.log('Navigating from chart click to view:', state.activeView, 'with date filter:', state.dateFilter);
+      } else if (state.view && state.dateFilter) {
+        // Legacy support for 'view' property
         setActiveView(state.view);
         
-        // The Projects component will need to handle the dateFilter from location.state
         console.log('Navigating from chart click to view:', state.view, 'with date filter:', state.dateFilter);
       }
     }
@@ -414,7 +418,10 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        onClick={() => window.history.replaceState({}, '', window.location.pathname)}
+                        onClick={() => {
+                          window.history.replaceState({}, '', window.location.pathname);
+                          window.location.reload();
+                        }}
                         className="text-blue-700 border-blue-300 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/40"
                       >
                         Clear Filter
