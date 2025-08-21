@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
-import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
@@ -626,7 +625,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
               Start Non-Project
             </Button>
           )}
-          <RunningTimerDisplay tasks={tasks} />
         </div>
       </div>
 

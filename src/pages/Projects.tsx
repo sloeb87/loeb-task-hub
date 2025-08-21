@@ -205,7 +205,6 @@ const ProjectsPage = ({
         </div>
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <RunningTimerDisplay tasks={tasks} />
           <Button 
             onClick={() => setIsProjectFormOpen(true)}
             className="flex items-center gap-2"

@@ -12,7 +12,6 @@ import { formatDate } from "@/utils/taskOperations";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
-import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay } from "date-fns";
@@ -437,8 +436,6 @@ export const FollowUpsPage = ({
             <p className="text-gray-600 dark:text-gray-300 mt-1">View and manage all task follow-ups</p>
           </div>
         </div>
-        {/* Running Timer Display */}
-        <RunningTimerDisplay tasks={tasks} />
       </div>
 
       {/* Statistics Cards */}
