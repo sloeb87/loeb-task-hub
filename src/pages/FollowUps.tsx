@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,7 @@ export const FollowUpsPage = ({
   onEditTask,
   onUpdateFollowUp
 }: FollowUpsPageProps) => {
+  const navigate = useNavigate();
   const {
     getScopeStyle
   } = useScopeColor();
@@ -383,6 +385,42 @@ export const FollowUpsPage = ({
     return weeks;
   }, [tasks]);
 
+  // Handle chart clicks - navigate to projects page with date filter
+  const handleProjectChartClick = (data: any) => {
+    if (data && data.activePayload && data.activePayload[0]) {
+      const clickedData = data.activePayload[0].payload;
+      const weekStart = startOfWeek(clickedData.date);
+      const weekEnd = endOfWeek(clickedData.date);
+      
+      navigate('/projects', {
+        state: {
+          dateFilter: {
+            from: weekStart,
+            to: weekEnd
+          }
+        }
+      });
+    }
+  };
+
+  // Handle chart clicks - navigate to tasks page with date filter  
+  const handleTaskChartClick = (data: any) => {
+    if (data && data.activePayload && data.activePayload[0]) {
+      const clickedData = data.activePayload[0].payload;
+      const weekStart = startOfWeek(clickedData.date);
+      const weekEnd = endOfWeek(clickedData.date);
+      
+      navigate('/', {
+        state: {
+          dateFilter: {
+            from: weekStart,
+            to: weekEnd
+          }
+        }
+      });
+    }
+  };
+
   const clearFilters = () => {
     setFilters({});
   };
@@ -568,7 +606,7 @@ export const FollowUpsPage = ({
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={projectsChartData}>
+                <AreaChart data={projectsChartData} onClick={handleProjectChartClick}>
                   <defs>
                     <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
@@ -619,7 +657,7 @@ export const FollowUpsPage = ({
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={tasksChartData}>
+                <AreaChart data={tasksChartData} onClick={handleTaskChartClick}>
                   <defs>
                     <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
