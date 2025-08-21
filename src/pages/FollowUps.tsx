@@ -31,7 +31,6 @@ interface FollowUpFilters {
   };
   year?: number;
   month?: number;
-  projects?: string[];
   scopes?: string[];
   taskTypes?: string[];
   environments?: string[];
@@ -241,13 +240,6 @@ export const FollowUpsPage = ({
       if (filters.dateRange) {
         const followUpDate = new Date(followUp.timestamp);
         if (followUpDate < filters.dateRange.from || followUpDate > filters.dateRange.to) {
-          return false;
-        }
-      }
-
-      // Project filter from FollowUpFilters component
-      if (filters.projects && filters.projects.length > 0) {
-        if (!filters.projects.includes(followUp.projectName)) {
           return false;
         }
       }
@@ -711,7 +703,6 @@ export const FollowUpsPage = ({
               filters={filters} 
               onFiltersChange={setFilters} 
               onClearFilters={clearFilters} 
-              availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]} 
               hideDateRange
             />
           </div>

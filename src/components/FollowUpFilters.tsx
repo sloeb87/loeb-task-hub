@@ -14,7 +14,6 @@ interface FollowUpFilters {
   dateRange?: { from: Date; to: Date };
   year?: number;
   month?: number;
-  projects?: string[];
   scopes?: string[];
   taskTypes?: string[];
   environments?: string[];
@@ -24,11 +23,10 @@ interface FollowUpFiltersProps {
   filters: FollowUpFilters;
   onFiltersChange: (filters: FollowUpFilters) => void;
   onClearFilters: () => void;
-  availableProjects?: string[];
   hideDateRange?: boolean;
 }
 
-export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters, availableProjects = [], hideDateRange = false }: FollowUpFiltersProps) => {
+export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilters, hideDateRange = false }: FollowUpFiltersProps) => {
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>(
     filters.dateRange ? { from: filters.dateRange.from, to: filters.dateRange.to } : undefined
   );
@@ -95,7 +93,7 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
 
   const hasActiveFilters =
     (!hideDateRange && (filters.dateRange || filters.month || filters.year)) ||
-    filters.projects?.length || filters.scopes?.length || 
+    filters.scopes?.length || 
     filters.taskTypes?.length || filters.environments?.length;
 
   const formatDateRange = () => {
@@ -184,56 +182,6 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
                       numberOfMonths={2}
                       className={cn("p-3 pointer-events-auto")}
                     />
-                  </PopoverContent>
-                </Popover>
-                
-                {/* Project Filter */}
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[200px] justify-between"
-                    >
-                      {filters.projects?.length 
-                        ? `${filters.projects.length} project(s) selected`
-                        : "Select projects"
-                      }
-                      <Filter className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[200px] p-0">
-                    <div className="p-3 space-y-2 max-h-64 overflow-y-auto">
-                      {availableProjects.map((project) => (
-                        <div key={project} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`project-${project}`}
-                            checked={filters.projects?.includes(project) || false}
-                            onCheckedChange={(checked) => {
-                              const currentProjects = filters.projects || [];
-                              const updatedProjects = checked
-                                ? [...currentProjects, project]
-                                : currentProjects.filter(p => p !== project);
-                              onFiltersChange({
-                                ...filters,
-                                projects: updatedProjects.length > 0 ? updatedProjects : undefined
-                              });
-                            }}
-                          />
-                          <label 
-                            htmlFor={`project-${project}`}
-                            className="text-sm cursor-pointer flex-1 truncate"
-                            title={project}
-                          >
-                            {project}
-                          </label>
-                        </div>
-                      ))}
-                      {availableProjects.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-2">
-                          No projects available
-                        </p>
-                      )}
-                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
