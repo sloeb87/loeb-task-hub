@@ -29,39 +29,53 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
       }
     });
 
-    // Apply date filtering if provided
+    // Apply date filtering if provided - show tasks that were ACTIVE during the date range
     if (dateFilter) {
-      console.log('=== TASK DATE FILTERING DEBUG ===');
+      console.log('=== TASK ACTIVE PERIOD FILTERING DEBUG ===');
       console.log('Date filter range:', {
         from: dateFilter.from.toISOString(),
-        to: dateFilter.to.toISOString(),
-        fromTime: dateFilter.from.getTime(),
-        toTime: dateFilter.to.getTime()
+        to: dateFilter.to.toISOString()
       });
       console.log('Total tasks before filtering:', filtered.length);
       
       const beforeFilteringCount = filtered.length;
       filtered = filtered.filter(task => {
-        const taskDate = new Date(task.dueDate);
+        const creationDate = new Date(task.creationDate);
+        const dueDate = new Date(task.dueDate);
+        const completionDate = task.completionDate ? new Date(task.completionDate) : null;
         const filterStart = new Date(dateFilter.from);
         const filterEnd = new Date(dateFilter.to);
         
         // Normalize dates to start of day for comparison
-        const taskDateNormalized = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+        const creationDateNormalized = new Date(creationDate.getFullYear(), creationDate.getMonth(), creationDate.getDate());
+        const dueDateNormalized = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+        const completionDateNormalized = completionDate ? new Date(completionDate.getFullYear(), completionDate.getMonth(), completionDate.getDate()) : null;
         const filterStartNormalized = new Date(filterStart.getFullYear(), filterStart.getMonth(), filterStart.getDate());
         const filterEndNormalized = new Date(filterEnd.getFullYear(), filterEnd.getMonth(), filterEnd.getDate());
         
-        const isInRange = taskDateNormalized >= filterStartNormalized && taskDateNormalized <= filterEndNormalized;
+        // Task is active during the period if:
+        // 1. Task was created before or during the period (creationDate <= filterEnd)
+        // 2. Task's due date is after or during the period (dueDate >= filterStart)  
+        // 3. If completed, completion date is after the period start (or not completed yet)
+        
+        const wasCreatedBeforeOrDuringPeriod = creationDateNormalized <= filterEndNormalized;
+        const isDueAfterOrDuringPeriod = dueDateNormalized >= filterStartNormalized;
+        const wasNotCompletedBeforePeriod = !completionDateNormalized || completionDateNormalized >= filterStartNormalized;
+        
+        const wasActiveInPeriod = wasCreatedBeforeOrDuringPeriod && isDueAfterOrDuringPeriod && wasNotCompletedBeforePeriod;
         
         console.log(`Task: ${task.title}`, {
-          originalDueDate: task.dueDate,
-          taskDateNormalized: taskDateNormalized.toISOString(),
-          filterStartNormalized: filterStartNormalized.toISOString(),
-          filterEndNormalized: filterEndNormalized.toISOString(),
-          isInRange
+          status: task.status,
+          creationDate: task.creationDate,
+          dueDate: task.dueDate,
+          completionDate: task.completionDate,
+          wasCreatedBeforeOrDuringPeriod,
+          isDueAfterOrDuringPeriod,
+          wasNotCompletedBeforePeriod,
+          wasActiveInPeriod
         });
         
-        return isInRange;
+        return wasActiveInPeriod;
       });
       
       console.log('=== FILTERING RESULT ===');
