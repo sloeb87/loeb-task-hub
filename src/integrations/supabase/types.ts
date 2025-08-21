@@ -314,6 +314,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_recurring_instances: {
+        Args: { task_uuid: string }
+        Returns: {
+          created_count: number
+          message: string
+        }[]
+      }
       get_current_user_profile: {
         Args: Record<PropertyKey, never>
         Returns: {

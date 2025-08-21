@@ -1,15 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Repeat, X } from "lucide-react";
+import { Repeat, X, Calendar, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface RecurrenceSelectorProps {
   isRecurring: boolean;
   recurrenceType?: 'daily' | 'weekly' | 'monthly';
   recurrenceInterval?: number;
   recurrenceEndDate?: string;
+  taskId?: string;  // Task ID for generating instances
   onRecurrenceChange: (recurrence: {
     isRecurring: boolean;
     recurrenceType?: 'daily' | 'weekly' | 'monthly';
@@ -23,8 +26,50 @@ export const RecurrenceSelector = ({
   recurrenceType,
   recurrenceInterval = 1,
   recurrenceEndDate,
+  taskId,
   onRecurrenceChange
 }: RecurrenceSelectorProps) => {
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateInstances = async () => {
+    if (!taskId) {
+      toast.error("Task ID is required to generate recurring instances");
+      return;
+    }
+
+    if (!isRecurring || !recurrenceType || !recurrenceEndDate) {
+      toast.error("Please configure all recurrence settings first");
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    try {
+      const { data, error } = await supabase.rpc('generate_recurring_instances', {
+        task_uuid: taskId
+      });
+
+      if (error) {
+        console.error('Error generating recurring instances:', error);
+        toast.error("Failed to generate recurring instances: " + error.message);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        if (result.created_count > 0) {
+          toast.success(result.message);
+        } else {
+          toast.warning(result.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("An error occurred while generating recurring instances");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   const handleToggleRecurrence = () => {
     if (isRecurring) {
       onRecurrenceChange({ isRecurring: false });
@@ -153,6 +198,26 @@ export const RecurrenceSelector = ({
                     required
                   />
                 </div>
+
+                {/* Generate Instances Button */}
+                {taskId && recurrenceType && recurrenceEndDate && (
+                  <div className="pt-2 border-t">
+                    <Button
+                      type="button"
+                      onClick={handleGenerateInstances}
+                      disabled={isGenerating}
+                      className="w-full flex items-center gap-2"
+                      variant="default"
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Calendar className="w-4 h-4" />
+                      )}
+                      {isGenerating ? "Generating..." : "Generate All Instances"}
+                    </Button>
+                  </div>
+                )}
               </div>
             </PopoverContent>
           </Popover>
