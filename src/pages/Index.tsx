@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
 import { Plus, ListTodo, ArrowLeft, Play } from "lucide-react";
 import { Task, Project } from "@/types/task";
+import { useLocation } from 'react-router-dom';
 
 
 import { TaskTable } from "@/components/TaskTable";
@@ -22,6 +23,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
   
   const Index = () => {
+  const location = useLocation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
   
@@ -131,6 +133,20 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit">("tasks");
+
+  // Handle navigation state from chart clicks
+  useEffect(() => {
+    if (location.state) {
+      const state = location.state as any;
+      if (state.view && state.dateFilter) {
+        // Switch to the requested view
+        setActiveView(state.view);
+        
+        // The Projects component will need to handle the dateFilter from location.state
+        console.log('Navigating from chart click to view:', state.view, 'with date filter:', state.dateFilter);
+      }
+    }
+  }, [location.state]);
 
   // SEO: dynamic title, description, canonical per view
   useEffect(() => {

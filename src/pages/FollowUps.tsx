@@ -377,7 +377,7 @@ export const FollowUpsPage = ({
     return months;
   }, [tasks]);
 
-  // Handle chart clicks - navigate to projects page with date filter
+  // Handle chart clicks - change to projects view with date filter
   const handleProjectChartClick = (data: any, index: number) => {
     console.log('Project chart clicked:', data, index);
     if (data && projectsChartData[index]) {
@@ -385,8 +385,9 @@ export const FollowUpsPage = ({
       const monthStart = startOfMonth(clickedData.date);
       const monthEnd = endOfMonth(clickedData.date);
       
-      navigate('/projects', {
+      navigate('/', {
         state: {
+          view: 'projects',
           dateFilter: {
             from: monthStart,
             to: monthEnd
