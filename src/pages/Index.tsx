@@ -513,6 +513,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 onBackToList={() => setIsProjectDetailView(false)}
                 isInDetailView={isProjectDetailView}
                 onEditProject={handleEditProject}
+                chartDateFilter={location.state?.dateFilter}
               />
             </Suspense>
           )}

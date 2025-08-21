@@ -26,6 +26,7 @@ interface ProjectsPageProps {
   onBackToList?: () => void; // Callback when back action is needed
   isInDetailView?: boolean; // Flag to indicate if in detail view
   onEditProject?: (project: Project) => void; // Handler for opening project details
+  chartDateFilter?: { from: Date; to: Date }; // Date filter from chart clicks
 }
 
 const ProjectsPage = ({ 
@@ -43,7 +44,8 @@ const ProjectsPage = ({
   initialDetailProject = null,
   onBackToList,
   isInDetailView,
-  onEditProject
+  onEditProject,
+  chartDateFilter
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -56,6 +58,30 @@ const ProjectsPage = ({
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
   console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask, 'viewMode:', viewMode, 'detailProject:', detailProject?.name);
+  
+  // Apply date filtering if chartDateFilter is provided
+  const filteredProjects = React.useMemo(() => {
+    if (!chartDateFilter) {
+      return projects;
+    }
+    
+    // Filter projects that were active during the specified date range
+    return projects.filter(project => {
+      const projectStart = new Date(project.startDate);
+      const projectEnd = new Date(project.endDate);
+      const filterStart = new Date(chartDateFilter.from);
+      const filterEnd = new Date(chartDateFilter.to);
+      
+      // Project is included if it overlaps with the filter date range
+      return projectStart <= filterEnd && projectEnd >= filterStart;
+    });
+  }, [projects, chartDateFilter]);
+
+  console.log('Projects filtering:', {
+    chartDateFilter,
+    totalProjects: projects.length,
+    filteredProjects: filteredProjects.length
+  });
 
   // Add debugging to track when setViewMode is called
   const debugSetViewMode = (newMode: 'list' | 'detail') => {
@@ -277,10 +303,36 @@ const ProjectsPage = ({
         </Card>
       </div>
 
+      {/* Date Filter Indicator */}
+      {chartDateFilter && (
+        <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  Filtered by Date: {new Date(chartDateFilter.from).toLocaleDateString()} - {new Date(chartDateFilter.to).toLocaleDateString()}
+                </p>
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  Showing {filteredProjects.length} of {projects.length} projects
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => window.history.replaceState({}, '', window.location.pathname)}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/40"
+              >
+                Clear Filter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Project Table */}
-      {projects.length > 0 ? (
+      {filteredProjects.length > 0 ? (
         <ProjectTable
-          projects={projects}
+          projects={filteredProjects}
           tasks={tasks}
           onCreateProject={onCreateProject}
           onUpdateProject={onUpdateProject}
@@ -293,6 +345,16 @@ const ProjectsPage = ({
           onAddFollowUp={onAddFollowUp}
           onViewProject={handleEditProject}
         />
+      ) : chartDateFilter ? (
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <FolderKanban className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No projects found for selected date range</p>
+              <p className="mb-4">No projects were active during {new Date(chartDateFilter.from).toLocaleDateString()} - {new Date(chartDateFilter.to).toLocaleDateString()}</p>
+            </div>
+          </CardContent>
+        </Card>
       ) : (
         <Card>
           <CardContent className="flex items-center justify-center py-12">
