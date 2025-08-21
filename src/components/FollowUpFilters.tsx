@@ -108,7 +108,7 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
     <Card>
       <CardContent>
         <div className="flex flex-wrap gap-4 items-end">
-          {/* Date Range Picker */}
+          {/* Date Range Picker and Project Filter */}
           {!hideDateRange && (
             <div className="flex flex-col gap-2">
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
