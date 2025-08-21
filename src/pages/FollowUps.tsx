@@ -7,16 +7,19 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight, Minimize2, Maximize2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Task, FollowUp } from "@/types/task";
+import { Task, FollowUp, Project } from "@/types/task";
 import { formatDate } from "@/utils/taskOperations";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
 import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
-import { startOfDay, endOfDay } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, format, parseISO } from "date-fns";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 interface FollowUpsPageProps {
   tasks: Task[];
+  projects: Project[];
   onEditTask?: (task: Task) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
 }
@@ -54,6 +57,7 @@ const Group = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 
 export const FollowUpsPage = ({
   tasks,
+  projects,
   onEditTask,
   onUpdateFollowUp
 }: FollowUpsPageProps) => {
@@ -308,6 +312,77 @@ export const FollowUpsPage = ({
       recentFollowUps: recentFollowUps.length
     };
   }, [filteredFollowUps]);
+
+  // Calculate chart data for projects over time
+  const projectsChartData = useMemo(() => {
+    if (projects.length === 0) return [];
+    
+    // Find date range from projects
+    const projectDates = projects.map(p => [new Date(p.startDate), new Date(p.endDate)]).flat();
+    const minDate = new Date(Math.min(...projectDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...projectDates.map(d => d.getTime())));
+    
+    // Generate weekly data points
+    const weeks: { week: string; count: number; date: Date }[] = [];
+    let currentWeek = startOfWeek(minDate);
+    const endWeek = endOfWeek(maxDate);
+    
+    while (currentWeek <= endWeek) {
+      const weekEnd = endOfWeek(currentWeek);
+      const activeProjects = projects.filter(project => {
+        const projectStart = new Date(project.startDate);
+        const projectEnd = new Date(project.endDate);
+        return projectStart <= weekEnd && projectEnd >= currentWeek;
+      });
+      
+      weeks.push({
+        week: format(currentWeek, 'MMM dd'),
+        count: activeProjects.length,
+        date: new Date(currentWeek)
+      });
+      
+      currentWeek = addWeeks(currentWeek, 1);
+    }
+    
+    return weeks;
+  }, [projects]);
+
+  // Calculate chart data for tasks over time
+  const tasksChartData = useMemo(() => {
+    if (tasks.length === 0) return [];
+    
+    // Find date range from tasks
+    const taskDates = tasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
+    const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
+    
+    // Generate weekly data points
+    const weeks: { week: string; count: number; date: Date }[] = [];
+    let currentWeek = startOfWeek(minDate);
+    const endWeek = endOfWeek(maxDate);
+    
+    while (currentWeek <= endWeek) {
+      const weekEnd = endOfWeek(currentWeek);
+      const activeTasks = tasks.filter(task => {
+        const taskStart = new Date(task.startDate);
+        const taskDue = new Date(task.dueDate);
+        const isActive = taskStart <= weekEnd && taskDue >= currentWeek;
+        const isNotCompleted = task.status !== 'Completed';
+        return isActive && isNotCompleted;
+      });
+      
+      weeks.push({
+        week: format(currentWeek, 'MMM dd'),
+        count: activeTasks.length,
+        date: new Date(currentWeek)
+      });
+      
+      currentWeek = addWeeks(currentWeek, 1);
+    }
+    
+    return weeks;
+  }, [tasks]);
+
   const clearFilters = () => {
     setFilters({});
   };
@@ -470,6 +545,99 @@ export const FollowUpsPage = ({
             <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
               {stats.recentFollowUps}
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Time-based Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Projects Open Over Time Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Projects Open Over Time</CardTitle>
+            <CardDescription>Weekly count of active projects</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                openProjects: {
+                  label: "Open Projects",
+                  color: "hsl(var(--chart-4))",
+                },
+              }}
+              className="h-[300px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={projectsChartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="week" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs"
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="hsl(var(--chart-4))" 
+                    strokeWidth={3}
+                    dot={{ fill: "hsl(var(--chart-4))", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "hsl(var(--chart-1))" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Open Over Time Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
+            <CardDescription>Weekly count of active tasks</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={{
+                openTasks: {
+                  label: "Open Tasks",
+                  color: "hsl(var(--chart-1))",
+                },
+              }}
+              className="h-[300px]"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={tasksChartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="week" 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs"
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    className="text-xs"
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line 
+                    type="monotone" 
+                    dataKey="count" 
+                    stroke="hsl(var(--chart-1))" 
+                    strokeWidth={3}
+                    dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, fill: "hsl(var(--chart-4))" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>

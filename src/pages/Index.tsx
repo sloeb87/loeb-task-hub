@@ -390,7 +390,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
             </Suspense>
           ) : activeView === "followups" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>
-              <FollowUpsPage tasks={tasks} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
+              <FollowUpsPage tasks={tasks} projects={projects} onEditTask={handleEditTask} onUpdateFollowUp={handleUpdateFollowUpWrapper} />
             </Suspense>
           ) : activeView === "task-edit" ? (
             <div className="space-y-6">
