@@ -152,120 +152,85 @@ export const RecurrenceSelector = ({
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        {/* Toggle Button */}
-        <Button
-          type="button"
-          variant={isRecurring ? "default" : "outline"}
-          size="sm"
-          onClick={handleToggleRecurrence}
-          className="flex items-center gap-2"
-        >
-          <Repeat className="w-4 h-4" />
-          {isRecurring ? "Recurring" : "Repeat"}
-        </Button>
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* Toggle Button */}
+      <Button
+        type="button"
+        variant={isRecurring ? "default" : "outline"}
+        size="sm"
+        onClick={handleToggleRecurrence}
+        className="flex items-center gap-1 h-8 px-3"
+      >
+        <Repeat className="w-3 h-3" />
+        {isRecurring ? "Recurring" : "Repeat"}
+      </Button>
 
-        {/* Recurrence Settings */}
-        {isRecurring && (
-          <>
-            <Badge variant="secondary" className="text-xs">
-              {getRecurrenceLabel()}
-            </Badge>
-            
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-xs px-2 py-1 h-auto">
-                  Settings
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-medium">Recurrence Settings</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleToggleRecurrence}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Repeat every</label>
-                      <Select
-                        value={recurrenceInterval?.toString() || "1"}
-                        onValueChange={(value) => 
-                          handleRecurrenceUpdate({ recurrenceInterval: parseInt(value) })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="1">1</SelectItem>
-                          <SelectItem value="2">2</SelectItem>
-                          <SelectItem value="3">3</SelectItem>
-                          <SelectItem value="4">4</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium mb-1 block">Period</label>
-                      <Select
-                        value={recurrenceType || "weekly"}
-                        onValueChange={(value: 'daily' | 'weekly' | 'monthly') =>
-                          handleRecurrenceUpdate({ recurrenceType: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="daily">Weekday(s)</SelectItem>
-                          <SelectItem value="weekly">Week(s)</SelectItem>
-                          <SelectItem value="monthly">Month(s)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">End recurrence *</label>
-                    <input
-                      type="date"
-                      value={recurrenceEndDate || ''}
-                      onChange={(e) => handleRecurrenceUpdate({ recurrenceEndDate: e.target.value })}
-                      className="w-full px-3 py-2 border border-input bg-background text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                      required
-                    />
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
-          </>
-        )}
-      </div>
+      {/* Inline Controls when recurring is enabled */}
+      {isRecurring && (
+        <>
+          <span className="text-sm text-muted-foreground">every</span>
+          
+          <Select
+            value={recurrenceInterval?.toString() || "1"}
+            onValueChange={(value) => 
+              handleRecurrenceUpdate({ recurrenceInterval: parseInt(value) })
+            }
+          >
+            <SelectTrigger className="w-16 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1</SelectItem>
+              <SelectItem value="2">2</SelectItem>
+              <SelectItem value="3">3</SelectItem>
+              <SelectItem value="4">4</SelectItem>
+            </SelectContent>
+          </Select>
 
-      {/* Generate All Instances Button - Now visible outside popover */}
-      {isRecurring && taskId && recurrenceType && recurrenceEndDate && (
-        <Button
-          type="button"
-          onClick={handleShowConfirmDialog}
-          disabled={isGenerating}
-          className="w-full flex items-center gap-2"
-          variant="default"
-        >
-          {isGenerating ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Calendar className="w-4 h-4" />
+          <Select
+            value={recurrenceType || "weekly"}
+            onValueChange={(value: 'daily' | 'weekly' | 'monthly') =>
+              handleRecurrenceUpdate({ recurrenceType: value })
+            }
+          >
+            <SelectTrigger className="w-24 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">day(s)</SelectItem>
+              <SelectItem value="weekly">week(s)</SelectItem>
+              <SelectItem value="monthly">month(s)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <span className="text-sm text-muted-foreground">until</span>
+
+          <input
+            type="date"
+            value={recurrenceEndDate || ''}
+            onChange={(e) => handleRecurrenceUpdate({ recurrenceEndDate: e.target.value })}
+            className="h-8 px-2 border border-input bg-background text-foreground rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            required
+          />
+
+          {/* Generate Button - now inline */}
+          {taskId && recurrenceType && recurrenceEndDate && (
+            <Button
+              type="button"
+              onClick={handleShowConfirmDialog}
+              disabled={isGenerating}
+              size="sm"
+              className="h-8 px-3"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+              ) : (
+                <Calendar className="w-3 h-3 mr-1" />
+              )}
+              Generate ({calculateInstanceCount()})
+            </Button>
           )}
-          {isGenerating ? "Generating..." : "Generate All Instances"}
-        </Button>
+        </>
       )}
 
       {/* Confirmation Dialog */}
