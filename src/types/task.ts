@@ -45,6 +45,13 @@ export interface Task {
     folder?: string;
   };
   stakeholders: string[];
+  // Recurring task fields
+  isRecurring?: boolean;
+  recurrenceType?: 'daily' | 'weekly' | 'monthly';
+  recurrenceInterval?: number;
+  parentTaskId?: string;
+  nextRecurrenceDate?: string;
+  recurrenceEndDate?: string;
 }
 
 export interface Project {

@@ -20,6 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
+import { RecurrenceSelector } from "@/components/RecurrenceSelector";
 import {
   DndContext,
   closestCenter,
@@ -149,6 +150,11 @@ interface FormData {
     folder: string;
   };
   stakeholders: string[];
+  // Recurrence fields
+  isRecurring: boolean;
+  recurrenceType?: 'daily' | 'weekly' | 'monthly';
+  recurrenceInterval: number;
+  recurrenceEndDate?: string;
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -173,7 +179,12 @@ const DEFAULT_FORM_DATA: FormData = {
     file: "",
     folder: ""
   },
-  stakeholders: []
+  stakeholders: [],
+  // Recurrence defaults
+  isRecurring: false,
+  recurrenceType: 'weekly',
+  recurrenceInterval: 1,
+  recurrenceEndDate: undefined
 };
 
 export const TaskFormOptimized = React.memo(({ 
@@ -251,7 +262,12 @@ export const TaskFormOptimized = React.memo(({
           file: task.links?.file || "",
           folder: task.links?.folder || ""
         },
-        stakeholders: task.stakeholders || []
+        stakeholders: task.stakeholders || [],
+        // Recurrence fields
+        isRecurring: task.isRecurring || false,
+        recurrenceType: task.recurrenceType,
+        recurrenceInterval: task.recurrenceInterval || 1,
+        recurrenceEndDate: task.recurrenceEndDate
       };
       
       setFormData(newFormData);
@@ -543,13 +559,30 @@ export const TaskFormOptimized = React.memo(({
 
                 <div>
                   <Label htmlFor="dueDate">Due Date</Label>
-                  <Input
-                    id="dueDate"
-                    type="date"
-                    value={date ? format(date, 'yyyy-MM-dd') : ''}
-                    onChange={(e) => setDate(new Date(e.target.value))}
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  />
+                  <div className="space-y-3">
+                    <Input
+                      id="dueDate"
+                      type="date"
+                      value={date ? format(date, 'yyyy-MM-dd') : ''}
+                      onChange={(e) => setDate(new Date(e.target.value))}
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                    />
+                    <RecurrenceSelector
+                      isRecurring={formData.isRecurring}
+                      recurrenceType={formData.recurrenceType}
+                      recurrenceInterval={formData.recurrenceInterval}
+                      recurrenceEndDate={formData.recurrenceEndDate}
+                      onRecurrenceChange={(recurrence) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          isRecurring: recurrence.isRecurring,
+                          recurrenceType: recurrence.recurrenceType,
+                          recurrenceInterval: recurrence.recurrenceInterval || 1,
+                          recurrenceEndDate: recurrence.recurrenceEndDate
+                        }));
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 

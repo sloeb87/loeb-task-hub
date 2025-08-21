@@ -167,9 +167,15 @@ export type Database = {
           duration: number | null
           environment: string
           id: string
+          is_recurring: boolean | null
           links: Json | null
+          next_recurrence_date: string | null
+          parent_task_id: string | null
           priority: string
           project_id: string | null
+          recurrence_end_date: string | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
           responsible: string
           scope: string[]
           stakeholders: string[] | null
@@ -193,9 +199,15 @@ export type Database = {
           duration?: number | null
           environment: string
           id?: string
+          is_recurring?: boolean | null
           links?: Json | null
+          next_recurrence_date?: string | null
+          parent_task_id?: string | null
           priority?: string
           project_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
           responsible: string
           scope?: string[]
           stakeholders?: string[] | null
@@ -219,9 +231,15 @@ export type Database = {
           duration?: number | null
           environment?: string
           id?: string
+          is_recurring?: boolean | null
           links?: Json | null
+          next_recurrence_date?: string | null
+          parent_task_id?: string | null
           priority?: string
           project_id?: string | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
           responsible?: string
           scope?: string[]
           stakeholders?: string[] | null
