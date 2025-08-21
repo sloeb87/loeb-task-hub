@@ -15,7 +15,7 @@ import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, format, parseISO } from "date-fns";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 interface FollowUpsPageProps {
   tasks: Task[];
@@ -568,7 +568,13 @@ export const FollowUpsPage = ({
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={projectsChartData}>
+                <AreaChart data={projectsChartData}>
+                  <defs>
+                    <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis 
                     dataKey="week" 
@@ -582,15 +588,15 @@ export const FollowUpsPage = ({
                     className="text-xs"
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line 
+                  <Area 
                     type="monotone" 
                     dataKey="count" 
                     stroke="hsl(var(--chart-4))" 
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--chart-4))", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: "hsl(var(--chart-1))" }}
+                    fill="url(#projectsGradient)"
+                    dot={false}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
@@ -613,7 +619,13 @@ export const FollowUpsPage = ({
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={tasksChartData}>
+                <AreaChart data={tasksChartData}>
+                  <defs>
+                    <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                   <XAxis 
                     dataKey="week" 
@@ -627,15 +639,15 @@ export const FollowUpsPage = ({
                     className="text-xs"
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line 
+                  <Area 
                     type="monotone" 
                     dataKey="count" 
                     stroke="hsl(var(--chart-1))" 
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, fill: "hsl(var(--chart-4))" }}
+                    fill="url(#tasksGradient)"
+                    dot={false}
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
