@@ -190,9 +190,6 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
 
           {/* Project Filter */}
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Projects
-            </label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
