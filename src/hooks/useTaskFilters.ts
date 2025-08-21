@@ -40,7 +40,7 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
       
       const beforeFilteringCount = filtered.length;
       filtered = filtered.filter(task => {
-        const taskDate = new Date(task.creationDate);
+        const taskDate = new Date(task.dueDate);
         const filterStart = new Date(dateFilter.from);
         const filterEnd = new Date(dateFilter.to);
         
@@ -49,7 +49,7 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
         console.log('Task date check:', {
           taskId: task.id,
           taskTitle: task.title,
-          taskDate: taskDate.toISOString(),
+          taskDueDate: taskDate.toISOString(),
           taskTime: taskDate.getTime(),
           filterStart: filterStart.toISOString(),
           filterEnd: filterEnd.toISOString(),
