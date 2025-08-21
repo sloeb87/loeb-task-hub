@@ -67,6 +67,12 @@ export default {
 					'today-foreground': 'hsl(var(--gantt-today-foreground))',
 					weekend: 'hsl(var(--gantt-weekend))',
 					'weekend-foreground': 'hsl(var(--gantt-weekend-foreground))'
+				},
+				timer: {
+					bg: 'var(--timer-bg)',
+					border: 'hsl(var(--timer-border))',
+					text: 'hsl(var(--timer-text))',
+					accent: 'hsl(var(--timer-accent))'
 				}
 			},
 			borderRadius: {
@@ -90,11 +96,36 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'timer-pulse': {
+					'0%, 100%': {
+						boxShadow: 'var(--timer-glow)',
+						transform: 'scale(1)'
+					},
+					'50%': {
+						boxShadow: 'var(--timer-glow), 0 0 30px hsl(var(--chart-8) / 0.6)',
+						transform: 'scale(1.02)'
+					}
+				},
+				'data-flow': {
+					'0%': {
+						transform: 'translateX(-100%)',
+						opacity: '0'
+					},
+					'50%': {
+						opacity: '1'
+					},
+					'100%': {
+						transform: 'translateX(100%)',
+						opacity: '0'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'timer-pulse': 'timer-pulse 3s ease-in-out infinite',
+				'data-flow': 'data-flow 2s ease-in-out infinite'
 			}
 		}
 	},

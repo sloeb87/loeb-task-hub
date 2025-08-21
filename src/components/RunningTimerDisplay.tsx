@@ -82,43 +82,64 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   };
 
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       <div 
-        className="flex items-center space-x-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+        className="relative flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 rounded-lg border border-timer-border/50 animate-timer-pulse overflow-hidden group"
+        style={{ 
+          background: 'var(--timer-bg)',
+          boxShadow: 'var(--timer-glow)'
+        }}
         onClick={handleTimerClick}
         title="Click to edit task"
       >
-        <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <Clock className="w-4 h-4 text-red-600 dark:text-red-400" />
+        {/* Animated background flow effect */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-timer-accent to-transparent animate-data-flow"></div>
+          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-timer-accent to-transparent animate-data-flow" style={{ animationDelay: '1s' }}></div>
         </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-semibold text-red-800 dark:text-red-200 truncate max-w-48">
+        
+        {/* Status indicator */}
+        <div className="flex items-center space-x-2 z-10">
+          <div className="relative">
+            <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
+            <div className="absolute inset-0 w-2 h-2 bg-timer-accent rounded-full animate-ping opacity-75"></div>
+          </div>
+          <Clock className="w-4 h-4 text-timer-text" />
+        </div>
+        
+        {/* Task info */}
+        <div className="flex flex-col min-w-0 flex-1 z-10">
+          <span className="text-sm font-semibold text-timer-text truncate max-w-48 leading-tight">
             {runningTaskData.task.title}
           </span>
-          <div className="flex items-center space-x-2">
-            <span className="text-xs text-red-600 dark:text-red-400">
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="text-timer-text/80 truncate">
               {runningTaskData.task.project} • {runningTaskData.task.id}
             </span>
             {currentDuration && (
               <>
-                <span className="text-xs text-red-500 dark:text-red-400">•</span>
-                <span className="text-xs font-mono font-semibold text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-800/30 px-1.5 py-0.5 rounded">
+                <span className="text-timer-accent">•</span>
+                <span className="font-mono font-bold text-timer-accent bg-timer-border/20 px-2 py-0.5 rounded-md border border-timer-border/30">
                   {currentDuration}
                 </span>
               </>
             )}
           </div>
         </div>
+        
+        {/* Stop button */}
         <Button
           size="sm"
           variant="outline"
           onClick={handleStopTimer}
-          className="h-8 w-8 p-0 border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-800"
+          className="h-8 w-8 p-0 border-timer-border/50 hover:border-timer-border bg-transparent hover:bg-timer-border/10 text-timer-text hover:text-timer-accent transition-all duration-200 z-10"
           title="Stop Timer"
         >
           <Pause className="w-3 h-3" />
         </Button>
+        
+        {/* Hover effect overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-timer-accent/5 to-timer-border/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
       </div>
     </div>
   );
