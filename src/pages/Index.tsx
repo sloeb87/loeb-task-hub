@@ -412,13 +412,12 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                     {selectedTask && (
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         onClick={() => startTimer(selectedTask.id, selectedTask.title, selectedTask.project, selectedTask.responsible)}
-                        className="flex items-center gap-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-400 dark:text-green-400 dark:hover:bg-green-900/20 dark:hover:text-green-300"
+                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20 transition-colors"
                         title="Start time tracking for this task"
                       >
                         <Play className="w-4 h-4" fill="currentColor" />
-                        Start Timer
                       </Button>
                     )}
                   </div>
