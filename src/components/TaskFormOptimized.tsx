@@ -577,6 +577,7 @@ export const TaskFormOptimized = React.memo(({
                       recurrenceType={formData.recurrenceType}
                       recurrenceInterval={formData.recurrenceInterval}
                       recurrenceEndDate={formData.recurrenceEndDate}
+                      taskId={task?.id}  // Pass the task ID for the generate button
                       onRecurrenceChange={(recurrence) => {
                         setFormData(prev => ({
                           ...prev,
