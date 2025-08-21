@@ -19,7 +19,6 @@ import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
-import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
   
 const Index = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
@@ -343,6 +342,7 @@ const Index = () => {
           selectedProjectId={selectedProject?.id}
           editingTaskTitle={selectedTask?.title}
           editingTaskId={selectedTask?.id}
+          tasks={tasks}
         />
 
       <div className="px-4 sm:px-6 lg:px-8 py-6">
@@ -359,17 +359,14 @@ const Index = () => {
                   </div>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                  <RunningTimerDisplay tasks={tasks} />
-                  <Button onClick={() => {
-                    console.log('INDEX - New Task button clicked');
-                    setSelectedTask(null);
-                    setActiveView("task-edit");
-                  }} className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    New Task
-                  </Button>
-                </div>
+                <Button onClick={() => {
+                  console.log('INDEX - New Task button clicked');
+                  setSelectedTask(null);
+                  setActiveView("task-edit");
+                }} className="flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  New Task
+                </Button>
               </div>
 
               {/* Controls */}

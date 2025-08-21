@@ -6,6 +6,8 @@ import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
+import { Task } from "@/types/task";
 interface AppHeaderProps {
   activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit";
   onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => void;
@@ -18,6 +20,7 @@ interface AppHeaderProps {
   selectedProjectId?: string; // Optional project ID for project details tab
   editingTaskTitle?: string; // Optional task title for task edit tab
   editingTaskId?: string; // Optional task ID for task edit tab
+  tasks: Task[]; // Tasks for running timer display
 }
 export const AppHeader = ({
   activeView,
@@ -30,7 +33,8 @@ export const AppHeader = ({
   selectedProjectName,
   selectedProjectId,
   editingTaskTitle,
-  editingTaskId
+  editingTaskId,
+  tasks
 }: AppHeaderProps) => {
   const {
     signOut,
@@ -208,44 +212,49 @@ export const AppHeader = ({
       
       {/* Second Header Row - Project & Task Details */}
       <div className="px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-700 border-t border-border">
-        <div className="flex items-center h-12">
-          {/* Email badge aligned with PMTask */}
-          {user && (
-            <Badge variant="outline" className="text-xs">
-              {user.email}
-            </Badge>
-          )}
-          
-          {/* Spacer to align Project Details with Projects from first row - matches space-x-6 */}
-          <div className="w-6"></div>
-          
-          <div className="hidden md:flex items-center space-x-2">
-            <Button 
-              variant={activeView === 'project-details' ? "default" : "outline"} 
-              onClick={() => onViewChange('project-details')} 
-              size="sm"
-              disabled={!selectedProjectName}
-              className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <FolderKanban className="w-4 h-4 mr-2" />
-              {selectedProjectName && selectedProjectId ? `${selectedProjectId} : ${selectedProjectName}` : 'Project Details'}
-            </Button>
+        <div className="flex items-center justify-between h-12">
+          <div className="flex items-center">
+            {/* Email badge aligned with PMTask */}
+            {user && (
+              <Badge variant="outline" className="text-xs">
+                {user.email}
+              </Badge>
+            )}
             
-            <Button 
-              variant={activeView === 'task-edit' ? "default" : "outline"} 
-              onClick={() => onViewChange('task-edit')} 
-              size="sm"
-              disabled={!editingTaskTitle}
-              className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
-            >
-              <ListTodo className="w-4 h-4 mr-2" />
-              {editingTaskTitle && editingTaskId ? (
-                `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
-              ) : (
-                'Task Details'
-              )}
-            </Button>
+            {/* Spacer to align Project Details with Projects from first row - matches space-x-6 */}
+            <div className="w-6"></div>
+            
+            <div className="hidden md:flex items-center space-x-2">
+              <Button 
+                variant={activeView === 'project-details' ? "default" : "outline"} 
+                onClick={() => onViewChange('project-details')} 
+                size="sm"
+                disabled={!selectedProjectName}
+                className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <FolderKanban className="w-4 h-4 mr-2" />
+                {selectedProjectName && selectedProjectId ? `${selectedProjectId} : ${selectedProjectName}` : 'Project Details'}
+              </Button>
+              
+              <Button 
+                variant={activeView === 'task-edit' ? "default" : "outline"} 
+                onClick={() => onViewChange('task-edit')} 
+                size="sm"
+                disabled={!editingTaskTitle}
+                className={!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}
+              >
+                <ListTodo className="w-4 h-4 mr-2" />
+                {editingTaskTitle && editingTaskId ? (
+                  `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
+                ) : (
+                  'Task Details'
+                )}
+              </Button>
+            </div>
           </div>
+          
+          {/* Running Timer Display on the extreme right */}
+          <RunningTimerDisplay tasks={tasks} />
         </div>
       </div>
     </header>;
