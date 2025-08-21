@@ -84,26 +84,16 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   return (
     <div className={`flex items-center ${className}`}>
       <div 
-        className="relative flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 rounded-lg border border-timer-border/50 animate-timer-pulse overflow-hidden group"
+        className="relative flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 rounded-lg border border-timer-border/50 overflow-hidden group"
         style={{ 
-          background: 'var(--timer-bg)',
-          boxShadow: 'var(--timer-glow)'
+          background: 'var(--timer-bg)'
         }}
         onClick={handleTimerClick}
         title="Click to edit task"
       >
-        {/* Animated background flow effect */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-timer-accent to-transparent animate-data-flow"></div>
-          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-timer-accent to-transparent animate-data-flow" style={{ animationDelay: '1s' }}></div>
-        </div>
-        
         {/* Status indicator */}
         <div className="flex items-center space-x-2 z-10">
-          <div className="relative">
-            <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
-            <div className="absolute inset-0 w-2 h-2 bg-timer-accent rounded-full animate-ping opacity-75"></div>
-          </div>
+          <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
           <Clock className="w-4 h-4 text-timer-text" />
         </div>
         
