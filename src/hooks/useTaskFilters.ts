@@ -31,12 +31,14 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
 
     // Apply date filtering if provided
     if (dateFilter) {
-      console.log('Task filtering with dateFilter:', {
-        dateFilter,
-        totalTasks: filtered.length,
-        filterStartTime: dateFilter.from.getTime(),
-        filterEndTime: dateFilter.to.getTime()
+      console.log('=== TASK DATE FILTERING DEBUG ===');
+      console.log('Date filter range:', {
+        from: dateFilter.from.toISOString(),
+        to: dateFilter.to.toISOString(),
+        fromTime: dateFilter.from.getTime(),
+        toTime: dateFilter.to.getTime()
       });
+      console.log('Total tasks before filtering:', filtered.length);
       
       const beforeFilteringCount = filtered.length;
       filtered = filtered.filter(task => {
@@ -44,26 +46,29 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
         const filterStart = new Date(dateFilter.from);
         const filterEnd = new Date(dateFilter.to);
         
-        const isInRange = taskDate >= filterStart && taskDate <= filterEnd;
+        // Normalize dates to start of day for comparison
+        const taskDateNormalized = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+        const filterStartNormalized = new Date(filterStart.getFullYear(), filterStart.getMonth(), filterStart.getDate());
+        const filterEndNormalized = new Date(filterEnd.getFullYear(), filterEnd.getMonth(), filterEnd.getDate());
         
-        console.log('Task date check:', {
-          taskId: task.id,
-          taskTitle: task.title,
-          taskDueDate: taskDate.toISOString(),
-          taskTime: taskDate.getTime(),
-          filterStart: filterStart.toISOString(),
-          filterEnd: filterEnd.toISOString(),
+        const isInRange = taskDateNormalized >= filterStartNormalized && taskDateNormalized <= filterEndNormalized;
+        
+        console.log(`Task: ${task.title}`, {
+          originalDueDate: task.dueDate,
+          taskDateNormalized: taskDateNormalized.toISOString(),
+          filterStartNormalized: filterStartNormalized.toISOString(),
+          filterEndNormalized: filterEndNormalized.toISOString(),
           isInRange
         });
         
         return isInRange;
       });
       
-      console.log('Task filtering result:', {
-        beforeFiltering: beforeFilteringCount,
-        afterFiltering: filtered.length,
-        filteredTaskIds: filtered.map(t => t.id)
-      });
+      console.log('=== FILTERING RESULT ===');
+      console.log('Before filtering:', beforeFilteringCount);
+      console.log('After filtering:', filtered.length);
+      console.log('Filtered task titles:', filtered.map(t => t.title));
+      console.log('================================');
     }
 
     return filtered;
