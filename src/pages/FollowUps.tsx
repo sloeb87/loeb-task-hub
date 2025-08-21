@@ -722,19 +722,35 @@ export const FollowUpsPage = ({
         </Card>
       </div>
 
-      {/* Filters */}
-      <TimeEntryFiltersComponent
-        filters={dateFilters}
-        onFiltersChange={handleDateFiltersChange}
-        onClearFilters={handleDateClear}
-      />
-      <FollowUpFiltersComponent 
-        filters={filters} 
-        onFiltersChange={setFilters} 
-        onClearFilters={clearFilters} 
-        availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]} 
-        hideDateRange
-      />
+      {/* Unified Filters Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+          <CardDescription>Filter follow-ups by date range and project</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Date Range</h4>
+              <TimeEntryFiltersComponent
+                filters={dateFilters}
+                onFiltersChange={handleDateFiltersChange}
+                onClearFilters={handleDateClear}
+              />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Project & Additional Filters</h4>
+              <FollowUpFiltersComponent 
+                filters={filters} 
+                onFiltersChange={setFilters} 
+                onClearFilters={clearFilters} 
+                availableProjects={[...new Set(allFollowUps.map(f => f.projectName))]} 
+                hideDateRange
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Export */}
       <FollowUpExport followUps={filteredFollowUps} filters={filters} />
