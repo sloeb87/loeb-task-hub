@@ -106,12 +106,6 @@ export const FollowUpFiltersComponent = ({ filters, onFiltersChange, onClearFilt
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center text-lg">
-          <Filter className="w-5 h-5 mr-2" />
-          Filter Follow-Ups
-        </CardTitle>
-      </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-4 items-end">
           {/* Date Range Picker */}
