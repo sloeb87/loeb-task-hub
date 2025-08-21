@@ -84,21 +84,18 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   return (
     <div className={`flex items-center ${className}`}>
       <div 
-        className="relative flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 rounded-lg border border-timer-border/50 overflow-hidden group"
-        style={{ 
-          background: 'var(--timer-bg)'
-        }}
+        className="flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 group"
         onClick={handleTimerClick}
         title="Click to edit task"
       >
         {/* Status indicator */}
-        <div className="flex items-center space-x-2 z-10">
+        <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
           <Clock className="w-4 h-4 text-timer-text" />
         </div>
         
         {/* Task info */}
-        <div className="flex flex-col min-w-0 flex-1 z-10">
+        <div className="flex flex-col min-w-0 flex-1">
           <span className="text-sm font-semibold text-timer-text truncate max-w-48 leading-tight">
             {runningTaskData.task.title}
           </span>
@@ -109,7 +106,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
             {currentDuration && (
               <>
                 <span className="text-timer-accent">•</span>
-                <span className="font-mono font-bold text-timer-accent bg-timer-border/20 px-2 py-0.5 rounded-md border border-timer-border/30">
+                <span className="font-mono font-bold text-timer-accent">
                   {currentDuration}
                 </span>
               </>
@@ -120,16 +117,13 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
         {/* Stop button */}
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           onClick={handleStopTimer}
-          className="h-8 w-8 p-0 border-timer-border/50 hover:border-timer-border bg-transparent hover:bg-timer-border/10 text-timer-text hover:text-timer-accent transition-all duration-200 z-10"
+          className="h-8 w-8 p-0 text-timer-text hover:text-timer-accent hover:bg-timer-border/10 transition-all duration-200"
           title="Stop Timer"
         >
           <Pause className="w-3 h-3" />
         </Button>
-        
-        {/* Hover effect overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-timer-accent/5 to-timer-border/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg"></div>
       </div>
     </div>
   );
