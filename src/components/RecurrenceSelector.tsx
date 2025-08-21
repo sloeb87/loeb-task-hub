@@ -55,8 +55,8 @@ export const RecurrenceSelector = ({
     if (!isRecurring || !recurrenceType) return '';
     
     const intervalText = recurrenceInterval === 1 ? '' : `${recurrenceInterval} `;
-    const typeText = recurrenceType === 'daily' ? 'day' : 
-                    recurrenceType === 'weekly' ? 'week' : 'month';
+    const typeText = recurrenceType === 'daily' ? 'weekday' : 
+                     recurrenceType === 'weekly' ? 'week' : 'month';
     const pluralText = recurrenceInterval === 1 ? typeText : `${typeText}s`;
     
     return `Every ${intervalText}${pluralText}`;
@@ -135,7 +135,7 @@ export const RecurrenceSelector = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Day(s)</SelectItem>
+                        <SelectItem value="daily">Weekday(s)</SelectItem>
                         <SelectItem value="weekly">Week(s)</SelectItem>
                         <SelectItem value="monthly">Month(s)</SelectItem>
                       </SelectContent>
