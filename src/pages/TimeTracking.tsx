@@ -301,10 +301,12 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
   }, [projectPieData]);
 
   const chartColors = useMemo(() => [
-    'hsl(var(--chart-8))', // azure glow
-    'hsl(var(--chart-4))', // tech blue
-    'hsl(var(--chart-1))', // neon cyan
-    'hsl(var(--chart-10))', // ultraviolet
+    'url(#gradient1)', // azure gradient
+    'url(#gradient2)', // tech blue gradient  
+    'url(#gradient3)', // neon cyan gradient
+    'url(#gradient4)', // ultraviolet gradient
+    'url(#gradient5)', // additional gradient
+    'url(#gradient6)', // additional gradient
   ], []);
 
   const formatTime = (minutes: number) => {
@@ -695,6 +697,32 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
             <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
               <ChartContainer config={projectChartConfig} className="h-72 w-full">
                 <PieChart>
+                  <defs>
+                    <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
+                    </radialGradient>
+                    <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
+                    </radialGradient>
+                    <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                    </radialGradient>
+                    <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
+                    </radialGradient>
+                    <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                    </radialGradient>
+                    <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
+                      <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
+                    </radialGradient>
+                  </defs>
                   <ChartTooltip
                     content={
                       <ChartTooltipContent
@@ -751,6 +779,32 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
                   <PieChart>
+                    <defs>
+                      <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
+                      </radialGradient>
+                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -800,6 +854,32 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
                   <PieChart>
+                    <defs>
+                      <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                      </radialGradient>
+                      <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
+                        <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
+                      </radialGradient>
+                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
