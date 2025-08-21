@@ -15,7 +15,7 @@ import { FollowUpFiltersComponent } from "@/components/FollowUpFilters";
 import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, format, parseISO } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, addMonths, format, parseISO } from "date-fns";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 interface FollowUpsPageProps {
@@ -324,29 +324,29 @@ export const FollowUpsPage = ({
     const minDate = new Date(Math.min(...projectDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...projectDates.map(d => d.getTime())));
     
-    // Generate weekly data points
-    const weeks: { week: string; count: number; date: Date }[] = [];
-    let currentWeek = startOfWeek(minDate);
-    const endWeek = endOfWeek(maxDate);
+    // Generate monthly data points
+    const months: { week: string; count: number; date: Date }[] = [];
+    let currentMonth = startOfMonth(minDate);
+    const endMonth = endOfMonth(maxDate);
     
-    while (currentWeek <= endWeek) {
-      const weekEnd = endOfWeek(currentWeek);
+    while (currentMonth <= endMonth) {
+      const monthEnd = endOfMonth(currentMonth);
       const activeProjects = projects.filter(project => {
         const projectStart = new Date(project.startDate);
         const projectEnd = new Date(project.endDate);
-        return projectStart <= weekEnd && projectEnd >= currentWeek;
+        return projectStart <= monthEnd && projectEnd >= currentMonth;
       });
       
-      weeks.push({
-        week: format(currentWeek, 'MMM dd'),
+      months.push({
+        week: format(currentMonth, 'MMM yy'),
         count: activeProjects.length,
-        date: new Date(currentWeek)
+        date: new Date(currentMonth)
       });
       
-      currentWeek = addWeeks(currentWeek, 1);
+      currentMonth = addMonths(currentMonth, 1);
     }
     
-    return weeks;
+    return months;
   }, [projects]);
 
   // Calculate chart data for tasks over time
@@ -358,31 +358,31 @@ export const FollowUpsPage = ({
     const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
     
-    // Generate weekly data points
-    const weeks: { week: string; count: number; date: Date }[] = [];
-    let currentWeek = startOfWeek(minDate);
-    const endWeek = endOfWeek(maxDate);
+    // Generate monthly data points
+    const months: { week: string; count: number; date: Date }[] = [];
+    let currentMonth = startOfMonth(minDate);
+    const endMonth = endOfMonth(maxDate);
     
-    while (currentWeek <= endWeek) {
-      const weekEnd = endOfWeek(currentWeek);
+    while (currentMonth <= endMonth) {
+      const monthEnd = endOfMonth(currentMonth);
       const activeTasks = tasks.filter(task => {
         const taskStart = new Date(task.startDate);
         const taskDue = new Date(task.dueDate);
-        const isActive = taskStart <= weekEnd && taskDue >= currentWeek;
+        const isActive = taskStart <= monthEnd && taskDue >= currentMonth;
         const isNotCompleted = task.status !== 'Completed';
         return isActive && isNotCompleted;
       });
       
-      weeks.push({
-        week: format(currentWeek, 'MMM dd'),
+      months.push({
+        week: format(currentMonth, 'MMM yy'),
         count: activeTasks.length,
-        date: new Date(currentWeek)
+        date: new Date(currentMonth)
       });
       
-      currentWeek = addWeeks(currentWeek, 1);
+      currentMonth = addMonths(currentMonth, 1);
     }
     
-    return weeks;
+    return months;
   }, [tasks]);
 
   // Handle chart clicks - navigate to projects page with date filter
@@ -390,14 +390,14 @@ export const FollowUpsPage = ({
     console.log('Project chart clicked:', data, index);
     if (data && projectsChartData[index]) {
       const clickedData = projectsChartData[index];
-      const weekStart = startOfWeek(clickedData.date);
-      const weekEnd = endOfWeek(clickedData.date);
+      const monthStart = startOfMonth(clickedData.date);
+      const monthEnd = endOfMonth(clickedData.date);
       
       navigate('/projects', {
         state: {
           dateFilter: {
-            from: weekStart,
-            to: weekEnd
+            from: monthStart,
+            to: monthEnd
           }
         }
       });
@@ -409,14 +409,14 @@ export const FollowUpsPage = ({
     console.log('Task chart clicked:', data, index);
     if (data && tasksChartData[index]) {
       const clickedData = tasksChartData[index];
-      const weekStart = startOfWeek(clickedData.date);
-      const weekEnd = endOfWeek(clickedData.date);
+      const monthStart = startOfMonth(clickedData.date);
+      const monthEnd = endOfMonth(clickedData.date);
       
       navigate('/', {
         state: {
           dateFilter: {
-            from: weekStart,
-            to: weekEnd
+            from: monthStart,
+            to: monthEnd
           }
         }
       });
@@ -595,7 +595,7 @@ export const FollowUpsPage = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Projects Open Over Time</CardTitle>
-            <CardDescription>Weekly count of active projects</CardDescription>
+            <CardDescription>Monthly count of active projects</CardDescription>
           </CardHeader>
            <CardContent>
              <div className="relative cursor-pointer group" onClick={(e) => {
@@ -660,7 +660,7 @@ export const FollowUpsPage = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
-            <CardDescription>Weekly count of active tasks</CardDescription>
+            <CardDescription>Monthly count of active tasks</CardDescription>
           </CardHeader>
            <CardContent>
              <div className="relative cursor-pointer group" onClick={(e) => {
