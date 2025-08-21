@@ -31,13 +31,38 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilt
 
     // Apply date filtering if provided
     if (dateFilter) {
+      console.log('Task filtering with dateFilter:', {
+        dateFilter,
+        totalTasks: filtered.length,
+        filterStartTime: dateFilter.from.getTime(),
+        filterEndTime: dateFilter.to.getTime()
+      });
+      
+      const beforeFilteringCount = filtered.length;
       filtered = filtered.filter(task => {
         const taskDate = new Date(task.creationDate);
         const filterStart = new Date(dateFilter.from);
         const filterEnd = new Date(dateFilter.to);
         
-        // Include task if it was created within the date range
-        return taskDate >= filterStart && taskDate <= filterEnd;
+        const isInRange = taskDate >= filterStart && taskDate <= filterEnd;
+        
+        console.log('Task date check:', {
+          taskId: task.id,
+          taskTitle: task.title,
+          taskDate: taskDate.toISOString(),
+          taskTime: taskDate.getTime(),
+          filterStart: filterStart.toISOString(),
+          filterEnd: filterEnd.toISOString(),
+          isInRange
+        });
+        
+        return isInRange;
+      });
+      
+      console.log('Task filtering result:', {
+        beforeFiltering: beforeFilteringCount,
+        afterFiltering: filtered.length,
+        filteredTaskIds: filtered.map(t => t.id)
       });
     }
 

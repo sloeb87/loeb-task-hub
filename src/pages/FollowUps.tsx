@@ -402,8 +402,21 @@ export const FollowUpsPage = ({
     console.log('Task chart clicked:', data, index);
     if (data && tasksChartData[index]) {
       const clickedData = tasksChartData[index];
+      console.log('Chart clicked data:', {
+        clickedData,
+        date: clickedData.date,
+        count: clickedData.count,
+        week: clickedData.week
+      });
+      
       const monthStart = startOfMonth(clickedData.date);
       const monthEnd = endOfMonth(clickedData.date);
+      
+      console.log('Date filter range:', {
+        monthStart: monthStart.toISOString(),
+        monthEnd: monthEnd.toISOString(),
+        originalDate: clickedData.date.toISOString()
+      });
       
       navigate('/', {
         state: {
