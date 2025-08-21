@@ -3,9 +3,14 @@ import { Task } from '@/types/task';
 
 export type FilterType = "all" | "open" | "inprogress" | "onhold" | "critical" | "active";
 
-export const useTaskFilters = (tasks: Task[], activeFilter: FilterType) => {
+interface DateFilter {
+  from: Date;
+  to: Date;
+}
+
+export const useTaskFilters = (tasks: Task[], activeFilter: FilterType, dateFilter?: DateFilter) => {
   const filteredTasks = useMemo(() => {
-    return tasks.filter(task => {
+    let filtered = tasks.filter(task => {
       switch (activeFilter) {
         case "open":
           return task.status === "Open";
@@ -23,7 +28,21 @@ export const useTaskFilters = (tasks: Task[], activeFilter: FilterType) => {
           return true;
       }
     });
-  }, [tasks, activeFilter]);
+
+    // Apply date filtering if provided
+    if (dateFilter) {
+      filtered = filtered.filter(task => {
+        const taskDate = new Date(task.creationDate);
+        const filterStart = new Date(dateFilter.from);
+        const filterEnd = new Date(dateFilter.to);
+        
+        // Include task if it was created within the date range
+        return taskDate >= filterStart && taskDate <= filterEnd;
+      });
+    }
+
+    return filtered;
+  }, [tasks, activeFilter, dateFilter]);
 
   const taskCounts = useMemo(() => {
     return {

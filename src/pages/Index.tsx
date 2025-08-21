@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react';
 import { Button } from "@/components/ui/button";
-import { Plus, ListTodo, ArrowLeft, Play } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Plus, ListTodo, ArrowLeft, Play, CheckCircle } from "lucide-react";
 import { Task, Project } from "@/types/task";
 import { useLocation } from 'react-router-dom';
 
@@ -214,7 +215,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const {
     filteredTasks,
     taskCounts
-  } = useTaskFilters(tasks, activeFilter);
+  } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
 
   // Event handlers using useCallback for optimization
   const handleCreateTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
@@ -397,10 +398,57 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 
               {/* Controls */}
               
+              {/* Date Filter Indicator for Tasks */}
+              {location.state?.dateFilter && (
+                <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          Filtered by Date: {new Date(location.state.dateFilter.from).toLocaleDateString()} - {new Date(location.state.dateFilter.to).toLocaleDateString()}
+                        </p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                          Showing {filteredTasks.length} of {tasks.length} tasks
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => window.history.replaceState({}, '', window.location.pathname)}
+                        className="text-blue-700 border-blue-300 hover:bg-blue-100 dark:text-blue-300 dark:border-blue-700 dark:hover:bg-blue-900/40"
+                      >
+                        Clear Filter
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-              <TaskSummaryCardsOptimized tasks={tasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+              <TaskSummaryCardsOptimized tasks={filteredTasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-              <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+              {filteredTasks.length > 0 ? (
+                <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+              ) : location.state?.dateFilter ? (
+                <Card>
+                  <CardContent className="flex items-center justify-center py-12">
+                    <div className="text-center text-gray-500 dark:text-gray-400">
+                      <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No tasks found for selected date range</p>
+                      <p className="mb-4">No tasks were created during {new Date(location.state.dateFilter.from).toLocaleDateString()} - {new Date(location.state.dateFilter.to).toLocaleDateString()}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="flex items-center justify-center py-12">
+                    <div className="text-center text-gray-500 dark:text-gray-400">
+                      <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No tasks yet</p>
+                      <p className="mb-4">Create your first task to get started</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </>
           ) : activeView === "dashboard" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading dashboard…</div>}>
