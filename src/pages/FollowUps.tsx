@@ -597,21 +597,9 @@ export const FollowUpsPage = ({
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Projects Open Over Time</CardTitle>
             <CardDescription>Monthly count of active projects</CardDescription>
           </CardHeader>
-           <CardContent>
-             <div className="relative cursor-pointer group" onClick={(e) => {
-               // Find the closest data point based on mouse position
-               const rect = e.currentTarget.getBoundingClientRect();
-               const x = e.clientX - rect.left;
-               const chartWidth = rect.width;
-               const dataIndex = Math.round((x / chartWidth) * (projectsChartData.length - 1));
-               
-               if (projectsChartData[dataIndex]) {
-                 console.log('Project chart area clicked, data index:', dataIndex);
-                 handleProjectChartClick(null, dataIndex);
-               }
-             }}>
-               <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-10 bg-blue-500 transition-opacity pointer-events-none rounded" />
-               <ChartContainer
+            <CardContent>
+              <div className="relative group">
+                <ChartContainer
                  config={{
                    openProjects: {
                      label: "Open Projects",
@@ -663,20 +651,8 @@ export const FollowUpsPage = ({
             <CardDescription>Monthly count of active tasks</CardDescription>
           </CardHeader>
            <CardContent>
-             <div className="relative cursor-pointer group" onClick={(e) => {
-               // Find the closest data point based on mouse position
-               const rect = e.currentTarget.getBoundingClientRect();
-               const x = e.clientX - rect.left;
-               const chartWidth = rect.width;
-               const dataIndex = Math.round((x / chartWidth) * (tasksChartData.length - 1));
-               
-               if (tasksChartData[dataIndex]) {
-                 console.log('Task chart area clicked, data index:', dataIndex);
-                 handleTaskChartClick(null, dataIndex);
-               }
-             }}>
-               <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-10 bg-blue-500 transition-opacity pointer-events-none rounded" />
-               <ChartContainer
+              <div className="relative group">
+                <ChartContainer
                  config={{
                    openTasks: {
                      label: "Open Tasks",
