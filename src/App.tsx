@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import GanttView from "./pages/GanttView";
 import ProjectDetailWindow from "./pages/ProjectDetailWindow";
 import NotFound from "./pages/NotFound";
+import ProjectsStandalone from "./pages/ProjectsStandalone";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
 import { Loader2 } from "lucide-react";
@@ -51,6 +52,11 @@ function App() {
                 <Route path="/gantt" element={
                   <ProtectedRoute>
                     <GanttView />
+                  </ProtectedRoute>
+                } />
+                <Route path="/projects" element={
+                  <ProtectedRoute>
+                    <ProjectsStandalone />
                   </ProtectedRoute>
                 } />
                 <Route path="/project-detail" element={

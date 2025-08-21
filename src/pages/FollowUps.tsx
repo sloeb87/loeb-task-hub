@@ -386,38 +386,46 @@ export const FollowUpsPage = ({
   }, [tasks]);
 
   // Handle chart clicks - navigate to projects page with date filter
-  const handleProjectChartClick = (data: any) => {
-    if (data && data.activePayload && data.activePayload[0]) {
-      const clickedData = data.activePayload[0].payload;
-      const weekStart = startOfWeek(clickedData.date);
-      const weekEnd = endOfWeek(clickedData.date);
-      
-      navigate('/projects', {
-        state: {
-          dateFilter: {
-            from: weekStart,
-            to: weekEnd
+  const handleProjectChartClick = (event: any) => {
+    console.log('Project chart clicked:', event);
+    if (event && event.activeLabel) {
+      // Find the data point based on the activeLabel (week)
+      const clickedData = projectsChartData.find(item => item.week === event.activeLabel);
+      if (clickedData) {
+        const weekStart = startOfWeek(clickedData.date);
+        const weekEnd = endOfWeek(clickedData.date);
+        
+        navigate('/projects', {
+          state: {
+            dateFilter: {
+              from: weekStart,
+              to: weekEnd
+            }
           }
-        }
-      });
+        });
+      }
     }
   };
 
   // Handle chart clicks - navigate to tasks page with date filter  
-  const handleTaskChartClick = (data: any) => {
-    if (data && data.activePayload && data.activePayload[0]) {
-      const clickedData = data.activePayload[0].payload;
-      const weekStart = startOfWeek(clickedData.date);
-      const weekEnd = endOfWeek(clickedData.date);
-      
-      navigate('/', {
-        state: {
-          dateFilter: {
-            from: weekStart,
-            to: weekEnd
+  const handleTaskChartClick = (event: any) => {
+    console.log('Task chart clicked:', event);
+    if (event && event.activeLabel) {
+      // Find the data point based on the activeLabel (week)
+      const clickedData = tasksChartData.find(item => item.week === event.activeLabel);
+      if (clickedData) {
+        const weekStart = startOfWeek(clickedData.date);
+        const weekEnd = endOfWeek(clickedData.date);
+        
+        navigate('/', {
+          state: {
+            dateFilter: {
+              from: weekStart,
+              to: weekEnd
+            }
           }
-        }
-      });
+        });
+      }
     }
   };
 
@@ -605,8 +613,8 @@ export const FollowUpsPage = ({
               }}
               className="h-[300px]"
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={projectsChartData} onClick={handleProjectChartClick}>
+               <ResponsiveContainer width="100%" height="100%">
+                 <AreaChart data={projectsChartData} onClick={handleProjectChartClick}>
                   <defs>
                     <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
