@@ -165,8 +165,8 @@ const GanttView = () => {
   };
 
   const handleEditTask = (task: Task) => {
-    setSelectedTask(task);
-    setIsTaskFormOpen(true);
+    // Redirect to main app Task Details instead of modal
+    navigate('/?edit-task=' + task.id);
   };
 
   const exportGantt = () => {
@@ -472,19 +472,6 @@ const GanttView = () => {
             </CardContent>
           </Card>
         )}
-
-        {/* Task Form Dialog */}
-        <TaskFormOptimized 
-          isOpen={isTaskFormOpen} 
-          onClose={() => {
-            setIsTaskFormOpen(false);
-            setSelectedTask(null);
-          }} 
-          onSave={selectedTask ? handleUpdateTask : handleCreateTask} 
-          task={selectedTask} 
-          allTasks={tasks} 
-          allProjects={projects}
-        />
       </div>
     </div>
   );

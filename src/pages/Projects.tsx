@@ -6,7 +6,6 @@ import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task, Project } from "@/types/task";
 import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
-import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { ProjectDetailView } from "@/components/ProjectDetailView";
 import { ReportModal } from "@/components/ReportModal";
 
@@ -27,6 +26,7 @@ interface ProjectsPageProps {
   isInDetailView?: boolean; // Flag to indicate if in detail view
   onEditProject?: (project: Project) => void; // Handler for opening project details
   chartDateFilter?: { from: Date; to: Date }; // Date filter from chart clicks
+  onEditTask?: (task: Task) => void; // Add callback to redirect to Task Details
 }
 
 const ProjectsPage = ({ 
@@ -45,19 +45,21 @@ const ProjectsPage = ({
   onBackToList,
   isInDetailView,
   onEditProject,
-  chartDateFilter
+  chartDateFilter,
+  onEditTask
 }: ProjectsPageProps) => {
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
+  // Task form state - REMOVED, now redirects to Task Details
+  // const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  // const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  // const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
-  console.log('Projects page render - isTaskFormOpen:', isTaskFormOpen, 'selectedTask:', selectedTask, 'viewMode:', viewMode, 'detailProject:', detailProject?.name);
+  console.log('Projects page render - viewMode:', viewMode, 'detailProject:', detailProject?.name);
   
   // Apply date filtering if chartDateFilter is provided
   const filteredProjects = React.useMemo(() => {
@@ -99,13 +101,13 @@ const ProjectsPage = ({
     setDetailProject(project);
   };
 
-  // Add debugging for task form state
-  React.useEffect(() => {
-    console.log('PROJECTS - Task form state changed:', { 
-      isTaskFormOpen, 
-      selectedTaskId: selectedTask?.id || 'new task'
-    });
-  }, [isTaskFormOpen, selectedTask]);
+  // Task form debugging - REMOVED for redirect approach
+  // React.useEffect(() => {
+  //   console.log('PROJECTS - Task form state changed:', { 
+  //     isTaskFormOpen, 
+  //     selectedTaskId: selectedTask?.id || 'new task'
+  //   });
+  // }, [isTaskFormOpen, selectedTask]);
 
   // Handle initial detail project navigation
   React.useEffect(() => {
@@ -152,27 +154,23 @@ const ProjectsPage = ({
   };
 
   const handleCreateTaskForProject = (projectId?: string) => {
-    const project = projectId ? projects.find(p => p.id === projectId) : detailProject;
-    if (project) {
-      setTaskProjectId(project.name); // Use project name for task.project field
-      setSelectedTask(null);
-      setIsTaskFormOpen(true);
+    // This could potentially create a task directly or redirect to Task Details
+    // For now, redirect to Task Details for all task creation/editing
+    if (onEditTask) {
+      // Create a placeholder task for the new task form
+      const project = projectId ? projects.find(p => p.id === projectId) : detailProject;
+      if (project) {
+        // You could implement task creation redirect here if needed
+        console.log('Create task for project:', project.name);
+      }
     }
   };
 
   const handleEditTask = (task: Task) => {
-    console.log('handleEditTask called with:', task.title, 'current isTaskFormOpen:', isTaskFormOpen);
-    
-    // Force state reset first, then set new values
-    setIsTaskFormOpen(false);
-    setSelectedTask(null);
-    
-    // Use requestAnimationFrame to ensure DOM updates
-    requestAnimationFrame(() => {
-      setSelectedTask(task);
-      setIsTaskFormOpen(true);
-      console.log('State updated - task:', task.title, 'opening modal');
-    });
+    console.log('handleEditTask called with:', task.title);
+    if (onEditTask) {
+      onEditTask(task); // Redirect to Task Details page
+    }
   };
 
   const handleFollowUp = (updatedTask: Task) => {
@@ -186,19 +184,13 @@ const ProjectsPage = ({
   };
 
   const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    // This function might not be needed anymore since tasks are handled in Task Details
     if ('id' in taskData) {
-      onUpdateTask(taskData);
+      onUpdateTask(taskData as Task);
     } else {
-      // Set the project name if creating task for specific project
-      const finalTaskData = {
-        ...taskData,
-        project: taskProjectId || taskData.project
-      };
-      onCreateTask(finalTaskData);
+      // For task creation, redirect to Task Details instead
+      console.log('Task creation should be handled in Task Details page');
     }
-    setIsTaskFormOpen(false);
-    setSelectedTask(null);
-    setTaskProjectId(null);
   };
 
   const handleGenerateReport = (project?: Project) => {
@@ -388,25 +380,7 @@ const ProjectsPage = ({
         onUpdateTask={onUpdateTask}
       />
 
-      {/* Task Form Modal */}
-      <TaskFormOptimized
-        key={selectedTask?.id || 'new'}
-        isOpen={isTaskFormOpen}
-        onClose={() => {
-          console.log('TaskForm onClose called');
-          setIsTaskFormOpen(false);
-          setSelectedTask(null);
-          setTaskProjectId(null);
-        }}
-        onSave={handleSaveTask}
-        onDelete={onDeleteTask}
-        onAddFollowUp={onAddFollowUp}
-        task={selectedTask}
-        allTasks={tasks}
-        allProjects={projects}
-        projectName={taskProjectId}
-        onEditRelatedTask={handleEditTask}
-      />
+      {/* Task Form Modal - REMOVED, now redirects to Task Details */}
 
       {/* Report Modal */}
       {reportProject && (

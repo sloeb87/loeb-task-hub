@@ -463,7 +463,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
             </Suspense>
           ) : activeView === "timetracking" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading time tracking…</div>}>
-              <TimeTrackingPage tasks={tasks} projects={projects} />
+              <TimeTrackingPage tasks={tasks} projects={projects} onEditTask={handleEditTask} />
             </Suspense>
           ) : activeView === "followups" ? (
             <Suspense fallback={<div className="py-10 text-center">Loading follow-ups…</div>}>

@@ -11,7 +11,6 @@ import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react"
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
-import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor } from "@/hooks/useParameterColors";
 import { Task } from "@/types/task";
 import { Project } from "@/types/task";
@@ -34,9 +33,10 @@ interface MultiSelectFilters {
 interface TimeTrackingPageProps {
   tasks: Task[];
   projects: Project[];
+  onEditTask?: (task: Task) => void; // Add callback to redirect to Task Details
 }
 
-export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => {
+export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
@@ -75,9 +75,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
     date: null
   });
 
-  // Task editing state
-  const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  // Task editing state - REMOVED, now redirects to Task Details
+  // const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  // const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null);
@@ -570,15 +570,9 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
 
   const handleRowClick = (entry: TimeEntry) => {
     const task = tasks.find(t => t.id === entry.taskId);
-    if (task) {
-      setSelectedTask(task);
-      setIsTaskFormOpen(true);
+    if (task && onEditTask) {
+      onEditTask(task); // Redirect to Task Details page
     }
-  };
-
-  const handleTaskFormClose = () => {
-    setIsTaskFormOpen(false);
-    setSelectedTask(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -1206,20 +1200,6 @@ export const TimeTrackingPage = ({ tasks, projects }: TimeTrackingPageProps) => 
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Task Edit Dialog */}
-      <TaskFormOptimized
-        task={selectedTask}
-        isOpen={isTaskFormOpen}
-        onClose={handleTaskFormClose}
-        onSave={() => {
-          // Task save logic would be handled by the TaskFormOptimized component
-          setIsTaskFormOpen(false);
-          setSelectedTask(null);
-        }}
-        allTasks={tasks}
-        allProjects={projects}
-      />
     </div>
   );
 };
