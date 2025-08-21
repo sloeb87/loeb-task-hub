@@ -13,10 +13,16 @@ import {
 import { Task } from "@/types/task";
 import { FilterType } from "@/hooks/useTaskFilters";
 
+interface DateFilter {
+  from: Date;
+  to: Date;
+}
+
 interface TaskSummaryCardsProps {
   tasks: Task[];
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
+  dateFilter?: DateFilter;
 }
 
 interface TaskStat {
@@ -31,21 +37,45 @@ interface TaskStat {
 export const TaskSummaryCardsOptimized = React.memo(({ 
   tasks, 
   activeFilter, 
-  onFilterChange 
+  onFilterChange,
+  dateFilter 
 }: TaskSummaryCardsProps) => {
   
   const stats = useMemo((): TaskStat[] => {
-    const openTasks = tasks.filter(t => t.status === "Open").length;
-    const inProgressTasks = tasks.filter(t => t.status === "In Progress").length;
+    // Apply date filter if present to get the correct counts
+    let filteredForCounting = tasks;
+    if (dateFilter) {
+      filteredForCounting = tasks.filter(task => {
+        const creationDate = new Date(task.creationDate);
+        const dueDate = new Date(task.dueDate);
+        const completionDate = task.completionDate ? new Date(task.completionDate) : null;
+        
+        // Normalize dates to start of day for comparison
+        const creationDateNormalized = new Date(creationDate.getFullYear(), creationDate.getMonth(), creationDate.getDate());
+        const dueDateNormalized = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
+        const completionDateNormalized = completionDate ? new Date(completionDate.getFullYear(), completionDate.getMonth(), completionDate.getDate()) : null;
+        const filterStartNormalized = new Date(dateFilter.from.getFullYear(), dateFilter.from.getMonth(), dateFilter.from.getDate());
+        const filterEndNormalized = new Date(dateFilter.to.getFullYear(), dateFilter.to.getMonth(), dateFilter.to.getDate());
+        
+        const wasCreatedBeforeOrDuringPeriod = creationDateNormalized <= filterEndNormalized;
+        const isDueAfterOrDuringPeriod = dueDateNormalized >= filterStartNormalized;
+        const wasNotCompletedBeforePeriod = !completionDateNormalized || completionDateNormalized >= filterStartNormalized;
+        
+        return wasCreatedBeforeOrDuringPeriod && isDueAfterOrDuringPeriod && wasNotCompletedBeforePeriod;
+      });
+    }
+
+    const openTasks = filteredForCounting.filter(t => t.status === "Open").length;
+    const inProgressTasks = filteredForCounting.filter(t => t.status === "In Progress").length;
     const activeTasks = openTasks + inProgressTasks; // Merge Open and In Progress
-    const onHoldTasks = tasks.filter(t => t.status === "On Hold").length;
-    const criticalTasks = tasks.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
-    const completedTasks = tasks.filter(t => t.status === "Completed").length;
+    const onHoldTasks = filteredForCounting.filter(t => t.status === "On Hold").length;
+    const criticalTasks = filteredForCounting.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
+    const completedTasks = filteredForCounting.filter(t => t.status === "Completed").length;
 
     return [
       {
         title: "All Tasks",
-        count: tasks.length,
+        count: filteredForCounting.length,
         icon: ListTodo,
         color: "text-blue-600 dark:text-blue-400",
         bgColor: "bg-blue-50 dark:bg-blue-900/20",
@@ -76,7 +106,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
         filter: "critical" as FilterType
       }
     ];
-  }, [tasks]);
+  }, [tasks, dateFilter]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

@@ -431,7 +431,12 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 </Card>
               )}
 
-              <TaskSummaryCardsOptimized tasks={filteredTasks} activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+              <TaskSummaryCardsOptimized 
+                tasks={tasks} 
+                activeFilter={activeFilter} 
+                onFilterChange={setActiveFilter}
+                dateFilter={location.state?.dateFilter}
+              />
 
               {filteredTasks.length > 0 ? (
                 <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
