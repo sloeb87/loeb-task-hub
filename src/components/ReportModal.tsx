@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { GanttChart } from "@/components/GanttChart";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { Calendar, Users, Target, Clock, AlertTriangle, CheckCircle, XCircle, FileText, MessageSquare, TrendingUp, BarChart3, Download, Moon, Sun, Mail } from "lucide-react";
 import { Project, Task } from "@/types/task";
@@ -370,21 +369,6 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
               </CardContent>
             </Card>
           </div>
-
-          {/* Gantt Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Timeline (Gantt Chart)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <GanttChart 
-                tasks={projectTasks} 
-                onTasksChange={() => {}} 
-                projectStartDate={project.startDate}
-                projectEndDate={project.endDate}
-              />
-            </CardContent>
-          </Card>
 
           {/* Detailed Task List */}
           <Card>

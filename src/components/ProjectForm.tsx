@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
 import { Project, Task } from "@/types/task";
-import { GanttChart } from "./GanttChart";
 import { useParameters } from "@/hooks/useParameters";
 
 interface ProjectFormProps {
@@ -171,9 +170,6 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
         <Tabs defaultValue="details" className="space-y-6">
           <TabsList className="dark:bg-gray-800 dark:border-gray-700">
             <TabsTrigger value="details" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Project Details</TabsTrigger>
-            {project && projectTasks.length > 0 && (
-              <TabsTrigger value="gantt" className="dark:text-gray-300 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Gantt & Dependencies</TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="details">
@@ -417,18 +413,6 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
               </div>
             </form>
           </TabsContent>
-
-          {project && projectTasks.length > 0 && (
-            <TabsContent value="gantt">
-              <GanttChart
-                tasks={projectTasks}
-                onTasksChange={handleTasksChange}
-                projectStartDate={formData.startDate}
-                projectEndDate={formData.endDate}
-                onEditTask={onUpdateTask}
-              />
-            </TabsContent>
-          )}
         </Tabs>
       </DialogContent>
     </Dialog>

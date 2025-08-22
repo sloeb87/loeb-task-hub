@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
-import { GanttChart } from "@/components/GanttChart";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useTaskForm } from "@/contexts/TaskFormContext";
 
@@ -172,11 +171,6 @@ export const ProjectDetailView = ({
     // Task form closing is now handled by global context
   };
 
-  const handleOpenGanttWindow = () => {
-    const ganttUrl = `/gantt?project=${encodeURIComponent(project.name)}`;
-    window.open(ganttUrl, '_blank', 'width=1400,height=800,scrollbars=yes,resizable=yes');
-  };
-
   const handleCreateTaskForProject = () => {
     console.log('ProjectDetailView - Creating new task for project:', project.name);
     openTaskForm(project.name, undefined, 'project-detail-new', true);
@@ -238,12 +232,6 @@ export const ProjectDetailView = ({
             <FileBarChart className="w-4 h-4 mr-2" />
             Generate Report
           </Button>
-          {allProjectTasks.length > 0 && (
-            <Button variant="outline" onClick={handleOpenGanttWindow}>
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open Gantt
-            </Button>
-          )}
           <Button onClick={handleCreateTaskForProject}>
             <Plus className="w-4 h-4 mr-2" />
             Add Task
@@ -447,15 +435,12 @@ export const ProjectDetailView = ({
         </Card>
       </div>
 
-      {/* Tasks and Gantt Section */}
+      {/* Tasks Section */}
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Opened Tasks</TabsTrigger>
           {completedProjectTasks.length > 0 && (
             <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
-          )}
-          {allProjectTasks.length > 0 && (
-            <TabsTrigger value="gantt">Gantt Chart</TabsTrigger>
           )}
         </TabsList>
 
@@ -514,18 +499,6 @@ export const ProjectDetailView = ({
                 />
               </CardContent>
             </Card>
-          </TabsContent>
-        )}
-
-        {allProjectTasks.length > 0 && (
-          <TabsContent value="gantt">
-            <GanttChart
-              tasks={allProjectTasks}
-              onTasksChange={handleTasksChange}
-              projectStartDate={project.startDate}
-              projectEndDate={project.endDate}
-              onEditTask={handleEditTaskLocal}
-            />
           </TabsContent>
         )}
       </Tabs>

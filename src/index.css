@@ -38,12 +38,6 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    /* Gantt Chart Colors */
-    --gantt-today: 219 100% 95%;
-    --gantt-today-foreground: 219 100% 20%;
-    --gantt-weekend: 0 0% 96%;
-    --gantt-weekend-foreground: 0 0% 40%;
-
     --sidebar-background: 0 0% 96%;
 
     --sidebar-foreground: 240 5.3% 20%;
@@ -110,12 +104,6 @@ All colors MUST be HSL.
     --border: 217.2 32.6% 25%;
     --input: 217.2 32.6% 12%;
     --ring: 212.7 26.8% 90%;
-    
-    /* Gantt Chart Dark Mode Colors */
-    --gantt-today: 219 100% 15%;
-    --gantt-today-foreground: 219 100% 80%;
-    --gantt-weekend: 220 13% 8%;
-    --gantt-weekend-foreground: 220 13% 60%;
     
     --sidebar-background: 220 13% 4%;
     --sidebar-foreground: 240 4.8% 98%;

@@ -6,7 +6,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
-import GanttView from "./pages/GanttView";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
@@ -45,11 +44,6 @@ function App() {
                 <Route path="/" element={
                   <ProtectedRoute>
                     <Index />
-                  </ProtectedRoute>
-                } />
-                <Route path="/gantt" element={
-                  <ProtectedRoute>
-                    <GanttView />
                   </ProtectedRoute>
                 } />
                 <Route path="*" element={<NotFound />} />
