@@ -37,6 +37,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     projects: supabaseProjects,
     isLoading,
     error,
+    pagination,
+    loadTasks,
     createTask,
     updateTask,
     addFollowUp,
@@ -441,7 +443,67 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
               />
 
               {filteredTasks.length > 0 ? (
-                <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+                <>
+                  <TaskTable tasks={filteredTasks} onEditTask={handleEditTask} onFollowUp={handleFollowUpTask} />
+                  
+                  {/* Pagination Controls */}
+                  {pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 rounded-b-lg">
+                      <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                        Showing {((pagination.currentPage - 1) * pagination.pageSize) + 1} to {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalTasks)} of {pagination.totalTasks} tasks
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => loadTasks(pagination.currentPage - 1)}
+                          disabled={pagination.currentPage === 1 || isLoading}
+                          className="px-3 py-1"
+                        >
+                          Previous
+                        </Button>
+                        
+                        <div className="flex items-center space-x-1">
+                          {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                            let pageNum;
+                            if (pagination.totalPages <= 5) {
+                              pageNum = i + 1;
+                            } else if (pagination.currentPage <= 3) {
+                              pageNum = i + 1;
+                            } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                              pageNum = pagination.totalPages - 4 + i;
+                            } else {
+                              pageNum = pagination.currentPage - 2 + i;
+                            }
+                            
+                            return (
+                              <Button
+                                key={pageNum}
+                                variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => loadTasks(pageNum)}
+                                disabled={isLoading}
+                                className="w-8 h-8 p-0"
+                              >
+                                {pageNum}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => loadTasks(pagination.currentPage + 1)}
+                          disabled={pagination.currentPage === pagination.totalPages || isLoading}
+                          className="px-3 py-1"
+                        >
+                          Next
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               ) : location.state?.dateFilter ? (
                 <Card>
                   <CardContent className="flex items-center justify-center py-12">

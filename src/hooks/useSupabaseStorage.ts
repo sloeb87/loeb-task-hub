@@ -52,8 +52,14 @@ export function useSupabaseStorage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-const { user, isAuthenticated } = useAuth();
-const { toast } = useToast();
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 50,
+    totalTasks: 0,
+    totalPages: 0
+  });
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
     // Fetch follow-ups for this task
     const { data: followUpsData, error: followUpsError } = await supabase
@@ -147,20 +153,38 @@ const { toast } = useToast();
     };
   };
 
-  const loadTasks = useCallback(async () => {
+  const loadTasks = useCallback(async (page: number = 1, pageSize: number = 50) => {
     if (!isAuthenticated || !user) {
       setTasks([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
       setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
+      
+      // First, get the total count
+      const { count, error: countError } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      if (countError) throw countError;
+
+      const totalTasks = count || 0;
+      const totalPages = Math.ceil(totalTasks / pageSize);
+      
+      // Then get the paginated data
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
@@ -169,6 +193,12 @@ const { toast } = useToast();
       );
 
       setTasks(convertedTasks);
+      setPagination({
+        currentPage: page,
+        pageSize,
+        totalTasks,
+        totalPages
+      });
       setError(null);
     } catch (err) {
       console.error('Error loading tasks:', err);
@@ -208,6 +238,7 @@ const { toast } = useToast();
     } else {
       setTasks([]);
       setProjects([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
       setIsLoading(false);
     }
   }, [isAuthenticated, loadTasks, loadProjects]);
@@ -878,8 +909,8 @@ const { toast } = useToast();
     }
   };
 
-  const refreshTasks = () => {
-    loadTasks();
+  const refreshTasks = (page?: number) => {
+    loadTasks(page || pagination.currentPage);
     loadProjects();
   };
 
@@ -888,6 +919,8 @@ const { toast } = useToast();
     projects,
     isLoading,
     error,
+    pagination,
+    loadTasks,
     createTask,
     updateTask,
     deleteTask,
