@@ -978,11 +978,11 @@ export const FollowUpsPage = ({
              config={{
                plannedHours: {
                  label: "Planned Hours",
-                 color: "hsl(var(--chart-3))",
+                 color: "hsl(220, 70%, 50%)",
                },
                loggedHours: {
                  label: "Logged Hours",
-                 color: "hsl(var(--chart-5))",
+                 color: "hsl(200, 80%, 60%)",
                },
              }}
              className="h-[400px]"
@@ -1008,12 +1008,12 @@ export const FollowUpsPage = ({
                <ChartTooltip content={<ChartTooltipContent />} />
                <Bar 
                  dataKey="plannedHours" 
-                 fill="hsl(var(--chart-3))" 
+                 fill="hsl(220, 70%, 50%)" 
                  radius={[2, 2, 0, 0]}
                />
                <Bar 
                  dataKey="loggedHours" 
-                 fill="hsl(var(--chart-5))" 
+                 fill="hsl(200, 80%, 60%)" 
                  radius={[2, 2, 0, 0]}
                />
              </BarChart>
