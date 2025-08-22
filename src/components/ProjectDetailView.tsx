@@ -61,7 +61,8 @@ export const ProjectDetailView = ({
   // Pagination state for open tasks, completed tasks, and meetings
   const [openTasksCurrentPage, setOpenTasksCurrentPage] = useState(1);
   const [completedTasksCurrentPage, setCompletedTasksCurrentPage] = useState(1);
-  const [meetingsCurrentPage, setMeetingsCurrentPage] = useState(1);
+  const [openMeetingsCurrentPage, setOpenMeetingsCurrentPage] = useState(1);
+  const [completedMeetingsCurrentPage, setCompletedMeetingsCurrentPage] = useState(1);
   const tasksPerPage = 50;
 
   // Load all tasks for this project when component mounts or project changes
@@ -176,10 +177,10 @@ export const ProjectDetailView = ({
     return completed;
   }, [allProjectTasks]);
 
-  // All meetings for this project (both open and completed)
-  const allProjectMeetings = useMemo(() => {
+  // All opened meetings for this project
+  const allOpenProjectMeetings = useMemo(() => {
     const meetings = allProjectTasks
-      .filter(task => task.taskType === 'Meeting')
+      .filter(task => task.taskType === 'Meeting' && task.status !== 'Completed')
       .sort((a, b) => {
         // Sort by due date first (earliest first), then by priority
         const dateA = new Date(a.dueDate);
@@ -191,7 +192,21 @@ export const ProjectDetailView = ({
         const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
         return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
       });
-    console.log('ProjectDetailView - Found', meetings.length, 'meetings for project');
+    console.log('ProjectDetailView - Found', meetings.length, 'open meetings for project');
+    return meetings;
+  }, [allProjectTasks]);
+
+  // All completed meetings for this project
+  const allCompletedProjectMeetings = useMemo(() => {
+    const meetings = allProjectTasks
+      .filter(task => task.taskType === 'Meeting' && task.status === 'Completed')
+      .sort((a, b) => {
+        // Sort by completion date (most recent first)
+        const dateA = new Date(a.completionDate || a.dueDate);
+        const dateB = new Date(b.completionDate || b.dueDate);
+        return dateB.getTime() - dateA.getTime();
+      });
+    console.log('ProjectDetailView - Found', meetings.length, 'completed meetings for project');
     return meetings;
   }, [allProjectTasks]);
 
@@ -210,20 +225,35 @@ export const ProjectDetailView = ({
     totalPages: Math.ceil(allCompletedProjectTasks.length / tasksPerPage)
   }), [allCompletedProjectTasks.length, completedTasksCurrentPage, tasksPerPage]);
 
-  // Paginated meetings
-  const paginatedMeetings = useMemo(() => {
-    const startIndex = (meetingsCurrentPage - 1) * tasksPerPage;
+  // Paginated open meetings
+  const paginatedOpenMeetings = useMemo(() => {
+    const startIndex = (openMeetingsCurrentPage - 1) * tasksPerPage;
     const endIndex = startIndex + tasksPerPage;
-    return allProjectMeetings.slice(startIndex, endIndex);
-  }, [allProjectMeetings, meetingsCurrentPage, tasksPerPage]);
+    return allOpenProjectMeetings.slice(startIndex, endIndex);
+  }, [allOpenProjectMeetings, openMeetingsCurrentPage, tasksPerPage]);
 
-  // Meetings pagination info
-  const meetingsPagination = useMemo(() => ({
-    currentPage: meetingsCurrentPage,
+  // Open meetings pagination info
+  const openMeetingsPagination = useMemo(() => ({
+    currentPage: openMeetingsCurrentPage,
     pageSize: tasksPerPage,
-    totalTasks: allProjectMeetings.length,
-    totalPages: Math.ceil(allProjectMeetings.length / tasksPerPage)
-  }), [allProjectMeetings.length, meetingsCurrentPage, tasksPerPage]);
+    totalTasks: allOpenProjectMeetings.length,
+    totalPages: Math.ceil(allOpenProjectMeetings.length / tasksPerPage)
+  }), [allOpenProjectMeetings.length, openMeetingsCurrentPage, tasksPerPage]);
+
+  // Paginated completed meetings
+  const paginatedCompletedMeetings = useMemo(() => {
+    const startIndex = (completedMeetingsCurrentPage - 1) * tasksPerPage;
+    const endIndex = startIndex + tasksPerPage;
+    return allCompletedProjectMeetings.slice(startIndex, endIndex);
+  }, [allCompletedProjectMeetings, completedMeetingsCurrentPage, tasksPerPage]);
+
+  // Completed meetings pagination info
+  const completedMeetingsPagination = useMemo(() => ({
+    currentPage: completedMeetingsCurrentPage,
+    pageSize: tasksPerPage,
+    totalTasks: allCompletedProjectMeetings.length,
+    totalPages: Math.ceil(allCompletedProjectMeetings.length / tasksPerPage)
+  }), [allCompletedProjectMeetings.length, completedMeetingsCurrentPage, tasksPerPage]);
   
   const completedTasks = allCompletedProjectTasks.length;
   const totalTasks = allOpenProjectTasks.length + allCompletedProjectTasks.length;
@@ -555,8 +585,11 @@ export const ProjectDetailView = ({
           {allCompletedProjectTasks.length > 0 && (
             <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
           )}
-          {allProjectMeetings.length > 0 && (
-            <TabsTrigger value="meetings">Meetings</TabsTrigger>
+          {(allOpenProjectMeetings.length > 0 || allCompletedProjectMeetings.length > 0) && (
+            <TabsTrigger value="open-meetings">Opened Meetings</TabsTrigger>
+          )}
+          {allCompletedProjectMeetings.length > 0 && (
+            <TabsTrigger value="completed-meetings">Completed Meetings</TabsTrigger>
           )}
         </TabsList>
 
