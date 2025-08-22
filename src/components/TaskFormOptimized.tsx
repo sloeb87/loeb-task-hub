@@ -114,6 +114,14 @@ interface TaskFormProps {
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onDelete?: (taskId: string) => void;
   onDeleteAllRecurring?: (taskId: string) => void;
+  onUpdateAllRecurring?: (taskId: string, updateData: {
+    environment?: string;
+    taskType?: string;
+    priority?: string;
+    responsible?: string;
+    description?: string;
+    details?: string;
+  }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
   onDeleteFollowUp?: (followUpId: string) => void;
@@ -194,6 +202,7 @@ export const TaskFormOptimized = React.memo(({
   onSave, 
   onDelete,
   onDeleteAllRecurring,
+  onUpdateAllRecurring,
   onAddFollowUp,
   onUpdateFollowUp,
   onDeleteFollowUp,
@@ -889,6 +898,28 @@ export const TaskFormOptimized = React.memo(({
                     className="bg-red-700 hover:bg-red-800"
                   >
                     Delete All Recurring
+                  </Button>
+                )}
+                {(task.isRecurring || task.parentTaskId) && onUpdateAllRecurring && (
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, and Details?')) {
+                        onUpdateAllRecurring(task.id, {
+                          environment: formData.environment,
+                          taskType: formData.taskType,
+                          priority: formData.priority,
+                          responsible: formData.responsible,
+                          description: formData.description,
+                          details: formData.details
+                        });
+                      }
+                    }}
+                    className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                  >
+                    <Repeat className="w-4 h-4 mr-2" />
+                    Update All Recurring
                   </Button>
                 )}
               </div>

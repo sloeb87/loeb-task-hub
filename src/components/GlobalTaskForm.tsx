@@ -13,6 +13,7 @@ export const GlobalTaskForm: React.FC = () => {
     updateTask, 
     deleteTask,
     deleteAllRecurringTasks,
+    updateAllRecurringTasks,
     addFollowUp, 
     updateFollowUp,
     deleteFollowUp,
@@ -130,6 +131,7 @@ export const GlobalTaskForm: React.FC = () => {
       onSave={handleSave}
       onDelete={deleteTask}
       onDeleteAllRecurring={deleteAllRecurringTasks}
+      onUpdateAllRecurring={updateAllRecurringTasks}
       onAddFollowUp={handleAddFollowUp}
       onUpdateFollowUp={handleUpdateFollowUp}
       onDeleteFollowUp={handleDeleteFollowUp}

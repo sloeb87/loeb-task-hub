@@ -43,6 +43,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     updateFollowUp,
     deleteFollowUp,
     deleteTask,
+    deleteAllRecurringTasks,
+    updateAllRecurringTasks,
     createProject,
     updateProject,
     deleteProject,
@@ -513,6 +515,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 }}
                 onSave={handleSaveTask}
                 onDelete={handleDeleteTask}
+                onDeleteAllRecurring={deleteAllRecurringTasks}
+                onUpdateAllRecurring={updateAllRecurringTasks}
                 onAddFollowUp={handleAddFollowUpWrapper}
                 onUpdateFollowUp={handleUpdateFollowUpWrapper}
                 onDeleteFollowUp={handleDeleteFollowUpWrapper}
