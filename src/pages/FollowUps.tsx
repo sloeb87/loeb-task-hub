@@ -16,7 +16,7 @@ import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, addMonths, format, parseISO } from "date-fns";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -107,6 +107,7 @@ export const FollowUpsPage = ({
           dueDate: task.due_date,
           completionDate: task.completion_date || undefined,
           duration: task.duration || undefined,
+          plannedTimeHours: task.planned_time_hours || 0,
           project: '', // Will be filled from project lookup
           scope: task.scope || [],
           taskType: task.task_type as any,
@@ -413,7 +414,7 @@ export const FollowUpsPage = ({
     const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
     
     // Generate ALL monthly data points (including months with 0 tasks)
-    const months: { week: string; count: number; date: Date }[] = [];
+    const months: { week: string; count: number; cumulativeHours: number; date: Date }[] = [];
     let currentMonth = startOfMonth(minDate);
     const endMonth = endOfMonth(maxDate);
     
@@ -427,9 +428,13 @@ export const FollowUpsPage = ({
         return isActive && isNotCompleted;
       });
       
+      // Calculate total planned hours for all active tasks in this month
+      const totalPlannedHours = activeTasks.reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
+      
       months.push({
         week: format(currentMonth, 'MMM yy'),
         count: activeTasks.length,
+        cumulativeHours: totalPlannedHours,
         date: new Date(currentMonth)
       });
       
@@ -729,64 +734,86 @@ export const FollowUpsPage = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
-            <CardDescription>Monthly count of active tasks</CardDescription>
+            <CardDescription>Monthly count of active tasks and cumulative planned hours</CardDescription>
           </CardHeader>
            <CardContent>
-              <div className="relative group">
-                <ChartContainer
-                 config={{
-                   openTasks: {
-                     label: "Open Tasks",
-                     color: "hsl(var(--chart-1))",
-                   },
-                 }}
-                 className="h-[300px]"
-               >
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={tasksChartData} onClick={(data, index) => {
-                    if (data && data.activePayload && data.activePayload[0]) {
-                      const clickedIndex = data.activeTooltipIndex;
-                      if (typeof clickedIndex === 'number') {
-                        handleTaskChartClick(data.activePayload[0].payload, clickedIndex);
-                      }
-                    }
-                  }}>
-                   <defs>
-                     <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                       <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="week" 
+               <div className="relative group">
+                 <ChartContainer
+                  config={{
+                    openTasks: {
+                      label: "Open Tasks",
+                      color: "hsl(var(--chart-1))",
+                    },
+                    cumulativeHours: {
+                      label: "Cumulative PT Hours",
+                      color: "hsl(var(--chart-2))",
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                 <ResponsiveContainer width="100%" height="100%">
+                   <ComposedChart data={tasksChartData} onClick={(data, index) => {
+                     if (data && data.activePayload && data.activePayload[0]) {
+                       const clickedIndex = data.activeTooltipIndex;
+                       if (typeof clickedIndex === 'number') {
+                         handleTaskChartClick(data.activePayload[0].payload, clickedIndex);
+                       }
+                     }
+                   }}>
+                    <defs>
+                      <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                     <XAxis 
+                       dataKey="week" 
+                       axisLine={false}
+                       tickLine={false}
+                       className="text-xs"
+                       interval={0}
+                       angle={-45}
+                       textAnchor="end"
+                       height={60}
+                     />
+                    <YAxis 
+                      yAxisId="left"
                       axisLine={false}
                       tickLine={false}
                       className="text-xs"
-                      interval={0}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
                     />
-                   <YAxis 
-                     axisLine={false}
-                     tickLine={false}
-                     className="text-xs"
-                   />
-                   <ChartTooltip content={<ChartTooltipContent />} />
-                   <Area 
-                     type="monotone" 
-                     dataKey="count" 
-                     stroke="hsl(var(--chart-1))" 
-                     strokeWidth={3}
-                     fill="url(#tasksGradient)"
-                     dot={false}
-                     style={{ cursor: 'pointer' }}
-                   />
-                 </AreaChart>
-                </ResponsiveContainer>
-             </ChartContainer>
-           </div>
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      axisLine={false}
+                      tickLine={false}
+                      className="text-xs"
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Area 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="count" 
+                      stroke="hsl(var(--chart-1))" 
+                      strokeWidth={3}
+                      fill="url(#tasksGradient)"
+                      dot={false}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="cumulativeHours"
+                      stroke="hsl(var(--chart-2))"
+                      strokeWidth={2}
+                      dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 4 }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </ComposedChart>
+                 </ResponsiveContainer>
+              </ChartContainer>
+            </div>
            </CardContent>
         </Card>
       </div>
