@@ -19,6 +19,14 @@ interface TaskTableProps {
   onEditTask: (task: Task) => void;
   onFollowUp: (task: Task) => void;
   hideProjectColumn?: boolean; // New prop to hide project name
+  pagination?: {
+    currentPage: number;
+    pageSize: number;
+    totalTasks: number;
+    totalPages: number;
+  };
+  onPageChange?: (page: number) => void;
+  isLoading?: boolean;
 }
 
 type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
@@ -41,7 +49,10 @@ export const TaskTable = ({
   tasks,
   onEditTask,
   onFollowUp,
-  hideProjectColumn = false // Default to false for backward compatibility
+  hideProjectColumn = false, // Default to false for backward compatibility
+  pagination,
+  onPageChange,
+  isLoading = false
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [sortField, setSortField] = useState<SortField>('dueDate');
@@ -421,16 +432,47 @@ export const TaskTable = ({
 
     return (
       <div className="space-y-4">
-        {/* Search Bar */}
+        {/* Search Bar with Pagination */}
         <div className="bg-card rounded-lg border border-border p-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Pagination Controls for Mobile */}
+            {pagination && pagination.totalPages > 1 && onPageChange && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1 || isLoading}
+                  className="px-2 py-1"
+                >
+                  <ChevronDown className="w-4 h-4 rotate-90" />
+                </Button>
+                
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  {pagination.currentPage}/{pagination.totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages || isLoading}
+                  className="px-2 py-1"
+                >
+                  <ChevronUp className="w-4 h-4 rotate-90" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -489,16 +531,71 @@ export const TaskTable = ({
   return (
     <>
       <div className="bg-card rounded-lg shadow-sm border border-border">
-        {/* Search Bar */}
+        {/* Search Bar with Pagination */}
         <div className="p-4 border-b border-border">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              placeholder="Search tasks..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative max-w-md flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Pagination Controls for Desktop */}
+            {pagination && pagination.totalPages > 1 && onPageChange && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1 || isLoading}
+                  className="px-3 py-1"
+                >
+                  Previous
+                </Button>
+                
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (pagination.currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = pagination.currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === pagination.currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => onPageChange(pageNum)}
+                        disabled={isLoading}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages || isLoading}
+                  className="px-3 py-1"
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
