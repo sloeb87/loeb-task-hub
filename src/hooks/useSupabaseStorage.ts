@@ -232,16 +232,11 @@ export function useSupabaseStorage() {
 
       // Handle special sorting cases
       if (sortField === 'priority') {
-        // Custom priority sorting: Critical > High > Medium > Low
-        // Use multiple order calls to avoid SQL parsing issues
-        query = query
-          .order('priority', { ascending: false })
-          .order('due_date', { ascending: true });
+        // For priority sorting, order by due date first, then handle priority in client
+        query = query.order('due_date', { ascending: true });
       } else if (sortField === 'dueDatePriority') {
-        // Combined sorting: Due Date (older to newer) then Priority (Critical > High > Medium > Low)
-        query = query
-          .order('due_date', { ascending: true })
-          .order('priority', { ascending: false });
+        // For combined sorting, order by due date first, then handle priority in client
+        query = query.order('due_date', { ascending: true });
       } else {
         query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }
@@ -257,7 +252,27 @@ export function useSupabaseStorage() {
         (data || []).map(convertSupabaseTaskToTask)
       );
 
-      setTasks(convertedTasks);
+      // Apply client-side priority sorting if needed (since SQL CASE statements cause parsing issues)
+      let sortedTasks = convertedTasks;
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+        
+        sortedTasks = convertedTasks.sort((a, b) => {
+          // First sort by due date (older first)
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          if (dateA !== dateB) {
+            return dateA - dateB; // older dates first
+          }
+          
+          // Then sort by priority (Critical > High > Medium > Low)
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          return priorityB - priorityA; // higher priority first
+        });
+      }
+
+      setTasks(sortedTasks);
       setPagination({
         currentPage: page,
         pageSize,
