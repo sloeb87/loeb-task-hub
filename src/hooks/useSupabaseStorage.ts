@@ -169,6 +169,7 @@ export function useSupabaseStorage() {
     sortDirection: 'asc' | 'desc' = 'asc'
   ) => {
     if (!isAuthenticated || !user) {
+      console.log('loadTasks: No authentication or user:', { isAuthenticated, hasUser: !!user });
       setTasks([]);
       setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
       setTaskCounts({ total: 0, active: 0, onHold: 0, critical: 0, completed: 0 });
@@ -184,6 +185,13 @@ export function useSupabaseStorage() {
         .from('tasks')
         .select('status, priority')
         .eq('user_id', user.id);
+
+      console.log('loadTasks: Query result:', { 
+        dataCount: allTasksData?.length, 
+        error: allTasksError, 
+        userId: user.id,
+        sampleData: allTasksData?.slice(0, 3) 
+      });
 
       if (allTasksError) throw allTasksError;
 
