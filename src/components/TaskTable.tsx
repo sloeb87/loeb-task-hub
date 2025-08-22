@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2 } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -564,15 +564,31 @@ export const TaskTable = ({
                   {/* Task Column */}
                   <TableCell>
                     <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
-                        <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
-                          {task.title}
-                        </h3>
-                        {isOverdue(task.dueDate, task.status) && (
-                          <Badge variant="destructive" className="text-sm">Overdue</Badge>
-                        )}
-                      </div>
+                       <div className="flex items-center space-x-2">
+                         <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
+                         <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
+                           {task.title}
+                         </h3>
+                         {(task.isRecurring || task.parentTaskId) && (
+                           <div className="flex items-center gap-1">
+                             {task.isRecurring && (
+                               <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                                 <Repeat className="w-3 h-3 mr-1" />
+                                 Parent
+                               </Badge>
+                             )}
+                             {task.parentTaskId && (
+                               <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                                 <Link2 className="w-3 h-3 mr-1" />
+                                 Instance
+                               </Badge>
+                             )}
+                           </div>
+                         )}
+                         {isOverdue(task.dueDate, task.status) && (
+                           <Badge variant="destructive" className="text-sm">Overdue</Badge>
+                         )}
+                       </div>
                       <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
                         {task.description}
                       </p>

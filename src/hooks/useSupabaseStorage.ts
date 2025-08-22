@@ -643,6 +643,71 @@ const { toast } = useToast();
     toast({ title: 'Task deleted' });
   };
 
+  const deleteAllRecurringTasks = async (taskId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Find the task by task_number
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id, parent_task_id, is_recurring')
+      .eq('task_number', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    // Determine the parent task ID (either this task if it's the parent, or its parent)
+    const parentTaskId = existingTask.is_recurring ? existingTask.id : existingTask.parent_task_id;
+    
+    if (!parentTaskId) {
+      toast({ title: 'This task is not part of a recurring series', variant: 'destructive' });
+      return;
+    }
+
+    // Find all tasks in the recurring series
+    const { data: allRecurringTasks, error: fetchError } = await supabase
+      .from('tasks')
+      .select('id')
+      .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+      .eq('user_id', user.id);
+
+    if (fetchError) throw fetchError;
+
+    if (!allRecurringTasks || allRecurringTasks.length === 0) {
+      toast({ title: 'No recurring tasks found', variant: 'destructive' });
+      return;
+    }
+
+    const taskIds = allRecurringTasks.map(task => task.id);
+
+    // Delete all follow-ups for all recurring tasks
+    const { error: followUpsError } = await supabase
+      .from('follow_ups')
+      .delete()
+      .in('task_id', taskIds);
+
+    if (followUpsError) throw followUpsError;
+
+    // Delete all recurring tasks
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .in('id', taskIds)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    // Update local state
+    setTasks(prev => prev.filter(task => !taskIds.includes(task.id)));
+    toast({ 
+      title: 'Recurring tasks deleted', 
+      description: `Deleted ${allRecurringTasks.length} task(s) from the recurring series`
+    });
+  };
+
   const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
     if (!user) throw new Error('User not authenticated');
 
@@ -751,10 +816,11 @@ const { toast } = useToast();
     error,
     createTask,
     updateTask,
+    deleteTask,
+    deleteAllRecurringTasks,
     addFollowUp,
     updateFollowUp,
     deleteFollowUp,
-    deleteTask,
     createProject,
     updateProject,
     deleteProject,

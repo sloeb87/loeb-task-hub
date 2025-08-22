@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem, FollowUp } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -113,6 +113,7 @@ interface TaskFormProps {
   renderInline?: boolean; // New prop to control inline rendering
   onSave: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
   onDelete?: (taskId: string) => void;
+  onDeleteAllRecurring?: (taskId: string) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
   onDeleteFollowUp?: (followUpId: string) => void;
@@ -192,6 +193,7 @@ export const TaskFormOptimized = React.memo(({
   onClose, 
   onSave, 
   onDelete,
+  onDeleteAllRecurring,
   onAddFollowUp,
   onUpdateFollowUp,
   onDeleteFollowUp,
@@ -863,17 +865,33 @@ export const TaskFormOptimized = React.memo(({
           {/* Form Actions */}
           <div className="flex justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
             {task && onDelete && (
-              <Button 
-                type="button" 
-                variant="destructive" 
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this task?')) {
-                    onDelete(task.id);
-                  }
-                }}
-              >
-                Delete Task
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  type="button" 
+                  variant="destructive" 
+                  onClick={() => {
+                    if (window.confirm('Are you sure you want to delete this task?')) {
+                      onDelete(task.id);
+                    }
+                  }}
+                >
+                  Delete Task
+                </Button>
+                {(task.isRecurring || task.parentTaskId) && onDeleteAllRecurring && (
+                  <Button 
+                    type="button" 
+                    variant="destructive" 
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete ALL recurring instances of this task? This cannot be undone.')) {
+                        onDeleteAllRecurring(task.id);
+                      }
+                    }}
+                    className="bg-red-700 hover:bg-red-800"
+                  >
+                    Delete All Recurring
+                  </Button>
+                )}
+              </div>
             )}
             <div className="flex space-x-2 ml-auto">
               <Button 

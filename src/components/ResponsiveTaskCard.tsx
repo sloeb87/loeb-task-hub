@@ -3,7 +3,7 @@ import { useScopeColor, useTaskTypeColor, useEnvironmentColor } from '@/hooks/us
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square, Mail, FileText, ExternalLink } from "lucide-react";
+import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square, Mail, FileText, ExternalLink, Repeat, Link2 } from "lucide-react";
 import { Task } from "@/types/task";
 
 interface ResponsiveTaskCardProps {
@@ -75,6 +75,22 @@ export const ResponsiveTaskCard = ({
               <h3 className="font-semibold text-base truncate text-foreground">
                 {task.title}
               </h3>
+              {(task.isRecurring || task.parentTaskId) && (
+                <div className="flex items-center gap-1">
+                  {task.isRecurring && (
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                      <Repeat className="w-3 h-3 mr-1" />
+                      Parent
+                    </Badge>
+                  )}
+                  {task.parentTaskId && (
+                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                      <Link2 className="w-3 h-3 mr-1" />
+                      Instance
+                    </Badge>
+                  )}
+                </div>
+              )}
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {task.description}
