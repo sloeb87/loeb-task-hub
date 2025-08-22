@@ -70,27 +70,34 @@ export const ResponsiveTaskCard = ({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-2">
-              <FolderOpen className="w-4 h-4 text-primary" />
-              <h3 className="font-semibold text-base truncate text-foreground">
-                {task.title}
-              </h3>
-              {(task.isRecurring || task.parentTaskId) && (
-                <div className="flex items-center gap-1">
-                  {task.isRecurring && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
-                      <Repeat className="w-3 h-3 mr-1" />
-                      Parent
-                    </Badge>
-                  )}
-                  {task.parentTaskId && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
-                      <Link2 className="w-3 h-3 mr-1" />
-                      Instance
-                    </Badge>
-                  )}
-                </div>
-              )}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 mb-2">
+                <FolderOpen className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold text-base truncate text-foreground">
+                  {task.title}
+                </h3>
+              </div>
+              <div className="flex items-center gap-1 ml-2">
+                {(task.isRecurring || task.parentTaskId) && (
+                  <>
+                    {task.isRecurring && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                        <Repeat className="w-3 h-3 mr-1" />
+                        Parent
+                      </Badge>
+                    )}
+                    {task.parentTaskId && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0.5 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                        <Link2 className="w-3 h-3 mr-1" />
+                        Instance
+                      </Badge>
+                    )}
+                  </>
+                )}
+                {isOverdue && (
+                  <Badge variant="destructive" className="text-xs">Overdue</Badge>
+                )}
+              </div>
             </div>
             <p className="text-sm text-muted-foreground line-clamp-2">
               {task.description}

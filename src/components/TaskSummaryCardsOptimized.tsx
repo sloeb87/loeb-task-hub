@@ -20,6 +20,13 @@ interface DateFilter {
 
 interface TaskSummaryCardsProps {
   tasks: Task[];
+  taskCounts?: {
+    total: number;
+    active: number;
+    onHold: number;
+    critical: number;
+    completed: number;
+  };
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
   dateFilter?: DateFilter;
@@ -36,13 +43,53 @@ interface TaskStat {
 
 export const TaskSummaryCardsOptimized = React.memo(({ 
   tasks, 
+  taskCounts,
   activeFilter, 
   onFilterChange,
   dateFilter 
 }: TaskSummaryCardsProps) => {
   
   const stats = useMemo((): TaskStat[] => {
-    // Apply date filter if present to get the correct counts
+    // If we have taskCounts from the database, use those (for total counts across all tasks)
+    // Otherwise fall back to calculating from the current page tasks
+    if (taskCounts && !dateFilter) {
+      return [
+        {
+          title: "All Tasks",
+          count: taskCounts.total,
+          icon: ListTodo,
+          color: "text-blue-600 dark:text-blue-400",
+          bgColor: "bg-blue-50 dark:bg-blue-900/20",
+          filter: "all" as FilterType
+        },
+        {
+          title: "Active",
+          count: taskCounts.active,
+          icon: Play,
+          color: "text-green-600 dark:text-green-400",
+          bgColor: "bg-green-50 dark:bg-green-900/20",
+          filter: "active" as FilterType
+        },
+        {
+          title: "On Hold",
+          count: taskCounts.onHold,
+          icon: Pause,
+          color: "text-orange-600 dark:text-orange-400",
+          bgColor: "bg-orange-50 dark:bg-orange-900/20",
+          filter: "onhold" as FilterType
+        },
+        {
+          title: "Critical",
+          count: taskCounts.critical,
+          icon: AlertTriangle,
+          color: "text-red-600 dark:text-red-400",
+          bgColor: "bg-red-50 dark:bg-red-900/20",
+          filter: "critical" as FilterType
+        }
+      ];
+    }
+
+    // Fallback: calculate from current tasks (useful for date filtering)
     let filteredForCounting = tasks;
     if (dateFilter) {
       filteredForCounting = tasks.filter(task => {
@@ -70,12 +117,11 @@ export const TaskSummaryCardsOptimized = React.memo(({
     const activeTasks = openTasks + inProgressTasks; // Merge Open and In Progress
     const onHoldTasks = filteredForCounting.filter(t => t.status === "On Hold").length;
     const criticalTasks = filteredForCounting.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
-    const completedTasks = filteredForCounting.filter(t => t.status === "Completed").length;
 
     return [
       {
         title: "All Tasks",
-        count: tasks.length,
+        count: filteredForCounting.length,
         icon: ListTodo,
         color: "text-blue-600 dark:text-blue-400",
         bgColor: "bg-blue-50 dark:bg-blue-900/20",
@@ -106,7 +152,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
         filter: "critical" as FilterType
       }
     ];
-  }, [tasks, dateFilter]);
+  }, [tasks, taskCounts, dateFilter]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

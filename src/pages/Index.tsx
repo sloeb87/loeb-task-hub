@@ -38,6 +38,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     isLoading,
     error,
     pagination,
+    taskCounts,
     loadTasks,
     createTask,
     updateTask,
@@ -223,8 +224,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 
   // Use optimized filtering hook
   const {
-    filteredTasks,
-    taskCounts
+    filteredTasks
   } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
 
   // Event handlers using useCallback for optimization
@@ -451,6 +451,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 
               <TaskSummaryCardsOptimized 
                 tasks={tasks} 
+                taskCounts={taskCounts}
                 activeFilter={activeFilter} 
                 onFilterChange={setActiveFilter}
                 dateFilter={location.state?.dateFilter}

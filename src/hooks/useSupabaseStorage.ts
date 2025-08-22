@@ -58,6 +58,13 @@ export function useSupabaseStorage() {
     totalTasks: 0,
     totalPages: 0
   });
+  const [taskCounts, setTaskCounts] = useState({
+    total: 0,
+    active: 0,
+    onHold: 0,
+    critical: 0,
+    completed: 0
+  });
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
@@ -162,6 +169,7 @@ export function useSupabaseStorage() {
     if (!isAuthenticated || !user) {
       setTasks([]);
       setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
+      setTaskCounts({ total: 0, active: 0, onHold: 0, critical: 0, completed: 0 });
       setIsLoading(false);
       return;
     }
@@ -169,15 +177,31 @@ export function useSupabaseStorage() {
     try {
       setIsLoading(true);
       
-      // First, get the total count
-      const { count, error: countError } = await supabase
+      // First, get the total count and stats for all tasks
+      const { data: allTasksData, error: allTasksError } = await supabase
         .from('tasks')
-        .select('*', { count: 'exact', head: true })
+        .select('status, priority')
         .eq('user_id', user.id);
 
-      if (countError) throw countError;
+      if (allTasksError) throw allTasksError;
 
-      const totalTasks = count || 0;
+      // Calculate total counts across all tasks
+      const totalTasks = allTasksData?.length || 0;
+      const openTasks = allTasksData?.filter(t => t.status === "Open").length || 0;
+      const inProgressTasks = allTasksData?.filter(t => t.status === "In Progress").length || 0;
+      const activeTasks = openTasks + inProgressTasks;
+      const onHoldTasks = allTasksData?.filter(t => t.status === "On Hold").length || 0;
+      const criticalTasks = allTasksData?.filter(t => t.priority === "Critical" && t.status !== "Completed").length || 0;
+      const completedTasks = allTasksData?.filter(t => t.status === "Completed").length || 0;
+      
+      setTaskCounts({
+        total: totalTasks,
+        active: activeTasks,
+        onHold: onHoldTasks,
+        critical: criticalTasks,
+        completed: completedTasks
+      });
+
       const totalPages = Math.ceil(totalTasks / pageSize);
       
       // Then get the paginated data with sorting
@@ -962,6 +986,7 @@ export function useSupabaseStorage() {
     isLoading,
     error,
     pagination,
+    taskCounts,
     loadTasks,
     createTask,
     updateTask,
