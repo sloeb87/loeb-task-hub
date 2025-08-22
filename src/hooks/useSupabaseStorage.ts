@@ -233,30 +233,15 @@ export function useSupabaseStorage() {
       // Handle special sorting cases
       if (sortField === 'priority') {
         // Custom priority sorting: Critical > High > Medium > Low
-        query = query.order(
-          `CASE 
-            WHEN priority = 'Critical' THEN 4 
-            WHEN priority = 'High' THEN 3 
-            WHEN priority = 'Medium' THEN 2 
-            WHEN priority = 'Low' THEN 1 
-            ELSE 0 
-          END`,
-          { ascending: sortDirection === 'desc' }
-        );
+        // Use multiple order calls to avoid SQL parsing issues
+        query = query
+          .order('priority', { ascending: false })
+          .order('due_date', { ascending: true });
       } else if (sortField === 'dueDatePriority') {
         // Combined sorting: Due Date (older to newer) then Priority (Critical > High > Medium > Low)
-        query = query.order('due_date', { ascending: true });
-        // Add priority as secondary sort using a separate order call
-        query = query.order(
-          `CASE 
-            WHEN priority = 'Critical' THEN 4 
-            WHEN priority = 'High' THEN 3 
-            WHEN priority = 'Medium' THEN 2 
-            WHEN priority = 'Low' THEN 1 
-            ELSE 0 
-          END`,
-          { ascending: false }
-        );
+        query = query
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false });
       } else {
         query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }
