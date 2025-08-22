@@ -414,7 +414,43 @@ export const FollowUpsPage = ({
     const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
     
     // Generate ALL monthly data points (including months with 0 tasks)
-    const months: { week: string; count: number; cumulativeHours: number; date: Date }[] = [];
+    const months: { week: string; count: number; date: Date }[] = [];
+    let currentMonth = startOfMonth(minDate);
+    const endMonth = endOfMonth(maxDate);
+    
+    while (currentMonth <= endMonth) {
+      const monthEnd = endOfMonth(currentMonth);
+      const activeTasks = allTasks.filter(task => {
+        const taskStart = new Date(task.startDate);
+        const taskDue = new Date(task.dueDate);
+        const isActive = taskStart <= monthEnd && taskDue >= currentMonth;
+        const isNotCompleted = task.status !== 'Completed';
+        return isActive && isNotCompleted;
+      });
+      
+      months.push({
+        week: format(currentMonth, 'MMM yy'),
+        count: activeTasks.length,
+        date: new Date(currentMonth)
+      });
+      
+      currentMonth = addMonths(currentMonth, 1);
+    }
+    
+    return months;
+  }, [allTasks]);
+
+  // Calculate chart data for hours over time (using all tasks from database)
+  const hoursChartData = useMemo(() => {
+    if (allTasks.length === 0) return [];
+    
+    // Find date range from tasks
+    const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
+    const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
+    
+    // Generate ALL monthly data points (including months with 0 hours)
+    const months: { week: string; cumulativeHours: number; date: Date }[] = [];
     let currentMonth = startOfMonth(minDate);
     const endMonth = endOfMonth(maxDate);
     
@@ -433,7 +469,6 @@ export const FollowUpsPage = ({
       
       months.push({
         week: format(currentMonth, 'MMM yy'),
-        count: activeTasks.length,
         cumulativeHours: totalPlannedHours,
         date: new Date(currentMonth)
       });
@@ -443,6 +478,84 @@ export const FollowUpsPage = ({
     
     return months;
   }, [allTasks]);
+
+  // Fetch time entries for planned vs logged chart
+  const [timeEntries, setTimeEntries] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchTimeEntries = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('time_entries')
+          .select('*')
+          .eq('user_id', user.id);
+          
+        if (error) {
+          console.error('Error fetching time entries:', error);
+          return;
+        }
+        
+        setTimeEntries(data || []);
+      } catch (error) {
+        console.error('Failed to fetch time entries:', error);
+      }
+    };
+    
+    fetchTimeEntries();
+  }, [isAuthenticated, user]);
+
+  // Calculate chart data for planned vs logged hours by month
+  const plannedVsLoggedChartData = useMemo(() => {
+    if (allTasks.length === 0) return [];
+    
+    // Find date range from both tasks and time entries
+    const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
+    const timeEntryDates = timeEntries.map(entry => new Date(entry.start_time));
+    const allDates = [...taskDates, ...timeEntryDates];
+    
+    if (allDates.length === 0) return [];
+    
+    const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
+    const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
+    
+    // Generate monthly data points
+    const months: { week: string; plannedHours: number; loggedHours: number; date: Date }[] = [];
+    let currentMonth = startOfMonth(minDate);
+    const endMonth = endOfMonth(maxDate);
+    
+    while (currentMonth <= endMonth) {
+      const monthEnd = endOfMonth(currentMonth);
+      
+      // Calculate planned hours for tasks due in this month
+      const plannedHours = allTasks
+        .filter(task => {
+          const taskDue = new Date(task.dueDate);
+          return taskDue >= currentMonth && taskDue <= monthEnd;
+        })
+        .reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
+      
+      // Calculate logged hours for time entries in this month
+      const loggedHours = timeEntries
+        .filter(entry => {
+          const entryDate = new Date(entry.start_time);
+          return entryDate >= currentMonth && entryDate <= monthEnd;
+        })
+        .reduce((sum, entry) => sum + ((entry.duration || 0) / 60), 0); // Convert minutes to hours
+      
+      months.push({
+        week: format(currentMonth, 'MMM yy'),
+        plannedHours: Math.round(plannedHours * 10) / 10, // Round to 1 decimal
+        loggedHours: Math.round(loggedHours * 10) / 10, // Round to 1 decimal
+        date: new Date(currentMonth)
+      });
+      
+      currentMonth = addMonths(currentMonth, 1);
+    }
+    
+    return months;
+  }, [allTasks, timeEntries]);
 
   // Handle chart clicks - change to projects view with date filter
   const handleProjectChartClick = (data: any, index: number) => {
@@ -734,7 +847,7 @@ export const FollowUpsPage = ({
         <Card>
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
-            <CardDescription>Monthly count of active tasks and cumulative planned hours</CardDescription>
+            <CardDescription>Monthly count of active tasks</CardDescription>
           </CardHeader>
            <CardContent>
                <div className="relative group">
@@ -744,15 +857,11 @@ export const FollowUpsPage = ({
                       label: "Open Tasks",
                       color: "hsl(var(--chart-1))",
                     },
-                    cumulativeHours: {
-                      label: "Cumulative PT Hours",
-                      color: "hsl(var(--chart-2))",
-                    },
                   }}
                   className="h-[300px]"
                 >
                  <ResponsiveContainer width="100%" height="100%">
-                   <ComposedChart data={tasksChartData} onClick={(data, index) => {
+                   <AreaChart data={tasksChartData} onClick={(data, index) => {
                      if (data && data.activePayload && data.activePayload[0]) {
                        const clickedIndex = data.activeTooltipIndex;
                        if (typeof clickedIndex === 'number') {
@@ -778,21 +887,12 @@ export const FollowUpsPage = ({
                        height={60}
                      />
                     <YAxis 
-                      yAxisId="left"
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
                       axisLine={false}
                       tickLine={false}
                       className="text-xs"
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Area 
-                      yAxisId="left"
                       type="monotone" 
                       dataKey="count" 
                       stroke="hsl(var(--chart-1))" 
@@ -801,14 +901,127 @@ export const FollowUpsPage = ({
                       dot={false}
                       style={{ cursor: 'pointer' }}
                     />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="cumulativeHours"
-                      stroke="hsl(var(--chart-2))"
-                      strokeWidth={2}
+                  </AreaChart>
+                 </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+           </CardContent>
+        </Card>
+
+        {/* Hours Over Time Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned Hours Over Time</CardTitle>
+            <CardDescription>Monthly cumulative planned hours for active tasks</CardDescription>
+          </CardHeader>
+           <CardContent>
+               <div className="relative group">
+                 <ChartContainer
+                  config={{
+                    cumulativeHours: {
+                      label: "Cumulative PT Hours",
+                      color: "hsl(var(--chart-2))",
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                 <ResponsiveContainer width="100%" height="100%">
+                   <AreaChart data={hoursChartData}>
+                    <defs>
+                      <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                     <XAxis 
+                       dataKey="week" 
+                       axisLine={false}
+                       tickLine={false}
+                       className="text-xs"
+                       interval={0}
+                       angle={-45}
+                       textAnchor="end"
+                       height={60}
+                     />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      className="text-xs"
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="cumulativeHours" 
+                      stroke="hsl(var(--chart-2))" 
+                      strokeWidth={3}
+                      fill="url(#hoursGradient)"
                       dot={false}
-                      style={{ cursor: 'pointer' }}
+                    />
+                  </AreaChart>
+                 </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+           </CardContent>
+        </Card>
+
+        {/* Planned vs Logged Hours Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned vs Logged Hours</CardTitle>
+            <CardDescription>Monthly comparison of planned hours vs actual logged hours</CardDescription>
+          </CardHeader>
+           <CardContent>
+               <div className="relative group">
+                 <ChartContainer
+                  config={{
+                    plannedHours: {
+                      label: "Planned Hours",
+                      color: "hsl(var(--chart-3))",
+                    },
+                    loggedHours: {
+                      label: "Logged Hours",
+                      color: "hsl(var(--chart-5))",
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                 <ResponsiveContainer width="100%" height="100%">
+                   <ComposedChart data={plannedVsLoggedChartData}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                     <XAxis 
+                       dataKey="week" 
+                       axisLine={false}
+                       tickLine={false}
+                       className="text-xs"
+                       interval={0}
+                       angle={-45}
+                       textAnchor="end"
+                       height={60}
+                     />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      className="text-xs"
+                    />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Area 
+                      type="monotone" 
+                      dataKey="plannedHours" 
+                      stroke="hsl(var(--chart-3))" 
+                      strokeWidth={2}
+                      fill="hsl(var(--chart-3))"
+                      fillOpacity={0.1}
+                      dot={false}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="loggedHours" 
+                      stroke="hsl(var(--chart-5))" 
+                      strokeWidth={2}
+                      fill="hsl(var(--chart-5))"
+                      fillOpacity={0.2}
+                      dot={false}
                     />
                   </ComposedChart>
                  </ResponsiveContainer>
