@@ -321,6 +321,52 @@ export function useSupabaseStorage() {
     }
   }, [isAuthenticated, user]);
 
+  // Load ALL tasks for a specific project (no pagination)
+  const loadAllTasksForProject = useCallback(async (projectName: string): Promise<Task[]> => {
+    if (!isAuthenticated || !user) {
+      console.log('loadAllTasksForProject: No authentication or user');
+      return [];
+    }
+
+    try {
+      // First find the project ID
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('name', projectName)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (projectError) throw projectError;
+      
+      if (!projectData) {
+        console.log('Project not found:', projectName);
+        return [];
+      }
+
+      // Then get ALL tasks for this project (no pagination)
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('project_id', projectData.id)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+
+      console.log(`Loaded ${data?.length || 0} total tasks for project ${projectName}`);
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(convertSupabaseTaskToTask)
+      );
+
+      return convertedTasks;
+    } catch (err) {
+      console.error('Error loading all tasks for project:', err);
+      return [];
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
+
   useEffect(() => {
     if (isAuthenticated) {
       loadTasks();
@@ -1060,6 +1106,7 @@ export function useSupabaseStorage() {
     pagination,
     taskCounts,
     loadTasks,
+    loadAllTasksForProject,
     createTask,
     updateTask,
     deleteTask,

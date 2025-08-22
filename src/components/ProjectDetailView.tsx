@@ -18,6 +18,7 @@ interface ProjectDetailViewProps {
   tasks: Task[];
   allTasks: Task[];
   allProjects?: Project[]; // Add allProjects prop
+  loadAllTasksForProject?: (projectName: string) => Promise<Task[]>; // Add the function prop
   onBack: () => void;
   onEditProject: () => void;
   onUpdateProject?: (project: Project) => void;
@@ -35,6 +36,7 @@ export const ProjectDetailView = ({
   tasks, 
   allTasks,
   allProjects = [], // Default to empty array if not provided
+  loadAllTasksForProject,
   onBack, 
   onEditProject, 
   onUpdateProject,
@@ -51,11 +53,42 @@ export const ProjectDetailView = ({
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   
+  // State to store all project tasks (loaded directly from database)
+  const [allProjectTasks, setAllProjectTasks] = useState<Task[]>([]);
+  const [loadingProjectTasks, setLoadingProjectTasks] = useState(false);
+  
   // Pagination state for open tasks, completed tasks, and meetings
   const [openTasksCurrentPage, setOpenTasksCurrentPage] = useState(1);
   const [completedTasksCurrentPage, setCompletedTasksCurrentPage] = useState(1);
   const [meetingsCurrentPage, setMeetingsCurrentPage] = useState(1);
   const tasksPerPage = 50;
+
+  // Load all tasks for this project when component mounts or project changes
+  useEffect(() => {
+    const loadProjectTasks = async () => {
+      if (!loadAllTasksForProject) {
+        console.log('loadAllTasksForProject function not provided, using fallback tasks');
+        setAllProjectTasks(tasks.filter(task => task.project === project.name));
+        return;
+      }
+
+      try {
+        setLoadingProjectTasks(true);
+        console.log('Loading all tasks for project:', project.name);
+        const projectTasks = await loadAllTasksForProject(project.name);
+        console.log(`Loaded ${projectTasks.length} tasks for project ${project.name}`);
+        setAllProjectTasks(projectTasks);
+      } catch (error) {
+        console.error('Error loading project tasks:', error);
+        // Fallback to using the tasks prop
+        setAllProjectTasks(tasks.filter(task => task.project === project.name));
+      } finally {
+        setLoadingProjectTasks(false);
+      }
+    };
+
+    loadProjectTasks();
+  }, [project.name, loadAllTasksForProject, refreshKey]);
 
   // Listen for task updates to refresh the view
   useEffect(() => {
@@ -73,24 +106,25 @@ export const ProjectDetailView = ({
     };
   }, []);
 
-  // Add effect to refresh when tasks prop changes
+  // Add effect to refresh when tasks prop changes (fallback)
   useEffect(() => {
-    console.log('ProjectDetailView - Tasks prop changed, refreshing');
-    setRefreshKey(prev => prev + 1);
-  }, [tasks]);
+    if (!loadAllTasksForProject) {
+      console.log('ProjectDetailView - Tasks prop changed, updating fallback tasks');
+      setAllProjectTasks(tasks.filter(task => task.project === project.name));
+    }
+  }, [tasks, project.name, loadAllTasksForProject]);
   
-  // Use useMemo to recalculate project tasks when tasks change or refresh key changes
+  // Use useMemo to recalculate project tasks when allProjectTasks changes
   // All project tasks (for stats calculation, excluding meetings)
   const allProjectTasksForStats = useMemo(() => {
-    return tasks.filter(task => task.project === project.name && task.taskType !== 'Meeting');
-  }, [tasks, project.name, refreshKey]);
+    return allProjectTasks.filter(task => task.taskType !== 'Meeting');
+  }, [allProjectTasks]);
 
   // Active project tasks (excluding completed ones and meetings, sorted)
   const allOpenProjectTasks = useMemo(() => {
     console.log('ProjectDetailView - Recalculating project tasks for:', project.name);
-    const filtered = tasks
+    const filtered = allProjectTasks
       .filter(task => 
-        task.project === project.name && 
         task.status !== 'Completed' && 
         task.taskType !== 'Meeting'
       ) // Exclude completed tasks and meetings
@@ -107,7 +141,7 @@ export const ProjectDetailView = ({
       });
     console.log('ProjectDetailView - Found', filtered.length, 'non-completed, non-meeting tasks for project');
     return filtered;
-  }, [tasks, project.name, refreshKey]);
+  }, [allProjectTasks, project.name]);
 
   // Paginated open tasks
   const projectTasks = useMemo(() => {
@@ -126,9 +160,8 @@ export const ProjectDetailView = ({
 
   // All completed project tasks (excluding meetings)
   const allCompletedProjectTasks = useMemo(() => {
-    const completed = tasks
+    const completed = allProjectTasks
       .filter(task => 
-        task.project === project.name && 
         task.status === 'Completed' && 
         task.taskType !== 'Meeting'
       )
@@ -140,12 +173,12 @@ export const ProjectDetailView = ({
       });
     console.log('ProjectDetailView - Found', completed.length, 'completed, non-meeting tasks for project');
     return completed;
-  }, [tasks, project.name, refreshKey]);
+  }, [allProjectTasks]);
 
   // All meetings for this project (both open and completed)
   const allProjectMeetings = useMemo(() => {
-    const meetings = tasks
-      .filter(task => task.project === project.name && task.taskType === 'Meeting')
+    const meetings = allProjectTasks
+      .filter(task => task.taskType === 'Meeting')
       .sort((a, b) => {
         // Sort by due date first (earliest first), then by priority
         const dateA = new Date(a.dueDate);
@@ -159,7 +192,7 @@ export const ProjectDetailView = ({
       });
     console.log('ProjectDetailView - Found', meetings.length, 'meetings for project');
     return meetings;
-  }, [tasks, project.name, refreshKey]);
+  }, [allProjectTasks]);
 
   // Paginated completed tasks
   const completedProjectTasks = useMemo(() => {

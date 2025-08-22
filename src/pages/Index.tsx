@@ -44,6 +44,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     pagination,
     taskCounts,
     loadTasks,
+    loadAllTasksForProject,
     createTask,
     updateTask,
     addFollowUp,
@@ -572,6 +573,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 tasks={tasks}
                 allTasks={tasks}
                 allProjects={projects}
+                loadAllTasksForProject={loadAllTasksForProject}
                 onBack={() => setActiveView("projects")}
                 onEditProject={() => {}} // Not needed in this context
                 onUpdateProject={handleUpdateProject}
