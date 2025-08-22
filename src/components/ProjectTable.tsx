@@ -56,13 +56,34 @@ export const ProjectTable = ({
     const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
     const inProgressTasks = projectTasks.filter(task => task.status === 'In Progress').length;
     const overdueTasks = projectTasks.filter(task => new Date(task.dueDate) < new Date() && task.status !== 'Completed').length;
+    
+    // Calculate meeting statistics
+    const allMeetings = projectTasks.filter(task => task.taskType === 'Meeting');
+    const recurrentMeetings = allMeetings.filter(task => task.isRecurring);
+    const nonRecurrentMeetings = allMeetings.filter(task => !task.isRecurring);
+    
+    // Count unique recurrent meetings (group by parent task or original task)
+    const uniqueRecurrentMeetings = new Set();
+    recurrentMeetings.forEach(meeting => {
+      // Use parent task ID if it exists, otherwise use the task ID itself
+      const uniqueId = meeting.parentTaskId || meeting.id;
+      uniqueRecurrentMeetings.add(uniqueId);
+    });
+    
+    // Filter out meetings from regular task count
+    const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
+    const regularTotalTasks = regularTasks.length;
+    const regularCompletedTasks = regularTasks.filter(task => task.status === 'Completed').length;
+    
     return {
-      totalTasks,
-      completedTasks,
+      totalTasks: regularTotalTasks, // Only regular tasks, not meetings
+      completedTasks: regularCompletedTasks,
       inProgressTasks,
       overdueTasks,
-      completionRate: totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0,
-      projectTasks
+      completionRate: regularTotalTasks > 0 ? Math.round(regularCompletedTasks / regularTotalTasks * 100) : 0,
+      projectTasks,
+      uniqueRecurrentMeetings: uniqueRecurrentMeetings.size,
+      nonRecurrentMeetings: nonRecurrentMeetings.length
     };
   };
   const getStatusColor = (status: string) => {
@@ -351,6 +372,11 @@ export const ProjectTable = ({
                   </div>
                 </TableHead>
                 <TableHead style={{
+                minWidth: '120px'
+              }}>
+                  Status
+                </TableHead>
+                <TableHead style={{
                 minWidth: '180px'
               }}>
                   Owner & Team
@@ -358,7 +384,7 @@ export const ProjectTable = ({
                 <TableHead style={{
                 minWidth: '220px'
               }}>
-                  Status & Progress
+                  Tasks & Meetings
                 </TableHead>
                 <TableHead style={{
                 minWidth: '150px'
@@ -402,32 +428,47 @@ export const ProjectTable = ({
                       </div>
                     </TableCell>
 
+                    {/* Status Column */}
+                    <TableCell>
+                      <Badge className={`${getStatusColor(project.status)} text-sm px-2 py-1`}>
+                        {project.status}
+                      </Badge>
+                    </TableCell>
+
                     {/* Owner & Team Column */}
                     <TableCell>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
-                          
+                          <Users className="w-4 h-4 text-muted-foreground" />
                           <span className="text-base font-medium text-foreground">{project.owner || 'No owner assigned'}</span>
                         </div>
                         <p className="text-sm text-muted-foreground">{project.team.length} team members</p>
                       </div>
                     </TableCell>
 
-                    {/* Status & Progress Column */}
+                    {/* Tasks & Meetings Column */}
                     <TableCell>
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <Badge className={`${getStatusColor(project.status)} text-sm px-2 py-1`}>
-                            {project.status}
-                          </Badge>
+                          <span className="text-sm font-medium text-foreground">Progress</span>
                           <span className="text-sm text-muted-foreground">
                             {stats.completionRate}%
                           </span>
                         </div>
                         <Progress value={stats.completionRate} className="h-2" />
-                        <div className="text-sm text-muted-foreground">
-                          {stats.completedTasks}/{stats.totalTasks} tasks
-                          {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
+                        <div className="space-y-1 text-sm text-muted-foreground">
+                          <div>
+                            {stats.completedTasks}/{stats.totalTasks} tasks
+                            {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            <span>{stats.uniqueRecurrentMeetings} recurring meetings</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>{stats.nonRecurrentMeetings} one-time meetings</span>
+                          </div>
                         </div>
                       </div>
                     </TableCell>
