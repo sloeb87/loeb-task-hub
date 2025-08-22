@@ -372,6 +372,11 @@ export const ProjectTable = ({
                   </div>
                 </TableHead>
                 <TableHead style={{
+                minWidth: '150px'
+              }}>
+                  Timeline
+                </TableHead>
+                <TableHead style={{
                 minWidth: '120px'
               }}>
                   Status
@@ -385,11 +390,6 @@ export const ProjectTable = ({
                 minWidth: '220px'
               }}>
                   Tasks & Meetings
-                </TableHead>
-                <TableHead style={{
-                minWidth: '150px'
-              }}>
-                  Timeline
                 </TableHead>
                 
               </TableRow>
@@ -425,6 +425,27 @@ export const ProjectTable = ({
                           <h3 className="text-base font-medium text-foreground">{project.name}</h3>
                         </div>
                         <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                      </div>
+                    </TableCell>
+
+                    {/* Timeline Column */}
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-1 text-base text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span>{new Date(project.startDate).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: '2-digit'
+                        })}</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          to {new Date(project.endDate).toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: '2-digit'
+                      })}
+                        </div>
                       </div>
                     </TableCell>
 
@@ -469,27 +490,6 @@ export const ProjectTable = ({
                             <Calendar className="w-3 h-3" />
                             <span>{stats.nonRecurrentMeetings} one-time meetings</span>
                           </div>
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    {/* Timeline Column */}
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-1 text-base text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          <span>{new Date(project.startDate).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: '2-digit'
-                        })}</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          to {new Date(project.endDate).toLocaleDateString('en-GB', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: '2-digit'
-                      })}
                         </div>
                       </div>
                     </TableCell>
