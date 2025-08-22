@@ -171,6 +171,7 @@ export type Database = {
           links: Json | null
           next_recurrence_date: string | null
           parent_task_id: string | null
+          planned_time_hours: number | null
           priority: string
           project_id: string | null
           recurrence_end_date: string | null
@@ -203,6 +204,7 @@ export type Database = {
           links?: Json | null
           next_recurrence_date?: string | null
           parent_task_id?: string | null
+          planned_time_hours?: number | null
           priority?: string
           project_id?: string | null
           recurrence_end_date?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           links?: Json | null
           next_recurrence_date?: string | null
           parent_task_id?: string | null
+          planned_time_hours?: number | null
           priority?: string
           project_id?: string | null
           recurrence_end_date?: string | null

@@ -33,6 +33,7 @@ export interface Task {
   dueDate: string;
   completionDate?: string;
   duration?: number; // in days
+  plannedTimeHours?: number; // planned time in hours
   dependencies?: string[]; // Task IDs that this task depends on
   followUps: FollowUp[];
   checklist: ChecklistItem[];

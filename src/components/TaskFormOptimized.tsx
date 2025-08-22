@@ -148,6 +148,7 @@ interface FormData {
   responsible: string;
   startDate: string;
   dueDate: Date;
+  plannedTimeHours?: number;
   description: string;
   details: string;
   dependencies: string[];
@@ -179,6 +180,7 @@ const DEFAULT_FORM_DATA: FormData = {
   responsible: "",
   startDate: new Date().toISOString().split('T')[0],
   dueDate: new Date(),
+  plannedTimeHours: undefined,
   description: "",
   details: "",
   dependencies: [],
@@ -265,6 +267,7 @@ export const TaskFormOptimized = React.memo(({
         responsible: task.responsible || "",
         startDate: task.startDate || new Date().toISOString().split('T')[0],
         dueDate: new Date(task.dueDate),
+        plannedTimeHours: task.plannedTimeHours || undefined,
         description: task.description || "",
         details: task.details || "",
         dependencies: task.dependencies || [],
@@ -655,6 +658,20 @@ export const TaskFormOptimized = React.memo(({
                   </div>
                 </div>
               )}
+
+              <div>
+                <Label htmlFor="plannedTimeHours">Planned Time (hours)</Label>
+                <Input
+                  id="plannedTimeHours"
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={formData.plannedTimeHours || ''}
+                  onChange={(e) => updateField('plannedTimeHours', e.target.value ? parseFloat(e.target.value) : undefined)}
+                  placeholder="Enter planned time in hours"
+                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                />
+              </div>
 
               <div>
                 <Label htmlFor="description">Description</Label>
