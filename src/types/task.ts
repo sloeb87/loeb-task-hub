@@ -50,6 +50,7 @@ export interface Task {
   isRecurring?: boolean;
   recurrenceType?: 'daily' | 'weekly' | 'monthly';
   recurrenceInterval?: number;
+  recurrenceDaysOfWeek?: number[]; // Array of day numbers (0=Sunday, 1=Monday, etc.)
   parentTaskId?: string;
   nextRecurrenceDate?: string;
   recurrenceEndDate?: string;

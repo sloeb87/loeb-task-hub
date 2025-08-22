@@ -174,6 +174,7 @@ export type Database = {
           planned_time_hours: number | null
           priority: string
           project_id: string | null
+          recurrence_days_of_week: number[] | null
           recurrence_end_date: string | null
           recurrence_interval: number | null
           recurrence_type: string | null
@@ -207,6 +208,7 @@ export type Database = {
           planned_time_hours?: number | null
           priority?: string
           project_id?: string | null
+          recurrence_days_of_week?: number[] | null
           recurrence_end_date?: string | null
           recurrence_interval?: number | null
           recurrence_type?: string | null
@@ -240,6 +242,7 @@ export type Database = {
           planned_time_hours?: number | null
           priority?: string
           project_id?: string | null
+          recurrence_days_of_week?: number[] | null
           recurrence_end_date?: string | null
           recurrence_interval?: number | null
           recurrence_type?: string | null

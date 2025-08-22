@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Repeat, X, Calendar, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -13,12 +14,14 @@ interface RecurrenceSelectorProps {
   recurrenceType?: 'daily' | 'weekly' | 'monthly';
   recurrenceInterval?: number;
   recurrenceEndDate?: string;
+  recurrenceDaysOfWeek?: number[];
   taskId?: string;  // Task ID for generating instances
   onRecurrenceChange: (recurrence: {
     isRecurring: boolean;
     recurrenceType?: 'daily' | 'weekly' | 'monthly';
     recurrenceInterval?: number;
     recurrenceEndDate?: string;
+    recurrenceDaysOfWeek?: number[];
   }) => void;
 }
 
@@ -27,11 +30,22 @@ export const RecurrenceSelector = ({
   recurrenceType,
   recurrenceInterval = 1,
   recurrenceEndDate,
+  recurrenceDaysOfWeek = [],
   taskId,
   onRecurrenceChange
 }: RecurrenceSelectorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+
+  const daysOfWeek = [
+    { value: 1, label: 'Mon', fullLabel: 'Monday' },
+    { value: 2, label: 'Tue', fullLabel: 'Tuesday' },
+    { value: 3, label: 'Wed', fullLabel: 'Wednesday' },
+    { value: 4, label: 'Thu', fullLabel: 'Thursday' },
+    { value: 5, label: 'Fri', fullLabel: 'Friday' },
+    { value: 6, label: 'Sat', fullLabel: 'Saturday' },
+    { value: 0, label: 'Sun', fullLabel: 'Sunday' }
+  ];
 
   // Calculate number of instances that will be created
   const calculateInstanceCount = (): number => {
@@ -55,7 +69,28 @@ export const RecurrenceSelector = ({
           }
           break;
         case 'weekly':
-          currentDate.setDate(currentDate.getDate() + (recurrenceInterval * 7));
+          // For weekly recurrence with specific days, calculate differently
+          if (recurrenceDaysOfWeek && recurrenceDaysOfWeek.length > 0) {
+            // Skip to next occurrence within the week pattern
+            let foundNextDay = false;
+            let daysToAdd = 1;
+            while (!foundNextDay && daysToAdd <= 7 * recurrenceInterval) {
+              const nextDate = new Date(currentDate);
+              nextDate.setDate(nextDate.getDate() + daysToAdd);
+              const dayOfWeek = nextDate.getDay();
+              if (recurrenceDaysOfWeek.includes(dayOfWeek)) {
+                currentDate = nextDate;
+                foundNextDay = true;
+              } else {
+                daysToAdd++;
+              }
+            }
+            if (!foundNextDay) {
+              currentDate.setDate(currentDate.getDate() + (recurrenceInterval * 7));
+            }
+          } else {
+            currentDate.setDate(currentDate.getDate() + (recurrenceInterval * 7));
+          }
           break;
         case 'monthly':
           currentDate.setMonth(currentDate.getMonth() + recurrenceInterval);
@@ -130,14 +165,25 @@ export const RecurrenceSelector = ({
     recurrenceType: 'daily' | 'weekly' | 'monthly';
     recurrenceInterval: number;
     recurrenceEndDate: string;
+    recurrenceDaysOfWeek: number[];
   }>) => {
     onRecurrenceChange({
       isRecurring: true,
       recurrenceType,
       recurrenceInterval,
       recurrenceEndDate,
+      recurrenceDaysOfWeek,
       ...updates
     });
+  };
+
+  const handleDayToggle = (dayValue: number) => {
+    const currentDays = recurrenceDaysOfWeek || [];
+    const newDays = currentDays.includes(dayValue)
+      ? currentDays.filter(d => d !== dayValue)
+      : [...currentDays, dayValue].sort();
+    
+    handleRecurrenceUpdate({ recurrenceDaysOfWeek: newDays });
   };
 
   const getRecurrenceLabel = () => {
@@ -202,6 +248,28 @@ export const RecurrenceSelector = ({
               <SelectItem value="monthly">month(s)</SelectItem>
             </SelectContent>
           </Select>
+
+          {/* Days of Week Selection for Weekly Recurrence */}
+          {recurrenceType === 'weekly' && (
+            <div className="flex items-center gap-1">
+              <span className="text-sm text-muted-foreground">on</span>
+              <div className="flex gap-1">
+                {daysOfWeek.map(day => (
+                  <Button
+                    key={day.value}
+                    type="button"
+                    variant={recurrenceDaysOfWeek?.includes(day.value) ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handleDayToggle(day.value)}
+                    className="h-8 w-10 px-0 text-xs"
+                    title={day.fullLabel}
+                  >
+                    {day.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <span className="text-sm text-muted-foreground">until</span>
 
