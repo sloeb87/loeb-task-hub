@@ -345,11 +345,6 @@ export const ProjectTable = ({
                   </div>
                 </TableHead>
                 <TableHead style={{
-                minWidth: '150px'
-              }}>
-                  Timeline
-                </TableHead>
-                <TableHead style={{
                 minWidth: '200px'
               }}>
                   <div className="flex items-center gap-1">
@@ -375,6 +370,11 @@ export const ProjectTable = ({
                         {selectedProjects.length}
                       </span>}
                   </div>
+                </TableHead>
+                <TableHead style={{
+                minWidth: '150px'
+              }}>
+                  Timeline
                 </TableHead>
                 <TableHead style={{
                 minWidth: '120px'
@@ -417,6 +417,19 @@ export const ProjectTable = ({
                       </div>
                     </TableCell>
 
+                    {/* Project Name Column */}
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-base font-medium text-green-700 dark:text-green-400">{project.id}</span>
+                          <h3 className="text-base font-medium text-foreground">{project.name}</h3>
+                        </div>
+                        {project.description && (
+                          <p className="text-sm text-muted-foreground">{project.description}</p>
+                        )}
+                      </div>
+                    </TableCell>
+
                     {/* Timeline Column */}
                     <TableCell>
                       <div className="space-y-1">
@@ -435,19 +448,6 @@ export const ProjectTable = ({
                         year: '2-digit'
                       })}
                         </div>
-                      </div>
-                    </TableCell>
-
-                    {/* Project Name Column */}
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-base font-medium text-green-700 dark:text-green-400">{project.id}</span>
-                          <h3 className="text-base font-medium text-foreground">{project.name}</h3>
-                        </div>
-                        {project.description && (
-                          <p className="text-sm text-muted-foreground">{project.description}</p>
-                        )}
                       </div>
                     </TableCell>
 
