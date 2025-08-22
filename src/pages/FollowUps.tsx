@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,8 @@ import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, addMonths, format, parseISO } from "date-fns";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 interface FollowUpsPageProps {
   tasks: Task[];
   projects: Project[];
@@ -62,6 +64,9 @@ export const FollowUpsPage = ({
   onUpdateFollowUp
 }: FollowUpsPageProps) => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const [allTasks, setAllTasks] = useState<Task[]>(tasks); // State to hold all tasks
+  
   const {
     getScopeStyle
   } = useScopeColor();
@@ -74,6 +79,63 @@ export const FollowUpsPage = ({
   const {
     getStatusStyle
   } = useStatusColor();
+  // Fetch all tasks from database for chart calculations
+  useEffect(() => {
+    const fetchAllTasks = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', user.id);
+          
+        if (error) {
+          console.error('Error fetching all tasks:', error);
+          return;
+        }
+        
+        // Convert Supabase tasks to our Task type
+        const convertedTasks: Task[] = data.map(task => ({
+          id: task.id,
+          title: task.title,
+          description: task.description || '',
+          status: task.status as any,
+          priority: task.priority as any,
+          responsible: task.responsible,
+          startDate: task.start_date,
+          dueDate: task.due_date,
+          completionDate: task.completion_date || undefined,
+          duration: task.duration || undefined,
+          project: '', // Will be filled from project lookup
+          scope: task.scope || [],
+          taskType: task.task_type as any,
+          environment: task.environment as any,
+          dependencies: task.dependencies || [],
+          stakeholders: task.stakeholders || [],
+          details: task.details || '',
+          links: (task.links && typeof task.links === 'object' && !Array.isArray(task.links)) 
+            ? task.links as any 
+            : {},
+          checklist: typeof task.checklist === 'string' ? JSON.parse(task.checklist) : (Array.isArray(task.checklist) ? task.checklist : []),
+          creationDate: task.creation_date,
+          followUps: [], // Will be populated separately
+          isRecurring: task.is_recurring || false,
+          recurrenceType: task.recurrence_type as any || undefined,
+          recurrenceInterval: task.recurrence_interval || undefined,
+          recurrenceEndDate: task.recurrence_end_date || undefined,
+          parentTaskId: task.parent_task_id || undefined
+        }));
+        
+        setAllTasks(convertedTasks);
+      } catch (error) {
+        console.error('Failed to fetch all tasks:', error);
+      }
+    };
+    
+    fetchAllTasks();
+  }, [isAuthenticated, user]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FollowUpFilters>(() => {
     const now = new Date();
@@ -316,7 +378,7 @@ export const FollowUpsPage = ({
     const minDate = new Date(Math.min(...projectDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...projectDates.map(d => d.getTime())));
     
-    // Generate monthly data points
+    // Generate ALL monthly data points (including months with 0 projects)
     const months: { week: string; count: number; date: Date }[] = [];
     let currentMonth = startOfMonth(minDate);
     const endMonth = endOfMonth(maxDate);
@@ -341,23 +403,23 @@ export const FollowUpsPage = ({
     return months;
   }, [projects]);
 
-  // Calculate chart data for tasks over time
+  // Calculate chart data for tasks over time (using all tasks from database)
   const tasksChartData = useMemo(() => {
-    if (tasks.length === 0) return [];
+    if (allTasks.length === 0) return [];
     
     // Find date range from tasks
-    const taskDates = tasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
+    const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
     const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
     
-    // Generate monthly data points
+    // Generate ALL monthly data points (including months with 0 tasks)
     const months: { week: string; count: number; date: Date }[] = [];
     let currentMonth = startOfMonth(minDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
       const monthEnd = endOfMonth(currentMonth);
-      const activeTasks = tasks.filter(task => {
+      const activeTasks = allTasks.filter(task => {
         const taskStart = new Date(task.startDate);
         const taskDue = new Date(task.dueDate);
         const isActive = taskStart <= monthEnd && taskDue >= currentMonth;
@@ -375,7 +437,7 @@ export const FollowUpsPage = ({
     }
     
     return months;
-  }, [tasks]);
+  }, [allTasks]);
 
   // Handle chart clicks - change to projects view with date filter
   const handleProjectChartClick = (data: any, index: number) => {
@@ -631,12 +693,16 @@ export const FollowUpsPage = ({
                      </linearGradient>
                    </defs>
                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                   <XAxis 
-                     dataKey="week" 
-                     axisLine={false}
-                     tickLine={false}
-                     className="text-xs"
-                   />
+                    <XAxis 
+                      dataKey="week" 
+                      axisLine={false}
+                      tickLine={false}
+                      className="text-xs"
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
                    <YAxis 
                      axisLine={false}
                      tickLine={false}
@@ -692,12 +758,16 @@ export const FollowUpsPage = ({
                      </linearGradient>
                    </defs>
                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                   <XAxis 
-                     dataKey="week" 
-                     axisLine={false}
-                     tickLine={false}
-                     className="text-xs"
-                   />
+                    <XAxis 
+                      dataKey="week" 
+                      axisLine={false}
+                      tickLine={false}
+                      className="text-xs"
+                      interval={0}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
                    <YAxis 
                      axisLine={false}
                      tickLine={false}
