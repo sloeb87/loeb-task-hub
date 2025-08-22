@@ -807,7 +807,7 @@ export const FollowUpsPage = ({
                       dataKey="cumulativeHours"
                       stroke="hsl(var(--chart-2))"
                       strokeWidth={2}
-                      dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 4 }}
+                      dot={false}
                       style={{ cursor: 'pointer' }}
                     />
                   </ComposedChart>
