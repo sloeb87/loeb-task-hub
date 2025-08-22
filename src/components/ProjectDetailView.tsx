@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
@@ -49,6 +50,11 @@ export const ProjectDetailView = ({
   const { openTaskForm } = useTaskForm();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Pagination state for open tasks
+  const [openTasksCurrentPage, setOpenTasksCurrentPage] = useState(1);
+  const [completedTasksCurrentPage, setCompletedTasksCurrentPage] = useState(1);
+  const tasksPerPage = 50;
 
   // Listen for task updates to refresh the view
   useEffect(() => {
@@ -74,12 +80,12 @@ export const ProjectDetailView = ({
   
   // Use useMemo to recalculate project tasks when tasks change or refresh key changes
   // All project tasks (for stats calculation)
-  const allProjectTasks = useMemo(() => {
+  const allProjectTasksForStats = useMemo(() => {
     return tasks.filter(task => task.project === project.name);
   }, [tasks, project.name, refreshKey]);
 
   // Active project tasks (excluding completed ones, sorted)
-  const projectTasks = useMemo(() => {
+  const allOpenProjectTasks = useMemo(() => {
     console.log('ProjectDetailView - Recalculating project tasks for:', project.name);
     const filtered = tasks
       .filter(task => task.project === project.name && task.status !== 'Completed') // Exclude completed tasks
@@ -98,8 +104,23 @@ export const ProjectDetailView = ({
     return filtered;
   }, [tasks, project.name, refreshKey]);
 
-  // Completed project tasks (for completed tasks view)
-  const completedProjectTasks = useMemo(() => {
+  // Paginated open tasks
+  const projectTasks = useMemo(() => {
+    const startIndex = (openTasksCurrentPage - 1) * tasksPerPage;
+    const endIndex = startIndex + tasksPerPage;
+    return allOpenProjectTasks.slice(startIndex, endIndex);
+  }, [allOpenProjectTasks, openTasksCurrentPage, tasksPerPage]);
+
+  // Open tasks pagination info
+  const openTasksPagination = useMemo(() => ({
+    currentPage: openTasksCurrentPage,
+    pageSize: tasksPerPage,
+    totalTasks: allOpenProjectTasks.length,
+    totalPages: Math.ceil(allOpenProjectTasks.length / tasksPerPage)
+  }), [allOpenProjectTasks.length, openTasksCurrentPage, tasksPerPage]);
+
+  // All completed project tasks
+  const allCompletedProjectTasks = useMemo(() => {
     const completed = tasks
       .filter(task => task.project === project.name && task.status === 'Completed')
       .sort((a, b) => {
@@ -111,11 +132,26 @@ export const ProjectDetailView = ({
     console.log('ProjectDetailView - Found', completed.length, 'completed tasks for project');
     return completed;
   }, [tasks, project.name, refreshKey]);
+
+  // Paginated completed tasks
+  const completedProjectTasks = useMemo(() => {
+    const startIndex = (completedTasksCurrentPage - 1) * tasksPerPage;
+    const endIndex = startIndex + tasksPerPage;
+    return allCompletedProjectTasks.slice(startIndex, endIndex);
+  }, [allCompletedProjectTasks, completedTasksCurrentPage, tasksPerPage]);
+
+  // Completed tasks pagination info
+  const completedTasksPagination = useMemo(() => ({
+    currentPage: completedTasksCurrentPage,
+    pageSize: tasksPerPage,
+    totalTasks: allCompletedProjectTasks.length,
+    totalPages: Math.ceil(allCompletedProjectTasks.length / tasksPerPage)
+  }), [allCompletedProjectTasks.length, completedTasksCurrentPage, tasksPerPage]);
   
-  const completedTasks = allProjectTasks.filter(task => task.status === 'Completed').length;
-  const totalTasks = allProjectTasks.length;
+  const completedTasks = allCompletedProjectTasks.length;
+  const totalTasks = allOpenProjectTasks.length + allCompletedProjectTasks.length;
   const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  const overdueTasks = projectTasks.filter(task => 
+  const overdueTasks = allOpenProjectTasks.filter(task => 
     task.status !== 'Completed' && new Date(task.dueDate) < new Date()
   ).length;
 
@@ -439,7 +475,7 @@ export const ProjectDetailView = ({
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Opened Tasks</TabsTrigger>
-          {completedProjectTasks.length > 0 && (
+          {allCompletedProjectTasks.length > 0 && (
             <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
           )}
         </TabsList>
@@ -455,13 +491,67 @@ export const ProjectDetailView = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {projectTasks.length > 0 ? (
-                <TaskTable 
-                  tasks={projectTasks} 
-                  onEditTask={handleEditTaskLocal}
-                  onFollowUp={handleFollowUpLocal}
-                  hideProjectColumn={true}
-                />
+              {allOpenProjectTasks.length > 0 ? (
+                <div className="space-y-4">
+                  <TaskTable 
+                    tasks={projectTasks} 
+                    onEditTask={handleEditTaskLocal}
+                    onFollowUp={handleFollowUpLocal}
+                    hideProjectColumn={true}
+                    pagination={openTasksPagination}
+                    onPageChange={setOpenTasksCurrentPage}
+                  />
+                  
+                  {/* Pagination Controls for Open Tasks */}
+                  {openTasksPagination.totalPages > 1 && (
+                    <div className="flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (openTasksCurrentPage > 1) {
+                                  setOpenTasksCurrentPage(openTasksCurrentPage - 1);
+                                }
+                              }}
+                              className={openTasksCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                          
+                          {Array.from({ length: openTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                isActive={page === openTasksCurrentPage}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setOpenTasksCurrentPage(page);
+                                }}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (openTasksCurrentPage < openTasksPagination.totalPages) {
+                                  setOpenTasksCurrentPage(openTasksCurrentPage + 1);
+                                }
+                              }}
+                              className={openTasksCurrentPage === openTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                   <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No tasks yet</p>
@@ -476,7 +566,7 @@ export const ProjectDetailView = ({
           </Card>
         </TabsContent>
 
-        {completedProjectTasks.length > 0 && (
+        {allCompletedProjectTasks.length > 0 && (
           <TabsContent value="completed">
             <Card>
               <CardHeader>
@@ -486,17 +576,71 @@ export const ProjectDetailView = ({
                     {project.name}
                   </span>
                   <Badge variant="secondary" className="text-xs">
-                    {completedProjectTasks.length} completed
+                    {allCompletedProjectTasks.length} completed
                   </Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TaskTable 
-                  tasks={completedProjectTasks} 
-                  onEditTask={handleEditTaskLocal}
-                  onFollowUp={handleFollowUpLocal}
-                  hideProjectColumn={true}
-                />
+                <div className="space-y-4">
+                  <TaskTable 
+                    tasks={completedProjectTasks} 
+                    onEditTask={handleEditTaskLocal}
+                    onFollowUp={handleFollowUpLocal}
+                    hideProjectColumn={true}
+                    pagination={completedTasksPagination}
+                    onPageChange={setCompletedTasksCurrentPage}
+                  />
+                  
+                  {/* Pagination Controls for Completed Tasks */}
+                  {completedTasksPagination.totalPages > 1 && (
+                    <div className="flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (completedTasksCurrentPage > 1) {
+                                  setCompletedTasksCurrentPage(completedTasksCurrentPage - 1);
+                                }
+                              }}
+                              className={completedTasksCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                          
+                          {Array.from({ length: completedTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                href="#"
+                                isActive={page === completedTasksCurrentPage}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  setCompletedTasksCurrentPage(page);
+                                }}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          
+                          <PaginationItem>
+                            <PaginationNext 
+                              href="#"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (completedTasksCurrentPage < completedTasksPagination.totalPages) {
+                                  setCompletedTasksCurrentPage(completedTasksCurrentPage + 1);
+                                }
+                              }}
+                              className={completedTasksCurrentPage === completedTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
