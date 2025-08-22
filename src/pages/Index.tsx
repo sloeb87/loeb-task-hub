@@ -454,6 +454,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 taskCounts={taskCounts}
                 activeFilter={activeFilter} 
                 onFilterChange={setActiveFilter}
+                onSortChange={handleSortChange}
                 dateFilter={location.state?.dateFilter}
               />
 

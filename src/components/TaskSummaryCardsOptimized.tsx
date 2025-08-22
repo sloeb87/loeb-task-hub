@@ -29,6 +29,7 @@ interface TaskSummaryCardsProps {
   };
   activeFilter: FilterType;
   onFilterChange: (filter: FilterType) => void;
+  onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
   dateFilter?: DateFilter;
 }
 
@@ -46,6 +47,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
   taskCounts,
   activeFilter, 
   onFilterChange,
+  onSortChange,
   dateFilter 
 }: TaskSummaryCardsProps) => {
   
@@ -154,6 +156,16 @@ export const TaskSummaryCardsOptimized = React.memo(({
     ];
   }, [tasks, taskCounts, dateFilter]);
 
+  const handleFilterClick = (filter: FilterType) => {
+    onFilterChange(filter);
+    
+    // Apply default sorting for All Tasks and Active filters
+    if (onSortChange && (filter === 'all' || filter === 'active')) {
+      // Default sorting: Due Date (older to new) then by Priority (Critical, High, Medium, Low)
+      onSortChange('dueDate', 'asc');
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
       {stats.map((stat) => {
@@ -168,7 +180,7 @@ export const TaskSummaryCardsOptimized = React.memo(({
                 ? 'ring-2 ring-blue-500 shadow-lg' 
                 : 'hover:shadow-lg'
             }`}
-            onClick={() => onFilterChange(stat.filter)}
+            onClick={() => handleFilterClick(stat.filter)}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">

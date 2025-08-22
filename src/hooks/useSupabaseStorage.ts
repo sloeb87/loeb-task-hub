@@ -243,6 +243,20 @@ export function useSupabaseStorage() {
           END`,
           { ascending: sortDirection === 'desc' }
         );
+      } else if (sortField === 'dueDate') {
+        // Default sorting for due date with priority as secondary sort
+        query = query
+          .order('due_date', { ascending: sortDirection === 'asc' })
+          .order(
+            `CASE 
+              WHEN priority = 'Critical' THEN 4 
+              WHEN priority = 'High' THEN 3 
+              WHEN priority = 'Medium' THEN 2 
+              WHEN priority = 'Low' THEN 1 
+              ELSE 0 
+            END`,
+            { ascending: false }
+          );
       } else {
         query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }

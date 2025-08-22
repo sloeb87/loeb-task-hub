@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square, Mail, FileText, ExternalLink, Repeat, Link2 } from "lucide-react";
+import { format } from "date-fns";
 import { Task } from "@/types/task";
 
 interface ResponsiveTaskCardProps {
@@ -168,9 +169,14 @@ export const ResponsiveTaskCard = ({
               <Calendar className="w-4 h-4 mr-2" />
               <span>Due Date</span>
             </div>
-            <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : 'text-foreground'}`}>
-              {new Date(task.dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' })}
-            </p>
+            <div className="space-y-1">
+              <p className={`text-sm font-medium ${isOverdue ? 'text-destructive' : 'text-foreground'}`}>
+                {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(task.dueDate), 'EEEE')}
+              </p>
+            </div>
           </div>
           
           <div className="space-y-2">
