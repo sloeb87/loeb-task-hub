@@ -764,20 +764,24 @@ export const TaskTable = ({
                     </div>
                   </TableCell>
 
-                    {/* Due Date Column */}
-                     <TableCell>
-                       <div className="space-y-1 text-sm">
-                         <div className={`flex flex-col font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
-                           <span>{format(new Date(task.dueDate), 'MMM dd, yyyy')}</span>
-                           <span className="text-xs text-muted-foreground">{format(new Date(task.dueDate), 'EEEE')}</span>
-                         </div>
-                         {task.completionDate && (
-                           <div className="flex items-center text-green-600 dark:text-green-400">
-                             <Calendar className="w-3 h-3 mr-1" />
-                             Completed: {new Date(task.completionDate).toLocaleDateString()}
-                           </div>
-                         )}
-                       </div>
+                      <TableCell>
+                        <div className="space-y-1 text-sm">
+                          <div className={`flex flex-col font-medium ${getDueDateColor(task.dueDate, task.status)}`}>
+                            <span>{format(new Date(task.dueDate), 'MMM dd, yyyy')}</span>
+                            <span className="text-xs text-muted-foreground">{format(new Date(task.dueDate), 'EEEE')}</span>
+                            {task.plannedTimeHours && (
+                              <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                                PT: {task.plannedTimeHours}h
+                              </span>
+                            )}
+                          </div>
+                          {task.completionDate && (
+                            <div className="flex items-center text-green-600 dark:text-green-400">
+                              <Calendar className="w-3 h-3 mr-1" />
+                              Completed: {new Date(task.completionDate).toLocaleDateString()}
+                            </div>
+                          )}
+                        </div>
                      </TableCell>
 
                   {/* Time Tracking Column */}

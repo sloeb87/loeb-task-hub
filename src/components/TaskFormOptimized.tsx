@@ -121,6 +121,7 @@ interface TaskFormProps {
     responsible?: string;
     description?: string;
     details?: string;
+    plannedTimeHours?: number;
     occurrenceDate?: Date;
   }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
@@ -975,7 +976,7 @@ export const TaskFormOptimized = React.memo(({
                     type="button" 
                     variant="outline" 
                     onClick={() => {
-                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, Details, and Occurrence Date?')) {
+                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, Details, Planned Time, and Occurrence Date?')) {
                         onUpdateAllRecurring(task.id, {
                           environment: formData.environment,
                           taskType: formData.taskType,
@@ -983,6 +984,7 @@ export const TaskFormOptimized = React.memo(({
                           responsible: formData.responsible,
                           description: formData.description,
                           details: formData.details,
+                          plannedTimeHours: formData.plannedTimeHours,
                           occurrenceDate: formData.occurrenceDate
                         });
                       }

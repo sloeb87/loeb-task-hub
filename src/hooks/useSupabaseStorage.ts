@@ -20,6 +20,7 @@ interface SupabaseTask {
   due_date: string;
   completion_date: string | null;
   duration: number | null;
+  planned_time_hours: number | null;
   dependencies: string[] | null;
   details: string | null;
   links: any;
@@ -127,6 +128,7 @@ export function useSupabaseStorage() {
       dueDate: supabaseTask.due_date,
       completionDate: supabaseTask.completion_date || undefined,
       duration: supabaseTask.duration || undefined,
+      plannedTimeHours: supabaseTask.planned_time_hours || undefined,
       dependencies: supabaseTask.dependencies || [],
       checklist: Array.isArray(supabaseTask.checklist) ? supabaseTask.checklist : (typeof supabaseTask.checklist === 'string' ? JSON.parse(supabaseTask.checklist) : []), // Parse checklist from JSON
       followUps,
@@ -388,6 +390,7 @@ export function useSupabaseStorage() {
           due_date: taskData.dueDate,
           completion_date: taskData.completionDate || null,
           duration: taskData.duration || null,
+          planned_time_hours: taskData.plannedTimeHours || null,
           dependencies: taskData.dependencies || [],
           checklist: JSON.stringify(taskData.checklist || []),
           details: taskData.details,
@@ -482,6 +485,7 @@ export function useSupabaseStorage() {
       due_date: updatedTask.dueDate,
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
+      planned_time_hours: updatedTask.plannedTimeHours || null,
       dependencies: updatedTask.dependencies || [],
       checklist: JSON.stringify(updatedTask.checklist || []),
       details: updatedTask.details,
@@ -826,6 +830,7 @@ export function useSupabaseStorage() {
     responsible?: string;
     description?: string;
     details?: string;
+    plannedTimeHours?: number;
     occurrenceDate?: Date;
   }): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
@@ -875,6 +880,7 @@ export function useSupabaseStorage() {
     if (updateData.responsible !== undefined) fieldsToUpdate.responsible = updateData.responsible;
     if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description;
     if (updateData.details !== undefined) fieldsToUpdate.details = updateData.details;
+    if (updateData.plannedTimeHours !== undefined) fieldsToUpdate.planned_time_hours = updateData.plannedTimeHours;
     
     // Handle occurrence date update - calculate new due dates based on offset from original
     if (updateData.occurrenceDate !== undefined) {
