@@ -121,6 +121,7 @@ interface TaskFormProps {
     responsible?: string;
     description?: string;
     details?: string;
+    occurrenceDate?: Date;
   }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
@@ -164,6 +165,7 @@ interface FormData {
   recurrenceType?: 'daily' | 'weekly' | 'monthly';
   recurrenceInterval: number;
   recurrenceEndDate?: string;
+  occurrenceDate?: Date; // For showing/editing current occurrence of recurring tasks
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -193,7 +195,8 @@ const DEFAULT_FORM_DATA: FormData = {
   isRecurring: false,
   recurrenceType: 'weekly',
   recurrenceInterval: 1,
-  recurrenceEndDate: undefined
+  recurrenceEndDate: undefined,
+  occurrenceDate: undefined
 };
 
 export const TaskFormOptimized = React.memo(({ 
@@ -278,7 +281,8 @@ export const TaskFormOptimized = React.memo(({
         isRecurring: task.isRecurring || false,
         recurrenceType: task.recurrenceType,
         recurrenceInterval: task.recurrenceInterval || 1,
-        recurrenceEndDate: task.recurrenceEndDate
+        recurrenceEndDate: task.recurrenceEndDate,
+        occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
       };
       
       setFormData(newFormData);
@@ -459,9 +463,9 @@ export const TaskFormOptimized = React.memo(({
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Side - Main Form */}
-            <div className="bg-gray-50 dark:bg-black/50 rounded-lg p-6 space-y-6 border border-gray-200 dark:border-gray-800">
+            <div className="bg-gray-50 dark:bg-black/50 rounded-lg p-4 space-y-4 border border-gray-200 dark:border-gray-800">
               {/* Basic Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="title">Task Title *</Label>
                   <Input
@@ -492,7 +496,7 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="environment">Environment</Label>
                   <Select value={formData.environment} onValueChange={(value) => updateField('environment', value)}>
@@ -526,7 +530,7 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="status">Status *</Label>
                   <Select value={formData.status} onValueChange={(value) => updateField('status', value)}>
@@ -560,22 +564,10 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="responsible">Responsible Person</Label>
-                  <Input
-                    id="responsible"
-                    type="text"
-                    value={formData.responsible}
-                    onChange={(e) => updateField('responsible', e.target.value)}
-                    placeholder="Enter responsible person"
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  />
-                </div>
-
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="dueDate">Due Date</Label>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Input
                       id="dueDate"
                       type="date"
@@ -601,7 +593,68 @@ export const TaskFormOptimized = React.memo(({
                     />
                   </div>
                 </div>
+
+                <div>
+                  <Label htmlFor="responsible">Responsible Person</Label>
+                  <Input
+                    id="responsible"
+                    type="text"
+                    value={formData.responsible}
+                    onChange={(e) => updateField('responsible', e.target.value)}
+                    placeholder="Enter responsible person"
+                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                  />
+                </div>
               </div>
+
+              {/* Current Occurrence Section for Recurring Tasks */}
+              {(formData.isRecurring || task?.isRecurring || task?.parentTaskId) && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Repeat className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <Label className="text-blue-800 dark:text-blue-200 font-medium">
+                      Current Occurrence
+                    </Label>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="occurrenceDate" className="text-sm text-blue-700 dark:text-blue-300">
+                        This Occurrence Date
+                      </Label>
+                      <Input
+                        id="occurrenceDate"
+                        type="date"
+                        value={formData.occurrenceDate ? format(formData.occurrenceDate, 'yyyy-MM-dd') : format(date || new Date(), 'yyyy-MM-dd')}
+                        onChange={(e) => updateField('occurrenceDate', new Date(e.target.value))}
+                        className="dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
+                      />
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        This will be applied to all recurring instances when using "Update All Recurring"
+                      </p>
+                    </div>
+                    <div className="flex items-end">
+                      <div className="text-sm text-blue-700 dark:text-blue-300">
+                        {task?.parentTaskId ? (
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            Recurring Instance
+                          </span>
+                        ) : task?.isRecurring ? (
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                            Parent Recurring Task
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1">
+                            <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                            Will Create Recurring Series
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="description">Description</Label>
@@ -628,9 +681,9 @@ export const TaskFormOptimized = React.memo(({
               </div>
 
               {/* Links Section */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <div className="flex items-center justify-between">
                       <Label htmlFor="oneNote" className="flex items-center gap-2">
@@ -905,14 +958,15 @@ export const TaskFormOptimized = React.memo(({
                     type="button" 
                     variant="outline" 
                     onClick={() => {
-                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, and Details?')) {
+                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, Details, and Occurrence Date?')) {
                         onUpdateAllRecurring(task.id, {
                           environment: formData.environment,
                           taskType: formData.taskType,
                           priority: formData.priority,
                           responsible: formData.responsible,
                           description: formData.description,
-                          details: formData.details
+                          details: formData.details,
+                          occurrenceDate: formData.occurrenceDate
                         });
                       }
                     }}

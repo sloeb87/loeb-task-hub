@@ -826,6 +826,7 @@ export function useSupabaseStorage() {
     responsible?: string;
     description?: string;
     details?: string;
+    occurrenceDate?: Date;
   }): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
@@ -874,6 +875,49 @@ export function useSupabaseStorage() {
     if (updateData.responsible !== undefined) fieldsToUpdate.responsible = updateData.responsible;
     if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description;
     if (updateData.details !== undefined) fieldsToUpdate.details = updateData.details;
+    
+    // Handle occurrence date update - calculate new due dates based on offset from original
+    if (updateData.occurrenceDate !== undefined) {
+      // Get the original parent task to calculate the offset
+      const { data: parentTask, error: parentError } = await supabase
+        .from('tasks')
+        .select('due_date')
+        .eq('id', parentTaskId)
+        .single();
+      
+      if (parentError) throw parentError;
+      
+      const originalDate = new Date(parentTask.due_date);
+      const newDate = new Date(updateData.occurrenceDate);
+      const daysDifference = Math.floor((newDate.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      // Update all recurring tasks with the new occurrence pattern
+      for (const taskInfo of allRecurringTasks) {
+        const { data: currentTask, error: fetchError } = await supabase
+          .from('tasks')
+          .select('due_date, start_date')
+          .eq('id', taskInfo.id)
+          .single();
+          
+        if (fetchError) continue;
+        
+        const currentDueDate = new Date(currentTask.due_date);
+        const currentStartDate = new Date(currentTask.start_date);
+        
+        // Apply the same offset to each task
+        const newDueDate = new Date(currentDueDate.getTime() + (daysDifference * 24 * 60 * 60 * 1000));
+        const newStartDate = new Date(currentStartDate.getTime() + (daysDifference * 24 * 60 * 60 * 1000));
+        
+        await supabase
+          .from('tasks')
+          .update({
+            due_date: newDueDate.toISOString().split('T')[0],
+            start_date: newStartDate.toISOString().split('T')[0]
+          })
+          .eq('id', taskInfo.id)
+          .eq('user_id', user.id);
+      }
+    }
 
     // Update all recurring tasks
     const { error } = await supabase
