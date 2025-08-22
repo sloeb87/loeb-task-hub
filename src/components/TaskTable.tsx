@@ -65,7 +65,6 @@ export const TaskTable = ({
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null);
   const [filters, setFilters] = useState<Filters>({
     scope: [],
     status: [],
@@ -220,33 +219,18 @@ export const TaskTable = ({
     setFilters(prev => ({ ...prev, [filterType]: [] }));
   }, []);
 
-  // Handle search with proper debouncing
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchTerm(value);
-    
-    // Clear existing timeout
-    if (searchDebounce) {
-      clearTimeout(searchDebounce);
+  // Handle search on Enter key press
+  const handleSearchSubmit = useCallback(() => {
+    if (onSearch) {
+      onSearch(searchTerm, pagination?.pageSize, sortField, sortDirection);
     }
-    
-    // Set new timeout for search
-    const timeout = setTimeout(() => {
-      if (onSearch) {
-        onSearch(value, pagination?.pageSize, sortField, sortDirection);
-      }
-    }, 500);
-    
-    setSearchDebounce(timeout);
-  }, [onSearch, pagination?.pageSize, sortField, sortDirection, searchDebounce]);
-  
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (searchDebounce) {
-        clearTimeout(searchDebounce);
-      }
-    };
-  }, [searchDebounce]);
+  }, [onSearch, searchTerm, pagination?.pageSize, sortField, sortDirection]);
+
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  }, [handleSearchSubmit]);
 
 
   const filteredAndSortedTasks = useMemo(() => {
@@ -443,9 +427,10 @@ export const TaskTable = ({
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search tasks..."
+                placeholder="Search tasks... (Press Enter to search)"
                 value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="pl-10"
               />
             </div>
@@ -575,9 +560,10 @@ export const TaskTable = ({
             <div className="relative max-w-md flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <Input
-                placeholder="Search tasks..."
+                placeholder="Search tasks... (Press Enter to search)"
                 value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="pl-10"
               />
             </div>
