@@ -16,7 +16,7 @@ import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, addMonths, format, parseISO } from "date-fns";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart, BarChart, Bar } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -777,7 +777,7 @@ export const FollowUpsPage = ({
       </div>
 
       {/* Time-based Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Projects Open Over Time Chart */}
         <Card>
           <CardHeader>
@@ -964,72 +964,64 @@ export const FollowUpsPage = ({
             </div>
            </CardContent>
         </Card>
-
-        {/* Planned vs Logged Hours Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned vs Logged Hours</CardTitle>
-            <CardDescription>Monthly comparison of planned hours vs actual logged hours</CardDescription>
-          </CardHeader>
-           <CardContent>
-               <div className="relative group">
-                 <ChartContainer
-                  config={{
-                    plannedHours: {
-                      label: "Planned Hours",
-                      color: "hsl(var(--chart-3))",
-                    },
-                    loggedHours: {
-                      label: "Logged Hours",
-                      color: "hsl(var(--chart-5))",
-                    },
-                  }}
-                  className="h-[300px]"
-                >
-                 <ResponsiveContainer width="100%" height="100%">
-                   <ComposedChart data={plannedVsLoggedChartData}>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                     <XAxis 
-                       dataKey="week" 
-                       axisLine={false}
-                       tickLine={false}
-                       className="text-xs"
-                       interval={0}
-                       angle={-45}
-                       textAnchor="end"
-                       height={60}
-                     />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="plannedHours" 
-                      stroke="hsl(var(--chart-3))" 
-                      strokeWidth={2}
-                      fill="hsl(var(--chart-3))"
-                      fillOpacity={0.1}
-                      dot={false}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="loggedHours" 
-                      stroke="hsl(var(--chart-5))" 
-                      strokeWidth={2}
-                      fill="hsl(var(--chart-5))"
-                      fillOpacity={0.2}
-                      dot={false}
-                    />
-                  </ComposedChart>
-                 </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-           </CardContent>
-        </Card>
       </div>
+
+      {/* Planned vs Logged Hours Chart - Full Width */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned vs Logged Hours</CardTitle>
+          <CardDescription>Monthly comparison of planned hours vs actual logged hours</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="relative group">
+            <ChartContainer
+             config={{
+               plannedHours: {
+                 label: "Planned Hours",
+                 color: "hsl(var(--chart-3))",
+               },
+               loggedHours: {
+                 label: "Logged Hours",
+                 color: "hsl(var(--chart-5))",
+               },
+             }}
+             className="h-[400px]"
+           >
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={plannedVsLoggedChartData}>
+               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis 
+                  dataKey="week" 
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs"
+                  interval={0}
+                  angle={-45}
+                  textAnchor="end"
+                  height={60}
+                />
+               <YAxis 
+                 axisLine={false}
+                 tickLine={false}
+                 className="text-xs"
+               />
+               <ChartTooltip content={<ChartTooltipContent />} />
+               <Bar 
+                 dataKey="plannedHours" 
+                 fill="hsl(var(--chart-3))" 
+                 radius={[2, 2, 0, 0]}
+               />
+               <Bar 
+                 dataKey="loggedHours" 
+                 fill="hsl(var(--chart-5))" 
+                 radius={[2, 2, 0, 0]}
+               />
+             </BarChart>
+            </ResponsiveContainer>
+         </ChartContainer>
+       </div>
+       </CardContent>
+      </Card>
 
       {/* Unified Filters Section */}
       <Card>
