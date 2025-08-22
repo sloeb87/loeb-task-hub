@@ -12,6 +12,7 @@ import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useTaskForm } from "@/contexts/TaskFormContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -570,7 +571,17 @@ export const ProjectDetailView = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {allOpenProjectTasks.length > 0 ? (
+              {loadingProjectTasks ? (
+                <div className="space-y-4">
+                  <div className="space-y-3">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-12 w-full" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : allOpenProjectTasks.length > 0 ? (
                 <div className="space-y-4">
                   <TaskTable 
                     tasks={projectTasks} 
@@ -660,66 +671,78 @@ export const ProjectDetailView = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <TaskTable 
-                    tasks={completedProjectTasks} 
-                    onEditTask={handleEditTaskLocal}
-                    onFollowUp={handleFollowUpLocal}
-                    hideProjectColumn={true}
-                    pagination={completedTasksPagination}
-                    onPageChange={setCompletedTasksCurrentPage}
-                  />
-                  
-                  {/* Pagination Controls for Completed Tasks */}
-                  {completedTasksPagination.totalPages > 1 && (
-                    <div className="flex justify-center">
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (completedTasksCurrentPage > 1) {
-                                  setCompletedTasksCurrentPage(completedTasksCurrentPage - 1);
-                                }
-                              }}
-                              className={completedTasksCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                            />
-                          </PaginationItem>
-                          
-                          {Array.from({ length: completedTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
-                            <PaginationItem key={page}>
-                              <PaginationLink
+                {loadingProjectTasks ? (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <TaskTable 
+                      tasks={completedProjectTasks} 
+                      onEditTask={handleEditTaskLocal}
+                      onFollowUp={handleFollowUpLocal}
+                      hideProjectColumn={true}
+                      pagination={completedTasksPagination}
+                      onPageChange={setCompletedTasksCurrentPage}
+                    />
+                    
+                    {/* Pagination Controls for Completed Tasks */}
+                    {completedTasksPagination.totalPages > 1 && (
+                      <div className="flex justify-center">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
                                 href="#"
-                                isActive={page === completedTasksCurrentPage}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  setCompletedTasksCurrentPage(page);
+                                  if (completedTasksCurrentPage > 1) {
+                                    setCompletedTasksCurrentPage(completedTasksCurrentPage - 1);
+                                  }
                                 }}
-                              >
-                                {page}
-                              </PaginationLink>
+                                className={completedTasksCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                              />
                             </PaginationItem>
-                          ))}
-                          
-                          <PaginationItem>
-                            <PaginationNext 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (completedTasksCurrentPage < completedTasksPagination.totalPages) {
-                                  setCompletedTasksCurrentPage(completedTasksCurrentPage + 1);
-                                }
-                              }}
-                              className={completedTasksCurrentPage === completedTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
-                            />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                    </div>
-                  )}
-                </div>
+                            
+                            {Array.from({ length: completedTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={page === completedTasksCurrentPage}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setCompletedTasksCurrentPage(page);
+                                  }}
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (completedTasksCurrentPage < completedTasksPagination.totalPages) {
+                                    setCompletedTasksCurrentPage(completedTasksCurrentPage + 1);
+                                  }
+                                }}
+                                className={completedTasksCurrentPage === completedTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -740,66 +763,78 @@ export const ProjectDetailView = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <TaskTable 
-                    tasks={paginatedMeetings} 
-                    onEditTask={handleEditTaskLocal}
-                    onFollowUp={handleFollowUpLocal}
-                    hideProjectColumn={true}
-                    pagination={meetingsPagination}
-                    onPageChange={setMeetingsCurrentPage}
-                  />
-                  
-                  {/* Pagination Controls for Meetings */}
-                  {meetingsPagination.totalPages > 1 && (
-                    <div className="flex justify-center">
-                      <Pagination>
-                        <PaginationContent>
-                          <PaginationItem>
-                            <PaginationPrevious 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (meetingsCurrentPage > 1) {
-                                  setMeetingsCurrentPage(meetingsCurrentPage - 1);
-                                }
-                              }}
-                              className={meetingsCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                            />
-                          </PaginationItem>
-                          
-                          {Array.from({ length: meetingsPagination.totalPages }, (_, i) => i + 1).map((page) => (
-                            <PaginationItem key={page}>
-                              <PaginationLink
+                {loadingProjectTasks ? (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <div key={i} className="space-y-2">
+                          <Skeleton className="h-12 w-full" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <TaskTable 
+                      tasks={paginatedMeetings} 
+                      onEditTask={handleEditTaskLocal}
+                      onFollowUp={handleFollowUpLocal}
+                      hideProjectColumn={true}
+                      pagination={meetingsPagination}
+                      onPageChange={setMeetingsCurrentPage}
+                    />
+                    
+                    {/* Pagination Controls for Meetings */}
+                    {meetingsPagination.totalPages > 1 && (
+                      <div className="flex justify-center">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
                                 href="#"
-                                isActive={page === meetingsCurrentPage}
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  setMeetingsCurrentPage(page);
+                                  if (meetingsCurrentPage > 1) {
+                                    setMeetingsCurrentPage(meetingsCurrentPage - 1);
+                                  }
                                 }}
-                              >
-                                {page}
-                              </PaginationLink>
+                                className={meetingsCurrentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                              />
                             </PaginationItem>
-                          ))}
-                          
-                          <PaginationItem>
-                            <PaginationNext 
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (meetingsCurrentPage < meetingsPagination.totalPages) {
-                                  setMeetingsCurrentPage(meetingsCurrentPage + 1);
-                                }
-                              }}
-                              className={meetingsCurrentPage === meetingsPagination.totalPages ? "pointer-events-none opacity-50" : ""}
-                            />
-                          </PaginationItem>
-                        </PaginationContent>
-                      </Pagination>
-                    </div>
-                  )}
-                </div>
+                            
+                            {Array.from({ length: meetingsPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  href="#"
+                                  isActive={page === meetingsCurrentPage}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    setMeetingsCurrentPage(page);
+                                  }}
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            ))}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (meetingsCurrentPage < meetingsPagination.totalPages) {
+                                    setMeetingsCurrentPage(meetingsCurrentPage + 1);
+                                  }
+                                }}
+                                className={meetingsCurrentPage === meetingsPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
