@@ -167,6 +167,7 @@ interface FormData {
   recurrenceType?: 'daily' | 'weekly' | 'monthly';
   recurrenceInterval: number;
   recurrenceEndDate?: string;
+  recurrenceDaysOfWeek: number[];
   occurrenceDate?: Date; // For showing/editing current occurrence of recurring tasks
 }
 
@@ -199,6 +200,7 @@ const DEFAULT_FORM_DATA: FormData = {
   recurrenceType: 'weekly',
   recurrenceInterval: 1,
   recurrenceEndDate: undefined,
+  recurrenceDaysOfWeek: [],
   occurrenceDate: undefined
 };
 
@@ -286,6 +288,7 @@ export const TaskFormOptimized = React.memo(({
         recurrenceType: task.recurrenceType,
         recurrenceInterval: task.recurrenceInterval || 1,
         recurrenceEndDate: task.recurrenceEndDate,
+        recurrenceDaysOfWeek: task.recurrenceDaysOfWeek || [],
         occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
       };
       
@@ -366,6 +369,7 @@ export const TaskFormOptimized = React.memo(({
       recurrenceType: formData.recurrenceType,
       recurrenceInterval: formData.recurrenceInterval,
       recurrenceEndDate: formData.recurrenceEndDate,
+      recurrenceDaysOfWeek: formData.recurrenceDaysOfWeek,
       ...(task && { 
         id: task.id, 
         creationDate: task.creationDate, 
@@ -584,6 +588,7 @@ export const TaskFormOptimized = React.memo(({
                       recurrenceType={formData.recurrenceType}
                       recurrenceInterval={formData.recurrenceInterval}
                       recurrenceEndDate={formData.recurrenceEndDate}
+                      recurrenceDaysOfWeek={formData.recurrenceDaysOfWeek}
                       taskId={task?.id}  // Pass the task ID for the generate button
                       onRecurrenceChange={(recurrence) => {
                         setFormData(prev => ({
@@ -591,7 +596,8 @@ export const TaskFormOptimized = React.memo(({
                           isRecurring: recurrence.isRecurring,
                           recurrenceType: recurrence.recurrenceType,
                           recurrenceInterval: recurrence.recurrenceInterval || 1,
-                          recurrenceEndDate: recurrence.recurrenceEndDate
+                          recurrenceEndDate: recurrence.recurrenceEndDate,
+                          recurrenceDaysOfWeek: recurrence.recurrenceDaysOfWeek || []
                         }));
                       }}
                     />
