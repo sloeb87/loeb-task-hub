@@ -27,6 +27,10 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const location = useLocation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  console.log('Index component rendered');
+
+  // ... rest of component
   
   // Time tracking hook
   const { startTimer } = useTimeTracking();
