@@ -606,6 +606,9 @@ export const ProjectDetailView = ({
             <CardContent>
               {loadingProjectTasks ? (
                 <div className="space-y-4">
+                  <div className="text-center py-4">
+                    <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                  </div>
                   <div className="space-y-3">
                     {Array.from({ length: 5 }).map((_, i) => (
                       <div key={i} className="space-y-2">
@@ -706,6 +709,9 @@ export const ProjectDetailView = ({
               <CardContent>
                 {loadingProjectTasks ? (
                   <div className="space-y-4">
+                    <div className="text-center py-4">
+                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                    </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="space-y-2">
@@ -798,6 +804,9 @@ export const ProjectDetailView = ({
               <CardContent>
                 {loadingProjectTasks ? (
                   <div className="space-y-4">
+                    <div className="text-center py-4">
+                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                    </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="space-y-2">
@@ -890,6 +899,9 @@ export const ProjectDetailView = ({
               <CardContent>
                 {loadingProjectTasks ? (
                   <div className="space-y-4">
+                    <div className="text-center py-4">
+                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                    </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <div key={i} className="space-y-2">
