@@ -161,7 +161,8 @@ export const TaskSummaryCardsOptimized = React.memo(({
     
     // Apply default sorting for All Tasks and Active filters
     if (onSortChange && (filter === 'all' || filter === 'active')) {
-      // Default sorting: Due Date (older to new) then by Priority (Critical, High, Medium, Low)
+      // For these filters, we want due date ascending (older first) as primary sort
+      // Priority will be handled as a secondary sort in the backend when needed
       onSortChange('dueDate', 'asc');
     }
   };

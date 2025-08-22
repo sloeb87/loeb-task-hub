@@ -137,7 +137,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     };
   }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
-  const [activeFilter, setActiveFilter] = useState<FilterType>("active");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit">("tasks");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
