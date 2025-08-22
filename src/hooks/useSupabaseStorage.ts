@@ -935,7 +935,7 @@ export function useSupabaseStorage() {
     if (error) throw error;
 
     // Refresh tasks to update local state
-    loadTasks();
+    await loadTasks();
     
     toast({ 
       title: 'Recurring tasks updated', 
