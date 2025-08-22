@@ -27,6 +27,9 @@ interface TaskTableProps {
   };
   onPageChange?: (page: number) => void;
   isLoading?: boolean;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
 }
 
 type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
@@ -52,11 +55,12 @@ export const TaskTable = ({
   hideProjectColumn = false, // Default to false for backward compatibility
   pagination,
   onPageChange,
-  isLoading = false
+  isLoading = false,
+  sortField = 'dueDate',
+  sortDirection = 'asc',
+  onSortChange
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
-  const [sortField, setSortField] = useState<SortField>('dueDate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<Filters>({
     scope: [],
@@ -179,13 +183,15 @@ export const TaskTable = ({
   }, [effectiveTasks, getTaskTime]);
 
   const handleSort = useCallback((field: SortField) => {
+    if (!onSortChange) return;
+    
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+      onSortChange(field, newDirection);
     } else {
-      setSortField(field);
-      setSortDirection('asc');
+      onSortChange(field, 'asc');
     }
-  }, [sortField, sortDirection]);
+  }, [sortField, sortDirection, onSortChange]);
 
   const handleFilterChange = useCallback((filterType: keyof Filters, value: string, checked: boolean) => {
     setFilters(prev => ({
@@ -246,42 +252,9 @@ export const TaskTable = ({
         }
         
         return true;
-      })
-      .sort((a, b) => {
-        let aValue: string | number = sortField === 'scope' ? a[sortField].join(', ') : a[sortField];
-        let bValue: string | number = sortField === 'scope' ? b[sortField].join(', ') : b[sortField];
-
-        if (sortField === 'dueDate') {
-          const aTime = new Date(aValue as string).getTime();
-          const bTime = new Date(bValue as string).getTime();
-
-          if (aTime !== bTime) {
-            return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
-          }
-
-          // Tie-breaker: fixed priority order Critical > High > Medium > Low
-          const priorityOrder: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
-          const aPri = priorityOrder[a.priority] || 0;
-          const bPri = priorityOrder[b.priority] || 0;
-          // Higher priority first regardless of date sort direction
-          if (aPri !== bPri) return bPri - aPri;
-
-          // Final tie-breaker: title
-          return a.title.localeCompare(b.title);
-        }
-
-        if (sortField === 'priority') {
-          const priorityOrder: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
-          const aPri = priorityOrder[a.priority] || 0;
-          const bPri = priorityOrder[b.priority] || 0;
-          return sortDirection === 'asc' ? aPri - bPri : bPri - aPri;
-        }
-
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
       });
-  }, [effectiveTasks, searchTerm, filters, sortField, sortDirection, getTaskTime]);
+      // Removed sorting logic - now handled at database level
+  }, [effectiveTasks, searchTerm, filters, getTaskTime]);
 
   const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <div 

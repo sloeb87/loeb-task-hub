@@ -153,7 +153,12 @@ export function useSupabaseStorage() {
     };
   };
 
-  const loadTasks = useCallback(async (page: number = 1, pageSize: number = 50) => {
+  const loadTasks = useCallback(async (
+    page: number = 1, 
+    pageSize: number = 50, 
+    sortField: string = 'due_date', 
+    sortDirection: 'asc' | 'desc' = 'asc'
+  ) => {
     if (!isAuthenticated || !user) {
       setTasks([]);
       setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
@@ -175,16 +180,53 @@ export function useSupabaseStorage() {
       const totalTasks = count || 0;
       const totalPages = Math.ceil(totalTasks / pageSize);
       
-      // Then get the paginated data
+      // Then get the paginated data with sorting
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       
-      const { data, error } = await supabase
+      // Map frontend sort fields to database columns
+      const dbSortField = (() => {
+        switch (sortField) {
+          case 'dueDate': return 'due_date';
+          case 'taskType': return 'task_type';
+          case 'scope': return 'scope';
+          case 'project': return 'project_id';
+          case 'status': return 'status';
+          case 'priority': return 'priority';
+          case 'responsible': return 'responsible';
+          case 'environment': return 'environment';
+          case 'title': return 'title';
+          case 'id': return 'task_number';
+          default: return 'due_date';
+        }
+      })();
+
+      let query = supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+        .eq('user_id', user.id);
+
+      // Handle special sorting cases
+      if (sortField === 'priority') {
+        // Custom priority sorting: Critical > High > Medium > Low
+        query = query.order(
+          `CASE 
+            WHEN priority = 'Critical' THEN 4 
+            WHEN priority = 'High' THEN 3 
+            WHEN priority = 'Medium' THEN 2 
+            WHEN priority = 'Low' THEN 1 
+            ELSE 0 
+          END`,
+          { ascending: sortDirection === 'desc' }
+        );
+      } else {
+        query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
+      }
+
+      // Apply pagination
+      query = query.range(from, to);
+
+      const { data, error } = await query;
 
       if (error) throw error;
 

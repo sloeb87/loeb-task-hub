@@ -138,6 +138,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit">("tasks");
+  const [sortField, setSortField] = useState<string>('dueDate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Handle navigation state from chart clicks
   useEffect(() => {
@@ -343,6 +345,18 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     setTimeout(() => setProjectToShowDetails(null), 100);
   }, []);
 
+  // Pagination and sorting handlers
+  const handlePageChange = useCallback((page: number) => {
+    loadTasks(page, 50, sortField, sortDirection);
+  }, [loadTasks, sortField, sortDirection]);
+
+  const handleSortChange = useCallback((field: string, direction: 'asc' | 'desc') => {
+    setSortField(field);
+    setSortDirection(direction);
+    // Reload tasks with new sorting, reset to page 1
+    loadTasks(1, 50, field, direction);
+  }, [loadTasks]);
+
   // Show loading state
   if (isLoading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
@@ -449,8 +463,11 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                     onEditTask={handleEditTask} 
                     onFollowUp={handleFollowUpTask}
                     pagination={pagination}
-                    onPageChange={loadTasks}
+                    onPageChange={handlePageChange}
                     isLoading={isLoading}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onSortChange={handleSortChange}
                   />
                 </>
               ) : location.state?.dateFilter ? (
