@@ -345,7 +345,7 @@ export const ProjectTable = ({
                   </div>
                 </TableHead>
                 <TableHead style={{
-                minWidth: '300px'
+                minWidth: '200px'
               }}>
                   <div className="flex items-center gap-1">
                     Project Name
@@ -424,7 +424,9 @@ export const ProjectTable = ({
                           <span className="text-base font-medium text-green-700 dark:text-green-400">{project.id}</span>
                           <h3 className="text-base font-medium text-foreground">{project.name}</h3>
                         </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">{project.description}</p>
+                        {project.description && (
+                          <p className="text-sm text-muted-foreground">{project.description}</p>
+                        )}
                       </div>
                     </TableCell>
 
