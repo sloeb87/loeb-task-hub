@@ -44,6 +44,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     pagination,
     taskCounts,
     loadTasks,
+    searchTasks,
     loadAllTasksForProject,
     createTask,
     updateTask,
@@ -465,17 +466,18 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 
               {filteredTasks.length > 0 ? (
                 <>
-                  <TaskTable 
-                    tasks={filteredTasks} 
-                    onEditTask={handleEditTask} 
-                    onFollowUp={handleFollowUpTask}
-                    pagination={pagination}
-                    onPageChange={handlePageChange}
-                    isLoading={isLoading}
-                    sortField={sortField}
-                    sortDirection={sortDirection}
-                    onSortChange={handleSortChange}
-                  />
+              <TaskTable 
+                tasks={filteredTasks} 
+                onEditTask={handleEditTask} 
+                onFollowUp={handleFollowUpTask}
+                pagination={pagination}
+                onPageChange={handlePageChange}
+                isLoading={isLoading}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSortChange={handleSortChange}
+                onSearch={searchTasks}
+              />
                 </>
               ) : location.state?.dateFilter ? (
                 <Card>

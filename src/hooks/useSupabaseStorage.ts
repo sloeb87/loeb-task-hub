@@ -367,6 +367,111 @@ export function useSupabaseStorage() {
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
 
+  // Search through ALL tasks (no pagination)
+  const searchTasks = useCallback(async (
+    searchTerm: string,
+    pageSize: number = 50,
+    sortField: string = 'due_date', 
+    sortDirection: 'asc' | 'desc' = 'asc'
+  ) => {
+    if (!isAuthenticated || !user) {
+      console.log('searchTasks: No authentication or user');
+      setTasks([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
+      setIsLoading(false);
+      return;
+    }
+
+    if (!searchTerm.trim()) {
+      // If no search term, load regular paginated tasks
+      loadTasks(1, pageSize, sortField, sortDirection);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Map frontend sort fields to database columns
+      const dbSortField = (() => {
+        switch (sortField) {
+          case 'dueDate': return 'due_date';
+          case 'taskType': return 'task_type';
+          case 'scope': return 'scope';
+          case 'project': return 'project_id';
+          case 'status': return 'status';
+          case 'priority': return 'priority';
+          case 'responsible': return 'responsible';
+          case 'environment': return 'environment';
+          case 'title': return 'title';
+          case 'id': return 'task_number';
+          default: return 'due_date';
+        }
+      })();
+
+      // Search across ALL tasks (no pagination limit)
+      let query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // Add search conditions for multiple fields
+      query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%`);
+
+      // Apply sorting
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        query = query.order('due_date', { ascending: true });
+      } else {
+        query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      console.log(`Search found ${data?.length || 0} tasks for term: "${searchTerm}"`);
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(convertSupabaseTaskToTask)
+      );
+
+      // Apply client-side priority sorting if needed
+      let sortedTasks = convertedTasks;
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+        
+        sortedTasks = convertedTasks.sort((a, b) => {
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          if (dateA !== dateB) {
+            return dateA - dateB;
+          }
+          
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          return priorityB - priorityA;
+        });
+      }
+
+      // For search results, show all results but update pagination info
+      const totalTasks = sortedTasks.length;
+      const totalPages = Math.ceil(totalTasks / pageSize);
+      
+      setTasks(sortedTasks);
+      setPagination({
+        currentPage: 1, // Always show page 1 for search results
+        pageSize,
+        totalTasks,
+        totalPages
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Error searching tasks:', err);
+      setError(err instanceof Error ? err.message : 'Failed to search tasks');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask, loadTasks]);
+
   useEffect(() => {
     if (isAuthenticated) {
       loadTasks();
@@ -1106,6 +1211,7 @@ export function useSupabaseStorage() {
     pagination,
     taskCounts,
     loadTasks,
+    searchTasks,
     loadAllTasksForProject,
     createTask,
     updateTask,

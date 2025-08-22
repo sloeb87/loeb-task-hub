@@ -31,6 +31,7 @@ interface TaskTableProps {
   sortField?: string;
   sortDirection?: 'asc' | 'desc';
   onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
+  onSearch?: (searchTerm: string, pageSize?: number, sortField?: string, sortDirection?: 'asc' | 'desc') => void;
 }
 
 type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
@@ -59,10 +60,12 @@ export const TaskTable = ({
   isLoading = false,
   sortField = 'dueDate',
   sortDirection = 'asc',
-  onSortChange
+  onSortChange,
+  onSearch
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
+  const [searchDebounce, setSearchDebounce] = useState<NodeJS.Timeout | null>(null);
   const [filters, setFilters] = useState<Filters>({
     scope: [],
     status: [],
@@ -216,6 +219,34 @@ export const TaskTable = ({
   const clearFilter = useCallback((filterType: keyof Filters) => {
     setFilters(prev => ({ ...prev, [filterType]: [] }));
   }, []);
+
+  // Handle search with proper debouncing
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    
+    // Clear existing timeout
+    if (searchDebounce) {
+      clearTimeout(searchDebounce);
+    }
+    
+    // Set new timeout for search
+    const timeout = setTimeout(() => {
+      if (onSearch) {
+        onSearch(value, pagination?.pageSize, sortField, sortDirection);
+      }
+    }, 500);
+    
+    setSearchDebounce(timeout);
+  }, [onSearch, pagination?.pageSize, sortField, sortDirection, searchDebounce]);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchDebounce) {
+        clearTimeout(searchDebounce);
+      }
+    };
+  }, [searchDebounce]);
 
 
   const filteredAndSortedTasks = useMemo(() => {
@@ -414,7 +445,7 @@ export const TaskTable = ({
               <Input
                 placeholder="Search tasks..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -546,7 +577,7 @@ export const TaskTable = ({
               <Input
                 placeholder="Search tasks..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-10"
               />
             </div>
