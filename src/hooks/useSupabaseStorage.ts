@@ -737,8 +737,8 @@ export function useSupabaseStorage() {
       }
     }
 
-    // Add follow-up comment if task was just completed
-    if (isBeingCompleted) {
+    // Add follow-up comment if task was just completed (except for Meeting tasks)
+    if (isBeingCompleted && updatedTask.taskType !== 'Meeting') {
       const { error: followUpError } = await supabase
         .from('follow_ups')
         .insert({
