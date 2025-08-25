@@ -96,17 +96,17 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
         
         {/* Task info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-sm font-semibold text-timer-text truncate max-w-48 leading-tight">
+          <span className="text-sm font-semibold text-green-600 dark:text-green-400 truncate max-w-48 leading-tight">
             {runningTaskData.task.title}
           </span>
           <div className="flex items-center space-x-2 text-xs">
-            <span className="text-timer-text/80 truncate">
+            <span className="text-green-600/80 dark:text-green-400/80 truncate">
               {runningTaskData.task.project} • {runningTaskData.task.id}
             </span>
             {currentDuration && (
               <>
-                <span className="text-timer-accent">•</span>
-                <span className="font-mono font-bold text-timer-accent">
+                <span className="text-green-500">•</span>
+                <span className="font-mono font-bold text-green-500">
                   {currentDuration}
                 </span>
               </>
