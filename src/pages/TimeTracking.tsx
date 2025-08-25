@@ -301,18 +301,18 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   }, [projectPieData]);
 
   const chartColors = useMemo(() => [
-    'hsl(var(--chart-1))',   // neon cyan
-    'hsl(var(--chart-2))',   // electric violet
-    'hsl(var(--chart-3))',   // neon green
-    'hsl(var(--chart-4))',   // tech blue
-    'hsl(var(--chart-5))',   // neon magenta
-    'hsl(var(--chart-6))',   // neon amber
-    'hsl(var(--chart-7))',   // neon pink-red
-    'hsl(var(--chart-8))',   // azure glow
-    'hsl(var(--chart-9))',   // laser lime
-    'hsl(var(--chart-10))',  // ultraviolet
-    'hsl(var(--chart-11))',  // neon orange
-    'hsl(var(--chart-12))',  // neon red
+    'hsl(var(--chart-1) / 0.7)',   // neon cyan
+    'hsl(var(--chart-2) / 0.7)',   // electric violet
+    'hsl(var(--chart-3) / 0.7)',   // neon green
+    'hsl(var(--chart-4) / 0.7)',   // tech blue
+    'hsl(var(--chart-5) / 0.7)',   // neon magenta
+    'hsl(var(--chart-6) / 0.7)',   // neon amber
+    'hsl(var(--chart-7) / 0.7)',   // neon pink-red
+    'hsl(var(--chart-8) / 0.7)',   // azure glow
+    'hsl(var(--chart-9) / 0.7)',   // laser lime
+    'hsl(var(--chart-10) / 0.7)',  // ultraviolet
+    'hsl(var(--chart-11) / 0.7)',  // neon orange
+    'hsl(var(--chart-12) / 0.7)',  // neon red
   ], []);
 
   const formatTime = (minutes: number) => {
