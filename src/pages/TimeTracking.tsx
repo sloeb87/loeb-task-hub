@@ -940,8 +940,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                        labelLine={true}
                      >
                        {projectPieData.map((entry, index) => {
-                         // Use scope color for project chart as requested
-                         const color = getScopeColor(entry.name);
+                         // Find the project and use its scope color
+                         const project = projects.find(p => p.name === entry.name);
+                         const projectScope = Array.isArray(project?.scope) 
+                           ? project?.scope[0] || 'Unassigned'
+                           : project?.scope || 'Unassigned';
+                         const color = getScopeColor(projectScope);
                          return (
                            <Cell 
                              key={`project-${entry.name}-${index}`} 
@@ -1181,7 +1185,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         let color;
                         // Use appropriate color based on chart type
                         if (detailModalData.type === 'project') {
-                          color = getScopeColor(entry.name); // Use scope color for project as requested
+                          // Find the project and use its scope color
+                          const project = projects.find(p => p.name === entry.name);
+                          const projectScope = Array.isArray(project?.scope) 
+                            ? project?.scope[0] || 'Unassigned'
+                            : project?.scope || 'Unassigned';
+                          color = getScopeColor(projectScope);
                         } else if (detailModalData.type === 'taskType') {
                           color = getTaskTypeColor(entry.name);
                         } else if (detailModalData.type === 'scope') {
@@ -1229,7 +1238,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                                 style={{ 
                                   background: (() => {
                                     if (detailModalData.type === 'project') {
-                                      return getScopeColor(item.name); // Use scope color for project
+                                      // Find the project and use its scope color
+                                      const project = projects.find(p => p.name === item.name);
+                                      const projectScope = Array.isArray(project?.scope) 
+                                        ? project?.scope[0] || 'Unassigned'
+                                        : project?.scope || 'Unassigned';
+                                      return getScopeColor(projectScope);
                                     } else if (detailModalData.type === 'taskType') {
                                       return getTaskTypeColor(item.name);
                                     } else if (detailModalData.type === 'scope') {
