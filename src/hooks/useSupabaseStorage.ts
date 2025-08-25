@@ -70,11 +70,25 @@ export function useSupabaseStorage() {
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
-    // Fetch follow-ups for this task
-    const { data: followUpsData, error: followUpsError } = await supabase
+    // For recurring tasks, fetch follow-ups for all tasks in the series
+    // If this task has a parent_task_id, use that; otherwise use its own ID if it's a recurring parent
+    const followUpTaskId = (supabaseTask as any).parent_task_id || 
+                          ((supabaseTask as any).is_recurring ? supabaseTask.id : supabaseTask.id);
+    
+    // Fetch follow-ups for this task (or all tasks in recurring series)
+    let followUpsQuery = supabase
       .from('follow_ups')
-      .select('id, text, created_at, task_status')
-      .eq('task_id', supabaseTask.id)
+      .select('id, text, created_at, task_status');
+    
+    if ((supabaseTask as any).parent_task_id || (supabaseTask as any).is_recurring) {
+      // For recurring tasks, get follow-ups from all instances in the series
+      followUpsQuery = followUpsQuery.eq('task_id', followUpTaskId);
+    } else {
+      // For non-recurring tasks, get follow-ups only for this specific task
+      followUpsQuery = followUpsQuery.eq('task_id', supabaseTask.id);
+    }
+    
+    const { data: followUpsData, error: followUpsError } = await followUpsQuery
       .order('created_at', { ascending: false });
 
     if (followUpsError) {
@@ -834,10 +848,10 @@ export function useSupabaseStorage() {
     console.log('addFollowUp called with:', { taskId, followUpText });
     if (!user) throw new Error('User not authenticated');
 
-    // Find the task by task_number and get current status
+    // Find the task by task_number and get current status plus recurring info
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
-      .select('id, status')
+      .select('id, status, parent_task_id, is_recurring')
       .eq('task_number', taskId)
       .eq('user_id', user.id)
       .maybeSingle();
@@ -853,10 +867,14 @@ export function useSupabaseStorage() {
       .eq('user_id', user.id)
       .maybeSingle();
 
+    // For recurring tasks, use the parent task ID (or original task ID if this is the parent)
+    const followUpTaskId = existingTask.parent_task_id || 
+                          (existingTask.is_recurring ? existingTask.id : existingTask.id);
+
     const { error } = await supabase
       .from('follow_ups')
       .insert({
-        task_id: existingTask.id,
+        task_id: followUpTaskId,
         text: followUpText,
         task_status: existingTask.status,
         created_at: new Date().toISOString()
