@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -268,6 +268,48 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   const allTimeEntries = getFilteredTimeEntries({});
   const totalStats = useMemo(() => getTimeEntryStats(allTimeEntries), [getTimeEntryStats, allTimeEntries]);
 
+  // Pareto transformation - focuses on top 80% contributors
+  const applyParetoLogic = useCallback((data: Array<{name: string, value: number, percent: number}>) => {
+    if (data.length === 0) return data;
+    
+    const sortedData = [...data].sort((a, b) => b.value - a.value);
+    const total = sortedData.reduce((sum, item) => sum + item.value, 0);
+    
+    let cumulative = 0;
+    let paretoIndex = -1;
+    
+    // Find items that contribute to ~80% of total
+    for (let i = 0; i < sortedData.length; i++) {
+      cumulative += sortedData[i].value;
+      if (cumulative >= total * 0.8) {
+        paretoIndex = i;
+        break;
+      }
+    }
+    
+    // If we only have 1-3 items or pareto would include almost everything, return as-is
+    if (paretoIndex <= 2 || paretoIndex >= sortedData.length - 1) {
+      return sortedData;
+    }
+    
+    // Create pareto data with "Others" category
+    const paretoItems = sortedData.slice(0, paretoIndex + 1);
+    const othersItems = sortedData.slice(paretoIndex + 1);
+    
+    if (othersItems.length > 0) {
+      const othersValue = othersItems.reduce((sum, item) => sum + item.value, 0);
+      const othersPercent = total ? Math.round((othersValue / total) * 1000) / 10 : 0;
+      
+      paretoItems.push({
+        name: `Others (${othersItems.length})`,
+        value: othersValue,
+        percent: othersPercent
+      });
+    }
+    
+    return paretoItems;
+  }, []);
+
   // Project distribution for Pie Chart (% by project) based on filtered entries - with Pareto logic
   const projectPieData = useMemo(() => {
     const totals: Record<string, number> = {};
@@ -339,48 +381,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
 
   const formatPercentComma = (num: number) => num.toFixed(2).replace('.', ',');
   const formatPercentCeil = (num: number) => String(Math.min(100, Math.ceil(num)));
-
-  // Pareto transformation - focuses on top 80% contributors
-  const applyParetoLogic = (data: Array<{name: string, value: number, percent: number}>) => {
-    if (data.length === 0) return data;
-    
-    const sortedData = [...data].sort((a, b) => b.value - a.value);
-    const total = sortedData.reduce((sum, item) => sum + item.value, 0);
-    
-    let cumulative = 0;
-    let paretoIndex = -1;
-    
-    // Find items that contribute to ~80% of total
-    for (let i = 0; i < sortedData.length; i++) {
-      cumulative += sortedData[i].value;
-      if (cumulative >= total * 0.8) {
-        paretoIndex = i;
-        break;
-      }
-    }
-    
-    // If we only have 1-3 items or pareto would include almost everything, return as-is
-    if (paretoIndex <= 2 || paretoIndex >= sortedData.length - 1) {
-      return sortedData;
-    }
-    
-    // Create pareto data with "Others" category
-    const paretoItems = sortedData.slice(0, paretoIndex + 1);
-    const othersItems = sortedData.slice(paretoIndex + 1);
-    
-    if (othersItems.length > 0) {
-      const othersValue = othersItems.reduce((sum, item) => sum + item.value, 0);
-      const othersPercent = total ? Math.round((othersValue / total) * 1000) / 10 : 0;
-      
-      paretoItems.push({
-        name: `Others (${othersItems.length})`,
-        value: othersValue,
-        percent: othersPercent
-      });
-    }
-    
-    return paretoItems;
-  };
 
   const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
   // Outside multi-line label positioned near its slice; computes % from dataset total
