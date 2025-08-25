@@ -566,9 +566,9 @@ export const TaskFormOptimized = React.memo(({
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select environment" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                       {environments.map((env) => (
-                        <SelectItem key={env} value={env}>
+                        <SelectItem key={env} value={env} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                           {env}
                         </SelectItem>
                       ))}
@@ -582,9 +582,9 @@ export const TaskFormOptimized = React.memo(({
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select task type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                       {taskTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
+                        <SelectItem key={type} value={type} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                           {type}
                         </SelectItem>
                       ))}
@@ -600,9 +600,9 @@ export const TaskFormOptimized = React.memo(({
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                       {statuses.map((status) => (
-                        <SelectItem key={status} value={status}>
+                        <SelectItem key={status} value={status} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                           {status}
                         </SelectItem>
                       ))}
@@ -616,9 +616,9 @@ export const TaskFormOptimized = React.memo(({
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select priority" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
                       {priorities.map((priority) => (
-                        <SelectItem key={priority} value={priority}>
+                        <SelectItem key={priority} value={priority} className="hover:bg-gray-100 dark:hover:bg-gray-700">
                           {priority}
                         </SelectItem>
                       ))}
