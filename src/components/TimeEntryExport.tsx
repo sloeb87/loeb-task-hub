@@ -127,7 +127,7 @@ export const TimeEntryExport = ({ entries, filters, onExport }: TimeEntryExportP
     XLSX.writeFile(wb, filename);
   };
 
-  const totalTime = Math.round(entries.reduce((sum, entry) => sum + (entry.duration || 0), 0) * 1.15);
+  const totalTime = Math.round(entries.reduce((sum, entry) => sum + (entry.duration || 0), 0) * 1.10);
   const completedEntries = entries.filter(entry => !entry.isRunning).length;
 
   return (
