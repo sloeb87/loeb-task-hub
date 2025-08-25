@@ -11,8 +11,8 @@ interface OverdueAnalysisChartProps {
 
 export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount }: OverdueAnalysisChartProps) => {
   const data = [
-    { name: 'Overdue', value: overdueCount, color: 'hsl(var(--chart-8))' },
-    { name: 'On Track', value: notOverdueCount, color: 'hsl(var(--chart-4))' }
+    { name: 'Overdue', value: overdueCount, color: 'hsl(200, 100%, 60%)' },
+    { name: 'On Track', value: notOverdueCount, color: 'hsl(180, 100%, 70%)' }
   ];
 
   const RADIAN = Math.PI / 180;
@@ -25,11 +25,15 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
       <text 
         x={x} 
         y={y} 
-        fill="white" 
+        fill="hsl(200, 100%, 80%)" 
         textAnchor={x > cx ? 'start' : 'end'} 
         dominantBaseline="central"
-        fontSize={14}
-        fontWeight="bold"
+        fontSize={16}
+        fontWeight="600"
+        style={{
+          filter: 'drop-shadow(0 0 4px hsl(200, 100%, 60%))',
+          fontFamily: 'monospace'
+        }}
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
@@ -44,18 +48,28 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
           <span>Overdue Analysis</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-cyan-500/5 rounded-lg"></div>
         <ResponsiveContainer width="100%" height={400}>
           <PieChart>
             <defs>
-              <linearGradient id="overdueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.02} />
+              <linearGradient id="overdueGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="hsl(0, 80%, 60%)" stopOpacity={0.8} />
+                <stop offset="50%" stopColor="hsl(340, 100%, 70%)" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="hsl(200, 100%, 60%)" stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id="onTrackGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.02} />
+              <linearGradient id="onTrackGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="hsl(200, 100%, 60%)" stopOpacity={0.8} />
+                <stop offset="50%" stopColor="hsl(180, 100%, 70%)" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="hsl(200, 100%, 80%)" stopOpacity={0.1} />
               </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge> 
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
             </defs>
             <Pie
               data={data}
@@ -63,9 +77,13 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
               cy="50%"
               labelLine={false}
               label={renderCustomizedLabel}
-              outerRadius={120}
-              fill="hsl(var(--chart-8))"
+              innerRadius={60}
+              outerRadius={140}
+              fill="hsl(200, 100%, 60%)"
               dataKey="value"
+              stroke="hsl(200, 100%, 60%)"
+              strokeWidth={2}
+              filter="url(#glow)"
             >
               {data.map((entry, index) => (
                 <Cell 
@@ -74,8 +92,23 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
                 />
               ))}
             </Pie>
-            <Tooltip />
-            <Legend />
+            <Tooltip 
+              contentStyle={{
+                backgroundColor: 'hsl(220, 30%, 10%)',
+                border: '1px solid hsl(200, 100%, 60%)',
+                borderRadius: '8px',
+                boxShadow: '0 0 20px hsl(200, 100%, 60%, 0.3)',
+                color: 'hsl(200, 100%, 80%)',
+                fontFamily: 'monospace'
+              }}
+            />
+            <Legend 
+              wrapperStyle={{
+                color: 'hsl(200, 100%, 80%)',
+                fontFamily: 'monospace',
+                fontSize: '14px'
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
       </CardContent>
