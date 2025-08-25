@@ -906,72 +906,66 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           </CardHeader>
           <CardContent>
               <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
-                 <ChartContainer config={projectChartConfig} className="h-72 w-full">
-                   <PieChart>
-                     <defs>
-                       <linearGradient id="projectPieGradient" x1="0" y1="0" x2="0" y2="1">
-                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
-                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
-                       </linearGradient>
-                     </defs>
-                     <ChartTooltip
-                       content={
-                         <ChartTooltipContent
-                           formatter={(value: number, name: string) => {
-                             const minutes = Number(value) || 0;
-                              const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
-                              return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
-
-                           }}
-                         />
-                       }
-                     />
-                      <Pie
-                        data={projectPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        startAngle={90}
-                        endAngle={-270}
-                        innerRadius={70}
-                        outerRadius={110}
-                        strokeWidth={3}
-                        stroke="hsl(var(--background))"
-                        label={makePieLabelOutside(projectTotal)}
-                        labelLine={true}
-                      >
-                        <defs>
-                          {projectPieData.map((entry, index) => {
-                            // Find the project and use its scope color
-                            const project = projects.find(p => p.name === entry.name);
-                            const projectScope = Array.isArray(project?.scope) 
-                              ? project?.scope[0] || 'Unassigned'
-                              : project?.scope || 'Unassigned';
-                            const color = getScopeColor(projectScope);
-                            return (
-                              <linearGradient key={`projectGradient-${index}`} id={`projectGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
-                              </linearGradient>
-                            );
-                          })}
-                        </defs>
+                  <ChartContainer config={projectChartConfig} className="h-72 w-full">
+                    <PieChart>
+                      <defs>
                         {projectPieData.map((entry, index) => {
-                          // Find the project and use its scope color for stroke
+                          // Find the project and use its scope color
                           const project = projects.find(p => p.name === entry.name);
                           const projectScope = Array.isArray(project?.scope) 
                             ? project?.scope[0] || 'Unassigned'
                             : project?.scope || 'Unassigned';
                           const color = getScopeColor(projectScope);
                           return (
-                            <Cell 
-                              key={`project-${entry.name}-${index}`} 
-                              fill={`url(#projectGradient-${index})`}
-                              stroke={color}
-                              strokeWidth={1.5}
-                            />
+                            <linearGradient key={`projectGradient-${index}`} id={`projectGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
+                            </linearGradient>
                           );
                         })}
-                      </Pie>
+                      </defs>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number, name: string) => {
+                              const minutes = Number(value) || 0;
+                               const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
+                               return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+
+                            }}
+                          />
+                        }
+                      />
+                       <Pie
+                         data={projectPieData}
+                         dataKey="value"
+                         nameKey="name"
+                         startAngle={90}
+                         endAngle={-270}
+                         innerRadius={70}
+                         outerRadius={110}
+                         strokeWidth={3}
+                         stroke="hsl(var(--background))"
+                         label={makePieLabelOutside(projectTotal)}
+                         labelLine={true}
+                       >
+                         {projectPieData.map((entry, index) => {
+                           // Find the project and use its scope color for stroke
+                           const project = projects.find(p => p.name === entry.name);
+                           const projectScope = Array.isArray(project?.scope) 
+                             ? project?.scope[0] || 'Unassigned'
+                             : project?.scope || 'Unassigned';
+                           const color = getScopeColor(projectScope);
+                           return (
+                             <Cell 
+                               key={`project-${entry.name}-${index}`} 
+                               fill={`url(#projectGradient-${index})`}
+                               stroke={color}
+                               strokeWidth={1.5}
+                             />
+                           );
+                         })}
+                       </Pie>
                   </PieChart>
                 </ChartContainer>
 
@@ -998,20 +992,31 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <CardContent>
             {taskTypePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
-                   <PieChart>
-                     <ChartTooltip
-                       content={
-                         <ChartTooltipContent
-                           formatter={(value: number, name: string) => {
-                             const minutes = Number(value) || 0;
-                              const pct = taskTypeTotal > 0 ? formatPercentCeil((minutes / taskTypeTotal) * 100) : '0';
-                              return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                  <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
+                    <PieChart>
+                      <defs>
+                        {taskTypePieData.map((entry, index) => {
+                          const color = getTaskTypeColor(entry.name);
+                          return (
+                            <linearGradient key={`taskTypeGradient-${index}`} id={`taskTypeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
+                            </linearGradient>
+                          );
+                        })}
+                      </defs>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number, name: string) => {
+                              const minutes = Number(value) || 0;
+                               const pct = taskTypeTotal > 0 ? formatPercentCeil((minutes / taskTypeTotal) * 100) : '0';
+                               return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
 
-                           }}
-                         />
-                       }
-                     />
+                            }}
+                          />
+                        }
+                      />
                       <Pie
                         data={taskTypePieData}
                         dataKey="value"
@@ -1025,17 +1030,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         label={makePieLabelOutside(taskTypeTotal)}
                         labelLine={true}
                       >
-                        <defs>
-                          {taskTypePieData.map((entry, index) => {
-                            const color = getTaskTypeColor(entry.name);
-                            return (
-                              <linearGradient key={`taskTypeGradient-${index}`} id={`taskTypeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
-                              </linearGradient>
-                            );
-                          })}
-                        </defs>
                         {taskTypePieData.map((entry, index) => {
                           const color = getTaskTypeColor(entry.name);
                           return (
@@ -1067,20 +1061,31 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <CardContent>
             {scopePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
-                   <PieChart>
-                     <ChartTooltip
-                       content={
-                         <ChartTooltipContent
-                           formatter={(value: number, name: string) => {
-                             const minutes = Number(value) || 0;
-                              const pct = scopeTotal > 0 ? formatPercentCeil((minutes / scopeTotal) * 100) : '0';
-                              return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                  <ChartContainer config={scopeChartConfig} className="h-72 w-full">
+                    <PieChart>
+                      <defs>
+                        {scopePieData.map((entry, index) => {
+                          const color = getScopeColor(entry.name);
+                          return (
+                            <linearGradient key={`scopeGradient-${index}`} id={`scopeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
+                            </linearGradient>
+                          );
+                        })}
+                      </defs>
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(value: number, name: string) => {
+                              const minutes = Number(value) || 0;
+                               const pct = scopeTotal > 0 ? formatPercentCeil((minutes / scopeTotal) * 100) : '0';
+                               return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
 
-                           }}
-                         />
-                       }
-                     />
+                            }}
+                          />
+                        }
+                      />
                       <Pie
                         data={scopePieData}
                         dataKey="value"
@@ -1094,17 +1099,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         label={makePieLabelOutside(scopeTotal)}
                         labelLine={true}
                       >
-                        <defs>
-                          {scopePieData.map((entry, index) => {
-                            const color = getScopeColor(entry.name);
-                            return (
-                              <linearGradient key={`scopeGradient-${index}`} id={`scopeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
-                              </linearGradient>
-                            );
-                          })}
-                        </defs>
                         {scopePieData.map((entry, index) => {
                           const color = getScopeColor(entry.name);
                           return (
@@ -1188,85 +1182,79 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                 <ChartContainer config={{}} className="h-96 w-full">
                   <PieChart>
                     <defs>
-                      <linearGradient id="detailPieGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
-                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
-                      </linearGradient>
+                      {detailModalData.data.map((entry, index) => {
+                        let color;
+                        // Use appropriate color based on chart type
+                        if (detailModalData.type === 'project') {
+                          // Find the project and use its scope color
+                          const project = projects.find(p => p.name === entry.name);
+                          const projectScope = Array.isArray(project?.scope) 
+                            ? project?.scope[0] || 'Unassigned'
+                            : project?.scope || 'Unassigned';
+                          color = getScopeColor(projectScope);
+                        } else if (detailModalData.type === 'taskType') {
+                          color = getTaskTypeColor(entry.name);
+                        } else if (detailModalData.type === 'scope') {
+                          color = getScopeColor(entry.name);
+                        } else {
+                          color = `hsl(var(--chart-${(index % 12) + 1}))`;
+                        }
+                        return (
+                          <linearGradient key={`modalGradient-${index}`} id={`modalGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
+                          </linearGradient>
+                        );
+                      })}
                     </defs>
-                    <ChartTooltip
-                      content={
-                        <ChartTooltipContent
-                          formatter={(value: number, name: string) => {
-                            const minutes = Number(value) || 0;
-                            const pct = detailModalData.total > 0 ? formatPercentCeil((minutes / detailModalData.total) * 100) : '0';
-                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
-                          }}
-                        />
-                      }
-                    />
-                     <Pie
-                       data={detailModalData.data}
-                       dataKey="value"
-                       nameKey="name"
-                       cx="50%"
-                       cy="50%"
-                       outerRadius={120}
-                       stroke="hsl(var(--background))"
-                       strokeWidth={1}
-                     >
-                       <defs>
-                         {detailModalData.data.map((entry, index) => {
-                           let color;
-                           // Use appropriate color based on chart type
-                           if (detailModalData.type === 'project') {
-                             // Find the project and use its scope color
-                             const project = projects.find(p => p.name === entry.name);
-                             const projectScope = Array.isArray(project?.scope) 
-                               ? project?.scope[0] || 'Unassigned'
-                               : project?.scope || 'Unassigned';
-                             color = getScopeColor(projectScope);
-                           } else if (detailModalData.type === 'taskType') {
-                             color = getTaskTypeColor(entry.name);
-                           } else if (detailModalData.type === 'scope') {
-                             color = getScopeColor(entry.name);
-                           } else {
-                             color = `hsl(var(--chart-${(index % 12) + 1}))`;
-                           }
-                           return (
-                             <linearGradient key={`modalGradient-${index}`} id={`modalGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
-                               <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
-                             </linearGradient>
-                           );
-                         })}
-                       </defs>
-                       {detailModalData.data.map((entry, index) => {
-                         let color;
-                         // Use appropriate color based on chart type
-                         if (detailModalData.type === 'project') {
-                           // Find the project and use its scope color
-                           const project = projects.find(p => p.name === entry.name);
-                           const projectScope = Array.isArray(project?.scope) 
-                             ? project?.scope[0] || 'Unassigned'
-                             : project?.scope || 'Unassigned';
-                           color = getScopeColor(projectScope);
-                         } else if (detailModalData.type === 'taskType') {
-                           color = getTaskTypeColor(entry.name);
-                         } else if (detailModalData.type === 'scope') {
-                           color = getScopeColor(entry.name);
-                         } else {
-                           color = `hsl(var(--chart-${(index % 12) + 1}))`;
-                         }
-                         return (
-                           <Cell 
-                             key={`modal-${entry.name}-${index}`} 
-                             fill={`url(#modalGradient-${index})`}
-                             stroke={color}
-                             strokeWidth={1.5}
-                           />
-                         );
-                       })}
-                     </Pie>
+                     <ChartTooltip
+                       content={
+                         <ChartTooltipContent
+                           formatter={(value: number, name: string) => {
+                             const minutes = Number(value) || 0;
+                             const pct = detailModalData.total > 0 ? formatPercentCeil((minutes / detailModalData.total) * 100) : '0';
+                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                           }}
+                         />
+                       }
+                     />
+                      <Pie
+                        data={detailModalData.data}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={120}
+                        stroke="hsl(var(--background))"
+                        strokeWidth={1}
+                      >
+                        {detailModalData.data.map((entry, index) => {
+                          let color;
+                          // Use appropriate color based on chart type
+                          if (detailModalData.type === 'project') {
+                            // Find the project and use its scope color
+                            const project = projects.find(p => p.name === entry.name);
+                            const projectScope = Array.isArray(project?.scope) 
+                              ? project?.scope[0] || 'Unassigned'
+                              : project?.scope || 'Unassigned';
+                            color = getScopeColor(projectScope);
+                          } else if (detailModalData.type === 'taskType') {
+                            color = getTaskTypeColor(entry.name);
+                          } else if (detailModalData.type === 'scope') {
+                            color = getScopeColor(entry.name);
+                          } else {
+                            color = `hsl(var(--chart-${(index % 12) + 1}))`;
+                          }
+                          return (
+                            <Cell 
+                              key={`modal-${entry.name}-${index}`} 
+                              fill={`url(#modalGradient-${index})`}
+                              stroke={color}
+                              strokeWidth={1.5}
+                            />
+                          );
+                        })}
+                      </Pie>
                   </PieChart>
                 </ChartContainer>
               </div>
