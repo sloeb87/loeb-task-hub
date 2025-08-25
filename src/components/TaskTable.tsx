@@ -31,7 +31,7 @@ interface TaskTableProps {
   sortField?: string;
   sortDirection?: 'asc' | 'desc';
   onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
-  onSearch?: (searchTerm: string, pageSize?: number, sortField?: string, sortDirection?: 'asc' | 'desc') => void;
+  onSearch?: (searchTerm: string, page?: number, pageSize?: number, sortField?: string, sortDirection?: 'asc' | 'desc') => void;
   currentSearchTerm?: string; // Add current search term prop
 }
 
@@ -239,7 +239,7 @@ export const TaskTable = ({
         environment: []
       });
       setActiveSearchTerm(searchTerm); // Update the active search term
-      onSearch(searchTerm, pagination?.pageSize, sortField, sortDirection);
+      onSearch(searchTerm, 1, pagination?.pageSize, sortField, sortDirection); // Always start from page 1 for new search
     }
   }, [onSearch, searchTerm, pagination?.pageSize, sortField, sortDirection]);
 
@@ -265,7 +265,7 @@ export const TaskTable = ({
       taskType: [],
       environment: []
     });
-    onSearch("", pagination?.pageSize, sortField, sortDirection);
+    onSearch && onSearch("", 1, pagination?.pageSize, sortField, sortDirection);
   }, [onSearch, pagination?.pageSize, sortField, sortDirection]);
 
   // Initialize search state from parent's current search term

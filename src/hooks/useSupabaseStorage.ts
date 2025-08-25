@@ -369,9 +369,10 @@ export function useSupabaseStorage() {
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
 
-  // Search through ALL tasks (no pagination)
+  // Search through ALL tasks with pagination support
   const searchTasks = useCallback(async (
     searchTerm: string,
+    page: number = 1,
     pageSize: number = 50,
     sortField: string = 'due_date', 
     sortDirection: 'asc' | 'desc' = 'asc'
@@ -387,7 +388,7 @@ export function useSupabaseStorage() {
     if (!searchTerm.trim()) {
       // If no search term, clear current search and load regular paginated tasks
       setCurrentSearchTerm("");
-      loadTasks(1, pageSize, sortField, sortDirection);
+      loadTasks(page, pageSize, sortField, sortDirection);
       return;
     }
 
@@ -468,13 +469,16 @@ export function useSupabaseStorage() {
         });
       }
 
-      // For search results, show all results but update pagination info
+      // For search results, apply pagination to the sorted results
       const totalTasks = sortedTasks.length;
       const totalPages = Math.ceil(totalTasks / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedTasks = sortedTasks.slice(startIndex, endIndex);
       
-      setTasks(sortedTasks);
+      setTasks(paginatedTasks);
       setPagination({
-        currentPage: 1, // Always show page 1 for search results
+        currentPage: page,
         pageSize,
         totalTasks,
         totalPages

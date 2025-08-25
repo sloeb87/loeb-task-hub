@@ -356,7 +356,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const handlePageChange = useCallback((page: number) => {
     if (currentSearchTerm) {
       // If there's an active search, maintain the search with new page
-      searchTasks(currentSearchTerm, 50, sortField, sortDirection);
+      searchTasks(currentSearchTerm, page, 50, sortField, sortDirection);
     } else {
       loadTasks(page, 50, sortField, sortDirection);
     }
@@ -367,7 +367,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     setSortDirection(direction);
     if (currentSearchTerm) {
       // If there's an active search, maintain the search with new sorting
-      searchTasks(currentSearchTerm, 50, field, direction);
+      searchTasks(currentSearchTerm, 1, 50, field, direction);
     } else {
       // Reload tasks with new sorting, reset to page 1
       loadTasks(1, 50, field, direction);
