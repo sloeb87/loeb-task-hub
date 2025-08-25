@@ -251,10 +251,15 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     await updateTask(updatedTask);
-    refreshTasks();
-    setSelectedTask(null);
-    setActiveView("tasks");
-  }, [updateTask, refreshTasks]);
+    await refreshTasks();
+    
+    // Keep the updated task selected and stay in edit view to maintain focus
+    const refreshedTask = tasks.find(t => t.id === updatedTask.id);
+    if (refreshedTask) {
+      setSelectedTask(refreshedTask);
+    }
+    // Stay in task-edit view instead of switching back to tasks
+  }, [updateTask, refreshTasks, tasks]);
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
