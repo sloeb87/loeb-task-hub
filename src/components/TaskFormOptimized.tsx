@@ -255,13 +255,20 @@ export const TaskFormOptimized = React.memo(({
     console.log('TaskForm - environments count:', parameters.environments.length);
     console.log('TaskForm - taskTypes count:', parameters.taskTypes.length);
     
-    return {
+    const options = {
       scopes: parameters.scopes.map(scope => scope.name),
       environments: parameters.environments.map(env => env.name),
       taskTypes: parameters.taskTypes.map(type => type.name),
       statuses: parameters.statuses.map(status => status.name),
       priorities: parameters.priorities.map(priority => priority.name),
     };
+    
+    console.log('TaskForm - Dropdown options created:', {
+      environments: options.environments,
+      taskTypes: options.taskTypes
+    });
+    
+    return options;
   }, [parameters]);
 
   const {
@@ -274,11 +281,16 @@ export const TaskFormOptimized = React.memo(({
   // Initialize form data when task changes
   useEffect(() => {
     if (!isOpen) return;
+    
+    // Wait for parameters to be loaded before setting form data
+    if (parameters.environments.length === 0) return;
 
     if (task) {
       console.log('TaskForm - Loading task data:', task);
       console.log('TaskForm - task.environment:', task.environment);
       console.log('TaskForm - task.taskType:', task.taskType);
+      console.log('TaskForm - Available environments:', parameters.environments.map(e => e.name));
+      console.log('TaskForm - Available taskTypes:', parameters.taskTypes.map(t => t.name));
       
       const newFormData: FormData = {
         title: task.title || "",
@@ -332,7 +344,7 @@ export const TaskFormOptimized = React.memo(({
       setDate(new Date());
       setProjectScope(null);
     }
-  }, [isOpen, task, projectName]);
+  }, [isOpen, task, projectName, parameters]);
 
   // Sync displayed follow-ups with current task
   useEffect(() => {
