@@ -22,11 +22,25 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
   const runningTaskData = React.useMemo(() => {
+    console.log('RunningTimerDisplay - Checking for running timers...');
+    console.log('RunningTimerDisplay - taskTimers:', Array.from(taskTimers.entries()));
+    console.log('RunningTimerDisplay - tasks array length:', tasks.length);
+    console.log('RunningTimerDisplay - task ids in array:', tasks.map(t => t.id));
+    
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
-    if (!runningTimerEntry) return null;
+    console.log('RunningTimerDisplay - running timer entry:', runningTimerEntry);
+    
+    if (!runningTimerEntry) {
+      console.log('RunningTimerDisplay - No running timer found');
+      return null;
+    }
 
     const [taskId, timerData] = runningTimerEntry;
+    console.log('RunningTimerDisplay - Looking for task with ID:', taskId);
+    
     const task = tasks.find(task => task.id === taskId);
+    console.log('RunningTimerDisplay - Found task:', task);
+    
     if (task) return { task, timerData, isNonProject: false };
 
     if (taskId === NON_PROJECT_TASK_ID) {
@@ -38,6 +52,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
+    console.log('RunningTimerDisplay - Timer running for task not in tasks array:', taskId);
     return null;
   }, [taskTimers, tasks]);
 
