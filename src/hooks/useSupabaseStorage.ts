@@ -412,14 +412,26 @@ export function useSupabaseStorage() {
         }
       })();
 
-      // Search across ALL tasks (no pagination limit)
+      // Search across ALL tasks (but with pagination support)
       let query = supabase
         .from('tasks')
         .select('*')
         .eq('user_id', user.id);
 
-      // Add search conditions for multiple fields
-      query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%`);
+      // First, get task IDs from follow-ups that match the search term
+      const { data: followUpResults } = await supabase
+        .from('follow_ups')
+        .select('task_id')
+        .ilike('text', `%${searchTerm}%`);
+
+      const followUpTaskIds = followUpResults?.map(fu => fu.task_id) || [];
+
+      // Search in task fields OR in follow-ups
+      if (followUpTaskIds.length > 0) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%,id.in.(${followUpTaskIds.join(',')})`);
+      } else {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%`);
+      }
 
       // Apply sorting
       if (sortField === 'priority' || sortField === 'dueDatePriority') {

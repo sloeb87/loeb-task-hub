@@ -354,15 +354,25 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 
   // Pagination and sorting handlers
   const handlePageChange = useCallback((page: number) => {
-    loadTasks(page, 50, sortField, sortDirection);
-  }, [loadTasks, sortField, sortDirection]);
+    if (currentSearchTerm) {
+      // If there's an active search, maintain the search with new page
+      searchTasks(currentSearchTerm, 50, sortField, sortDirection);
+    } else {
+      loadTasks(page, 50, sortField, sortDirection);
+    }
+  }, [loadTasks, searchTasks, currentSearchTerm, sortField, sortDirection]);
 
   const handleSortChange = useCallback((field: string, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
-    // Reload tasks with new sorting, reset to page 1
-    loadTasks(1, 50, field, direction);
-  }, [loadTasks]);
+    if (currentSearchTerm) {
+      // If there's an active search, maintain the search with new sorting
+      searchTasks(currentSearchTerm, 50, field, direction);
+    } else {
+      // Reload tasks with new sorting, reset to page 1
+      loadTasks(1, 50, field, direction);
+    }
+  }, [loadTasks, searchTasks, currentSearchTerm]);
 
   // Show loading state
   if (isLoading) {
