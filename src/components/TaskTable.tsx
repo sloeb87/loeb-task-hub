@@ -912,6 +912,7 @@ export const TaskTable = ({
                            });
                            
                            console.log(`Related tasks for ${task.id}:`, relatedTasks.map(t => ({ id: t.id, title: t.title })));
+                           console.log(`All effectiveTasks:`, effectiveTasks.map(t => ({ id: t.id, title: t.title, parentTaskId: t.parentTaskId, isRecurring: t.isRecurring })));
                            
                            // Sum up time from all related tasks using their task IDs (which are task numbers like "T1153")
                            totalRecurringTime = relatedTasks.reduce((total, relatedTask) => {
