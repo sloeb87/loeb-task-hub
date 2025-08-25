@@ -708,16 +708,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           </CardHeader>
           <CardContent>
               <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
-                <ChartContainer config={projectChartConfig} className="h-72 w-full">
-                  <PieChart>
+                 <ChartContainer config={projectChartConfig} className="h-72 w-full">
+                   <PieChart>
                      <defs>
-                       {chartColors.map((color, index) => (
-                         <radialGradient key={`projectGradient${index}`} id={`projectGradient${index}`} cx="50%" cy="50%" r="50%">
-                           <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.35')} />
-                           <stop offset="70%" stopColor={color.replace('/ 0.7', '/ 0.15')} />
-                           <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.05')} />
-                         </radialGradient>
-                       ))}
+                       <linearGradient id="projectPieGradient" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                       </linearGradient>
                      </defs>
                     <ChartTooltip
                       content={
@@ -731,23 +728,20 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         />
                       }
                     />
-                    <Pie
-                      data={projectPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={70}
-                      outerRadius={110}
-                      strokeWidth={3}
-                      stroke="hsl(var(--background))"
-                      label={makePieLabelOutside(projectTotal)}
-                      labelLine={true}
-                    >
-                      {projectPieData.map((entry, index) => (
-                        <Cell key={`cell-${entry.name}-${index}`} fill={`url(#projectGradient${index % chartColors.length})`} />
-                      ))}
-                    </Pie>
+                     <Pie
+                       data={projectPieData}
+                       dataKey="value"
+                       nameKey="name"
+                       startAngle={90}
+                       endAngle={-270}
+                       innerRadius={70}
+                       outerRadius={110}
+                       strokeWidth={3}
+                       stroke="hsl(var(--chart-1))"
+                       label={makePieLabelOutside(projectTotal)}
+                       labelLine={true}
+                       fill="url(#projectPieGradient)"
+                     />
                   </PieChart>
                 </ChartContainer>
 
@@ -774,16 +768,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <CardContent>
             {taskTypePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
-                  <PieChart>
+                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
+                   <PieChart>
                      <defs>
-                       {chartColors.map((color, index) => (
-                         <radialGradient key={`taskTypeGradient${index}`} id={`taskTypeGradient${index}`} cx="50%" cy="50%" r="50%">
-                           <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.35')} />
-                           <stop offset="70%" stopColor={color.replace('/ 0.7', '/ 0.15')} />
-                           <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.05')} />
-                         </radialGradient>
-                       ))}
+                       <linearGradient id="taskTypePieGradient" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                       </linearGradient>
                      </defs>
                     <ChartTooltip
                       content={
@@ -797,23 +788,20 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         />
                       }
                     />
-                    <Pie
-                      data={taskTypePieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={70}
-                      outerRadius={110}
-                      strokeWidth={3}
-                      stroke="hsl(var(--background))"
-                      label={makePieLabelOutside(taskTypeTotal)}
-                      labelLine={true}
-                    >
-                      {taskTypePieData.map((entry, index) => (
-                        <Cell key={`type-${entry.name}-${index}`} fill={`url(#taskTypeGradient${index % chartColors.length})`} />
-                      ))}
-                    </Pie>
+                     <Pie
+                       data={taskTypePieData}
+                       dataKey="value"
+                       nameKey="name"
+                       startAngle={90}
+                       endAngle={-270}
+                       innerRadius={70}
+                       outerRadius={110}
+                       strokeWidth={3}
+                       stroke="hsl(var(--chart-1))"
+                       label={makePieLabelOutside(taskTypeTotal)}
+                       labelLine={true}
+                       fill="url(#taskTypePieGradient)"
+                     />
                   </PieChart>
                 </ChartContainer>
 
@@ -833,16 +821,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <CardContent>
             {scopePieData.length > 0 ? (
               <div className="grid grid-cols-1 gap-6 items-center">
-                <ChartContainer config={scopeChartConfig} className="h-72 w-full">
-                  <PieChart>
+                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
+                   <PieChart>
                      <defs>
-                       {chartColors.map((color, index) => (
-                         <radialGradient key={`scopeGradient${index}`} id={`scopeGradient${index}`} cx="50%" cy="50%" r="50%">
-                           <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.35')} />
-                           <stop offset="70%" stopColor={color.replace('/ 0.7', '/ 0.15')} />
-                           <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.05')} />
-                         </radialGradient>
-                       ))}
+                       <linearGradient id="scopePieGradient" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                       </linearGradient>
                      </defs>
                     <ChartTooltip
                       content={
@@ -856,23 +841,20 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         />
                       }
                     />
-                    <Pie
-                      data={scopePieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                      innerRadius={70}
-                      outerRadius={110}
-                      strokeWidth={3}
-                      stroke="hsl(var(--background))"
-                      label={makePieLabelOutside(scopeTotal)}
-                      labelLine={true}
-                    >
-                      {scopePieData.map((entry, index) => (
-                        <Cell key={`scope-${entry.name}-${index}`} fill={`url(#scopeGradient${index % chartColors.length})`} />
-                      ))}
-                    </Pie>
+                     <Pie
+                       data={scopePieData}
+                       dataKey="value"
+                       nameKey="name"
+                       startAngle={90}
+                       endAngle={-270}
+                       innerRadius={70}
+                       outerRadius={110}
+                       strokeWidth={3}
+                       stroke="hsl(var(--chart-1))"
+                       label={makePieLabelOutside(scopeTotal)}
+                       labelLine={true}
+                       fill="url(#scopePieGradient)"
+                     />
                     
                   </PieChart>
                 </ChartContainer>
