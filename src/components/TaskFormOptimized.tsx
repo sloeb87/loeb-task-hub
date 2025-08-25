@@ -276,6 +276,10 @@ export const TaskFormOptimized = React.memo(({
     if (!isOpen) return;
 
     if (task) {
+      console.log('TaskForm - Loading task data:', task);
+      console.log('TaskForm - task.environment:', task.environment);
+      console.log('TaskForm - task.taskType:', task.taskType);
+      
       const newFormData: FormData = {
         title: task.title || "",
         project: task.project || "",
@@ -308,6 +312,10 @@ export const TaskFormOptimized = React.memo(({
         recurrenceDaysOfWeek: task.recurrenceDaysOfWeek || [],
         occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
       };
+      
+      console.log('TaskForm - Setting form data:', newFormData);
+      console.log('TaskForm - newFormData.environment:', newFormData.environment);
+      console.log('TaskForm - newFormData.taskType:', newFormData.taskType);
       
       setFormData(newFormData);
       setDate(new Date(task.dueDate));
