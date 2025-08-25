@@ -250,13 +250,19 @@ export const TaskFormOptimized = React.memo(({
   const { startTimer } = useTimeTracking();
 
   // Dropdown options - now coming from the database
-  const dropdownOptions = useMemo(() => ({
-    scopes: parameters.scopes.map(scope => scope.name),
-    environments: parameters.environments.map(env => env.name),
-    taskTypes: parameters.taskTypes.map(type => type.name),
-    statuses: parameters.statuses.map(status => status.name),
-    priorities: parameters.priorities.map(priority => priority.name),
-  }), [parameters]);
+  const dropdownOptions = useMemo(() => {
+    console.log('TaskForm - parameters loaded:', parameters);
+    console.log('TaskForm - environments count:', parameters.environments.length);
+    console.log('TaskForm - taskTypes count:', parameters.taskTypes.length);
+    
+    return {
+      scopes: parameters.scopes.map(scope => scope.name),
+      environments: parameters.environments.map(env => env.name),
+      taskTypes: parameters.taskTypes.map(type => type.name),
+      statuses: parameters.statuses.map(status => status.name),
+      priorities: parameters.priorities.map(priority => priority.name),
+    };
+  }, [parameters]);
 
   const {
     environments = [],
@@ -366,6 +372,24 @@ export const TaskFormOptimized = React.memo(({
       toast({
         title: "Required Field Missing",
         description: "Please fill in the task title.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.environment) {
+      toast({
+        title: "Environment required",
+        description: "Please select an environment before saving the task.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.taskType) {
+      toast({
+        title: "Task Type required",
+        description: "Please select a task type before saving the task.",
         variant: "destructive",
       });
       return;
@@ -537,7 +561,7 @@ export const TaskFormOptimized = React.memo(({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="environment">Environment</Label>
+                  <Label htmlFor="environment">Environment *</Label>
                   <Select value={formData.environment} onValueChange={(value) => updateField('environment', value)}>
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select environment" />
@@ -553,7 +577,7 @@ export const TaskFormOptimized = React.memo(({
                 </div>
 
                 <div>
-                  <Label htmlFor="taskType">Task Type</Label>
+                  <Label htmlFor="taskType">Task Type *</Label>
                   <Select value={formData.taskType} onValueChange={(value) => updateField('taskType', value)}>
                     <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
                       <SelectValue placeholder="Select task type" />
@@ -1078,7 +1102,7 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!task && (!formData.status || !formData.priority)}>
+              <Button type="submit" disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))}>
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
