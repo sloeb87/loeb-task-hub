@@ -881,40 +881,64 @@ export const TaskTable = ({
                         </div>
                      </TableCell>
 
-                  {/* Time Tracking Column */}
-                   <TableCell>
-                     {(() => {
-                       const taskTime = getTaskTime(task.id);
-                       return (
-                         <div className="space-y-2">
-                           {/* Time Tracking Controls */}
-                           <div className="flex items-center space-x-2">
-                             <Button
-                               size="sm"
-                               variant={taskTime.isRunning ? "destructive" : "outline"}
-                               onClick={(e) => handleTimerToggle(task, e)}
-                               className="h-7 w-7 p-0"
-                               title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
-                             >
-                               {taskTime.isRunning ? (
-                                 <Pause className="w-3 h-3" />
-                               ) : (
-                                 <Play className="w-3 h-3" />
-                               )}
-                             </Button>
-                             {taskTime.isRunning && (
-                               <div className="flex items-center text-red-600 dark:text-red-400">
-                                 <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
-                                 <span className="text-sm font-medium">Live</span>
-                               </div>
-                             )}
-                           </div>
-                           {taskTime.totalTime > 0 && (
-                             <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                               <Clock className="w-3 h-3 mr-1" />
-                               <span>{formatTime(taskTime.totalTime)}</span>
-                             </div>
-                           )}
+                   {/* Time Tracking Column */}
+                    <TableCell>
+                      {(() => {
+                        const taskTime = getTaskTime(task.id);
+                        
+                        // For recurring tasks, calculate total time across all instances
+                        let totalRecurringTime = taskTime.totalTime;
+                        if (task.isRecurring || task.parentTaskId) {
+                          // Find all related recurring tasks
+                          const parentId = task.parentTaskId || (task.isRecurring ? task.id : null);
+                          if (parentId) {
+                            totalRecurringTime = effectiveTasks
+                              .filter(t => 
+                                t.id === parentId || 
+                                t.parentTaskId === parentId
+                              )
+                              .reduce((total, relatedTask) => {
+                                const relatedTime = getTaskTime(relatedTask.id);
+                                return total + relatedTime.totalTime;
+                              }, 0);
+                          }
+                        }
+                        
+                        return (
+                          <div className="space-y-2">
+                            {/* Time Tracking Controls */}
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                size="sm"
+                                variant={taskTime.isRunning ? "destructive" : "outline"}
+                                onClick={(e) => handleTimerToggle(task, e)}
+                                className="h-7 w-7 p-0"
+                                title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
+                              >
+                                {taskTime.isRunning ? (
+                                  <Pause className="w-3 h-3" />
+                                ) : (
+                                  <Play className="w-3 h-3" />
+                                )}
+                              </Button>
+                              {taskTime.isRunning && (
+                                <div className="flex items-center text-red-600 dark:text-red-400">
+                                  <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
+                                  <span className="text-sm font-medium">Live</span>
+                                </div>
+                              )}
+                            </div>
+                            {totalRecurringTime > 0 && (
+                              <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                <Clock className="w-3 h-3 mr-1" />
+                                <span>{formatTime(totalRecurringTime)}</span>
+                                 {(task.isRecurring || task.parentTaskId) && totalRecurringTime !== taskTime.totalTime && (
+                                   <div title="Total time across all recurring instances">
+                                     <Repeat className="w-3 h-3 ml-1 text-blue-500" />
+                                   </div>
+                                 )}
+                              </div>
+                            )}
                            
                            {/* Task Link Icons */}
                            {task.links && Object.values(task.links).some(link => link) && (
