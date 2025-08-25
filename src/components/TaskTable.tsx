@@ -886,23 +886,30 @@ export const TaskTable = ({
                       {(() => {
                         const taskTime = getTaskTime(task.id);
                         
-                        // For recurring tasks, calculate total time across all instances
-                        let totalRecurringTime = taskTime.totalTime;
-                        if (task.isRecurring || task.parentTaskId) {
-                          // Find all related recurring tasks
-                          const parentId = task.parentTaskId || (task.isRecurring ? task.id : null);
-                          if (parentId) {
-                            totalRecurringTime = effectiveTasks
-                              .filter(t => 
-                                t.id === parentId || 
-                                t.parentTaskId === parentId
-                              )
-                              .reduce((total, relatedTask) => {
-                                const relatedTime = getTaskTime(relatedTask.id);
-                                return total + relatedTime.totalTime;
-                              }, 0);
-                          }
-                        }
+                         // For recurring tasks, calculate total time across all instances
+                         let totalRecurringTime = taskTime.totalTime;
+                         if (task.isRecurring || task.parentTaskId) {
+                           // Find all related recurring tasks by looking for tasks that share the same parent or are the parent
+                           const relatedTasks = effectiveTasks.filter(t => {
+                             // If current task is the parent, find all its children
+                             if (task.isRecurring && !task.parentTaskId) {
+                               return t.parentTaskId === task.id || t.id === task.id;
+                             }
+                             // If current task is a child, find all siblings and parent
+                             else if (task.parentTaskId) {
+                               return t.parentTaskId === task.parentTaskId || 
+                                      (t.isRecurring && t.id === task.parentTaskId) ||
+                                      t.id === task.id;
+                             }
+                             return false;
+                           });
+                           
+                           // Sum up time from all related tasks using their task numbers (not UUIDs)
+                           totalRecurringTime = relatedTasks.reduce((total, relatedTask) => {
+                             const relatedTime = getTaskTime(relatedTask.id); // relatedTask.id is the task number like "T1153"
+                             return total + relatedTime.totalTime;
+                           }, 0);
+                         }
                         
                         return (
                           <div className="space-y-2">
