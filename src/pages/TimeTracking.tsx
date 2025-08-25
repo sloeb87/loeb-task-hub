@@ -654,11 +654,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Running Timers</CardTitle>
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Total Time Logged in Days</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {totalStats.runningEntries}
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {(filteredStats.totalTime / 1440).toFixed(1)}
             </div>
           </CardContent>
         </Card>
