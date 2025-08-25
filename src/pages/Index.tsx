@@ -204,9 +204,11 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     setActiveView(view);
     
-    // Set active filter to "active" when navigating to tasks view
+    // Set active filter and sorting when navigating to tasks view (same as clicking Active label)
     if (view === "tasks") {
       setActiveFilter("active");
+      // Apply the same sorting as clicking the Active card
+      handleSortChange('dueDatePriority', 'asc');
     }
     
     // Clear any navigation state/filters when switching to main views
