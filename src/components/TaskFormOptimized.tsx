@@ -272,6 +272,7 @@ export const TaskFormOptimized = React.memo(({
   }, [parameters]);
 
   const {
+    scopes = [],
     environments = [],
     taskTypes = [],
     statuses = [],
@@ -579,7 +580,50 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
+              {/* Scope and Environment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label htmlFor="scope">Scope</Label>
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap gap-2 min-h-[2rem] p-2 border border-gray-200 dark:border-gray-600 rounded-md">
+                      {formData.scope.map((scopeItem, index) => (
+                        <Badge key={index} variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                          {scopeItem}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newScope = formData.scope.filter((_, i) => i !== index);
+                              updateField('scope', newScope);
+                            }}
+                            className="ml-2 text-blue-600 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-100"
+                          >
+                            ×
+                          </button>
+                        </Badge>
+                      ))}
+                      {formData.scope.length === 0 && (
+                        <span className="text-gray-500 dark:text-gray-400 text-sm">No scopes selected</span>
+                      )}
+                    </div>
+                    <Select onValueChange={(value) => {
+                      if (!formData.scope.includes(value)) {
+                        updateField('scope', [...formData.scope, value]);
+                      }
+                    }}>
+                      <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                        <SelectValue placeholder="Add scope" />
+                      </SelectTrigger>
+                      <SelectContent className="z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600">
+                        {scopes.filter(scope => !formData.scope.includes(scope)).map((scope) => (
+                          <SelectItem key={scope} value={scope} className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                            {scope}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="environment">Environment *</Label>
                   <Select value={formData.environment} onValueChange={(value) => updateField('environment', value)}>
