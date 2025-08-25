@@ -617,9 +617,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
 
   // Click handlers to open detailed modal
   const handleProjectChartClick = useCallback(() => {
+    const sortedData = [...projectRawData].sort((a, b) => b.value - a.value);
     setDetailModalData({
       title: 'Time by Project - Full Details',
-      data: projectRawData,
+      data: sortedData,
       total: projectTotal,
       type: 'project'
     });
@@ -627,9 +628,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   }, [projectRawData, projectTotal]);
 
   const handleTaskTypeChartClick = useCallback(() => {
+    const sortedData = [...taskTypeRawData].sort((a, b) => b.value - a.value);
     setDetailModalData({
       title: 'Time by Task Type - Full Details',
-      data: taskTypeRawData,
+      data: sortedData,
       total: taskTypeTotal,
       type: 'taskType'
     });
@@ -637,9 +639,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   }, [taskTypeRawData, taskTypeTotal]);
 
   const handleScopeChartClick = useCallback(() => {
+    const sortedData = [...scopeRawData].sort((a, b) => b.value - a.value);
     setDetailModalData({
       title: 'Time by Scope - Full Details',
-      data: scopeRawData,
+      data: sortedData,
       total: scopeTotal,
       type: 'scope'
     });
