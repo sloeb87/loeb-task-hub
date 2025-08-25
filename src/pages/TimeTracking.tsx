@@ -301,12 +301,16 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   }, [projectPieData]);
 
   const chartColors = useMemo(() => [
-    'url(#gradient1)', // azure gradient
-    'url(#gradient2)', // tech blue gradient  
-    'url(#gradient3)', // neon cyan gradient
-    'url(#gradient4)', // ultraviolet gradient
-    'url(#gradient5)', // additional gradient
-    'url(#gradient6)', // additional gradient
+    '#3b82f6', // Blue
+    '#ef4444', // Red  
+    '#10b981', // Green
+    '#f59e0b', // Amber
+    '#8b5cf6', // Purple
+    '#06b6d4', // Cyan
+    '#84cc16', // Lime
+    '#f97316', // Orange
+    '#ec4899', // Pink
+    '#6366f1', // Indigo
   ], []);
 
   const formatTime = (minutes: number) => {
@@ -383,6 +387,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }, {} as ChartConfig);
   }, [taskTypePieData]);
 
+  const projectColors = useMemo(
+    () => projectPieData.map((_, i) => chartColors[i % chartColors.length]),
+    [projectPieData, chartColors]
+  );
+
   const taskTypeColors = useMemo(
     () => taskTypePieData.map((_, i) => chartColors[i % chartColors.length]),
     [taskTypePieData, chartColors]
@@ -444,13 +453,16 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       return d;
     });
     const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    // Initialize all days with 0 minutes to ensure all dates are included
     const totals: Record<string, number> = {};
     days.forEach(d => { totals[key(d)] = 0; });
 
+    // Add actual time entries
     timeEntries.forEach(e => {
       const start = new Date(e.startTime);
       const k = key(start);
-      if (totals[k] !== undefined) {
+      if (totals.hasOwnProperty(k)) { // Use hasOwnProperty to include days with 0 minutes
         const minutes = typeof e.duration === 'number' && !isNaN(e.duration)
           ? e.duration
           : e.endTime
@@ -462,10 +474,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       }
     });
 
+    // Return all days, including those with 0 minutes
     return days.map(d => ({
       dateISO: key(d),
       dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      minutes: totals[key(d)] || 0,
+      minutes: totals[key(d)],
     }));
   }, [timeEntries]);
 
@@ -688,67 +701,41 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
             <CardDescription>Based on current filters</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
-              <ChartContainer config={projectChartConfig} className="h-72 w-full">
-                <PieChart>
-                  <defs>
-                    <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
-                    </radialGradient>
-                    <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
-                    </radialGradient>
-                    <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                    </radialGradient>
-                    <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
-                    </radialGradient>
-                    <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                    </radialGradient>
-                    <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
-                    </radialGradient>
-                  </defs>
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        formatter={(value: number, name: string) => {
-                          const minutes = Number(value) || 0;
-                           const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
-                           return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+              <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
+                <ChartContainer config={projectChartConfig} className="h-72 w-full">
+                  <PieChart>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value: number, name: string) => {
+                            const minutes = Number(value) || 0;
+                             const pct = projectTotal > 0 ? formatPercentCeil((minutes / projectTotal) * 100) : '0';
+                             return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
 
-                        }}
-                      />
-                    }
-                  />
-                    <Pie
-                      data={projectPieData}
-                      dataKey="value"
-                      nameKey="name"
-                      startAngle={90}
-                      endAngle={-270}
-                       innerRadius={60}
-                       outerRadius={100}
-                      strokeWidth={2}
-                      label={makePieLabelOutside(projectTotal)}
-                      labelLine={true}
-                    >
-                    {projectPieData.map((entry, index) => (
-                      <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
+                          }}
+                        />
+                      }
+                    />
+                      <Pie
+                        data={projectPieData}
+                        dataKey="value"
+                        nameKey="name"
+                        startAngle={90}
+                        endAngle={-270}
+                         innerRadius={60}
+                         outerRadius={100}
+                        strokeWidth={2}
+                        label={makePieLabelOutside(projectTotal)}
+                        labelLine={true}
+                      >
+                      {projectPieData.map((entry, index) => (
+                        <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
 
-            </div>
+              </div>
           </CardContent>
         </Card>
       ) : (
@@ -773,32 +760,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
                   <PieChart>
-                    <defs>
-                      <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
-                      </radialGradient>
-                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -848,32 +809,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
                   <PieChart>
-                    <defs>
-                      <radialGradient id="gradient1" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-8))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-8))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient2" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient3" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient4" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-10))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-10))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient5" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                      </radialGradient>
-                      <radialGradient id="gradient6" cx="50%" cy="50%" r="50%">
-                        <stop offset="0%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8}/>
-                        <stop offset="100%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
-                      </radialGradient>
-                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
