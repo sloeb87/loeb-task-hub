@@ -901,7 +901,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleProjectChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Project</CardTitle>
-            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
               <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
@@ -975,7 +974,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <Card>
           <CardHeader className="pb-2">
             <CardTitle>Project</CardTitle>
-            <CardDescription>No time data in current range</CardDescription>
           </CardHeader>
         </Card>
       )}
@@ -986,7 +984,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleTaskTypeChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Task Type</CardTitle>
-            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
             {taskTypePieData.length > 0 ? (
@@ -1055,7 +1052,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleScopeChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Scope</CardTitle>
-            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
             {scopePieData.length > 0 ? (
