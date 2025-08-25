@@ -663,6 +663,62 @@ export const TaskFormOptimized = React.memo(({
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Next Occurrences */}
+                  {(() => {
+                    // Find related recurring tasks
+                    const currentTaskId = task?.id;
+                    const parentId = task?.parentTaskId ?? (task?.isRecurring ? task.id : null);
+                    
+                    if (!parentId || !currentTaskId) return null;
+                    
+                    // Get all related recurring tasks (including parent and siblings)
+                    const relatedTasks = allTasks.filter(t => 
+                      (t.parentTaskId === parentId || t.id === parentId) && 
+                      t.id !== currentTaskId &&
+                      t.status === 'Open'
+                    );
+                    
+                    // Sort by due date and get next 3
+                    const nextOccurrences = relatedTasks
+                      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
+                      .filter(t => new Date(t.dueDate) > new Date(task?.dueDate || ''))
+                      .slice(0, 3);
+                    
+                    if (nextOccurrences.length === 0) return null;
+                    
+                    return (
+                      <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
+                        <Label className="text-sm text-blue-700 dark:text-blue-300 mb-2 block">
+                          Next Occurrences
+                        </Label>
+                        <div className="space-y-2">
+                          {nextOccurrences.map((occurrence) => (
+                            <div
+                              key={occurrence.id}
+                              onClick={() => onEditRelatedTask?.(occurrence)}
+                              className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 border border-blue-100 dark:border-blue-800 rounded cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                <span className="text-sm text-gray-700 dark:text-gray-300">
+                                  {format(new Date(occurrence.dueDate), 'MMM d, yyyy')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  {occurrence.id.slice(0, 8)}
+                                </span>
+                                <svg className="w-3 h-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               )}
 
