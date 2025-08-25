@@ -463,8 +463,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     days.forEach(d => { totals[key(d)] = 0; });
 
-    // Add actual time entries
-    timeEntries.forEach(e => {
+    // Add actual time entries from filtered entries (not all entries)
+    filteredEntries.forEach(e => {
       const start = new Date(e.startTime);
       const k = key(start);
       if (totals.hasOwnProperty(k)) { // Use hasOwnProperty to include days with 0 minutes
@@ -486,7 +486,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
       minutes: totals[key(d)],
     }));
-  }, [timeEntries]);
+  }, [filteredEntries]);
 
   // Average minutes excluding zero days (for reference line)
   const avgMinutesExcludingZero = useMemo(() => {
