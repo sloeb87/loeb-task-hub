@@ -144,6 +144,7 @@ interface TaskFormProps {
   onNavigateToProject?: (projectName: string) => void;
   persistedFormData?: any;
   onFormDataChange?: (formData: any) => void;
+  getRelatedRecurringTasks?: (taskId: string) => Promise<Task[]>;
 }
 
 interface FormData {
@@ -231,6 +232,7 @@ export const TaskFormOptimized = React.memo(({
   onNavigateToProject,
   persistedFormData,
   onFormDataChange,
+  getRelatedRecurringTasks,
   renderInline = false
 }: TaskFormProps) => {
   const [formData, setFormData] = useState<FormData>(DEFAULT_FORM_DATA);
@@ -244,6 +246,7 @@ export const TaskFormOptimized = React.memo(({
   const [editingFollowUpId, setEditingFollowUpId] = useState<string | null>(null);
   const [editingFollowUpText, setEditingFollowUpText] = useState('');
   const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
+  const [relatedRecurringTasks, setRelatedRecurringTasks] = useState<Task[]>([]);
   const { startTimer } = useTimeTracking();
 
   // Dropdown options - now coming from the database
@@ -322,6 +325,26 @@ export const TaskFormOptimized = React.memo(({
     if (!isOpen || !task?.id) return;
     setDisplayedFollowUps(task.followUps || []);
   }, [isOpen, task?.id, task?.followUps]);
+
+  // Fetch related recurring tasks when task changes
+  useEffect(() => {
+    const fetchRelatedTasks = async () => {
+      if (!task?.id || !getRelatedRecurringTasks) {
+        setRelatedRecurringTasks([]);
+        return;
+      }
+
+      try {
+        const related = await getRelatedRecurringTasks(task.id);
+        setRelatedRecurringTasks(related);
+      } catch (error) {
+        console.error('Error fetching related recurring tasks:', error);
+        setRelatedRecurringTasks([]);
+      }
+    };
+
+    fetchRelatedTasks();
+  }, [task?.id, getRelatedRecurringTasks]);
 
   // Form field update handlers
   const updateField = useCallback((field: keyof FormData, value: any) => {
@@ -674,21 +697,15 @@ export const TaskFormOptimized = React.memo(({
                   
                   {/* Next Occurrences */}
                   {(() => {
-                    // Find related recurring tasks
+                    // Find related recurring tasks from database
                     const currentTaskId = task?.id;
                     const parentId = task?.parentTaskId ?? (task?.isRecurring ? task.id : null);
                     
                     if (!parentId || !currentTaskId) return null;
                     
-                    // Get all related recurring tasks (including parent and siblings)
-                    const relatedTasks = allTasks.filter(t => 
-                      (t.parentTaskId === parentId || t.id === parentId) && 
-                      t.id !== currentTaskId &&
-                      t.status === 'Open'
-                    );
-                    
-                    // Sort by due date and get next 3
-                    const nextOccurrences = relatedTasks
+                    // Filter related tasks (excluding current task) and get next 3
+                    const nextOccurrences = relatedRecurringTasks
+                      .filter(t => t.id !== currentTaskId && t.status === 'Open')
                       .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
                       .filter(t => new Date(t.dueDate) > new Date(task?.dueDate || ''))
                       .slice(0, 3);

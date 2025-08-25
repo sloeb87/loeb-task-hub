@@ -1191,6 +1191,46 @@ export function useSupabaseStorage() {
     loadProjects();
   };
 
+  const getRelatedRecurringTasks = async (taskId: string): Promise<Task[]> => {
+    if (!user) return [];
+
+    try {
+      // First get the current task to determine parent
+      const { data: currentTask, error: currentError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('id', taskId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (currentError || !currentTask) return [];
+
+      // Determine the parent task ID
+      const parentTaskId = currentTask.is_recurring ? currentTask.id : currentTask.parent_task_id;
+      
+      if (!parentTaskId) return [];
+
+      // Get all related recurring tasks (including parent and siblings)
+      const { data: relatedTasks, error: fetchError } = await supabase
+        .from('tasks')
+        .select('*')
+        .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+        .eq('user_id', user.id)
+        .eq('status', 'Open')
+        .order('due_date', { ascending: true });
+
+      if (fetchError) {
+        console.error('Error fetching related recurring tasks:', fetchError);
+        return [];
+      }
+
+      return await Promise.all(relatedTasks?.map(convertSupabaseTaskToTask) || []);
+    } catch (error) {
+      console.error('Error in getRelatedRecurringTasks:', error);
+      return [];
+    }
+  };
+
   return {
     tasks,
     projects,
@@ -1207,6 +1247,7 @@ export function useSupabaseStorage() {
     deleteTask,
     deleteAllRecurringTasks,
     updateAllRecurringTasks,
+    getRelatedRecurringTasks,
     addFollowUp,
     updateFollowUp,
     deleteFollowUp,

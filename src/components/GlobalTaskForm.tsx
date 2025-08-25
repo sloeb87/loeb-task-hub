@@ -14,6 +14,7 @@ export const GlobalTaskForm: React.FC = () => {
     deleteTask,
     deleteAllRecurringTasks,
     updateAllRecurringTasks,
+    getRelatedRecurringTasks,
     addFollowUp, 
     updateFollowUp,
     deleteFollowUp,
@@ -141,6 +142,7 @@ export const GlobalTaskForm: React.FC = () => {
       allProjects={projects}
       projectName={taskFormState.projectName}
       onEditRelatedTask={handleEditRelatedTask}
+      getRelatedRecurringTasks={getRelatedRecurringTasks}
       persistedFormData={taskFormState.formData}
       onFormDataChange={saveFormData}
     />

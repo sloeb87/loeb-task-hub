@@ -55,6 +55,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     deleteTask,
     deleteAllRecurringTasks,
     updateAllRecurringTasks,
+    getRelatedRecurringTasks,
     createProject,
     updateProject,
     deleteProject,
@@ -575,6 +576,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 allProjects={projects}
                 onEditRelatedTask={handleEditTask}
                 onNavigateToProject={handleNavigateToProject}
+                getRelatedRecurringTasks={getRelatedRecurringTasks}
                 persistedFormData={undefined}
                 onFormDataChange={undefined}
                 renderInline={true}
