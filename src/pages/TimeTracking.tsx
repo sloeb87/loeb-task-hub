@@ -900,7 +900,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       {projectPieData.length > 0 ? (
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleProjectChartClick}>
           <CardHeader className="pb-2">
-            <CardTitle>Time by Project (%)</CardTitle>
+            <CardTitle>Project</CardTitle>
             <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
@@ -974,7 +974,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       ) : (
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle>Time by Project (%)</CardTitle>
+            <CardTitle>Project</CardTitle>
             <CardDescription>No time data in current range</CardDescription>
           </CardHeader>
         </Card>
@@ -985,7 +985,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         {/* Task Type Pie Chart */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleTaskTypeChartClick}>
           <CardHeader className="pb-2">
-            <CardTitle>Time by Task Type (%)</CardTitle>
+            <CardTitle>Task Type</CardTitle>
             <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
@@ -1054,7 +1054,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         {/* Scope Pie Chart */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleScopeChartClick}>
           <CardHeader className="pb-2">
-            <CardTitle>Time by Scope (%)</CardTitle>
+            <CardTitle>Scope</CardTitle>
             <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
