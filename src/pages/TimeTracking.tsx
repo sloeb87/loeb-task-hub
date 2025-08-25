@@ -706,6 +706,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
                 <ChartContainer config={projectChartConfig} className="h-72 w-full">
                   <PieChart>
+                    <defs>
+                      {chartColors.map((color, index) => (
+                        <radialGradient key={`projectGradient${index}`} id={`projectGradient${index}`} cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.9')} />
+                          <stop offset="70%" stopColor={color} />
+                          <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.3')} />
+                        </radialGradient>
+                      ))}
+                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -732,7 +741,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                       labelLine={true}
                     >
                       {projectPieData.map((entry, index) => (
-                        <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
+                        <Cell key={`cell-${entry.name}-${index}`} fill={`url(#projectGradient${index % chartColors.length})`} />
                       ))}
                     </Pie>
                   </PieChart>
@@ -763,6 +772,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={taskTypeChartConfig} className="h-72 w-full">
                   <PieChart>
+                    <defs>
+                      {chartColors.map((color, index) => (
+                        <radialGradient key={`taskTypeGradient${index}`} id={`taskTypeGradient${index}`} cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.9')} />
+                          <stop offset="70%" stopColor={color} />
+                          <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.3')} />
+                        </radialGradient>
+                      ))}
+                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -789,7 +807,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                       labelLine={true}
                     >
                       {taskTypePieData.map((entry, index) => (
-                        <Cell key={`type-${entry.name}-${index}`} fill={taskTypeColors[index]} />
+                        <Cell key={`type-${entry.name}-${index}`} fill={`url(#taskTypeGradient${index % chartColors.length})`} />
                       ))}
                     </Pie>
                   </PieChart>
@@ -813,6 +831,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <div className="grid grid-cols-1 gap-6 items-center">
                 <ChartContainer config={scopeChartConfig} className="h-72 w-full">
                   <PieChart>
+                    <defs>
+                      {chartColors.map((color, index) => (
+                        <radialGradient key={`scopeGradient${index}`} id={`scopeGradient${index}`} cx="50%" cy="50%" r="50%">
+                          <stop offset="0%" stopColor={color.replace('/ 0.7', '/ 0.9')} />
+                          <stop offset="70%" stopColor={color} />
+                          <stop offset="100%" stopColor={color.replace('/ 0.7', '/ 0.3')} />
+                        </radialGradient>
+                      ))}
+                    </defs>
                     <ChartTooltip
                       content={
                         <ChartTooltipContent
@@ -839,7 +866,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                       labelLine={true}
                     >
                       {scopePieData.map((entry, index) => (
-                        <Cell key={`scope-${entry.name}-${index}`} fill={scopeColors[index]} />
+                        <Cell key={`scope-${entry.name}-${index}`} fill={`url(#scopeGradient${index % chartColors.length})`} />
                       ))}
                     </Pie>
                     
