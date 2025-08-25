@@ -65,6 +65,7 @@ export const TaskTable = ({
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
+  const [lastSearchTerm, setLastSearchTerm] = useState(""); // Track the last executed search
   const [filters, setFilters] = useState<Filters>({
     scope: [],
     status: [],
@@ -235,6 +236,7 @@ export const TaskTable = ({
         taskType: [],
         environment: []
       });
+      setLastSearchTerm(searchTerm); // Update the executed search term
       onSearch(searchTerm, pagination?.pageSize, sortField, sortDirection);
     }
   }, [onSearch, searchTerm, pagination?.pageSize, sortField, sortDirection]);
@@ -439,15 +441,22 @@ export const TaskTable = ({
         {/* Search Bar with Pagination */}
         <div className="bg-card rounded-lg border border-border p-4">
           <div className="flex items-center justify-between gap-4">
-            <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search tasks... (Press Enter to search)"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="pl-10"
-              />
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search tasks... (Press Enter to search)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-10"
+                />
+              </div>
+              {lastSearchTerm && (
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">"{lastSearchTerm}"</span> {effectiveTasks.length} records
+                </div>
+              )}
             </div>
             
             {/* Pagination Controls for Mobile */}
@@ -572,15 +581,22 @@ export const TaskTable = ({
         {/* Search Bar with Pagination */}
         <div className="p-4 border-b border-border">
           <div className="flex items-center justify-between gap-4">
-            <div className="relative max-w-md flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
-                placeholder="Search tasks... (Press Enter to search)"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="pl-10"
-              />
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search tasks... (Press Enter to search)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="pl-10"
+                />
+              </div>
+              {lastSearchTerm && (
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">"{lastSearchTerm}"</span> {effectiveTasks.length} records
+                </div>
+              )}
             </div>
             
             {/* Pagination Controls for Desktop */}
