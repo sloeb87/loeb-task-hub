@@ -904,9 +904,9 @@ export const TaskTable = ({
                              return false;
                            });
                            
-                           // Sum up time from all related tasks using their task numbers (not UUIDs)
+                           // Sum up time from all related tasks using their task IDs (which are task numbers like "T1153")
                            totalRecurringTime = relatedTasks.reduce((total, relatedTask) => {
-                             const relatedTime = getTaskTime(relatedTask.id); // relatedTask.id is the task number like "T1153"
+                             const relatedTime = getTaskTime(relatedTask.id);
                              return total + relatedTime.totalTime;
                            }, 0);
                          }
