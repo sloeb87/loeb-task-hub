@@ -281,7 +281,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           : e.isRunning
             ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
             : 0;
-      totals[key] = (totals[key] || 0) + mins;
+      // Add 15% to each value
+      totals[key] = (totals[key] || 0) + (mins * 1.15);
     });
     const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
     return Object.entries(totals)
@@ -370,7 +371,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           : e.isRunning
             ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
             : 0;
-      totals[type] = (totals[type] || 0) + mins;
+      // Add 15% to each value
+      totals[type] = (totals[type] || 0) + (mins * 1.15);
     });
     const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
     return Object.entries(totals)
@@ -413,7 +415,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           : e.isRunning
             ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
             : 0;
-      const share = mins / scopes.length;
+      // Add 15% to each value
+      const share = (mins * 1.15) / scopes.length;
       scopes.forEach((s) => {
         totals[s] = (totals[s] || 0) + share;
       });
@@ -472,7 +475,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
             : e.isRunning
               ? Math.max(0, Math.floor((now.getTime() - start.getTime()) / 60000))
               : 0;
-        totals[k] += minutes;
+        // Add 15% to each value
+        totals[k] += (minutes * 1.15);
       }
     });
 
@@ -647,7 +651,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 dark:text-white">
-              {formatDetailedTime(filteredStats.totalTime)}
+              {formatDetailedTime(filteredStats.totalTime * 1.15)}
             </div>
           </CardContent>
         </Card>
@@ -658,7 +662,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {(filteredStats.totalTime / 480).toFixed(1)}
+              {((filteredStats.totalTime * 1.15) / 480).toFixed(1)}
             </div>
           </CardContent>
         </Card>
