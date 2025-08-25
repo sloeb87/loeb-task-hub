@@ -278,14 +278,14 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   const allTimeEntries = getFilteredTimeEntries({});
   const totalStats = useMemo(() => getTimeEntryStats(allTimeEntries), [getTimeEntryStats, allTimeEntries]);
 
-  // Pareto transformation - focuses on top 80% contributors
+  // Pareto transformation - groups items with less than 5% into "Others"
   const applyParetoLogic = useCallback((data: Array<{name: string, value: number, percent: number}>) => {
     if (data.length === 0) return data;
     
     const sortedData = [...data].sort((a, b) => b.value - a.value);
     const total = sortedData.reduce((sum, item) => sum + item.value, 0);
     
-    console.log('Pareto Analysis:', {
+    console.log('5% Threshold Analysis:', {
       totalItems: sortedData.length,
       totalValue: total,
       items: sortedData.map(item => ({ name: item.name, value: item.value, percent: ((item.value / total) * 100).toFixed(1) }))
@@ -297,40 +297,39 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       return sortedData;
     }
     
-    let cumulative = 0;
-    let paretoIndex = -1;
+    // Separate items with 5% or more from those with less than 5%
+    const mainItems: Array<{name: string, value: number, percent: number}> = [];
+    const othersItems: Array<{name: string, value: number, percent: number}> = [];
     
-    // Find items that contribute to approximately 80% of total
-    for (let i = 0; i < sortedData.length; i++) {
-      cumulative += sortedData[i].value;
-      const cumulativePercent = (cumulative / total) * 100;
+    sortedData.forEach(item => {
+      const itemPercent = total ? (item.value / total) * 100 : 0;
       
-      console.log(`Item ${i}: ${sortedData[i].name}, cumulative: ${cumulativePercent.toFixed(1)}%`);
+      console.log(`Item: ${item.name}, percent: ${itemPercent.toFixed(1)}%`);
       
-      // Stop when we reach or exceed 80%, but ensure we have at least 2 items
-      if (cumulativePercent >= 80 && i >= 1) {
-        paretoIndex = i;
-        break;
+      if (itemPercent >= 5) {
+        mainItems.push(item);
+      } else {
+        othersItems.push(item);
       }
-    }
+    });
     
-    console.log('Pareto Index:', paretoIndex);
+    console.log('Main items (≥5%):', mainItems.length);
+    console.log('Others items (<5%):', othersItems.length);
     
-    // If paretoIndex wasn't set or would include almost everything, return as-is
-    if (paretoIndex === -1 || paretoIndex >= sortedData.length - 2) {
-      console.log('Pareto index too high, showing all items');
+    // If no items are less than 5%, return original data
+    if (othersItems.length === 0) {
+      console.log('No items under 5%, showing all items');
       return sortedData;
     }
     
-    // Create pareto data with "Others" category
-    const paretoItems = sortedData.slice(0, paretoIndex + 1);
-    const othersItems = sortedData.slice(paretoIndex + 1);
+    // Create result with "Others" category
+    const result = [...mainItems];
     
     if (othersItems.length > 0) {
       const othersValue = othersItems.reduce((sum, item) => sum + item.value, 0);
       const othersPercent = total ? Math.round((othersValue / total) * 1000) / 10 : 0;
       
-      paretoItems.push({
+      result.push({
         name: `Others (${othersItems.length})`,
         value: othersValue,
         percent: othersPercent
@@ -344,9 +343,9 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       });
     }
     
-    console.log('Final Pareto Result:', paretoItems.map(item => ({ name: item.name, percent: ((item.value / total) * 100).toFixed(1) })));
+    console.log('Final 5% Threshold Result:', result.map(item => ({ name: item.name, percent: ((item.value / total) * 100).toFixed(1) })));
     
-    return paretoItems;
+    return result;
   }, []);
 
   // Project distribution for Pie Chart (% by project) based on filtered entries - with Pareto logic
