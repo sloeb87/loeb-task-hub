@@ -654,44 +654,27 @@ export const TaskFormOptimized = React.memo(({
                   <div className="flex items-center gap-2 mb-3">
                     <Repeat className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <Label className="text-blue-800 dark:text-blue-200 font-medium">
-                      Current Occurrence
+                      Recurring Task
                     </Label>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="occurrenceDate" className="text-sm text-blue-700 dark:text-blue-300">
-                        This Occurrence Date
-                      </Label>
-                      <Input
-                        id="occurrenceDate"
-                        type="date"
-                        value={formData.occurrenceDate ? format(formData.occurrenceDate, 'yyyy-MM-dd') : format(date || new Date(), 'yyyy-MM-dd')}
-                        onChange={(e) => updateField('occurrenceDate', new Date(e.target.value))}
-                        className="dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
-                      />
-                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                         This occurrence date is specific to this task instance
-                       </p>
-                    </div>
-                    <div className="flex items-end">
-                      <div className="text-sm text-blue-700 dark:text-blue-300">
-                        {task?.parentTaskId ? (
-                          <span className="flex items-center gap-1">
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                            Recurring Instance
-                          </span>
-                        ) : task?.isRecurring ? (
-                          <span className="flex items-center gap-1">
-                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            Parent Recurring Task
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1">
-                            <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-                            Will Create Recurring Series
-                          </span>
-                        )}
-                      </div>
+                  <div className="mb-4">
+                    <div className="text-sm text-blue-700 dark:text-blue-300">
+                      {task?.parentTaskId ? (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                          Recurring Instance
+                        </span>
+                      ) : task?.isRecurring ? (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                          Parent Recurring Task
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                          Will Create Recurring Series
+                        </span>
+                      )}
                     </div>
                   </div>
                   
