@@ -1199,7 +1199,7 @@ export function useSupabaseStorage() {
       const { data: currentTask, error: currentError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('id', taskId)
+        .eq('task_number', taskId)
         .eq('user_id', user.id)
         .single();
 
@@ -1216,7 +1216,6 @@ export function useSupabaseStorage() {
         .select('*')
         .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
         .eq('user_id', user.id)
-        .eq('status', 'Open')
         .order('due_date', { ascending: true });
 
       if (fetchError) {
@@ -1224,7 +1223,10 @@ export function useSupabaseStorage() {
         return [];
       }
 
-      return await Promise.all(relatedTasks?.map(convertSupabaseTaskToTask) || []);
+      // Filter by Open status after getting all tasks
+      const openTasks = relatedTasks?.filter(t => t.status === 'Open') || [];
+
+      return await Promise.all(openTasks.map(convertSupabaseTaskToTask));
     } catch (error) {
       console.error('Error in getRelatedRecurringTasks:', error);
       return [];
