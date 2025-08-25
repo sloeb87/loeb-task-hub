@@ -949,8 +949,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                             const color = getScopeColor(projectScope);
                             return (
                               <linearGradient key={`projectGradient-${index}`} id={`projectGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.35}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
+                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                               </linearGradient>
                             );
                           })}
@@ -1030,8 +1030,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                             const color = getTaskTypeColor(entry.name);
                             return (
                               <linearGradient key={`taskTypeGradient-${index}`} id={`taskTypeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.35}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
+                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                               </linearGradient>
                             );
                           })}
@@ -1099,8 +1099,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                             const color = getScopeColor(entry.name);
                             return (
                               <linearGradient key={`scopeGradient-${index}`} id={`scopeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={color} stopOpacity={0.35}/>
-                                <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
+                                <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                                <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                               </linearGradient>
                             );
                           })}
@@ -1234,8 +1234,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                            }
                            return (
                              <linearGradient key={`modalGradient-${index}`} id={`modalGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                               <stop offset="5%" stopColor={color} stopOpacity={0.35}/>
-                               <stop offset="95%" stopColor={color} stopOpacity={0.05}/>
+                               <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                               <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                              </linearGradient>
                            );
                          })}
