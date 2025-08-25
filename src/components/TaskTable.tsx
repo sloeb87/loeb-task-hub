@@ -11,6 +11,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from "react"
 import { format } from "date-fns";
 
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { useRecurringTaskTime } from "@/hooks/useRecurringTaskTime";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor, usePriorityColor } from '@/hooks/useParameterColors';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
@@ -83,6 +84,7 @@ export const TaskTable = ({
   const [showFilters, setShowFilters] = useState<Record<string, boolean>>({});
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
+  const { getRecurringTaskTime } = useRecurringTaskTime();
   const { getScopeStyle, loading: scopeLoading } = useScopeColor();
   const { getTaskTypeStyle, loading: taskTypeLoading } = useTaskTypeColor();
   const { getEnvironmentStyle, loading: environmentLoading } = useEnvironmentColor();
@@ -881,48 +883,24 @@ export const TaskTable = ({
                         </div>
                      </TableCell>
 
-                   {/* Time Tracking Column */}
-                    <TableCell>
-                      {(() => {
-                        const taskTime = getTaskTime(task.id);
-                        
-                         // For recurring tasks, calculate total time across all instances
-                         let totalRecurringTime = taskTime.totalTime;
-                         if (task.isRecurring || task.parentTaskId) {
-                           console.log(`Calculating recurring time for ${task.id}:`, {
-                             taskTitle: task.title,
-                             isRecurring: task.isRecurring,
-                             parentTaskId: task.parentTaskId,
-                             currentTime: taskTime.totalTime
-                           });
-                           
-                           // Find all related recurring tasks by looking for tasks that share the same parent or are the parent
-                           const relatedTasks = effectiveTasks.filter(t => {
-                             // If current task is the parent, find all its children
-                             if (task.isRecurring && !task.parentTaskId) {
-                               return t.parentTaskId === task.id || t.id === task.id;
-                             }
-                             // If current task is a child, find all siblings and parent
-                             else if (task.parentTaskId) {
-                               return t.parentTaskId === task.parentTaskId || 
-                                      (t.isRecurring && t.id === task.parentTaskId) ||
-                                      t.id === task.id;
-                             }
-                             return false;
-                           });
-                           
-                           console.log(`Related tasks for ${task.id}:`, relatedTasks.map(t => ({ id: t.id, title: t.title })));
-                           console.log(`All effectiveTasks:`, effectiveTasks.map(t => ({ id: t.id, title: t.title, parentTaskId: t.parentTaskId, isRecurring: t.isRecurring })));
-                           
-                           // Sum up time from all related tasks using their task IDs (which are task numbers like "T1153")
-                           totalRecurringTime = relatedTasks.reduce((total, relatedTask) => {
-                             const relatedTime = getTaskTime(relatedTask.id);
-                             console.log(`Time for ${relatedTask.id}:`, relatedTime.totalTime);
-                             return total + relatedTime.totalTime;
-                           }, 0);
-                           
-                           console.log(`Total recurring time for ${task.id}:`, totalRecurringTime);
-                         }
+                    {/* Time Tracking Column */}
+                     <TableCell>
+                       {(() => {
+                         const taskTime = getTaskTime(task.id);
+                         
+                         // For recurring tasks, we need to calculate total time across ALL instances in the series
+                         // by querying the database directly, not just looking at the current table view
+                         const [recurringTimeData, setRecurringTimeData] = React.useState<{totalTime: number, taskIds: string[]}>({totalTime: taskTime.totalTime, taskIds: []});
+                         
+                         React.useEffect(() => {
+                           if (task.isRecurring || task.parentTaskId) {
+                             getRecurringTaskTime(task.id, task.parentTaskId, task.isRecurring).then(data => {
+                               setRecurringTimeData(data);
+                             });
+                           }
+                         }, [task.id, task.parentTaskId, task.isRecurring, taskTime.totalTime]);
+                         
+                         const totalRecurringTime = (task.isRecurring || task.parentTaskId) ? recurringTimeData.totalTime : taskTime.totalTime;
                         
                         return (
                           <div className="space-y-2">
