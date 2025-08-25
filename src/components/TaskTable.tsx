@@ -981,34 +981,77 @@ export const TaskTable = ({
                      })()}
                    </TableCell>
 
-                  {/* Follow Ups Column */}
-                  <TableCell>
-                    <div 
-                      className="follow-up-section space-y-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors p-2 rounded" 
-                      onClick={(e) => handleFollowUpClick(task, e)}
-                    >
-                      {task.followUps.length === 0 ? (
-                        <div className="text-xs text-gray-400 italic flex items-center">
-                          <MessageSquarePlus className="w-3 h-3 mr-1" />
-                          Click to add follow-up
-                        </div>
-                      ) : (
-                        <div className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
-                          <div className="text-xs text-gray-400 mb-1">
-                            {new Date(task.followUps[task.followUps.length - 1].timestamp).toLocaleDateString()}
-                          </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                            {task.followUps[task.followUps.length - 1].text}
-                          </div>
-                        </div>
-                      )}
-                      {task.followUps.length > 1 && (
-                        <div className="text-xs text-blue-600 dark:text-blue-400 italic">
-                          +{task.followUps.length - 1} more...
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
+                   {/* Follow Ups Column */}
+                   <TableCell>
+                     <div 
+                       className="follow-up-section space-y-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors p-2 rounded" 
+                       onClick={(e) => handleFollowUpClick(task, e)}
+                     >
+                       {task.followUps.length === 0 ? (
+                         <div className="text-xs text-gray-400 italic flex items-center">
+                           <MessageSquarePlus className="w-3 h-3 mr-1" />
+                           Click to add follow-up
+                         </div>
+                       ) : (() => {
+                         // Get today's follow-ups
+                         const today = new Date().toDateString();
+                         const todaysFollowUps = task.followUps.filter(followUp => 
+                           new Date(followUp.timestamp).toDateString() === today
+                         ).slice(0, 3); // Show max 3 from today
+                         
+                         const hasMoreToday = task.followUps.filter(followUp => 
+                           new Date(followUp.timestamp).toDateString() === today
+                         ).length > 3;
+                         
+                         if (todaysFollowUps.length > 0) {
+                           return (
+                             <div className="border-l-2 border-blue-200 dark:border-blue-700 pl-2 space-y-2">
+                               <div className="text-xs text-gray-400 mb-1">
+                                 Today ({todaysFollowUps.length} follow-up{todaysFollowUps.length > 1 ? 's' : ''})
+                               </div>
+                               {todaysFollowUps.map((followUp, index) => (
+                                 <div key={followUp.id} className="text-xs">
+                                   <div className="text-gray-500 dark:text-gray-400">
+                                     {new Date(followUp.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                   </div>
+                                   <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                                     {followUp.text}
+                                   </div>
+                                 </div>
+                               ))}
+                               {hasMoreToday && (
+                                 <div className="text-xs text-blue-600 dark:text-blue-400 italic">
+                                   +{task.followUps.filter(f => new Date(f.timestamp).toDateString() === today).length - 3} more today...
+                                 </div>
+                               )}
+                               {task.followUps.length > todaysFollowUps.length && (
+                                 <div className="text-xs text-gray-500 dark:text-gray-400 italic">
+                                   {task.followUps.length - todaysFollowUps.length} older follow-up{task.followUps.length - todaysFollowUps.length > 1 ? 's' : ''}
+                                 </div>
+                               )}
+                             </div>
+                           );
+                         } else {
+                           // Show most recent if none from today
+                           return (
+                             <div className="border-l-2 border-blue-200 dark:border-blue-700 pl-2">
+                               <div className="text-xs text-gray-400 mb-1">
+                                 {new Date(task.followUps[0].timestamp).toLocaleDateString()}
+                               </div>
+                               <div className="text-xs text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
+                                 {task.followUps[0].text}
+                               </div>
+                               {task.followUps.length > 1 && (
+                                 <div className="text-xs text-blue-600 dark:text-blue-400 italic">
+                                   +{task.followUps.length - 1} more...
+                                 </div>
+                               )}
+                             </div>
+                           );
+                         }
+                       })()}
+                     </div>
+                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
