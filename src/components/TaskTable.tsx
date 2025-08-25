@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2 } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2, X } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -65,7 +65,7 @@ export const TaskTable = ({
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
-  const [lastSearchTerm, setLastSearchTerm] = useState(""); // Track the last executed search
+  const [activeSearchTerm, setActiveSearchTerm] = useState(""); // Track the currently active search
   const [filters, setFilters] = useState<Filters>({
     scope: [],
     status: [],
@@ -236,7 +236,7 @@ export const TaskTable = ({
         taskType: [],
         environment: []
       });
-      setLastSearchTerm(searchTerm); // Update the executed search term
+      setActiveSearchTerm(searchTerm); // Update the active search term
       onSearch(searchTerm, pagination?.pageSize, sortField, sortDirection);
     }
   }, [onSearch, searchTerm, pagination?.pageSize, sortField, sortDirection]);
@@ -246,6 +246,33 @@ export const TaskTable = ({
       handleSearchSubmit();
     }
   }, [handleSearchSubmit]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm("");
+    setActiveSearchTerm("");
+    // Clear all filters when clearing search
+    setFilters({
+      scope: [],
+      status: [],
+      priority: [],
+      project: [],
+      responsible: [],
+      dueDate: [],
+      followUps: [],
+      timeTracking: [],
+      taskType: [],
+      environment: []
+    });
+    onSearch("", pagination?.pageSize, sortField, sortDirection);
+  }, [onSearch, pagination?.pageSize, sortField, sortDirection]);
+
+  // Initialize search term from current search if component re-renders
+  useEffect(() => {
+    // If there's an active search but no searchTerm, restore it
+    if (activeSearchTerm && !searchTerm) {
+      setSearchTerm(activeSearchTerm);
+    }
+  }, [activeSearchTerm, searchTerm]);
 
 
   const filteredAndSortedTasks = useMemo(() => {
@@ -452,9 +479,19 @@ export const TaskTable = ({
                   className="pl-10"
                 />
               </div>
-              {lastSearchTerm && (
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-medium">"{lastSearchTerm}"</span> {effectiveTasks.length} records
+              {activeSearchTerm && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    <span className="font-medium">"{activeSearchTerm}"</span> {effectiveTasks.length} records
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSearch}
+                    className="h-6 px-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
                 </div>
               )}
             </div>
@@ -592,9 +629,19 @@ export const TaskTable = ({
                   className="pl-10"
                 />
               </div>
-              {lastSearchTerm && (
-                <div className="text-sm text-muted-foreground">
-                  <span className="font-medium">"{lastSearchTerm}"</span> {effectiveTasks.length} records
+              {activeSearchTerm && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>
+                    <span className="font-medium">"{activeSearchTerm}"</span> {effectiveTasks.length} records
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSearch}
+                    className="h-6 px-2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
                 </div>
               )}
             </div>
