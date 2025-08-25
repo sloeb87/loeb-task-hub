@@ -710,7 +710,7 @@ export const TaskFormOptimized = React.memo(({
                               <div className="flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
                                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                                  {format(new Date(occurrence.dueDate), 'MMM d, yyyy')}
+                                  {format(new Date(occurrence.dueDate), 'EEE, MMM d, yyyy')}
                                 </span>
                               </div>
                               <div className="flex items-center gap-2">
