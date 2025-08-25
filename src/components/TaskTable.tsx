@@ -222,6 +222,19 @@ export const TaskTable = ({
   // Handle search on Enter key press
   const handleSearchSubmit = useCallback(() => {
     if (onSearch) {
+      // Clear local filters when performing database search
+      setFilters({
+        scope: [],
+        status: [],
+        priority: [],
+        project: [],
+        responsible: [],
+        dueDate: [],
+        followUps: [],
+        timeTracking: [],
+        taskType: [],
+        environment: []
+      });
       onSearch(searchTerm, pagination?.pageSize, sortField, sortDirection);
     }
   }, [onSearch, searchTerm, pagination?.pageSize, sortField, sortDirection]);
@@ -234,13 +247,15 @@ export const TaskTable = ({
 
 
   const filteredAndSortedTasks = useMemo(() => {
+    // If we have search results, show them directly (search is done at database level)
+    // Only apply local filters when there's no active search
+    if (searchTerm.trim()) {
+      return effectiveTasks; // Database search already applied, show results as-is
+    }
+    
+    // Apply local filters only when not searching
     return effectiveTasks
       .filter(task => {
-        const matchesSearch = searchTerm === "" || 
-          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          task.responsible.toLowerCase().includes(searchTerm.toLowerCase());
-        if (!matchesSearch) return false;
         if (filters.scope.length > 0 && !task.scope.some(scope => filters.scope.includes(scope))) return false;
         if (filters.status.length > 0 && !filters.status.includes(task.status)) return false;
         if (filters.priority.length > 0 && !filters.priority.includes(task.priority)) return false;
