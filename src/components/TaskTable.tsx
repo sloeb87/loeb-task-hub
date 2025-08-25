@@ -889,6 +889,13 @@ export const TaskTable = ({
                          // For recurring tasks, calculate total time across all instances
                          let totalRecurringTime = taskTime.totalTime;
                          if (task.isRecurring || task.parentTaskId) {
+                           console.log(`Calculating recurring time for ${task.id}:`, {
+                             taskTitle: task.title,
+                             isRecurring: task.isRecurring,
+                             parentTaskId: task.parentTaskId,
+                             currentTime: taskTime.totalTime
+                           });
+                           
                            // Find all related recurring tasks by looking for tasks that share the same parent or are the parent
                            const relatedTasks = effectiveTasks.filter(t => {
                              // If current task is the parent, find all its children
@@ -904,11 +911,16 @@ export const TaskTable = ({
                              return false;
                            });
                            
+                           console.log(`Related tasks for ${task.id}:`, relatedTasks.map(t => ({ id: t.id, title: t.title })));
+                           
                            // Sum up time from all related tasks using their task IDs (which are task numbers like "T1153")
                            totalRecurringTime = relatedTasks.reduce((total, relatedTask) => {
                              const relatedTime = getTaskTime(relatedTask.id);
+                             console.log(`Time for ${relatedTask.id}:`, relatedTime.totalTime);
                              return total + relatedTime.totalTime;
                            }, 0);
+                           
+                           console.log(`Total recurring time for ${task.id}:`, totalRecurringTime);
                          }
                         
                         return (
