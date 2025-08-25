@@ -113,6 +113,15 @@ export function useSupabaseStorage() {
       });
     }
 
+    if (supabaseTask.task_number === 'T36') {
+      console.log('Converting T36 from Supabase:', { 
+        environment: supabaseTask.environment,
+        task_type: supabaseTask.task_type,
+        priority: supabaseTask.priority,
+        status: supabaseTask.status
+      });
+    }
+
     return {
       id: supabaseTask.task_number, // Use task_number as the ID for compatibility
       scope: supabaseTask.scope || [], // Handle array scope
