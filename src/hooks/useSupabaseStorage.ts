@@ -53,6 +53,7 @@ export function useSupabaseStorage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState<string>(""); // Track current search
   const [pagination, setPagination] = useState({
     currentPage: 1,
     pageSize: 50,
@@ -179,6 +180,7 @@ export function useSupabaseStorage() {
 
     try {
       setIsLoading(true);
+      setCurrentSearchTerm(""); // Clear search term when loading regular tasks
       
       // First, get the total count and stats for all tasks
       const { data: allTasksData, error: allTasksError } = await supabase
@@ -383,13 +385,15 @@ export function useSupabaseStorage() {
     }
 
     if (!searchTerm.trim()) {
-      // If no search term, load regular paginated tasks
+      // If no search term, clear current search and load regular paginated tasks
+      setCurrentSearchTerm("");
       loadTasks(1, pageSize, sortField, sortDirection);
       return;
     }
 
     try {
       setIsLoading(true);
+      setCurrentSearchTerm(searchTerm); // Store the current search term
       
       // Map frontend sort fields to database columns
       const dbSortField = (() => {
@@ -1178,6 +1182,7 @@ export function useSupabaseStorage() {
     error,
     pagination,
     taskCounts,
+    currentSearchTerm, // Export current search term
     loadTasks,
     searchTasks,
     loadAllTasksForProject,

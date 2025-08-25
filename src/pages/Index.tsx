@@ -43,6 +43,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     error,
     pagination,
     taskCounts,
+    currentSearchTerm, // Destructure current search term
     loadTasks,
     searchTasks,
     loadAllTasksForProject,
@@ -477,6 +478,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 sortDirection={sortDirection}
                 onSortChange={handleSortChange}
                 onSearch={searchTasks}
+                currentSearchTerm={currentSearchTerm} // Pass current search term
               />
                 </>
               ) : location.state?.dateFilter ? (

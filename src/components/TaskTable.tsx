@@ -32,6 +32,7 @@ interface TaskTableProps {
   sortDirection?: 'asc' | 'desc';
   onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
   onSearch?: (searchTerm: string, pageSize?: number, sortField?: string, sortDirection?: 'asc' | 'desc') => void;
+  currentSearchTerm?: string; // Add current search term prop
 }
 
 type SortField = 'id' | 'title' | 'scope' | 'project' | 'status' | 'priority' | 'responsible' | 'dueDate' | 'taskType' | 'environment';
@@ -61,7 +62,8 @@ export const TaskTable = ({
   sortField = 'dueDate',
   sortDirection = 'asc',
   onSortChange,
-  onSearch
+  onSearch,
+  currentSearchTerm = "" // Destructure current search term prop
 }: TaskTableProps) => {
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
@@ -266,13 +268,13 @@ export const TaskTable = ({
     onSearch("", pagination?.pageSize, sortField, sortDirection);
   }, [onSearch, pagination?.pageSize, sortField, sortDirection]);
 
-  // Initialize search term from current search if component re-renders
+  // Initialize search state from parent's current search term
   useEffect(() => {
-    // If there's an active search but no searchTerm, restore it
-    if (activeSearchTerm && !searchTerm) {
-      setSearchTerm(activeSearchTerm);
+    if (currentSearchTerm !== activeSearchTerm) {
+      setSearchTerm(currentSearchTerm);
+      setActiveSearchTerm(currentSearchTerm);
     }
-  }, [activeSearchTerm, searchTerm]);
+  }, [currentSearchTerm, activeSearchTerm]);
 
 
   const filteredAndSortedTasks = useMemo(() => {
