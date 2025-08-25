@@ -15,6 +15,18 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const { taskTimers, stopTimer } = useTimeTracking();
   const { openTaskForm } = useTaskForm();
   const [currentDuration, setCurrentDuration] = useState<string>("");
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Listen for timer changes from other components
+  useEffect(() => {
+    const handleTimerUpdate = () => {
+      console.log('RunningTimerDisplay - Timer update event received');
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('timerStateChanged', handleTimerUpdate);
+    return () => window.removeEventListener('timerStateChanged', handleTimerUpdate);
+  }, []);
 
   // Find the currently running task
   const NON_PROJECT_TASK_ID = 'non_project_time';

@@ -233,6 +233,11 @@ export function useTimeTracking() {
           currentEntryId: newEntry.id
         });
         
+        // Notify other components that timer state changed
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('timerStateChanged'));
+        }, 100);
+        
         return newMap;
       });
     } catch (error) {
@@ -295,6 +300,11 @@ export function useTimeTracking() {
             totalTime: current.totalTime + duration
           });
         }
+        
+        // Notify other components that timer state changed
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('timerStateChanged'));
+        }, 100);
         
         return newMap;
       });
