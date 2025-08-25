@@ -301,16 +301,18 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   }, [projectPieData]);
 
   const chartColors = useMemo(() => [
-    '#3b82f6', // Blue
-    '#ef4444', // Red  
-    '#10b981', // Green
-    '#f59e0b', // Amber
-    '#8b5cf6', // Purple
-    '#06b6d4', // Cyan
-    '#84cc16', // Lime
-    '#f97316', // Orange
-    '#ec4899', // Pink
-    '#6366f1', // Indigo
+    'hsl(var(--chart-1))',   // neon cyan
+    'hsl(var(--chart-2))',   // electric violet
+    'hsl(var(--chart-3))',   // neon green
+    'hsl(var(--chart-4))',   // tech blue
+    'hsl(var(--chart-5))',   // neon magenta
+    'hsl(var(--chart-6))',   // neon amber
+    'hsl(var(--chart-7))',   // neon pink-red
+    'hsl(var(--chart-8))',   // azure glow
+    'hsl(var(--chart-9))',   // laser lime
+    'hsl(var(--chart-10))',  // ultraviolet
+    'hsl(var(--chart-11))',  // neon orange
+    'hsl(var(--chart-12))',  // neon red
   ], []);
 
   const formatTime = (minutes: number) => {
@@ -716,18 +718,19 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         />
                       }
                     />
-                      <Pie
-                        data={projectPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        startAngle={90}
-                        endAngle={-270}
-                         innerRadius={60}
-                         outerRadius={100}
-                        strokeWidth={2}
-                        label={makePieLabelOutside(projectTotal)}
-                        labelLine={true}
-                      >
+                    <Pie
+                      data={projectPieData}
+                      dataKey="value"
+                      nameKey="name"
+                      startAngle={90}
+                      endAngle={-270}
+                      innerRadius={70}
+                      outerRadius={110}
+                      strokeWidth={3}
+                      stroke="hsl(var(--background))"
+                      label={makePieLabelOutside(projectTotal)}
+                      labelLine={true}
+                    >
                       {projectPieData.map((entry, index) => (
                         <Cell key={`cell-${entry.name}-${index}`} fill={chartColors[index % chartColors.length]} />
                       ))}
@@ -778,9 +781,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                       nameKey="name"
                       startAngle={90}
                       endAngle={-270}
-                      innerRadius={60}
-                      outerRadius={100}
-                      strokeWidth={2}
+                      innerRadius={70}
+                      outerRadius={110}
+                      strokeWidth={3}
+                      stroke="hsl(var(--background))"
                       label={makePieLabelOutside(taskTypeTotal)}
                       labelLine={true}
                     >
@@ -827,9 +831,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                       nameKey="name"
                       startAngle={90}
                       endAngle={-270}
-                      innerRadius={60}
-                      outerRadius={100}
-                      strokeWidth={2}
+                      innerRadius={70}
+                      outerRadius={110}
+                      strokeWidth={3}
+                      stroke="hsl(var(--background))"
                       label={makePieLabelOutside(scopeTotal)}
                       labelLine={true}
                     >
