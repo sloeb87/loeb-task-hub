@@ -765,14 +765,14 @@ export const TaskTable = ({
                   {/* Task Column */}
                   <TableCell>
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between">
+                         <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-2">
                             <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
                             <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
                               {task.title}
                             </h3>
                           </div>
-                          <div className="flex items-center gap-1 ml-2">
+                          <div className="flex flex-col items-end gap-1 ml-2">
                             {(task.isRecurring || task.parentTaskId) && (
                               <>
                                 {task.isRecurring && (
