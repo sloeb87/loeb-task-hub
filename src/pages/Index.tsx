@@ -204,6 +204,11 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     setActiveView(view);
     
+    // Set active filter to "active" when navigating to tasks view
+    if (view === "tasks") {
+      setActiveFilter("active");
+    }
+    
     // Clear any navigation state/filters when switching to main views
     if (view === "tasks" || view === "projects" || view === "followups" || view === "dashboard" || view === "timetracking") {
       // Replace current history state to clear any date filters from chart clicks
