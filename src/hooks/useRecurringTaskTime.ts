@@ -45,7 +45,7 @@ export function useRecurringTaskTime() {
           .from('tasks')
           .select('task_number, id, is_recurring')
           .eq('user_id', user.id)
-          .or(`id.eq.${parentTaskId}, parent_task_id.eq.${parentTaskId}`);
+          .or(`task_number.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`);
 
         if (error) {
           console.error('Error fetching related tasks:', error);
