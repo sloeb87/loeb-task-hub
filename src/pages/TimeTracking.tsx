@@ -658,7 +658,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {(filteredStats.totalTime / 1440).toFixed(1)}
+              {(filteredStats.totalTime / 480).toFixed(1)}
             </div>
           </CardContent>
         </Card>
