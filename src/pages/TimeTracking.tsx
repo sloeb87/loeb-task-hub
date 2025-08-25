@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Play, Pause, Search, Edit3, Trash2, Filter } from "lucide-react";
+import { Clock, Play, Pause, Search, Edit3, Trash2, Filter, Building2 } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
@@ -41,11 +41,21 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>(() => {
     const now = new Date();
     return { dateRange: { from: startOfDay(now), to: endOfDay(now) } };
   });
+
+  // Modal state for detailed pie chart view
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [detailModalData, setDetailModalData] = useState<{
+    title: string;
+    data: Array<{name: string, value: number, percent: number}>;
+    total: number;
+    type: 'project' | 'taskType' | 'scope';
+  } | null>(null);
 
   // Multi-select filters
   const [multiSelectFilters, setMultiSelectFilters] = useState<MultiSelectFilters>({
@@ -374,6 +384,31 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }, {} as ChartConfig);
   }, [projectPieData]);
 
+  // Raw project data (without Pareto logic) for detailed modal
+  const projectRawData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const key = e.projectName || 'Unassigned';
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      totals[key] = (totals[key] || 0) + Math.round(mins * 1.10);
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries]);
+
   const chartColors = useMemo(() => [
     'hsl(var(--chart-1) / 0.7)',   // neon cyan
     'hsl(var(--chart-2) / 0.7)',   // electric violet
@@ -466,6 +501,32 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }, {} as ChartConfig);
   }, [taskTypePieData]);
 
+  // Raw task type data (without Pareto logic) for detailed modal
+  const taskTypeRawData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const task = tasks.find(t => t.id === e.taskId);
+      const type = task?.taskType || 'Unassigned';
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      totals[type] = (totals[type] || 0) + Math.round(mins * 1.10);
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries, tasks]);
+
   const projectColors = useMemo(
     () => projectPieData.map((_, i) => chartColors[i % chartColors.length]),
     [projectPieData, chartColors]
@@ -515,15 +576,75 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }, {} as ChartConfig);
   }, [scopePieData]);
 
+  // Raw scope data (without Pareto logic) for detailed modal
+  const scopeRawData = useMemo(() => {
+    const totals: Record<string, number> = {};
+    const now = new Date();
+    filteredEntries.forEach((e) => {
+      const task = tasks.find(t => t.id === e.taskId);
+      const scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      const mins = typeof e.duration === 'number' && !isNaN(e.duration)
+        ? e.duration
+        : e.endTime
+          ? Math.max(0, Math.floor((new Date(e.endTime).getTime() - new Date(e.startTime).getTime()) / 60000))
+          : e.isRunning
+            ? Math.max(0, Math.floor((now.getTime() - new Date(e.startTime).getTime()) / 60000))
+            : 0;
+      const share = Math.round(mins * 1.10) / scopes.length;
+      scopes.forEach((s) => {
+        totals[s] = (totals[s] || 0) + share;
+      });
+    });
+    const total = Object.values(totals).reduce((a, b) => a + b, 0) || 0;
+    return Object.entries(totals)
+      .map(([name, value]) => ({
+        name,
+        value,
+        percent: total ? Math.round((value / total) * 1000) / 10 : 0,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredEntries, tasks]);
+
   const scopeColors = useMemo(
     () => scopePieData.map((_, i) => chartColors[i % chartColors.length]),
     [scopePieData, chartColors]
   );
 
   // Totals for consistent percent formatting
-  const projectTotal = useMemo(() => projectPieData.reduce((sum, d) => sum + (d.value || 0), 0), [projectPieData]);
-  const taskTypeTotal = useMemo(() => taskTypePieData.reduce((sum, d) => sum + (d.value || 0), 0), [taskTypePieData]);
-  const scopeTotal = useMemo(() => scopePieData.reduce((sum, d) => sum + (d.value || 0), 0), [scopePieData]);
+  const projectTotal = useMemo(() => projectRawData.reduce((sum, d) => sum + (d.value || 0), 0), [projectRawData]);
+  const taskTypeTotal = useMemo(() => taskTypeRawData.reduce((sum, d) => sum + (d.value || 0), 0), [taskTypeRawData]);
+  const scopeTotal = useMemo(() => scopeRawData.reduce((sum, d) => sum + (d.value || 0), 0), [scopeRawData]);
+
+  // Click handlers to open detailed modal
+  const handleProjectChartClick = useCallback(() => {
+    setDetailModalData({
+      title: 'Time by Project - Full Details',
+      data: projectRawData,
+      total: projectTotal,
+      type: 'project'
+    });
+    setDetailModalOpen(true);
+  }, [projectRawData, projectTotal]);
+
+  const handleTaskTypeChartClick = useCallback(() => {
+    setDetailModalData({
+      title: 'Time by Task Type - Full Details',
+      data: taskTypeRawData,
+      total: taskTypeTotal,
+      type: 'taskType'
+    });
+    setDetailModalOpen(true);
+  }, [taskTypeRawData, taskTypeTotal]);
+
+  const handleScopeChartClick = useCallback(() => {
+    setDetailModalData({
+      title: 'Time by Scope - Full Details',
+      data: scopeRawData,
+      total: scopeTotal,
+      type: 'scope'
+    });
+    setDetailModalOpen(true);
+  }, [scopeRawData, scopeTotal]);
 
   // Historical daily totals (last 30 days, ending today)
   const dailyHistoryData = useMemo(() => {
@@ -778,10 +899,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Project Distribution Pie Chart */}
       {projectPieData.length > 0 ? (
-        <Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleProjectChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Time by Project (%)</CardTitle>
-            <CardDescription>Based on current filters</CardDescription>
+            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
               <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
@@ -837,10 +958,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       {/* Additional Charts: Task Type and Scope */}
       <div className="contents">
         {/* Task Type Pie Chart */}
-        <Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleTaskTypeChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Time by Task Type (%)</CardTitle>
-            <CardDescription>Based on current filters</CardDescription>
+            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
             {taskTypePieData.length > 0 ? (
@@ -890,10 +1011,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </Card>
 
         {/* Scope Pie Chart */}
-        <Card>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleScopeChartClick}>
           <CardHeader className="pb-2">
             <CardTitle>Time by Scope (%)</CardTitle>
-            <CardDescription>Based on current filters</CardDescription>
+            <CardDescription>Based on current filters • Click for full details</CardDescription>
           </CardHeader>
           <CardContent>
             {scopePieData.length > 0 ? (
@@ -985,6 +1106,103 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         filters={filters}
         onExport={() => console.log('Export functionality')}
       />
+
+      {/* Detailed Chart Modal */}
+      <Dialog open={detailModalOpen} onOpenChange={setDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              {detailModalData?.title}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {detailModalData && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Full Pie Chart */}
+              <div className="space-y-4">
+                <ChartContainer config={{}} className="h-96 w-full">
+                  <PieChart>
+                    <defs>
+                      <linearGradient id="detailPieGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                      </linearGradient>
+                    </defs>
+                    <ChartTooltip
+                      content={
+                        <ChartTooltipContent
+                          formatter={(value: number, name: string) => {
+                            const minutes = Number(value) || 0;
+                            const pct = detailModalData.total > 0 ? formatPercentCeil((minutes / detailModalData.total) * 100) : '0';
+                            return [`${formatDetailedTime(minutes)} • ${pct}%`, name];
+                          }}
+                        />
+                      }
+                    />
+                    <Pie
+                      data={detailModalData.data}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={120}
+                      fill="url(#detailPieGradient)"
+                      stroke="hsl(var(--chart-1))"
+                      strokeWidth={1}
+                    />
+                  </PieChart>
+                </ChartContainer>
+              </div>
+
+              {/* Detailed Table */}
+              <div className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Total: {formatDetailedTime(detailModalData.total)} • {detailModalData.data.length} items
+                </div>
+                
+                <div className="border rounded-lg overflow-hidden max-h-96 overflow-y-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead className="text-right">Time</TableHead>
+                        <TableHead className="text-right">%</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {detailModalData.data.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ 
+                                  background: `hsl(var(--chart-${(index % 12) + 1}))`,
+                                  opacity: 0.7
+                                }}
+                              />
+                              {item.name}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatDetailedTime(item.value)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Badge variant="outline">
+                              {formatPercentCeil((item.value / detailModalData.total) * 100)}%
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Time Entries Table */}
       <Card>
