@@ -75,7 +75,7 @@ export function useSupabaseStorage() {
       .from('follow_ups')
       .select('id, text, created_at, task_status')
       .eq('task_id', supabaseTask.id)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (followUpsError) {
       console.error('Error fetching follow-ups:', followUpsError);
