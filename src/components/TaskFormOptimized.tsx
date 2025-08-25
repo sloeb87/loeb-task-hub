@@ -883,7 +883,13 @@ export const TaskFormOptimized = React.memo(({
                           type="button"
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(`mailto:${formData.links.email}`, '_blank')}
+                          onClick={() => {
+                            if (formData.links.email.startsWith('http')) {
+                              window.open(formData.links.email, '_blank');
+                            } else {
+                              window.open(`mailto:${formData.links.email}`, '_blank');
+                            }
+                          }}
                           className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           <ExternalLink className="w-4 h-4" />
@@ -892,10 +898,10 @@ export const TaskFormOptimized = React.memo(({
                     </div>
                     <Input
                       id="email"
-                      type="email"
+                      type="text"
                       value={formData.links.email}
                       onChange={(e) => updateLinkField('email', e.target.value)}
-                      placeholder="Email address"
+                      placeholder="Email link or address"
                       className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                     />
                   </div>
