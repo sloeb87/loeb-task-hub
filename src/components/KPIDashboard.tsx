@@ -10,7 +10,6 @@ import { format, startOfWeek, addWeeks, addDays } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task } from "@/types/task";
 import { TaskCharts } from "@/components/TaskCharts";
-import { FollowUpsSection } from "@/components/FollowUpsSection";
 import { ProfessionalMetricsCards } from "@/components/ProfessionalMetricsCards";
 import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
 import { TaskStatusTimelineChart } from "@/components/TaskStatusTimelineChart";
@@ -433,9 +432,6 @@ export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps)
           notOverdueCount={notOverdueTasks.length} 
         />
       </div>
-
-      {/* Follow-ups Section */}
-      <FollowUpsSection followUps={filteredFollowUps} selectedProject={selectedProject} />
 
       {/* Detail Modal */}
       <TaskMetricsDetail
