@@ -316,7 +316,8 @@ export const ProjectDetailView = ({
 
   const handleCreateTaskForProject = () => {
     console.log('ProjectDetailView - Creating new task for project:', project.name);
-    openTaskForm(project.name, undefined, 'project-detail-new', true);
+    // Navigate to full task detail view instead of modal
+    onCreateTask();
   };
 
   const handleEditProjectLocal = () => {

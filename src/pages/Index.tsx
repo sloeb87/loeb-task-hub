@@ -574,6 +574,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 task={selectedTask}
                 allTasks={tasks}
                 allProjects={projects}
+                projectName={selectedProject?.name} // Pre-select project when creating from project details
                 onEditRelatedTask={handleEditTask}
                 onNavigateToProject={handleNavigateToProject}
                 getRelatedRecurringTasks={getRelatedRecurringTasks}
@@ -594,7 +595,12 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 onEditProject={() => {}} // Not needed in this context
                 onUpdateProject={handleUpdateProject}
                 onDeleteProject={handleDeleteProject}
-                onCreateTask={() => {}} // Handled by global task form
+                onCreateTask={() => {
+                  // Create new task with project pre-selected
+                  setSelectedTask(null);
+                  // selectedProject is already set for this detail view
+                  setActiveView("task-edit");
+                }} // Navigate to task-edit view for new task creation
                 onEditTask={(task) => {
                   setSelectedTask(task);
                   // Find and set the corresponding project for the task
