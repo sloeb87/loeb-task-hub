@@ -55,6 +55,24 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
+              <defs>
+                <linearGradient id="statusOpenGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="statusInProgressGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="statusCompletedGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05} />
+                </linearGradient>
+                <linearGradient id="statusOnHoldGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-10))" stopOpacity={0.35} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-10))" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
               <Pie
                 data={statusChartData}
                 cx="50%"
@@ -67,9 +85,20 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
                 onClick={handleStatusClick}
                 style={{ cursor: onMetricClick ? 'pointer' : 'default' }}
               >
-                {statusChartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || 'hsl(var(--chart-4))'} />
-                ))}
+                {statusChartData.map((entry, index) => {
+                  const gradientMap = {
+                    'Open': 'url(#statusOpenGradient)',
+                    'In Progress': 'url(#statusInProgressGradient)',
+                    'Completed': 'url(#statusCompletedGradient)',
+                    'On Hold': 'url(#statusOnHoldGradient)'
+                  };
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={gradientMap[entry.status as keyof typeof gradientMap] || 'url(#statusInProgressGradient)'} 
+                    />
+                  );
+                })}
               </Pie>
               <Tooltip formatter={(value, name) => [value, name]} />
             </PieChart>

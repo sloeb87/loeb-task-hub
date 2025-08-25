@@ -47,6 +47,16 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
           <PieChart>
+            <defs>
+              <linearGradient id="overdueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="onTrackGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
             <Pie
               data={data}
               cx="50%"
@@ -58,7 +68,10 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
               dataKey="value"
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={entry.name === 'Overdue' ? 'url(#overdueGradient)' : 'url(#onTrackGradient)'} 
+                />
               ))}
             </Pie>
             <Tooltip />
