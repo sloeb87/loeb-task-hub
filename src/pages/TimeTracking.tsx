@@ -275,20 +275,40 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const sortedData = [...data].sort((a, b) => b.value - a.value);
     const total = sortedData.reduce((sum, item) => sum + item.value, 0);
     
+    console.log('Pareto Analysis:', {
+      totalItems: sortedData.length,
+      totalValue: total,
+      items: sortedData.map(item => ({ name: item.name, value: item.value, percent: ((item.value / total) * 100).toFixed(1) }))
+    });
+    
+    // If we have 4 or fewer items, show all
+    if (sortedData.length <= 4) {
+      console.log('Too few items, showing all');
+      return sortedData;
+    }
+    
     let cumulative = 0;
     let paretoIndex = -1;
     
-    // Find items that contribute to ~80% of total
+    // Find items that contribute to approximately 80% of total
     for (let i = 0; i < sortedData.length; i++) {
       cumulative += sortedData[i].value;
-      if (cumulative >= total * 0.8) {
+      const cumulativePercent = (cumulative / total) * 100;
+      
+      console.log(`Item ${i}: ${sortedData[i].name}, cumulative: ${cumulativePercent.toFixed(1)}%`);
+      
+      // Stop when we reach or exceed 80%, but ensure we have at least 2 items
+      if (cumulativePercent >= 80 && i >= 1) {
         paretoIndex = i;
         break;
       }
     }
     
-    // If we only have 1-3 items or pareto would include almost everything, return as-is
-    if (paretoIndex <= 2 || paretoIndex >= sortedData.length - 1) {
+    console.log('Pareto Index:', paretoIndex);
+    
+    // If paretoIndex wasn't set or would include almost everything, return as-is
+    if (paretoIndex === -1 || paretoIndex >= sortedData.length - 2) {
+      console.log('Pareto index too high, showing all items');
       return sortedData;
     }
     
@@ -305,7 +325,16 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         value: othersValue,
         percent: othersPercent
       });
+      
+      console.log('Created Others category:', {
+        count: othersItems.length,
+        value: othersValue,
+        percent: othersPercent,
+        items: othersItems.map(item => item.name)
+      });
     }
+    
+    console.log('Final Pareto Result:', paretoItems.map(item => ({ name: item.name, percent: ((item.value / total) * 100).toFixed(1) })));
     
     return paretoItems;
   }, []);
