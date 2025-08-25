@@ -115,14 +115,22 @@ interface TaskFormProps {
   onDelete?: (taskId: string) => void;
   onDeleteAllRecurring?: (taskId: string) => void;
   onUpdateAllRecurring?: (taskId: string, updateData: {
+    title?: string;
     environment?: string;
     taskType?: string;
+    status?: string;
     priority?: string;
     responsible?: string;
     description?: string;
     details?: string;
     plannedTimeHours?: number;
-    occurrenceDate?: Date;
+    links?: {
+      oneNote?: string;
+      teams?: string;
+      email?: string;
+      file?: string;
+      folder?: string;
+    };
   }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
@@ -638,9 +646,9 @@ export const TaskFormOptimized = React.memo(({
                         onChange={(e) => updateField('occurrenceDate', new Date(e.target.value))}
                         className="dark:bg-gray-800 dark:border-gray-600 dark:text-white bg-white"
                       />
-                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                        This will be applied to all recurring instances when using "Update All Recurring"
-                      </p>
+                       <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                         This occurrence date is specific to this task instance
+                       </p>
                     </div>
                     <div className="flex items-end">
                       <div className="text-sm text-blue-700 dark:text-blue-300">
@@ -1038,16 +1046,18 @@ export const TaskFormOptimized = React.memo(({
                     type="button" 
                     variant="outline" 
                     onClick={() => {
-                      if (window.confirm('Update all recurring instances with current Environment, Task Type, Priority, Responsible Person, Description, Details, Planned Time, and Occurrence Date?')) {
+                      if (window.confirm('Update all recurring instances with current Task Title, Environment, Task Type, Status, Priority, Responsible Person, Description, Details, Planned Time, and Links? Dates will not be changed.')) {
                         onUpdateAllRecurring(task.id, {
+                          title: formData.title,
                           environment: formData.environment,
                           taskType: formData.taskType,
+                          status: formData.status,
                           priority: formData.priority,
                           responsible: formData.responsible,
                           description: formData.description,
                           details: formData.details,
                           plannedTimeHours: formData.plannedTimeHours,
-                          occurrenceDate: formData.occurrenceDate
+                          links: formData.links
                         });
                       }
                     }}

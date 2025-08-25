@@ -983,14 +983,22 @@ export function useSupabaseStorage() {
   };
 
   const updateAllRecurringTasks = async (taskId: string, updateData: {
+    title?: string;
     environment?: string;
     taskType?: string;
+    status?: string;
     priority?: string;
     responsible?: string;
     description?: string;
     details?: string;
     plannedTimeHours?: number;
-    occurrenceDate?: Date;
+    links?: {
+      oneNote?: string;
+      teams?: string;
+      email?: string;
+      file?: string;
+      folder?: string;
+    };
   }): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
@@ -1033,56 +1041,16 @@ export function useSupabaseStorage() {
 
     // Prepare update object with only defined fields
     const fieldsToUpdate: any = {};
+    if (updateData.title !== undefined) fieldsToUpdate.title = updateData.title;
     if (updateData.environment !== undefined) fieldsToUpdate.environment = updateData.environment;
     if (updateData.taskType !== undefined) fieldsToUpdate.task_type = updateData.taskType;
+    if (updateData.status !== undefined) fieldsToUpdate.status = updateData.status;
     if (updateData.priority !== undefined) fieldsToUpdate.priority = updateData.priority;
     if (updateData.responsible !== undefined) fieldsToUpdate.responsible = updateData.responsible;
     if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description;
     if (updateData.details !== undefined) fieldsToUpdate.details = updateData.details;
     if (updateData.plannedTimeHours !== undefined) fieldsToUpdate.planned_time_hours = updateData.plannedTimeHours;
-    
-    // Handle occurrence date update - calculate new due dates based on offset from original
-    if (updateData.occurrenceDate !== undefined) {
-      // Get the original parent task to calculate the offset
-      const { data: parentTask, error: parentError } = await supabase
-        .from('tasks')
-        .select('due_date')
-        .eq('id', parentTaskId)
-        .single();
-      
-      if (parentError) throw parentError;
-      
-      const originalDate = new Date(parentTask.due_date);
-      const newDate = new Date(updateData.occurrenceDate);
-      const daysDifference = Math.floor((newDate.getTime() - originalDate.getTime()) / (1000 * 60 * 60 * 24));
-      
-      // Update all recurring tasks with the new occurrence pattern
-      for (const taskInfo of allRecurringTasks) {
-        const { data: currentTask, error: fetchError } = await supabase
-          .from('tasks')
-          .select('due_date, start_date')
-          .eq('id', taskInfo.id)
-          .single();
-          
-        if (fetchError) continue;
-        
-        const currentDueDate = new Date(currentTask.due_date);
-        const currentStartDate = new Date(currentTask.start_date);
-        
-        // Apply the same offset to each task
-        const newDueDate = new Date(currentDueDate.getTime() + (daysDifference * 24 * 60 * 60 * 1000));
-        const newStartDate = new Date(currentStartDate.getTime() + (daysDifference * 24 * 60 * 60 * 1000));
-        
-        await supabase
-          .from('tasks')
-          .update({
-            due_date: newDueDate.toISOString().split('T')[0],
-            start_date: newStartDate.toISOString().split('T')[0]
-          })
-          .eq('id', taskInfo.id)
-          .eq('user_id', user.id);
-      }
-    }
+    if (updateData.links !== undefined) fieldsToUpdate.links = updateData.links;
 
     // Update all recurring tasks
     const { error } = await supabase
