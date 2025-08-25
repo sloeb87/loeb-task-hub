@@ -49,12 +49,12 @@ export const OverdueAnalysisChart = React.memo(({ overdueCount, notOverdueCount 
           <PieChart>
             <defs>
               <linearGradient id="overdueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.05} />
+                <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.02} />
               </linearGradient>
               <linearGradient id="onTrackGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.05} />
+                <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.15} />
+                <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <Pie

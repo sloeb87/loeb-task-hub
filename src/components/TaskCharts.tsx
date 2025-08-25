@@ -57,20 +57,20 @@ export const TaskCharts = React.memo(({ statusChartData, priorityChartData, task
             <PieChart>
               <defs>
                 <linearGradient id="statusOpenGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-8))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-8))" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="statusInProgressGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="statusCompletedGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.02} />
                 </linearGradient>
                 <linearGradient id="statusOnHoldGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-10))" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="hsl(var(--chart-10))" stopOpacity={0.05} />
+                  <stop offset="5%" stopColor="hsl(var(--chart-10))" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-10))" stopOpacity={0.02} />
                 </linearGradient>
               </defs>
               <Pie
