@@ -701,16 +701,41 @@ export const TaskFormOptimized = React.memo(({
                     const currentTaskId = task?.id;
                     const parentId = task?.parentTaskId ?? (task?.isRecurring ? task.id : null);
                     
-                    if (!parentId || !currentTaskId) return null;
+                    console.log('DEBUG - Next Occurrences:', {
+                      currentTaskId,
+                      parentId,
+                      relatedRecurringTasksCount: relatedRecurringTasks.length,
+                      relatedRecurringTasks: relatedRecurringTasks.map(t => ({
+                        id: t.id,
+                        dueDate: t.dueDate,
+                        status: t.status,
+                        parentTaskId: t.parentTaskId
+                      })),
+                      taskDueDate: task?.dueDate
+                    });
+                    
+                    if (!parentId || !currentTaskId) {
+                      console.log('DEBUG - No parentId or currentTaskId, returning null');
+                      return null;
+                    }
                     
                     // Filter related tasks (excluding current task) and get next 3
-                    const nextOccurrences = relatedRecurringTasks
-                      .filter(t => t.id !== currentTaskId && t.status === 'Open')
-                      .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime())
-                      .filter(t => new Date(t.dueDate) > new Date(task?.dueDate || ''))
-                      .slice(0, 3);
+                    const filteredTasks = relatedRecurringTasks.filter(t => t.id !== currentTaskId && t.status === 'Open');
+                    const sortedTasks = filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+                    const futureTasks = sortedTasks.filter(t => new Date(t.dueDate) > new Date(task?.dueDate || ''));
+                    const nextOccurrences = futureTasks.slice(0, 3);
                     
-                    if (nextOccurrences.length === 0) return null;
+                    console.log('DEBUG - Filtering steps:', {
+                      filteredTasks: filteredTasks.length,
+                      sortedTasks: sortedTasks.length,
+                      futureTasks: futureTasks.length,
+                      nextOccurrences: nextOccurrences.length
+                    });
+                    
+                    if (nextOccurrences.length === 0) {
+                      console.log('DEBUG - No next occurrences found');
+                      return null;
+                    }
                     
                     return (
                       <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
