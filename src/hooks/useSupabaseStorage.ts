@@ -1068,12 +1068,12 @@ export function useSupabaseStorage() {
 
     const taskIds = allRecurringTasks.map(task => task.id);
 
-    // Prepare update object with only defined fields
+    // Prepare update object with only defined fields (excluding status which should be instance-specific)
     const fieldsToUpdate: any = {};
     if (updateData.title !== undefined) fieldsToUpdate.title = updateData.title;
     if (updateData.environment !== undefined) fieldsToUpdate.environment = updateData.environment;
     if (updateData.taskType !== undefined) fieldsToUpdate.task_type = updateData.taskType;
-    if (updateData.status !== undefined) fieldsToUpdate.status = updateData.status;
+    // Status is excluded - each recurring instance should have its own status
     if (updateData.priority !== undefined) fieldsToUpdate.priority = updateData.priority;
     if (updateData.responsible !== undefined) fieldsToUpdate.responsible = updateData.responsible;
     if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description;

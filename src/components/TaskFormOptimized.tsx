@@ -1096,19 +1096,18 @@ export const TaskFormOptimized = React.memo(({
                     type="button" 
                     variant="outline" 
                     onClick={() => {
-                      if (window.confirm('Update all recurring instances with current Task Title, Environment, Task Type, Status, Priority, Responsible Person, Description, Details, Planned Time, and Links? Dates will not be changed.')) {
-                        onUpdateAllRecurring(task.id, {
-                          title: formData.title,
-                          environment: formData.environment,
-                          taskType: formData.taskType,
-                          status: formData.status,
-                          priority: formData.priority,
-                          responsible: formData.responsible,
-                          description: formData.description,
-                          details: formData.details,
-                          plannedTimeHours: formData.plannedTimeHours,
-                          links: formData.links
-                        });
+                      if (window.confirm('Update all recurring instances with current Task Title, Environment, Task Type, Priority, Responsible Person, Description, Details, Planned Time, and Links? Status and dates will not be changed.')) {
+                         onUpdateAllRecurring(task.id, {
+                           title: formData.title,
+                           environment: formData.environment,
+                           taskType: formData.taskType,
+                           priority: formData.priority,
+                           responsible: formData.responsible,
+                           description: formData.description,
+                           details: formData.details,
+                           plannedTimeHours: formData.plannedTimeHours,
+                           links: formData.links
+                         });
                       }
                     }}
                     className="border-blue-500 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20"
