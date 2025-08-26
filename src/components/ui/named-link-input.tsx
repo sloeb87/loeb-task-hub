@@ -120,7 +120,6 @@ export const NamedLinkInput: React.FC<NamedLinkInputProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="font-medium text-sm">{link.name}</div>
-                <div className="text-xs text-muted-foreground truncate">{link.url}</div>
               </div>
               <div className="flex gap-1">
                 {link.url && (
