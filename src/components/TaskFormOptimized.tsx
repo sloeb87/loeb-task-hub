@@ -347,6 +347,29 @@ export const TaskFormOptimized = React.memo(({
     }
   }, [isOpen, task, projectName, parameters]);
 
+  // Restore form data from persistedFormData when available (for unsaved drafts)
+  useEffect(() => {
+    if (!isOpen || !persistedFormData || task) return; // Only restore for new tasks, not existing ones
+    
+    console.log('TaskForm - Restoring from persistedFormData:', persistedFormData);
+    setFormData(prev => ({
+      ...prev,
+      ...persistedFormData,
+      dueDate: persistedFormData.dueDate ? new Date(persistedFormData.dueDate) : prev.dueDate
+    }));
+    
+    if (persistedFormData.dueDate) {
+      setDate(new Date(persistedFormData.dueDate));
+    }
+  }, [isOpen, persistedFormData, task]);
+
+  // Save form data changes for persistence
+  useEffect(() => {
+    if (!isOpen || !onFormDataChange) return;
+    
+    onFormDataChange(formData);
+  }, [isOpen, formData, onFormDataChange]);
+
   // Sync displayed follow-ups with current task
   useEffect(() => {
     if (!isOpen || !task?.id) return;
