@@ -13,7 +13,7 @@ import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useTaskForm } from "@/contexts/TaskFormContext";
-import { getFirstLink } from "@/utils/linkUtils";
+import { getFirstLink, hasLinks } from "@/utils/linkUtils";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -474,11 +474,11 @@ export const ProjectDetailView = ({
             </div>
 
             {/* Project Links */}
-            {project.links && Object.values(project.links).some(link => link) && (
+            {project.links && Object.entries(project.links).some(([key, links]) => hasLinks(links)) && (
               <div>
                 <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">Project Links</p>
                 <div className="grid grid-cols-2 gap-3">
-                  {project.links.folder && (
+                  {hasLinks(project.links.folder) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -489,7 +489,7 @@ export const ProjectDetailView = ({
                       <span className="text-sm">Project Folder</span>
                     </Button>
                   )}
-                  {project.links.email && (
+                  {hasLinks(project.links.email) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -500,7 +500,7 @@ export const ProjectDetailView = ({
                       <span className="text-sm">Project Email</span>
                     </Button>
                   )}
-                  {project.links.file && (
+                  {hasLinks(project.links.file) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -511,7 +511,7 @@ export const ProjectDetailView = ({
                       <span className="text-sm">Project File</span>
                     </Button>
                   )}
-                  {project.links.oneNote && (
+                  {hasLinks(project.links.oneNote) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
@@ -522,7 +522,7 @@ export const ProjectDetailView = ({
                       <span className="text-sm">OneNote</span>
                     </Button>
                   )}
-                  {project.links.teams && (
+                  {hasLinks(project.links.teams) && (
                     <Button 
                       size="sm" 
                       variant="outline" 
