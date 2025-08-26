@@ -569,7 +569,10 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 tasks={tasks}
                 allTasks={tasks}
                 allProjects={projects}
-                loadAllTasksForProject={loadAllTasksForProject}
+                loadAllTasksForProject={async (projectName: string) => {
+                  await loadAllTasksForProject(projectName);
+                  return tasks.filter(t => t.project === projectName);
+                }}
                 onBack={() => setActiveView("projects")}
                 onEditProject={() => {}} // Not needed in this context
                 onUpdateProject={handleUpdateProject}

@@ -9,6 +9,8 @@ interface PaginationInfo {
   totalCount: number;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
+  pageSize: number;
+  totalTasks: number;
 }
 
 interface TaskCounts {
@@ -16,6 +18,8 @@ interface TaskCounts {
   completed: number;
   overdue: number;
   total: number;
+  onHold: number;
+  critical: number;
 }
 
 // Utility function to convert Supabase task format to your Task type
@@ -25,18 +29,30 @@ const convertFromSupabase = (supabaseTask: any): Task => ({
   title: supabaseTask.title,
   description: supabaseTask.description || '',
   dueDate: supabaseTask.due_date,
+  startDate: supabaseTask.start_date,
   priority: supabaseTask.priority,
   status: supabaseTask.status,
-  project: supabaseTask.project,
+  project: supabaseTask.project_id || supabaseTask.project,
   responsible: supabaseTask.responsible,
+  environment: supabaseTask.environment || '',
+  taskType: supabaseTask.task_type || 'Development',
+  scope: supabaseTask.scope || [],
+  stakeholders: supabaseTask.stakeholders || [],
+  dependencies: supabaseTask.dependencies || [],
+  details: supabaseTask.details || '',
+  links: supabaseTask.links || {},
+  checklist: supabaseTask.checklist || [],
+  completionDate: supabaseTask.completion_date,
+  duration: supabaseTask.duration,
+  plannedTimeHours: supabaseTask.planned_time_hours,
   followUps: supabaseTask.follow_ups || [],
   isRecurring: supabaseTask.is_recurring || false,
-  recurringPattern: supabaseTask.recurring_pattern || null,
-  recurringStartDate: supabaseTask.recurring_start_date || null,
-  recurringEndDate: supabaseTask.recurring_end_date || null,
-  recurringInterval: supabaseTask.recurring_interval || null,
-  recurringDaysOfWeek: supabaseTask.recurring_days_of_week || [],
-  originalTaskId: supabaseTask.original_task_id || null,
+  recurrenceType: supabaseTask.recurrence_type || undefined,
+  recurrenceInterval: supabaseTask.recurrence_interval || undefined,
+  recurrenceDaysOfWeek: supabaseTask.recurrence_days_of_week || undefined,
+  recurrenceEndDate: supabaseTask.recurrence_end_date || undefined,
+  parentTaskId: supabaseTask.parent_task_id || undefined,
+  nextRecurrenceDate: supabaseTask.next_recurrence_date || undefined,
 });
 
 // Utility function to convert your Task type to Supabase task format
@@ -50,12 +66,11 @@ const convertToSupabase = (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>
     project: task.project,
     responsible: task.responsible,
     is_recurring: task.isRecurring || false,
-    recurring_pattern: task.recurringPattern || null,
-    recurring_start_date: task.recurringStartDate || null,
-    recurring_end_date: task.recurringEndDate || null,
-    recurring_interval: task.recurringInterval || null,
-    recurring_days_of_week: task.recurringDaysOfWeek || [],
-    original_task_id: task.originalTaskId || null,
+    recurrence_type: task.recurrenceType || null,
+    recurrence_interval: task.recurrenceInterval || null,
+    recurrence_days_of_week: task.recurrenceDaysOfWeek || null,
+    recurrence_end_date: task.recurrenceEndDate || null,
+    parent_task_id: task.parentTaskId || null,
   };
 
   if ('id' in task) {
@@ -73,7 +88,7 @@ const loadTaskCounts = async (): Promise<TaskCounts> => {
 
     if (error) {
       console.error("Error fetching tasks for counts:", error);
-      return { active: 0, completed: 0, overdue: 0, total: 0 };
+      return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
     }
 
     const today = new Date();
@@ -82,12 +97,14 @@ const loadTaskCounts = async (): Promise<TaskCounts> => {
     const active = data.filter(task => task.status === 'active').length;
     const completed = data.filter(task => task.status === 'completed').length;
     const overdue = data.filter(task => task.status === 'active' && new Date(task.due_date) < today).length;
+    const onHold = data.filter(task => task.status === 'On Hold').length;
+    const critical = data.filter(task => task.priority === 'Critical').length;
     const total = data.length;
 
-    return { active, completed, overdue, total };
+    return { active, completed, overdue, total, onHold, critical };
   } catch (error) {
     console.error("Error calculating task counts:", error);
-    return { active: 0, completed: 0, overdue: 0, total: 0 };
+    return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
   }
 };
 
@@ -102,13 +119,17 @@ export function useSupabaseStorage() {
     totalPages: 1,
     totalCount: 0,
     hasNextPage: false,
-    hasPreviousPage: false
+    hasPreviousPage: false,
+    pageSize: 50,
+    totalTasks: 0
   });
   const [taskCounts, setTaskCounts] = useState<TaskCounts>({
     active: 0,
     completed: 0,
     overdue: 0,
-    total: 0
+    total: 0,
+    onHold: 0,
+    critical: 0
   });
   const [currentSearchTerm, setCurrentSearchTerm] = useState<string>('');
   const { toast } = useToast();
@@ -121,7 +142,7 @@ export function useSupabaseStorage() {
 
       if (error) {
         console.error("Error fetching tasks for counts:", error);
-        return { active: 0, completed: 0, overdue: 0, total: 0 };
+        return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
       }
 
       const today = new Date();
@@ -130,12 +151,14 @@ export function useSupabaseStorage() {
       const active = data.filter(task => task.status === 'active').length;
       const completed = data.filter(task => task.status === 'completed').length;
       const overdue = data.filter(task => task.status === 'active' && new Date(task.due_date) < today).length;
+      const onHold = data.filter(task => task.status === 'On Hold').length;
+      const critical = data.filter(task => task.priority === 'Critical').length;
       const total = data.length;
 
-      return { active, completed, overdue, total };
+      return { active, completed, overdue, total, onHold, critical };
     } catch (error) {
       console.error("Error calculating task counts:", error);
-      return { active: 0, completed: 0, overdue: 0, total: 0 };
+      return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
     }
   };
 
@@ -174,7 +197,9 @@ export function useSupabaseStorage() {
         totalPages: totalPages,
         totalCount: totalCount,
         hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage
+        hasPreviousPage: hasPreviousPage,
+        pageSize: limit,
+        totalTasks: totalCount
       });
 
       const newTaskCounts = await loadTaskCounts();
@@ -266,7 +291,9 @@ export function useSupabaseStorage() {
         totalPages: totalPages,
         totalCount: totalCount,
         hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage
+        hasPreviousPage: hasPreviousPage,
+        pageSize: limit,
+        totalTasks: totalCount
       });
 
       const newTaskCounts = await loadTaskCounts();
@@ -432,7 +459,7 @@ export function useSupabaseStorage() {
         throw error;
       }
 
-      setTasks(tasks => tasks.filter(task => task.originalTaskId !== originalTaskId));
+      setTasks(tasks => tasks.filter(task => task.parentTaskId !== originalTaskId));
 
       toast({
         title: "Recurring tasks deleted!",
@@ -450,7 +477,7 @@ export function useSupabaseStorage() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, []);
 
   const updateAllRecurringTasks = useCallback(async (originalTaskId: string, updatedTask: Task) => {
     try {
@@ -472,7 +499,7 @@ export function useSupabaseStorage() {
 
       // Optimistically update the tasks state
       setTasks(tasks =>
-        tasks.map(task => (task.originalTaskId === originalTaskId ? { ...task, ...updatedTask } : task))
+        tasks.map(task => (task.parentTaskId === originalTaskId ? { ...task, ...updatedTask } : task))
       );
 
       toast({
@@ -642,7 +669,19 @@ export function useSupabaseStorage() {
 
       const { data, error } = await supabase
         .from('projects')
-        .insert([projectData])
+        .insert({
+          name: projectData.name,
+          description: projectData.description,
+          start_date: projectData.startDate,
+          end_date: projectData.endDate,
+          status: projectData.status,
+          owner: projectData.owner,
+          team: projectData.team,
+          scope: projectData.scope,
+          cost_center: projectData.cost_center,
+          links: projectData.links,
+          user_id: (await supabase.auth.getUser()).data.user?.id
+        })
         .select()
         .single();
 
@@ -756,7 +795,20 @@ export function useSupabaseStorage() {
           console.error('Error fetching projects:', projectsError);
           setError(projectsError.message);
         } else {
-          setProjects(projectsData || []);
+          setProjects((projectsData || []).map(p => ({
+            id: p.id,
+            name: p.name,
+            description: p.description || '',
+            owner: p.owner || '',
+            team: p.team || [],
+            startDate: p.start_date,
+            endDate: p.end_date,
+            status: p.status as "Active" | "On Hold" | "Completed",
+            tasks: [],
+            scope: p.scope || [],
+            cost_center: p.cost_center,
+            links: p.links as any
+          })));
         }
       } catch (err) {
         console.error('Unexpected error fetching projects:', err);
