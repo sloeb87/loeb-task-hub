@@ -1,817 +1,1276 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, Project, FollowUp } from '@/types/task';
+import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
-
-interface PaginationInfo {
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  pageSize: number;
-  totalTasks: number;
+interface SupabaseTask {
+  id: string;
+  task_number: string;
+  scope: string[]; // Changed to array
+  project_id: string | null;
+  environment: string;
+  task_type: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  responsible: string;
+  creation_date: string;
+  start_date: string;
+  due_date: string;
+  completion_date: string | null;
+  duration: number | null;
+  planned_time_hours: number | null;
+  dependencies: string[] | null;
+  details: string | null;
+  links: any;
+  stakeholders: string[] | null;
+  checklist: any; // Add checklist field
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
-interface TaskCounts {
-  active: number;
-  completed: number;
-  overdue: number;
-  total: number;
-  onHold: number;
-  critical: number;
+interface SupabaseProject {
+  id: string;
+  name: string;
+  description: string | null;
+  owner: string | null;
+  user_id: string;
+  scope: string[]; // Changed to array
+  start_date: string;
+  end_date: string;
+  status: string;
+  cost_center: string | null;
+  team: string[] | null;
+  links: any;
+  created_at: string;
+  updated_at: string;
 }
-
-// Utility function to convert Supabase task format to your Task type
-const convertFromSupabase = (supabaseTask: any): Task => ({
-  id: supabaseTask.id,
-  creationDate: supabaseTask.creation_date,
-  title: supabaseTask.title,
-  description: supabaseTask.description || '',
-  dueDate: supabaseTask.due_date,
-  startDate: supabaseTask.start_date,
-  priority: supabaseTask.priority,
-  status: supabaseTask.status,
-  project: supabaseTask.project_id || supabaseTask.project,
-  responsible: supabaseTask.responsible,
-  environment: supabaseTask.environment || '',
-  taskType: supabaseTask.task_type || 'Development',
-  scope: supabaseTask.scope || [],
-  stakeholders: supabaseTask.stakeholders || [],
-  dependencies: supabaseTask.dependencies || [],
-  details: supabaseTask.details || '',
-  links: supabaseTask.links || {},
-  checklist: supabaseTask.checklist || [],
-  completionDate: supabaseTask.completion_date,
-  duration: supabaseTask.duration,
-  plannedTimeHours: supabaseTask.planned_time_hours,
-  followUps: supabaseTask.follow_ups || [],
-  isRecurring: supabaseTask.is_recurring || false,
-  recurrenceType: supabaseTask.recurrence_type || undefined,
-  recurrenceInterval: supabaseTask.recurrence_interval || undefined,
-  recurrenceDaysOfWeek: supabaseTask.recurrence_days_of_week || undefined,
-  recurrenceEndDate: supabaseTask.recurrence_end_date || undefined,
-  parentTaskId: supabaseTask.parent_task_id || undefined,
-  nextRecurrenceDate: supabaseTask.next_recurrence_date || undefined,
-});
-
-// Utility function to convert your Task type to Supabase task format
-const convertToSupabase = (task: Omit<Task, 'id' | 'creationDate' | 'followUps'> | Task): any => {
-  const supabaseTask: any = {
-    title: task.title,
-    description: task.description,
-    due_date: task.dueDate,
-    priority: task.priority,
-    status: task.status,
-    project: task.project,
-    responsible: task.responsible,
-    is_recurring: task.isRecurring || false,
-    recurrence_type: task.recurrenceType || null,
-    recurrence_interval: task.recurrenceInterval || null,
-    recurrence_days_of_week: task.recurrenceDaysOfWeek || null,
-    recurrence_end_date: task.recurrenceEndDate || null,
-    parent_task_id: task.parentTaskId || null,
-  };
-
-  if ('id' in task) {
-    supabaseTask.id = task.id;
-  }
-
-  return supabaseTask;
-};
 
 export function useSupabaseStorage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<PaginationInfo>({
+  const [currentSearchTerm, setCurrentSearchTerm] = useState<string>(""); // Track current search
+  const [pagination, setPagination] = useState({
     currentPage: 1,
-    totalPages: 1,
-    totalCount: 0,
-    hasNextPage: false,
-    hasPreviousPage: false,
     pageSize: 50,
-    totalTasks: 0
+    totalTasks: 0,
+    totalPages: 0
   });
-  const [taskCounts, setTaskCounts] = useState<TaskCounts>({
-    active: 0,
-    completed: 0,
-    overdue: 0,
+  const [taskCounts, setTaskCounts] = useState({
     total: 0,
+    active: 0,
     onHold: 0,
-    critical: 0
+    critical: 0,
+    completed: 0
   });
-  const [currentSearchTerm, setCurrentSearchTerm] = useState<string>('');
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
-
-  const loadTaskCounts = async (): Promise<TaskCounts> => {
-    try {
-      const { data, error } = await supabase
-        .from('tasks')
-        .select('*');
-
-      if (error) {
-        console.error("Error fetching tasks for counts:", error);
-        return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
-      }
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      const active = data.filter(task => task.status === 'active').length;
-      const completed = data.filter(task => task.status === 'completed').length;
-      const overdue = data.filter(task => task.status === 'active' && new Date(task.due_date) < today).length;
-      const onHold = data.filter(task => task.status === 'On Hold').length;
-      const critical = data.filter(task => task.priority === 'Critical').length;
-      const total = data.length;
-
-      return { active, completed, overdue, total, onHold, critical };
-    } catch (error) {
-      console.error("Error calculating task counts:", error);
-      return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
+  const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
+    // For recurring tasks, fetch follow-ups for all tasks in the series
+    // If this task has a parent_task_id, use that; otherwise use its own ID if it's a recurring parent
+    const followUpTaskId = (supabaseTask as any).parent_task_id || 
+                          ((supabaseTask as any).is_recurring ? supabaseTask.id : supabaseTask.id);
+    
+    // Fetch follow-ups for this task (or all tasks in recurring series)
+    let followUpsQuery = supabase
+      .from('follow_ups')
+      .select('id, text, created_at, task_status');
+    
+    if ((supabaseTask as any).parent_task_id || (supabaseTask as any).is_recurring) {
+      // For recurring tasks, get follow-ups from all instances in the series
+      followUpsQuery = followUpsQuery.eq('task_id', followUpTaskId);
+    } else {
+      // For non-recurring tasks, get follow-ups only for this specific task
+      followUpsQuery = followUpsQuery.eq('task_id', supabaseTask.id);
     }
+    
+    const { data: followUpsData, error: followUpsError } = await followUpsQuery
+      .order('created_at', { ascending: false });
+
+    if (followUpsError) {
+      console.error('Error fetching follow-ups:', followUpsError);
+    }
+
+    const followUps = followUpsData?.map(followUp => ({
+      id: followUp.id,
+      text: followUp.text,
+      timestamp: followUp.created_at,
+      taskStatus: followUp.task_status || 'Unknown'
+    })) || [];
+
+    if (followUps.length > 0) {
+      console.log(`Task ${supabaseTask.task_number} has ${followUps.length} follow-ups:`, followUps);
+    }
+
+    // Get project name from project_id
+    let projectName = '';
+    if (supabaseTask.project_id) {
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', supabaseTask.project_id)
+        .maybeSingle();
+      
+      projectName = projectData?.name || '';
+    }
+
+    if (supabaseTask.task_number === 'T34') {
+      console.log('Converting T34 from Supabase:', { 
+        environment: supabaseTask.environment,
+        task_type: supabaseTask.task_type,
+        priority: supabaseTask.priority,
+        status: supabaseTask.status
+      });
+    }
+
+    if (supabaseTask.task_number === 'T36') {
+      console.log('Converting T36 from Supabase:', { 
+        environment: supabaseTask.environment,
+        task_type: supabaseTask.task_type,
+        priority: supabaseTask.priority,
+        status: supabaseTask.status
+      });
+    }
+
+    return {
+      id: supabaseTask.task_number, // Use task_number as the ID for compatibility
+      scope: supabaseTask.scope || [], // Handle array scope
+      project: projectName,
+      environment: supabaseTask.environment,
+      taskType: supabaseTask.task_type as any,
+      title: supabaseTask.title,
+      description: supabaseTask.description || '',
+      status: supabaseTask.status as any,
+      priority: supabaseTask.priority as any,
+      responsible: supabaseTask.responsible,
+      creationDate: supabaseTask.creation_date,
+      startDate: supabaseTask.start_date,
+      dueDate: supabaseTask.due_date,
+      completionDate: supabaseTask.completion_date || undefined,
+      duration: supabaseTask.duration || undefined,
+      plannedTimeHours: supabaseTask.planned_time_hours || undefined,
+      dependencies: supabaseTask.dependencies || [],
+      checklist: Array.isArray(supabaseTask.checklist) ? supabaseTask.checklist : (typeof supabaseTask.checklist === 'string' ? JSON.parse(supabaseTask.checklist) : []), // Parse checklist from JSON
+      followUps,
+      details: supabaseTask.details || '',
+      links: supabaseTask.links || {},
+      stakeholders: supabaseTask.stakeholders || [],
+      // Recurrence fields
+      isRecurring: (supabaseTask as any).is_recurring || false,
+      recurrenceType: (supabaseTask as any).recurrence_type,
+      recurrenceInterval: (supabaseTask as any).recurrence_interval || 1,
+      parentTaskId: (supabaseTask as any).parent_task_id,
+      nextRecurrenceDate: (supabaseTask as any).next_recurrence_date,
+      recurrenceEndDate: (supabaseTask as any).recurrence_end_date
+    };
+  }, []);
+
+  const convertSupabaseProjectToProject = (supabaseProject: SupabaseProject): Project => {
+    return {
+      id: supabaseProject.id,
+      name: supabaseProject.name,
+      description: supabaseProject.description || '',
+      owner: supabaseProject.owner || '',
+      team: supabaseProject.team || [],
+      startDate: supabaseProject.start_date,
+      endDate: supabaseProject.end_date,
+      status: supabaseProject.status as any,
+      tasks: [], // Will be populated from tasks
+      scope: supabaseProject.scope || [], // Handle array scope
+      cost_center: supabaseProject.cost_center || undefined,
+      links: supabaseProject.links || {}
+    };
   };
 
   const loadTasks = useCallback(async (
     page: number = 1, 
-    limit: number = 50, 
-    sortBy: string = 'dueDate', 
-    sortOrder: 'asc' | 'desc' = 'asc'
+    pageSize: number = 50, 
+    sortField: string = 'due_date', 
+    sortDirection: 'asc' | 'desc' = 'asc'
   ) => {
-    try {
-      // Only show loading for initial load or when changing pages
-      if (isInitialLoading || page !== pagination.currentPage) {
-        setIsLoading(true);
-      }
-      setError(null);
-
-      const { data, error, count } = await supabase
-        .from('tasks')
-        .select('*, follow_ups(id, text, timestamp, taskStatus)', { count: 'exact' })
-        .order(sortBy, { ascending: sortOrder === 'asc' })
-        .range((page - 1) * limit, page * limit - 1);
-
-      if (error) {
-        console.error('Error fetching tasks:', error);
-        throw error;
-      }
-
-      const totalCount = count || 0;
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasNextPage = page < totalPages;
-      const hasPreviousPage = page > 1;
-
-      setTasks(data.map(convertFromSupabase));
-      setPagination({
-        currentPage: page,
-        totalPages: totalPages,
-        totalCount: totalCount,
-        hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage,
-        pageSize: limit,
-        totalTasks: totalCount
-      });
-
-      const newTaskCounts = await loadTaskCounts();
-      setTaskCounts(newTaskCounts);
-      
+    if (!isAuthenticated || !user) {
+      console.log('loadTasks: No authentication or user:', { isAuthenticated, hasUser: !!user });
+      setTasks([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
+      setTaskCounts({ total: 0, active: 0, onHold: 0, critical: 0, completed: 0 });
       setIsLoading(false);
-      setIsInitialLoading(false); // Mark initial loading as complete
-    } catch (err) {
-      console.error('Error loading tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load tasks');
-      setIsLoading(false);
-      setIsInitialLoading(false);
+      return;
     }
-  }, [isInitialLoading, pagination.currentPage]);
 
-  const refreshTasks = useCallback(async () => {
-    // Background refresh - don't show loading spinner
-    try {
-      setError(null);
-
-      const { data, error, count } = await supabase
-        .from('tasks')
-        .select('*, follow_ups(id, text, timestamp, taskStatus)', { count: 'exact' })
-        .order('dueDate', { ascending: true })
-        .range((pagination.currentPage - 1) * 50, pagination.currentPage * 50 - 1);
-
-      if (error) {
-        console.error('Error refreshing tasks:', error);
-        throw error;
-      }
-
-      const totalCount = count || 0;
-      const totalPages = Math.ceil(totalCount / 50);
-      const hasNextPage = pagination.currentPage < totalPages;
-      const hasPreviousPage = pagination.currentPage > 1;
-
-      setTasks(data.map(convertFromSupabase));
-      setPagination({
-        ...pagination,
-        totalPages: totalPages,
-        totalCount: totalCount,
-        hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage
-      });
-
-      const newTaskCounts = await loadTaskCounts();
-      setTaskCounts(newTaskCounts);
-      
-    } catch (err) {
-      console.error('Error refreshing tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to refresh tasks');
-    }
-  }, [pagination.currentPage, currentSearchTerm]);
-
-  const searchTasks = useCallback(async (
-    searchTerm: string,
-    page: number = 1,
-    limit: number = 50,
-    sortBy: string = 'dueDate',
-    sortOrder: 'asc' | 'desc' = 'asc'
-  ) => {
     try {
       setIsLoading(true);
-      setError(null);
-      setCurrentSearchTerm(searchTerm);
+      setCurrentSearchTerm(""); // Clear search term when loading regular tasks
+      
+      // First, get the total count and stats for all tasks
+      const { data: allTasksData, error: allTasksError } = await supabase
+        .from('tasks')
+        .select('status, priority')
+        .eq('user_id', user.id);
+
+      console.log('loadTasks: Query result:', { 
+        dataCount: allTasksData?.length, 
+        error: allTasksError, 
+        userId: user.id,
+        sampleData: allTasksData?.slice(0, 3) 
+      });
+
+      if (allTasksError) throw allTasksError;
+
+      // Calculate total counts across all tasks
+      const totalTasks = allTasksData?.length || 0;
+      const openTasks = allTasksData?.filter(t => t.status === "Open").length || 0;
+      const inProgressTasks = allTasksData?.filter(t => t.status === "In Progress").length || 0;
+      const activeTasks = openTasks + inProgressTasks;
+      const onHoldTasks = allTasksData?.filter(t => t.status === "On Hold").length || 0;
+      const criticalTasks = allTasksData?.filter(t => t.priority === "Critical" && t.status !== "Completed").length || 0;
+      const completedTasks = allTasksData?.filter(t => t.status === "Completed").length || 0;
+      
+      setTaskCounts({
+        total: totalTasks,
+        active: activeTasks,
+        onHold: onHoldTasks,
+        critical: criticalTasks,
+        completed: completedTasks
+      });
+
+      const totalPages = Math.ceil(totalTasks / pageSize);
+      
+      // Then get the paginated data with sorting
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
+      // Map frontend sort fields to database columns
+      const dbSortField = (() => {
+        switch (sortField) {
+          case 'dueDate': return 'due_date';
+          case 'taskType': return 'task_type';
+          case 'scope': return 'scope';
+          case 'project': return 'project_id';
+          case 'status': return 'status';
+          case 'priority': return 'priority';
+          case 'responsible': return 'responsible';
+          case 'environment': return 'environment';
+          case 'title': return 'title';
+          case 'id': return 'task_number';
+          default: return 'due_date';
+        }
+      })();
 
       let query = supabase
         .from('tasks')
-        .select('*, follow_ups(id, text, timestamp, taskStatus)', { count: 'exact' })
-        .ilike('title', `%${searchTerm}%`)
-        .order(sortBy, { ascending: sortOrder === 'asc' });
+        .select('*')
+        .eq('user_id', user.id);
 
-      const { data, error, count } = await query
-        .range((page - 1) * limit, page * limit - 1);
-
-      if (error) {
-        console.error('Error searching tasks:', error);
-        throw error;
+      // Handle special sorting cases
+      if (sortField === 'priority') {
+        // For priority sorting, order by due date first, then handle priority in client
+        query = query.order('due_date', { ascending: true });
+      } else if (sortField === 'dueDatePriority') {
+        // For combined sorting, order by due date first, then handle priority in client
+        query = query.order('due_date', { ascending: true });
+      } else {
+        query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }
 
-      const totalCount = count || 0;
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasNextPage = page < totalPages;
-      const hasPreviousPage = page > 1;
+      // Apply pagination
+      query = query.range(from, to);
 
-      setTasks(data.map(convertFromSupabase));
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(convertSupabaseTaskToTask)
+      );
+
+      // Apply client-side priority sorting if needed (since SQL CASE statements cause parsing issues)
+      let sortedTasks = convertedTasks;
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+        
+        sortedTasks = convertedTasks.sort((a, b) => {
+          // First sort by due date (older first)
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          if (dateA !== dateB) {
+            return dateA - dateB; // older dates first
+          }
+          
+          // Then sort by priority (Critical > High > Medium > Low)
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          return priorityB - priorityA; // higher priority first
+        });
+      }
+
+      setTasks(sortedTasks);
       setPagination({
         currentPage: page,
-        totalPages: totalPages,
-        totalCount: totalCount,
-        hasNextPage: hasNextPage,
-        hasPreviousPage: hasPreviousPage,
-        pageSize: limit,
-        totalTasks: totalCount
+        pageSize,
+        totalTasks,
+        totalPages
       });
+      setError(null);
+    } catch (err) {
+      console.error('Error loading tasks:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load tasks');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
 
-      const newTaskCounts = await loadTaskCounts();
-      setTaskCounts(newTaskCounts);
+  const loadProjects = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setProjects([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const convertedProjects = (data || []).map(convertSupabaseProjectToProject);
+      setProjects(convertedProjects);
+    } catch (err) {
+      console.error('Error loading projects:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load projects');
+    }
+  }, [isAuthenticated, user]);
+
+  // Load ALL tasks for a specific project (no pagination)
+  const loadAllTasksForProject = useCallback(async (projectName: string): Promise<Task[]> => {
+    if (!isAuthenticated || !user) {
+      console.log('loadAllTasksForProject: No authentication or user');
+      return [];
+    }
+
+    try {
+      // First find the project ID
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('name', projectName)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (projectError) throw projectError;
+      
+      if (!projectData) {
+        console.log('Project not found:', projectName);
+        return [];
+      }
+
+      // Then get ALL tasks for this project (no pagination)
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('project_id', projectData.id)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+
+      console.log(`Loaded ${data?.length || 0} total tasks for project ${projectName}`);
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(convertSupabaseTaskToTask)
+      );
+
+      return convertedTasks;
+    } catch (err) {
+      console.error('Error loading all tasks for project:', err);
+      return [];
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
+
+  // Search through ALL tasks with pagination support
+  const searchTasks = useCallback(async (
+    searchTerm: string,
+    page: number = 1,
+    pageSize: number = 50,
+    sortField: string = 'due_date', 
+    sortDirection: 'asc' | 'desc' = 'asc'
+  ) => {
+    if (!isAuthenticated || !user) {
+      console.log('searchTasks: No authentication or user');
+      setTasks([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
+      setIsLoading(false);
+      return;
+    }
+
+    if (!searchTerm.trim()) {
+      // If no search term, clear current search and load regular paginated tasks
+      setCurrentSearchTerm("");
+      loadTasks(page, pageSize, sortField, sortDirection);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setCurrentSearchTerm(searchTerm); // Store the current search term
+      
+      // Map frontend sort fields to database columns
+      const dbSortField = (() => {
+        switch (sortField) {
+          case 'dueDate': return 'due_date';
+          case 'taskType': return 'task_type';
+          case 'scope': return 'scope';
+          case 'project': return 'project_id';
+          case 'status': return 'status';
+          case 'priority': return 'priority';
+          case 'responsible': return 'responsible';
+          case 'environment': return 'environment';
+          case 'title': return 'title';
+          case 'id': return 'task_number';
+          default: return 'due_date';
+        }
+      })();
+
+      // Search across ALL tasks (but with pagination support)
+      let query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      // First, get task IDs from follow-ups that match the search term
+      const { data: followUpResults } = await supabase
+        .from('follow_ups')
+        .select('task_id')
+        .ilike('text', `%${searchTerm}%`);
+
+      const followUpTaskIds = followUpResults?.map(fu => fu.task_id) || [];
+
+      // Search in task fields OR in follow-ups
+      if (followUpTaskIds.length > 0) {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%,id.in.(${followUpTaskIds.join(',')})`);
+      } else {
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%`);
+      }
+
+      // Apply sorting
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        query = query.order('due_date', { ascending: true });
+      } else {
+        query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      console.log(`Search found ${data?.length || 0} tasks for term: "${searchTerm}"`);
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(convertSupabaseTaskToTask)
+      );
+
+      // Apply client-side priority sorting if needed
+      let sortedTasks = convertedTasks;
+      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
+        
+        sortedTasks = convertedTasks.sort((a, b) => {
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          if (dateA !== dateB) {
+            return dateA - dateB;
+          }
+          
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          return priorityB - priorityA;
+        });
+      }
+
+      // For search results, apply pagination to the sorted results
+      const totalTasks = sortedTasks.length;
+      const totalPages = Math.ceil(totalTasks / pageSize);
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedTasks = sortedTasks.slice(startIndex, endIndex);
+      
+      setTasks(paginatedTasks);
+      setPagination({
+        currentPage: page,
+        pageSize,
+        totalTasks,
+        totalPages
+      });
+      setError(null);
     } catch (err) {
       console.error('Error searching tasks:', err);
       setError(err instanceof Error ? err.message : 'Failed to search tasks');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [isAuthenticated, user, convertSupabaseTaskToTask, loadTasks]);
 
-  const loadAllTasksForProject = async (projectName: string): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await (supabase as any)
-        .from('tasks')
-        .select('*, follow_ups(id, text, timestamp, taskStatus)')
-        .eq('project', projectName)
-        .order('dueDate', { ascending: true });
-
-      const { data, error } = response;
-
-      if (error) {
-        console.error('Error fetching tasks for project:', error);
-        throw error;
-      }
-
-      setTasks(data.map(convertFromSupabase));
-    } catch (err) {
-      console.error('Error loading tasks for project:', err);
-      setError(err instanceof Error ? err.message : 'Failed to load tasks for project');
-    } finally {
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadTasks();
+      loadProjects();
+    } else {
+      setTasks([]);
+      setProjects([]);
+      setPagination(prev => ({ ...prev, totalTasks: 0, totalPages: 0 }));
       setIsLoading(false);
     }
-  };
+  }, [isAuthenticated, loadTasks, loadProjects]);
 
-  const createTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+  // Realtime subscriptions for tasks, projects, and follow-ups
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, () => {
+        loadTasks();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        loadProjects();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'follow_ups' }, () => {
+        // Follow-ups affect tasks list
+        loadTasks();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isAuthenticated, user, loadTasks, loadProjects]);
+
+  const createTask = async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>): Promise<Task> => {
+    if (!user) throw new Error('User not authenticated');
+
+
     try {
-      setIsLoading(true);
-      setError(null);
+      // Find the project ID from the project name
+      let projectId = null;
+      if (taskData.project) {
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .select('id')
+          .eq('name', taskData.project)
+          .eq('user_id', user.id)
+          .maybeSingle();
+        
+        if (projectError) {
+          console.error('Error finding project:', projectError);
+        } else {
+          projectId = projectData?.id;
+        }
+      }
 
-      const supabaseTask = convertToSupabase(taskData);
+      console.log('Found project ID:', projectId, 'for project name:', taskData.project);
+      console.log('createTask payload (key fields):', { environment: taskData.environment, status: taskData.status, priority: taskData.priority, taskType: taskData.taskType, project: taskData.project, title: taskData.title });
 
       const { data, error } = await supabase
         .from('tasks')
-        .insert([supabaseTask])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error creating task:', error);
-        throw error;
-      }
-
-      toast({
-        title: "Task created!",
-        description: `Task "${taskData.title}" created successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error creating task:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create task');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem creating your task.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const updateTask = useCallback(async (updatedTask: Task) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const supabaseTask = convertToSupabase(updatedTask);
-
-      const { data, error } = await supabase
-        .from('tasks')
-        .update(supabaseTask)
-        .eq('id', updatedTask.id)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating task:', error);
-        throw error;
-      }
-
-      // Optimistically update the tasks state
-      setTasks(tasks =>
-        tasks.map(task => (task.id === updatedTask.id ? { ...task, ...updatedTask } : task))
-      );
-
-      toast({
-        title: "Task updated!",
-        description: `Task "${updatedTask.title}" updated successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error updating task:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update task');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem updating your task.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const deleteTask = useCallback(async (taskId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { error } = await supabase
-        .from('tasks')
-        .delete()
-        .eq('id', taskId);
-
-      if (error) {
-        console.error('Error deleting task:', error);
-        throw error;
-      }
-
-      setTasks(tasks => tasks.filter(task => task.id !== taskId));
-
-      toast({
-        title: "Task deleted!",
-        description: `Task deleted successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error deleting task:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete task');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem deleting your task.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const deleteAllRecurringTasks = async (originalTaskId: string): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await (supabase as any)
-        .from('tasks')
-        .delete()
-        .eq('original_task_id', originalTaskId);
-
-      const { error } = response;
-
-      if (error) {
-        console.error('Error deleting all recurring tasks:', error);
-        throw error;
-      }
-
-      setTasks(tasks => tasks.filter(task => task.parentTaskId !== originalTaskId));
-
-      toast({
-        title: "Recurring tasks deleted!",
-        description: `All recurring tasks deleted successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error deleting all recurring tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete all recurring tasks');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem deleting all recurring tasks.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateAllRecurringTasks = useCallback(async (originalTaskId: string, updatedTask: Task) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const supabaseTask = convertToSupabase(updatedTask);
-
-      const { data, error } = await (supabase as any)
-        .from('tasks')
-        .update(supabaseTask)
-        .eq('original_task_id', originalTaskId)
-        .select();
-
-      if (error) {
-        console.error('Error updating all recurring tasks:', error);
-        throw error;
-      }
-
-      // Optimistically update the tasks state
-      setTasks(tasks =>
-        tasks.map(task => (task.parentTaskId === originalTaskId ? { ...task, ...updatedTask } : task))
-      );
-
-      toast({
-        title: "Recurring tasks updated!",
-        description: `All recurring tasks updated successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error updating all recurring tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update all recurring tasks');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem updating all recurring tasks.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  const getRelatedRecurringTasks = useCallback(async (originalTaskId: string): Promise<Task[]> => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error } = await (supabase as any)
-        .from('tasks')
-        .select('*, follow_ups(id, text, timestamp, taskStatus)')
-        .eq('original_task_id', originalTaskId)
-        .order('dueDate', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching related recurring tasks:', error);
-        throw error;
-      }
-
-      return data.map(convertFromSupabase);
-    } catch (err) {
-      console.error('Error fetching related recurring tasks:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch related recurring tasks');
-      return [];
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const addFollowUp = useCallback(async (taskId: string, followUpText: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from('follow_ups')
-        .insert([{ task_id: taskId, text: followUpText }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error adding follow-up:', error);
-        throw error;
-      }
-
-      // Refresh tasks to get updated follow-ups
-      await refreshTasks();
-
-      toast({
-        title: "Follow-up added!",
-        description: `Follow-up added successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error adding follow-up:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add follow-up');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem adding your follow-up.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshTasks, toast]);
-
-  const updateFollowUp = useCallback(async (followUpId: string, text: string, timestamp?: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const updateObject: { text: string, timestamp?: string } = { text };
-      if (timestamp) {
-        updateObject.timestamp = timestamp;
-      }
-
-      const { data, error } = await supabase
-        .from('follow_ups')
-        .update(updateObject)
-        .eq('id', followUpId)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Error updating follow-up:', error);
-        throw error;
-      }
-
-      // Refresh tasks to get updated follow-ups
-      await refreshTasks();
-
-      toast({
-        title: "Follow-up updated!",
-        description: `Follow-up updated successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error updating follow-up:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update follow-up');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem updating your follow-up.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshTasks, toast]);
-
-  const deleteFollowUp = useCallback(async (followUpId: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { error } = await supabase
-        .from('follow_ups')
-        .delete()
-        .eq('id', followUpId);
-
-      if (error) {
-        console.error('Error deleting follow-up:', error);
-        throw error;
-      }
-
-      // Refresh tasks to get updated follow-ups
-      await refreshTasks();
-
-      toast({
-        title: "Follow-up deleted!",
-        description: `Follow-up deleted successfully.`,
-      })
-
-    } catch (err) {
-      console.error('Error deleting follow-up:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete follow-up');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem deleting your follow-up.",
-      })
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshTasks, toast]);
-
-  const createProject = useCallback(async (projectData: Omit<Project, 'id'>) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const { data, error } = await supabase
-        .from('projects')
         .insert({
-          name: projectData.name,
-          description: projectData.description,
-          start_date: projectData.startDate,
-          end_date: projectData.endDate,
-          status: projectData.status,
-          owner: projectData.owner,
-          team: projectData.team,
-          scope: projectData.scope,
-          cost_center: projectData.cost_center,
-          links: projectData.links,
-          user_id: (await supabase.auth.getUser()).data.user?.id
+          task_number: 'temp', // Will be replaced by trigger
+          scope: taskData.scope || [], // Handle array scope
+          project_id: projectId,
+          environment: taskData.environment,
+          task_type: taskData.taskType,
+          title: taskData.title,
+          description: taskData.description,
+          status: taskData.status,
+          priority: taskData.priority,
+          responsible: taskData.responsible,
+          start_date: taskData.startDate,
+          due_date: taskData.dueDate,
+          completion_date: taskData.completionDate || null,
+          duration: taskData.duration || null,
+          planned_time_hours: taskData.plannedTimeHours || null,
+          dependencies: taskData.dependencies || [],
+          checklist: JSON.stringify(taskData.checklist || []),
+          details: taskData.details,
+          links: taskData.links || {},
+          stakeholders: taskData.stakeholders || [],
+          user_id: user.id,
+          // Recurrence fields
+          is_recurring: taskData.isRecurring || false,
+          recurrence_type: taskData.recurrenceType,
+          recurrence_interval: taskData.recurrenceInterval || 1,
+          recurrence_end_date: taskData.recurrenceEndDate
         })
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating project:', error);
+        console.error('Supabase error creating task:', error);
         throw error;
       }
 
-      setProjects(prevProjects => [...prevProjects, { id: data.id, ...projectData }]);
+      console.log('Task created successfully:', data);
+      console.log('DB returned fields:', { task_number: data?.task_number, environment: data?.environment, status: data?.status });
 
-      toast({
-        title: "Project created!",
-        description: `Project "${projectData.name}" created successfully.`,
-      })
-
+      const newTask = await convertSupabaseTaskToTask(data);
+      setTasks(prev => [newTask, ...prev]);
+      toast({ title: 'Task created', description: newTask.title });
+      return newTask;
     } catch (err) {
-      console.error('Error creating project:', err);
-      setError(err instanceof Error ? err.message : 'Failed to create project');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem creating your project.",
-      })
-    } finally {
-      setIsLoading(false);
+      console.error('Error in createTask:', err);
+      toast({ title: 'Failed to create task', description: err instanceof Error ? err.message : 'Unknown error', variant: 'destructive' });
+      throw err;
     }
-  }, [toast]);
+  };
 
-  const updateProject = useCallback(async (updatedProject: Project) => {
+  const updateTask = async (updatedTask: Task): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    console.log('updateTask called with:', {
+      taskId: updatedTask.id,
+      taskType: updatedTask.taskType,
+      fullTask: updatedTask
+    });
+
+    // Find the task by task_number and get current values to check for changes
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id, status, priority, task_type, due_date')
+      .eq('task_number', updatedTask.id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      console.error('Error finding task for update:', findError);
+      toast({ title: 'Task not found', description: updatedTask.id, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    console.log('Found existing task in DB:', existingTask);
+
+    // Find the project ID by name if project is specified
+    let projectId = null;
+    if (updatedTask.project) {
+      const { data: projectData, error: projectError } = await supabase
+        .from('projects')
+        .select('id')
+        .eq('name', updatedTask.project)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (projectError) {
+        console.error('Error finding project:', projectError);
+      } else if (projectData) {
+        projectId = projectData.id;
+      }
+    }
+
+    // Check if task is being marked as completed
+    const isBeingCompleted = existingTask.status !== 'Completed' && updatedTask.status === 'Completed';
+    const todayDate = new Date().toISOString().split('T')[0];
+
+    const updateData = {
+      scope: updatedTask.scope || [], // Handle array scope
+      project_id: projectId,
+      environment: updatedTask.environment,
+      task_type: updatedTask.taskType,
+      title: updatedTask.title,
+      description: updatedTask.description,
+      status: updatedTask.status,
+      priority: updatedTask.priority,
+      responsible: updatedTask.responsible,
+      start_date: updatedTask.startDate,
+      due_date: updatedTask.dueDate,
+      completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
+      duration: updatedTask.duration || null,
+      planned_time_hours: updatedTask.plannedTimeHours || null,
+      dependencies: updatedTask.dependencies || [],
+      checklist: JSON.stringify(updatedTask.checklist || []),
+      details: updatedTask.details,
+      links: updatedTask.links || {},
+      stakeholders: updatedTask.stakeholders || [],
+      // Recurrence fields
+      is_recurring: updatedTask.isRecurring || false,
+      recurrence_type: updatedTask.recurrenceType,
+      recurrence_interval: updatedTask.recurrenceInterval || 1,
+      recurrence_end_date: updatedTask.recurrenceEndDate
+    };
+
+    console.log('Update data being sent to DB:', updateData);
+    console.log('Environment value in update:', updatedTask.environment);
+    if (updatedTask.id === 'T34') {
+      console.error('CRITICAL: T34 is being updated! Task data:', updatedTask);
+    }
+
+    const { error } = await supabase
+      .from('tasks')
+      .update(updateData)
+      .eq('id', existingTask.id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Supabase update error:', error);
+      throw error;
+    }
+
+    console.log('Task updated successfully in DB, updating local state');
+    
+    // Dispatch custom event to notify components of task update
+    window.dispatchEvent(new CustomEvent('taskUpdated', { detail: updatedTask }));
+
+    // Handle follow-ups separately - check if there are new follow-ups to save
+    if (updatedTask.followUps && updatedTask.followUps.length > 0) {
+      // Get existing follow-ups from database
+      const { data: existingFollowUps } = await supabase
+        .from('follow_ups')
+        .select('id')
+        .eq('task_id', existingTask.id);
+
+      const existingFollowUpIds = new Set(existingFollowUps?.map(f => f.id) || []);
+      
+      // Find new follow-ups (those not in the database yet)
+      const newFollowUps = updatedTask.followUps.filter(followUp => 
+        !existingFollowUpIds.has(followUp.id)
+      );
+
+      // Save new follow-ups to database
+      if (newFollowUps.length > 0) {
+        const followUpsToInsert = newFollowUps.map(followUp => ({
+          task_id: existingTask.id,
+          text: followUp.text,
+          created_at: followUp.timestamp
+        }));
+
+        console.log('Inserting follow-ups:', followUpsToInsert);
+
+        const { error: followUpError } = await supabase
+          .from('follow_ups')
+          .insert(followUpsToInsert);
+
+        if (followUpError) {
+          console.error('Error saving follow-ups:', followUpError);
+          // Don't throw here, just log the error so the main task update succeeds
+        } else {
+          console.log('Follow-ups saved successfully');
+        }
+      }
+    }
+
+    // Add follow-up comment if task was just completed (except for Meeting tasks)
+    if (isBeingCompleted && updatedTask.taskType !== 'Meeting') {
+      const { error: followUpError } = await supabase
+        .from('follow_ups')
+        .insert({
+          task_id: existingTask.id,
+          text: "Task marked completed",
+          task_status: 'Completed',
+          created_at: new Date().toISOString()
+        });
+
+      if (followUpError) {
+        console.error('Error adding completion follow-up:', followUpError);
+      }
+    }
+
+    // Create follow-ups for tracked field changes
+    const followUpsToCreate = [];
+    
+    // Check for Status change (excluding completion as it's handled above)
+    if (existingTask.status !== updatedTask.status && !isBeingCompleted) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Status changed from "${existingTask.status}" to "${updatedTask.status}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Priority change
+    if (existingTask.priority !== updatedTask.priority) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Priority changed from "${existingTask.priority}" to "${updatedTask.priority}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Task Type change
+    if (existingTask.task_type !== updatedTask.taskType) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Task type changed from "${existingTask.task_type}" to "${updatedTask.taskType}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Check for Due Date change
+    if (existingTask.due_date !== updatedTask.dueDate) {
+      followUpsToCreate.push({
+        task_id: existingTask.id,
+        text: `Due date changed from "${existingTask.due_date}" to "${updatedTask.dueDate}"`,
+        task_status: updatedTask.status,
+        created_at: new Date().toISOString()
+      });
+    }
+    
+    // Insert all change follow-ups at once
+    if (followUpsToCreate.length > 0) {
+      const { error: changeFollowUpError } = await supabase
+        .from('follow_ups')
+        .insert(followUpsToCreate);
+
+      if (changeFollowUpError) {
+        console.error('Error adding change follow-ups:', changeFollowUpError);
+      } else {
+        console.log(`Added ${followUpsToCreate.length} change follow-up(s)`);
+      }
+    }
+
+    setTasks(prev => prev.map(task => task.id === updatedTask.id ? {
+      ...updatedTask,
+      completionDate: isBeingCompleted ? todayDate : updatedTask.completionDate
+    } : task));
+    
+    console.log('Task update complete, dispatching taskUpdated event for:', updatedTask.id);
+    
+    // Also reload tasks to ensure we have the latest data
+    await loadTasks();
+    toast({ title: 'Task updated', description: updatedTask.title });
+  };
+
+  const addFollowUp = async (taskId: string, followUpText: string): Promise<void> => {
+    console.log('addFollowUp called with:', { taskId, followUpText });
+    if (!user) throw new Error('User not authenticated');
+
+    // Find the task by task_number and get current status plus recurring info
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id, status, parent_task_id, is_recurring')
+      .eq('task_number', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('display_name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    // For recurring tasks, use the parent task ID (or original task ID if this is the parent)
+    const followUpTaskId = existingTask.parent_task_id || 
+                          (existingTask.is_recurring ? existingTask.id : existingTask.id);
+
+    const { error } = await supabase
+      .from('follow_ups')
+      .insert({
+        task_id: followUpTaskId,
+        text: followUpText,
+        task_status: existingTask.status,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) throw error;
+
+    // Reload tasks to get the latest data including new follow-ups
+    await loadTasks();
+  };
+
+  const updateFollowUp = async (followUpId: string, text: string, timestamp?: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const updateData: any = { text };
+    if (timestamp) {
+      updateData.created_at = timestamp;
+    }
+
+    const { error } = await supabase
+      .from('follow_ups')
+      .update(updateData)
+      .eq('id', followUpId);
+
+    if (error) {
+      console.error('Error updating follow-up:', error);
+      toast({ title: 'Error updating follow-up', variant: 'destructive' });
+      throw error;
+    }
+
+    console.log('Follow-up successfully updated');
+    await loadTasks();
+    toast({ title: 'Follow-up updated' });
+  };
+
+  const deleteFollowUp = async (followUpId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('follow_ups')
+      .delete()
+      .eq('id', followUpId);
+
+    if (error) {
+      toast({ title: 'Error deleting follow-up', variant: 'destructive' });
+      throw error;
+    }
+
+    await loadTasks();
+    toast({ title: 'Follow-up deleted' });
+  };
+
+  const deleteTask = async (taskId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Find the task by task_number
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('task_number', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    // Delete related follow-ups first to satisfy FK constraints
+    const { error: followUpsError } = await supabase
+      .from('follow_ups')
+      .delete()
+      .eq('task_id', existingTask.id);
+
+    if (followUpsError) throw followUpsError;
+
+    // Then delete the task
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', existingTask.id)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    setTasks(prev => prev.filter(task => task.id !== taskId));
+    toast({ title: 'Task deleted' });
+  };
+
+  const deleteAllRecurringTasks = async (taskId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Find the task by task_number
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id, parent_task_id, is_recurring')
+      .eq('task_number', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    // Determine the parent task ID (either this task if it's the parent, or its parent)
+    const parentTaskId = existingTask.is_recurring ? existingTask.id : existingTask.parent_task_id;
+    
+    if (!parentTaskId) {
+      toast({ title: 'This task is not part of a recurring series', variant: 'destructive' });
+      return;
+    }
+
+    // Find all tasks in the recurring series
+    const { data: allRecurringTasks, error: fetchError } = await supabase
+      .from('tasks')
+      .select('id')
+      .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+      .eq('user_id', user.id);
+
+    if (fetchError) throw fetchError;
+
+    if (!allRecurringTasks || allRecurringTasks.length === 0) {
+      toast({ title: 'No recurring tasks found', variant: 'destructive' });
+      return;
+    }
+
+    const taskIds = allRecurringTasks.map(task => task.id);
+
+    // Delete all follow-ups for all recurring tasks
+    const { error: followUpsError } = await supabase
+      .from('follow_ups')
+      .delete()
+      .in('task_id', taskIds);
+
+    if (followUpsError) throw followUpsError;
+
+    // Delete all recurring tasks
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .in('id', taskIds)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    // Update local state
+    setTasks(prev => prev.filter(task => !taskIds.includes(task.id)));
+    toast({ 
+      title: 'Recurring tasks deleted', 
+      description: `Deleted ${allRecurringTasks.length} task(s) from the recurring series`
+    });
+  };
+
+  const updateAllRecurringTasks = async (taskId: string, updateData: {
+    title?: string;
+    environment?: string;
+    taskType?: string;
+    status?: string;
+    priority?: string;
+    responsible?: string;
+    description?: string;
+    details?: string;
+    plannedTimeHours?: number;
+    links?: {
+      oneNote?: string;
+      teams?: string;
+      email?: string;
+      file?: string;
+      folder?: string;
+    };
+  }): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    // Find the task by task_number
+    const { data: existingTask, error: findError } = await supabase
+      .from('tasks')
+      .select('id, parent_task_id, is_recurring')
+      .eq('task_number', taskId)
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (findError || !existingTask) {
+      toast({ title: 'Task not found', description: taskId, variant: 'destructive' });
+      throw findError || new Error('Task not found');
+    }
+
+    // Determine the parent task ID (either this task if it's the parent, or its parent)
+    const parentTaskId = existingTask.is_recurring ? existingTask.id : existingTask.parent_task_id;
+    
+    if (!parentTaskId) {
+      toast({ title: 'This task is not part of a recurring series', variant: 'destructive' });
+      return;
+    }
+
+    // Find all tasks in the recurring series
+    const { data: allRecurringTasks, error: fetchError } = await supabase
+      .from('tasks')
+      .select('id')
+      .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+      .eq('user_id', user.id);
+
+    if (fetchError) throw fetchError;
+
+    if (!allRecurringTasks || allRecurringTasks.length === 0) {
+      toast({ title: 'No recurring tasks found', variant: 'destructive' });
+      return;
+    }
+
+    const taskIds = allRecurringTasks.map(task => task.id);
+
+    // Prepare update object with only defined fields (excluding status which should be instance-specific)
+    const fieldsToUpdate: any = {};
+    if (updateData.title !== undefined) fieldsToUpdate.title = updateData.title;
+    if (updateData.environment !== undefined) fieldsToUpdate.environment = updateData.environment;
+    if (updateData.taskType !== undefined) fieldsToUpdate.task_type = updateData.taskType;
+    // Status is excluded - each recurring instance should have its own status
+    if (updateData.priority !== undefined) fieldsToUpdate.priority = updateData.priority;
+    if (updateData.responsible !== undefined) fieldsToUpdate.responsible = updateData.responsible;
+    if (updateData.description !== undefined) fieldsToUpdate.description = updateData.description;
+    if (updateData.details !== undefined) fieldsToUpdate.details = updateData.details;
+    if (updateData.plannedTimeHours !== undefined) fieldsToUpdate.planned_time_hours = updateData.plannedTimeHours;
+    if (updateData.links !== undefined) fieldsToUpdate.links = updateData.links;
+
+    // Update all recurring tasks
+    const { error } = await supabase
+      .from('tasks')
+      .update(fieldsToUpdate)
+      .in('id', taskIds)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+
+    // Refresh tasks to update local state
+    await loadTasks();
+    
+    toast({ 
+      title: 'Recurring tasks updated', 
+      description: `Updated ${allRecurringTasks.length} task(s) in the recurring series`
+    });
+  };
+
+  const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
+    if (!user) throw new Error('User not authenticated');
+
     try {
-      setIsLoading(true);
-      setError(null);
-
       const { data, error } = await supabase
         .from('projects')
-        .update(updatedProject)
-        .eq('id', updatedProject.id)
+        .insert({
+          name: projectData.name,
+          description: projectData.description,
+          owner: projectData.owner,
+          user_id: user.id,
+          scope: projectData.scope || [], // Handle array scope
+          start_date: projectData.startDate,
+          end_date: projectData.endDate,
+          status: projectData.status,
+          cost_center: projectData.cost_center,
+          team: projectData.team || [],
+          links: projectData.links || {}
+          // Note: id will be automatically generated by the database trigger
+        })
         .select()
         .single();
 
-      if (error) {
-        console.error('Error updating project:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      setProjects(prevProjects =>
-        prevProjects.map(project => (project.id === updatedProject.id ? updatedProject : project))
-      );
-
-      toast({
-        title: "Project updated!",
-        description: `Project "${updatedProject.name}" updated successfully.`,
-      })
-
+      const newProject = convertSupabaseProjectToProject(data);
+      setProjects(prev => [newProject, ...prev]);
+      toast({ title: 'Project created', description: newProject.name });
+      return newProject;
     } catch (err) {
-      console.error('Error updating project:', err);
-      setError(err instanceof Error ? err.message : 'Failed to update project');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem updating your project.",
-      })
-    } finally {
-      setIsLoading(false);
+      toast({ title: 'Failed to create project', variant: 'destructive' });
+      throw err;
     }
-  }, [toast]);
+  };
 
-  const deleteProject = useCallback(async (projectId: string) => {
+  const updateProject = async (updatedProject: Project): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('projects')
+      .update({
+        name: updatedProject.name,
+        description: updatedProject.description,
+        owner: updatedProject.owner,
+        scope: updatedProject.scope || [], // Handle array scope
+        start_date: updatedProject.startDate,
+        end_date: updatedProject.endDate,
+        status: updatedProject.status,
+        cost_center: updatedProject.cost_center,
+        team: updatedProject.team || [],
+        links: updatedProject.links || {}
+      })
+      .eq('id', updatedProject.id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      toast({ title: 'Failed to update project', variant: 'destructive' });
+      throw error;
+    }
+
+    setProjects(prev => prev.map(project => project.id === updatedProject.id ? updatedProject : project));
+    toast({ title: 'Project updated', description: updatedProject.name });
+  };
+
+  const deleteProject = async (projectId: string): Promise<void> => {
+    if (!user) throw new Error('User not authenticated');
+
     try {
-      setIsLoading(true);
-      setError(null);
+      // First delete all tasks associated with this project
+      const { error: tasksError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('project_id', projectId)
+        .eq('user_id', user.id);
 
+      if (tasksError) throw tasksError;
+
+      // Then delete the project
       const { error } = await supabase
         .from('projects')
         .delete()
-        .eq('id', projectId);
+        .eq('id', projectId)
+        .eq('user_id', user.id);
 
-      if (error) {
-        console.error('Error deleting project:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      setProjects(prevProjects => prevProjects.filter(project => project.id !== projectId));
-
-      toast({
-        title: "Project deleted!",
-        description: `Project deleted successfully.`,
-      })
-
+      setProjects(prev => prev.filter(project => project.id !== projectId));
+      // Refresh tasks to remove deleted project tasks from UI
+      loadTasks();
+      toast({ title: 'Project deleted' });
     } catch (err) {
-      console.error('Error deleting project:', err);
-      setError(err instanceof Error ? err.message : 'Failed to delete project');
-      toast({
-        variant: "destructive",
-        title: "Uh oh! Something went wrong.",
-        description: "There was a problem deleting your project.",
-      })
-    } finally {
-      setIsLoading(false);
+      toast({ title: 'Failed to delete project', variant: 'destructive' });
+      throw err;
     }
-  }, [toast]);
+  };
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const { data: projectsData, error: projectsError } = await supabase
-          .from('projects')
-          .select('*');
+  const refreshTasks = (page?: number) => {
+    loadTasks(page || pagination.currentPage);
+    loadProjects();
+  };
 
-        if (projectsError) {
-          console.error('Error fetching projects:', projectsError);
-          setError(projectsError.message);
-        } else {
-          setProjects((projectsData || []).map(p => ({
-            id: p.id,
-            name: p.name,
-            description: p.description || '',
-            owner: p.owner || '',
-            team: p.team || [],
-            startDate: p.start_date,
-            endDate: p.end_date,
-            status: p.status as "Active" | "On Hold" | "Completed",
-            tasks: [],
-            scope: p.scope || [],
-            cost_center: p.cost_center,
-            links: p.links as any
-          })));
-        }
-      } catch (err) {
-        console.error('Unexpected error fetching projects:', err);
-        setError('Failed to load projects');
+  const getRelatedRecurringTasks = async (taskId: string): Promise<Task[]> => {
+    if (!user) return [];
+
+    try {
+      // First get the current task to determine parent
+      const { data: currentTask, error: currentError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('task_number', taskId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (currentError || !currentTask) return [];
+
+      // Determine the parent task ID
+      const parentTaskId = currentTask.is_recurring ? currentTask.id : currentTask.parent_task_id;
+      
+      if (!parentTaskId) return [];
+
+      // Get all related recurring tasks (including parent and siblings)
+      const { data: relatedTasks, error: fetchError } = await supabase
+        .from('tasks')
+        .select('*')
+        .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+        .eq('user_id', user.id)
+        .order('due_date', { ascending: true });
+
+      if (fetchError) {
+        console.error('Error fetching related recurring tasks:', fetchError);
+        return [];
       }
-    };
 
-    fetchProjects();
-  }, []);
+      // Filter by Open status after getting all tasks
+      const openTasks = relatedTasks?.filter(t => t.status === 'Open') || [];
 
-  useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+      return await Promise.all(openTasks.map(convertSupabaseTaskToTask));
+    } catch (error) {
+      console.error('Error in getRelatedRecurringTasks:', error);
+      return [];
+    }
+  };
 
   return {
     tasks,
     projects,
     isLoading,
-    isInitialLoading, // Export the new initial loading state
     error,
     pagination,
     taskCounts,
-    currentSearchTerm,
+    currentSearchTerm, // Export current search term
     loadTasks,
     searchTasks,
     loadAllTasksForProject,
-    refreshTasks,
     createTask,
     updateTask,
     deleteTask,
@@ -823,6 +1282,7 @@ export function useSupabaseStorage() {
     deleteFollowUp,
     createProject,
     updateProject,
-    deleteProject
+    deleteProject,
+    refreshTasks
   };
 }

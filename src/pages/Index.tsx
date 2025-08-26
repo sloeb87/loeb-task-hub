@@ -40,7 +40,6 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     tasks,
     projects: supabaseProjects,
     isLoading,
-    isInitialLoading, // Use the new initial loading state
     error,
     pagination,
     taskCounts,
@@ -354,8 +353,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     }
   }, [loadTasks, searchTasks, currentSearchTerm]);
 
-  // Show loading state only for initial load
-  if (isInitialLoading) {
+  // Show loading state
+  if (isLoading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
@@ -569,10 +568,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                 tasks={tasks}
                 allTasks={tasks}
                 allProjects={projects}
-                loadAllTasksForProject={async (projectName: string) => {
-                  await loadAllTasksForProject(projectName);
-                  return tasks.filter(t => t.project === projectName);
-                }}
+                loadAllTasksForProject={loadAllTasksForProject}
                 onBack={() => setActiveView("projects")}
                 onEditProject={() => {}} // Not needed in this context
                 onUpdateProject={handleUpdateProject}
