@@ -80,39 +80,11 @@ const convertToSupabase = (task: Omit<Task, 'id' | 'creationDate' | 'followUps'>
   return supabaseTask;
 };
 
-const loadTaskCounts = async (): Promise<TaskCounts> => {
-  try {
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*');
-
-    if (error) {
-      console.error("Error fetching tasks for counts:", error);
-      return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
-    }
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const active = data.filter(task => task.status === 'active').length;
-    const completed = data.filter(task => task.status === 'completed').length;
-    const overdue = data.filter(task => task.status === 'active' && new Date(task.due_date) < today).length;
-    const onHold = data.filter(task => task.status === 'On Hold').length;
-    const critical = data.filter(task => task.priority === 'Critical').length;
-    const total = data.length;
-
-    return { active, completed, overdue, total, onHold, critical };
-  } catch (error) {
-    console.error("Error calculating task counts:", error);
-    return { active: 0, completed: 0, overdue: 0, total: 0, onHold: 0, critical: 0 };
-  }
-};
-
 export function useSupabaseStorage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // New: track initial vs background loading
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState<PaginationInfo>({
     currentPage: 1,
@@ -306,16 +278,18 @@ export function useSupabaseStorage() {
     }
   }, []);
 
-  const loadAllTasksForProject = useCallback(async (projectName: string) => {
+  const loadAllTasksForProject = async (projectName: string): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const response = await (supabase as any)
         .from('tasks')
         .select('*, follow_ups(id, text, timestamp, taskStatus)')
         .eq('project', projectName)
         .order('dueDate', { ascending: true });
+
+      const { data, error } = response;
 
       if (error) {
         console.error('Error fetching tasks for project:', error);
@@ -329,7 +303,7 @@ export function useSupabaseStorage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   const createTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     try {
@@ -444,15 +418,17 @@ export function useSupabaseStorage() {
     }
   }, [toast]);
 
-  const deleteAllRecurringTasks = useCallback(async (originalTaskId: string) => {
+  const deleteAllRecurringTasks = async (originalTaskId: string): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const { error } = await supabase
+      const response = await (supabase as any)
         .from('tasks')
         .delete()
         .eq('original_task_id', originalTaskId);
+
+      const { error } = response;
 
       if (error) {
         console.error('Error deleting all recurring tasks:', error);
@@ -477,7 +453,7 @@ export function useSupabaseStorage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  };
 
   const updateAllRecurringTasks = useCallback(async (originalTaskId: string, updatedTask: Task) => {
     try {
@@ -486,7 +462,7 @@ export function useSupabaseStorage() {
 
       const supabaseTask = convertToSupabase(updatedTask);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .update(supabaseTask)
         .eq('original_task_id', originalTaskId)
@@ -525,7 +501,7 @@ export function useSupabaseStorage() {
       setIsLoading(true);
       setError(null);
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('tasks')
         .select('*, follow_ups(id, text, timestamp, taskStatus)')
         .eq('original_task_id', originalTaskId)
