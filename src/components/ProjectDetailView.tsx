@@ -7,12 +7,13 @@ import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
 import { useTaskForm } from "@/contexts/TaskFormContext";
-import { Skeleton } from "@/components/ui/skeleton";
+import { getFirstLink } from "@/utils/linkUtils";
 
 interface ProjectDetailViewProps {
   project: Project;
@@ -482,7 +483,7 @@ export const ProjectDetailView = ({
                       size="sm" 
                       variant="outline" 
                       className="justify-start h-auto py-2 px-3"
-                      onClick={(e) => handleLinkClick(project.links.folder!, e)}
+                      onClick={(e) => project.links.folder && getFirstLink(project.links.folder) && handleLinkClick(getFirstLink(project.links.folder), e)}
                     >
                       <FolderOpen className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
                       <span className="text-sm">Project Folder</span>
@@ -493,7 +494,7 @@ export const ProjectDetailView = ({
                       size="sm" 
                       variant="outline" 
                       className="justify-start h-auto py-2 px-3"
-                      onClick={(e) => handleLinkClick(`mailto:${project.links.email}`, e)}
+                      onClick={(e) => project.links.email && getFirstLink(project.links.email) && handleLinkClick(`mailto:${getFirstLink(project.links.email)}`, e)}
                     >
                       <Mail className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
                       <span className="text-sm">Project Email</span>
@@ -504,7 +505,7 @@ export const ProjectDetailView = ({
                       size="sm" 
                       variant="outline" 
                       className="justify-start h-auto py-2 px-3"
-                      onClick={(e) => handleLinkClick(project.links.file!, e)}
+                      onClick={(e) => project.links.file && getFirstLink(project.links.file) && handleLinkClick(getFirstLink(project.links.file), e)}
                     >
                       <FileText className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
                       <span className="text-sm">Project File</span>
@@ -515,7 +516,7 @@ export const ProjectDetailView = ({
                       size="sm" 
                       variant="outline" 
                       className="justify-start h-auto py-2 px-3"
-                      onClick={(e) => handleLinkClick(project.links.oneNote!, e)}
+                      onClick={(e) => project.links.oneNote && getFirstLink(project.links.oneNote) && handleLinkClick(getFirstLink(project.links.oneNote), e)}
                     >
                       <ExternalLink className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
                       <span className="text-sm">OneNote</span>
@@ -526,7 +527,7 @@ export const ProjectDetailView = ({
                       size="sm" 
                       variant="outline" 
                       className="justify-start h-auto py-2 px-3"
-                      onClick={(e) => handleLinkClick(project.links.teams!, e)}
+                      onClick={(e) => project.links.teams && getFirstLink(project.links.teams) && handleLinkClick(getFirstLink(project.links.teams), e)}
                     >
                       <ExternalLink className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
                       <span className="text-sm">Teams</span>

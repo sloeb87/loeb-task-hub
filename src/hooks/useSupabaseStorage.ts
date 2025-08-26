@@ -1040,11 +1040,11 @@ export function useSupabaseStorage() {
     details?: string;
     plannedTimeHours?: number;
     links?: {
-      oneNote?: string;
-      teams?: string;
-      email?: string;
-      file?: string;
-      folder?: string;
+      oneNote?: string[];
+      teams?: string[];
+      email?: string[];
+      file?: string[];
+      folder?: string[];
     };
   }): Promise<void> => {
     if (!user) throw new Error('User not authenticated');

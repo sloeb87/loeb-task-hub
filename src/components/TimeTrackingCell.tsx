@@ -6,6 +6,7 @@ import { Task } from "@/types/task";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useRecurringTaskTime } from "@/hooks/useRecurringTaskTime";
 import { formatTime } from "@/utils/taskOperations";
+import { getFirstLink } from "@/utils/linkUtils";
 
 interface TimeTrackingCellProps {
   task: Task;
@@ -81,7 +82,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
               size="sm" 
               variant="ghost" 
               className="p-1 h-6 w-6 hover:bg-blue-100 dark:hover:bg-blue-900"
-              onClick={(e) => onLinkClick(task.links.folder!, e)}
+              onClick={(e) => task.links.folder && getFirstLink(task.links.folder) && onLinkClick(getFirstLink(task.links.folder), e)}
               title="Open Folder"
             >
               <FolderOpen className="w-3 h-3 text-blue-600 dark:text-blue-400" />
@@ -92,7 +93,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
               size="sm" 
               variant="ghost" 
               className="p-1 h-6 w-6 hover:bg-green-100 dark:hover:bg-green-900"
-              onClick={(e) => onLinkClick(`mailto:${task.links.email}`, e)}
+              onClick={(e) => task.links.email && getFirstLink(task.links.email) && onLinkClick(`mailto:${getFirstLink(task.links.email)}`, e)}
               title="Send Email"
             >
               <Mail className="w-3 h-3 text-green-600 dark:text-green-400" />
@@ -103,7 +104,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
               size="sm" 
               variant="ghost" 
               className="p-1 h-6 w-6 hover:bg-purple-100 dark:hover:bg-purple-900"
-              onClick={(e) => onLinkClick(task.links.file!, e)}
+              onClick={(e) => task.links.file && getFirstLink(task.links.file) && onLinkClick(getFirstLink(task.links.file), e)}
               title="Open File"
             >
               <FileText className="w-3 h-3 text-purple-600 dark:text-purple-400" />
@@ -114,7 +115,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
               size="sm" 
               variant="ghost" 
               className="p-1 h-6 w-6 hover:bg-orange-100 dark:hover:bg-orange-900"
-              onClick={(e) => onLinkClick(task.links.oneNote!, e)}
+              onClick={(e) => task.links.oneNote && getFirstLink(task.links.oneNote) && onLinkClick(getFirstLink(task.links.oneNote), e)}
               title="Open OneNote"
             >
               <ExternalLink className="w-3 h-3 text-orange-600 dark:text-orange-400" />
@@ -125,7 +126,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
               size="sm" 
               variant="ghost" 
               className="p-1 h-6 w-6 hover:bg-indigo-100 dark:hover:bg-indigo-900"
-              onClick={(e) => onLinkClick(task.links.teams!, e)}
+              onClick={(e) => task.links.teams && getFirstLink(task.links.teams) && onLinkClick(getFirstLink(task.links.teams), e)}
               title="Open Teams"
             >
               <ExternalLink className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
