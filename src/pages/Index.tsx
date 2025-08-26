@@ -515,7 +515,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
                       {selectedTask ? (
                         <>
-                          <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span> {selectedTask.title}
+                          <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span>_{selectedTask.title}
                         </>
                       ) : (
                         "Create New Task"
