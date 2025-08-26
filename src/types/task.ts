@@ -17,6 +17,12 @@ export interface ChecklistItem {
   timestamp: string;
 }
 
+export interface NamedLink {
+  id: string;
+  name: string;
+  url: string;
+}
+
 export interface Task {
   id: string;
   scope: string[]; // Changed to array to support multiple scopes
@@ -39,11 +45,11 @@ export interface Task {
   checklist: ChecklistItem[];
   details: string;
   links: {
-    oneNote?: string[];
-    teams?: string[];
-    email?: string[];
-    file?: string[];
-    folder?: string[];
+    oneNote?: NamedLink[];
+    teams?: NamedLink[];
+    email?: NamedLink[];
+    file?: NamedLink[];
+    folder?: NamedLink[];
   };
   stakeholders: string[];
   // Recurring task fields
@@ -69,11 +75,11 @@ export interface Project {
   scope: string[]; // Changed to array to support multiple scopes
   cost_center?: string; // Added cost center to Project
   links?: {
-    oneNote?: string[];
-    teams?: string[];
-    email?: string[];
-    file?: string[];
-    folder?: string[];
+    oneNote?: NamedLink[];
+    teams?: NamedLink[];
+    email?: NamedLink[];
+    file?: NamedLink[];
+    folder?: NamedLink[];
   };
 }
 

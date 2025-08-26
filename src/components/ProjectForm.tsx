@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { useParameters } from "@/hooks/useParameters";
-import { MultiLinkInput } from "@/components/ui/multi-link-input";
+import { NamedLinkInput } from "@/components/ui/named-link-input";
 import { FileText, Users, Mail, File, Folder } from "lucide-react";
 
 interface ProjectFormProps {
@@ -61,7 +61,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     }));
   };
 
-  const handleLinkChange = (linkType: string, links: string[]) => {
+  const handleLinkChange = (linkType: string, links: NamedLink[]) => {
     setFormData(prev => ({
       ...prev,
       links: {
@@ -344,7 +344,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 pb-2">Project Links</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <MultiLinkInput
+              <NamedLinkInput
                 label="OneNote"
                 icon={<FileText className="w-4 h-4" />}
                 links={formData.links.oneNote}
@@ -353,7 +353,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                 onChange={(links) => handleLinkChange('oneNote', links)}
               />
               
-              <MultiLinkInput
+              <NamedLinkInput
                 label="Teams"
                 icon={<Users className="w-4 h-4" />}
                 links={formData.links.teams}
@@ -362,7 +362,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                 onChange={(links) => handleLinkChange('teams', links)}
               />
               
-              <MultiLinkInput
+              <NamedLinkInput
                 label="Email"
                 icon={<Mail className="w-4 h-4" />}
                 links={formData.links.email}
@@ -371,7 +371,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                 onChange={(links) => handleLinkChange('email', links)}
               />
               
-              <MultiLinkInput
+              <NamedLinkInput
                 label="File"
                 icon={<File className="w-4 h-4" />}
                 links={formData.links.file}
@@ -381,7 +381,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
               />
             </div>
             
-            <MultiLinkInput
+            <NamedLinkInput
               label="Folder"
               icon={<Folder className="w-4 h-4" />}
               links={formData.links.folder}

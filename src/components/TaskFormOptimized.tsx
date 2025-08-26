@@ -14,7 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem, FollowUp } from "@/types/task";
+import { Task, TaskType, TaskStatus, TaskPriority, FollowUp, ChecklistItem, NamedLink } from "@/types/task";
+import { Project } from "@/types/task";
 import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat, Folder } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
@@ -22,6 +23,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { RecurrenceSelector } from "@/components/RecurrenceSelector";
 import { MultiLinkInput } from "@/components/ui/multi-link-input";
+import { NamedLinkInput } from "@/components/ui/named-link-input";
 import {
   DndContext,
   closestCenter,
@@ -126,11 +128,11 @@ interface TaskFormProps {
     details?: string;
     plannedTimeHours?: number;
     links?: {
-      oneNote?: string[];
-      teams?: string[];
-      email?: string[];
-      file?: string[];
-      folder?: string[];
+      oneNote?: NamedLink[];
+      teams?: NamedLink[];
+      email?: NamedLink[];
+      file?: NamedLink[];
+      folder?: NamedLink[];
     };
   }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
@@ -165,11 +167,11 @@ interface FormData {
   dependencies: string[];
   checklist: ChecklistItem[];
   links: {
-    oneNote: string[];
-    teams: string[];
-    email: string[];
-    file: string[];
-    folder: string[];
+    oneNote: NamedLink[];
+    teams: NamedLink[];
+    email: NamedLink[];
+    file: NamedLink[];
+    folder: NamedLink[];
   };
   stakeholders: string[];
   // Recurrence fields
@@ -311,11 +313,11 @@ export const TaskFormOptimized = React.memo(({
         dependencies: task.dependencies || [],
         checklist: task.checklist || [],
         links: {
-          oneNote: Array.isArray(task.links?.oneNote) ? task.links.oneNote : (task.links?.oneNote ? [task.links.oneNote] : []),
-          teams: Array.isArray(task.links?.teams) ? task.links.teams : (task.links?.teams ? [task.links.teams] : []),
-          email: Array.isArray(task.links?.email) ? task.links.email : (task.links?.email ? [task.links.email] : []),
-          file: Array.isArray(task.links?.file) ? task.links.file : (task.links?.file ? [task.links.file] : []),
-          folder: Array.isArray(task.links?.folder) ? task.links.folder : (task.links?.folder ? [task.links.folder] : [])
+          oneNote: Array.isArray(task.links?.oneNote) ? task.links.oneNote : (task.links?.oneNote ? [{id: Math.random().toString(36).substr(2, 9), name: 'OneNote', url: task.links.oneNote}] : []),
+          teams: Array.isArray(task.links?.teams) ? task.links.teams : (task.links?.teams ? [{id: Math.random().toString(36).substr(2, 9), name: 'Teams', url: task.links.teams}] : []),
+          email: Array.isArray(task.links?.email) ? task.links.email : (task.links?.email ? [{id: Math.random().toString(36).substr(2, 9), name: 'Email', url: task.links.email}] : []),
+          file: Array.isArray(task.links?.file) ? task.links.file : (task.links?.file ? [{id: Math.random().toString(36).substr(2, 9), name: 'File', url: task.links.file}] : []),
+          folder: Array.isArray(task.links?.folder) ? task.links.folder : (task.links?.folder ? [{id: Math.random().toString(36).substr(2, 9), name: 'Folder', url: task.links.folder}] : [])
         },
         stakeholders: task.stakeholders || [],
         // Recurrence fields
@@ -402,7 +404,7 @@ export const TaskFormOptimized = React.memo(({
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const updateLinkField = useCallback((linkType: keyof FormData['links'], links: string[]) => {
+  const updateLinkField = useCallback((linkType: keyof FormData['links'], links: NamedLink[]) => {
     setFormData(prev => ({
       ...prev,
       links: { ...prev.links, [linkType]: links }
@@ -884,51 +886,51 @@ export const TaskFormOptimized = React.memo(({
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <MultiLinkInput
-                    label="OneNote"
-                    icon={<FileText className="w-4 h-4" />}
-                    links={formData.links.oneNote}
-                    placeholder="OneNote link..."
-                    type="url"
-                    onChange={(links) => updateLinkField('oneNote', links)}
-                  />
-                  
-                  <MultiLinkInput
-                    label="Teams"
-                    icon={<Users className="w-4 h-4" />}
-                    links={formData.links.teams}
-                    placeholder="Teams link..."
-                    type="url"
-                    onChange={(links) => updateLinkField('teams', links)}
-                  />
-                  
-                  <MultiLinkInput
-                    label="Email"
-                    icon={<Mail className="w-4 h-4" />}
-                    links={formData.links.email}
-                    placeholder="Email link or address..."
-                    type="email"
-                    onChange={(links) => updateLinkField('email', links)}
-                  />
-                  
-                  <MultiLinkInput
-                    label="File"
-                    icon={<File className="w-4 h-4" />}
-                    links={formData.links.file}
-                    placeholder="File link..."
-                    type="url"
-                    onChange={(links) => updateLinkField('file', links)}
-                  />
-                </div>
-                
-                <MultiLinkInput
-                  label="Folder"
-                  icon={<Folder className="w-4 h-4" />}
-                  links={formData.links.folder}
-                  placeholder="Folder/SharePoint link..."
+                <NamedLinkInput
+                  label="OneNote"
+                  icon={<FileText className="w-4 h-4" />}
+                  links={formData.links.oneNote}
+                  placeholder="OneNote link..."
                   type="url"
-                  onChange={(links) => updateLinkField('folder', links)}
+                  onChange={(links) => updateLinkField('oneNote', links)}
                 />
+                
+                <NamedLinkInput
+                  label="Teams"
+                  icon={<Users className="w-4 h-4" />}
+                  links={formData.links.teams}
+                  placeholder="Teams link..."
+                  type="url"
+                  onChange={(links) => updateLinkField('teams', links)}
+                />
+                
+                <NamedLinkInput
+                  label="Email"
+                  icon={<Mail className="w-4 h-4" />}
+                  links={formData.links.email}
+                  placeholder="Email link or address..."
+                  type="email"
+                  onChange={(links) => updateLinkField('email', links)}
+                />
+                
+                <NamedLinkInput
+                  label="File"
+                  icon={<File className="w-4 h-4" />}
+                  links={formData.links.file}
+                  placeholder="File link..."
+                  type="url"
+                  onChange={(links) => updateLinkField('file', links)}
+                />
+              </div>
+              
+              <NamedLinkInput
+                label="Folder"
+                icon={<Folder className="w-4 h-4" />}
+                links={formData.links.folder}
+                placeholder="Folder/SharePoint link..."
+                type="url"
+                onChange={(links) => updateLinkField('folder', links)}
+              />
               </div>
             </div>
 
