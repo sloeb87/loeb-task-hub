@@ -47,6 +47,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-20",
     plannedTimeHours: 25,
     followUps: [],
+    checklist: [],
     details: "Focus on query optimization and proper indexing strategies",
     links: {
       oneNote: [],
@@ -74,6 +75,7 @@ export const mockTasks: Task[] = [
     completionDate: "2024-01-28",
     plannedTimeHours: 30,
     followUps: [],
+    checklist: [],
     details: "Include user flow diagrams and interaction specifications",
     links: {
       oneNote: [],
@@ -100,6 +102,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-10",
     plannedTimeHours: 35,
     followUps: [],
+    checklist: [],
     details: "Test both success and failure scenarios thoroughly",
     links: {
       oneNote: [{id: generateId(), name: 'API Test Notes', url: 'https://example.com/api-tests'}],
@@ -126,6 +129,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-25",
     plannedTimeHours: 20,
     followUps: [],
+    checklist: [],
     details: "Include screenshots and step-by-step instructions",
     links: {
       oneNote: [],
@@ -152,6 +156,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-28",
     plannedTimeHours: 45,
     followUps: [],
+    checklist: [],
     details: "Include penetration testing and code review",
     links: {
       oneNote: [{id: generateId(), name: 'Security Report', url: 'https://example.com/security-report'}],
@@ -178,6 +183,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-18",
     plannedTimeHours: 32,
     followUps: [],
+    checklist: [],
     details: "Focus on database queries and caching strategies",
     links: {
       oneNote: [],
@@ -204,6 +210,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-26",
     plannedTimeHours: 18,
     followUps: [],
+    checklist: [],
     details: "Include conversion tracking and user behavior analysis",
     links: {
       oneNote: [{id: generateId(), name: 'Analytics Setup', url: 'https://example.com/analytics-setup'}],
@@ -230,6 +237,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-08",
     plannedTimeHours: 28,
     followUps: [],
+    checklist: [],
     details: "Include automated testing and deployment to staging/production",
     links: {
       oneNote: [],
@@ -256,6 +264,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-03-01",
     plannedTimeHours: 22,
     followUps: [],
+    checklist: [],
     details: "Include application metrics, logs, and infrastructure monitoring",
     links: {
       oneNote: [],
@@ -283,6 +292,7 @@ export const mockTasks: Task[] = [
     completionDate: "2024-01-24",
     plannedTimeHours: 35,
     followUps: [],
+    checklist: [],
     details: "Include both qualitative and quantitative research methods",
     links: {
       oneNote: [{id: generateId(), name: 'UX Research', url: 'https://example.com/ux-research'}],
@@ -309,6 +319,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-22",
     plannedTimeHours: 25,
     followUps: [],
+    checklist: [],
     details: "Include tone of voice, style guide, and content calendar",
     links: {
       oneNote: [{id: generateId(), name: 'Content Strategy', url: 'https://example.com/content-strategy'}],
@@ -335,6 +346,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-03-05",
     plannedTimeHours: 30,
     followUps: [],
+    checklist: [],
     details: "Include screen reader testing and keyboard navigation",
     links: {
       oneNote: [{id: generateId(), name: 'A11y Testing', url: 'https://example.com/a11y-testing'}],
@@ -361,6 +373,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-03-15",
     plannedTimeHours: 40,
     followUps: [],
+    checklist: [],
     details: "Support for English, Spanish, French, and German",
     links: {
       oneNote: [],
@@ -387,6 +400,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-03-10",
     plannedTimeHours: 35,
     followUps: [],
+    checklist: [],
     details: "Include both data backup and infrastructure recovery",
     links: {
       oneNote: [],
@@ -413,6 +427,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-01",
     plannedTimeHours: 0.5,
     followUps: [],
+    checklist: [],
     details: "15-minute daily sync meeting",
     links: {
       oneNote: [{id: generateId(), name: 'Meeting Notes', url: 'https://example.com/standup-notes'}],
@@ -444,6 +459,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-01",
     plannedTimeHours: 2,
     followUps: [],
+    checklist: [],
     details: "Plan upcoming sprint backlog and capacity",
     links: {
       oneNote: [{id: generateId(), name: 'Sprint Plan', url: 'https://example.com/sprint-plan'}],
@@ -474,6 +490,7 @@ export const mockTasks: Task[] = [
     dueDate: "2024-02-01",
     plannedTimeHours: 1,
     followUps: [],
+    checklist: [],
     details: "Review recent code changes and share best practices",
     links: {
       oneNote: [{id: generateId(), name: 'Code Review Notes', url: 'https://example.com/code-review'}],

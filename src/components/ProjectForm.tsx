@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { X } from "lucide-react";
-import { Project, Task } from "@/types/task";
+import { Project, Task, NamedLink } from "@/types/task";
 import { useParameters } from "@/hooks/useParameters";
 import { NamedLinkInput } from "@/components/ui/named-link-input";
 import { FileText, Users, Mail, File, Folder } from "lucide-react";

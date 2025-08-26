@@ -575,6 +575,24 @@ export function useSupabaseStorage() {
       console.log('Found project ID:', projectId, 'for project name:', taskData.project);
       console.log('createTask payload (key fields):', { environment: taskData.environment, status: taskData.status, priority: taskData.priority, taskType: taskData.taskType, project: taskData.project, title: taskData.title });
 
+      // Serialize NamedLink arrays to JSON for database storage
+      const serializeLinks = (links: any) => {
+        if (!links) return null;
+        const serialized: any = {};
+        for (const [key, value] of Object.entries(links)) {
+          if (Array.isArray(value)) {
+            serialized[key] = value.map((link: any) => 
+              typeof link === 'object' && 'id' in link 
+                ? { id: link.id, name: link.name, url: link.url }
+                : link
+            );
+          } else {
+            serialized[key] = value;
+          }
+        }
+        return serialized;
+      };
+
       const { data, error } = await supabase
         .from('tasks')
         .insert({
@@ -588,22 +606,26 @@ export function useSupabaseStorage() {
           status: taskData.status,
           priority: taskData.priority,
           responsible: taskData.responsible,
+          creation_date: new Date().toISOString().split('T')[0],
           start_date: taskData.startDate,
           due_date: taskData.dueDate,
           completion_date: taskData.completionDate || null,
           duration: taskData.duration || null,
           planned_time_hours: taskData.plannedTimeHours || null,
-          dependencies: taskData.dependencies || [],
-          checklist: JSON.stringify(taskData.checklist || []),
-          details: taskData.details,
-          links: taskData.links || {},
+          details: taskData.details || '',
+          links: serializeLinks(taskData.links),
           stakeholders: taskData.stakeholders || [],
-          user_id: user.id,
-          // Recurrence fields
+          dependencies: taskData.dependencies || [],
+          checklist: JSON.stringify(taskData.checklist) || '[]',
+          // Recurring task fields
           is_recurring: taskData.isRecurring || false,
-          recurrence_type: taskData.recurrenceType,
-          recurrence_interval: taskData.recurrenceInterval || 1,
-          recurrence_end_date: taskData.recurrenceEndDate
+          recurrence_type: taskData.recurrenceType || null,
+          recurrence_interval: taskData.recurrenceInterval || null,
+          recurrence_days_of_week: taskData.recurrenceDaysOfWeek || null,
+          parent_task_id: taskData.parentTaskId || null,
+          next_recurrence_date: taskData.nextRecurrenceDate || null,
+          recurrence_end_date: taskData.recurrenceEndDate || null,
+          user_id: user.id
         })
         .select()
         .single();
@@ -673,6 +695,24 @@ export function useSupabaseStorage() {
     const isBeingCompleted = existingTask.status !== 'Completed' && updatedTask.status === 'Completed';
     const todayDate = new Date().toISOString().split('T')[0];
 
+    // Serialize NamedLink arrays to JSON for database storage
+    const serializeLinks = (links: any) => {
+      if (!links) return null;
+      const serialized: any = {};
+      for (const [key, value] of Object.entries(links)) {
+        if (Array.isArray(value)) {
+          serialized[key] = value.map((link: any) => 
+            typeof link === 'object' && 'id' in link 
+              ? { id: link.id, name: link.name, url: link.url }
+              : link
+          );
+        } else {
+          serialized[key] = value;
+        }
+      }
+      return serialized;
+    };
+
     const updateData = {
       scope: updatedTask.scope || [], // Handle array scope
       project_id: projectId,
@@ -689,9 +729,9 @@ export function useSupabaseStorage() {
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
       dependencies: updatedTask.dependencies || [],
-      checklist: JSON.stringify(updatedTask.checklist || []),
+      checklist: JSON.stringify(updatedTask.checklist) || '[]',
       details: updatedTask.details,
-      links: updatedTask.links || {},
+      links: serializeLinks(updatedTask.links),
       stakeholders: updatedTask.stakeholders || [],
       // Recurrence fields
       is_recurring: updatedTask.isRecurring || false,
@@ -1040,11 +1080,11 @@ export function useSupabaseStorage() {
     details?: string;
     plannedTimeHours?: number;
     links?: {
-      oneNote?: string[];
-      teams?: string[];
-      email?: string[];
-      file?: string[];
-      folder?: string[];
+      oneNote?: { id: string; name: string; url: string; }[];
+      teams?: { id: string; name: string; url: string; }[];
+      email?: { id: string; name: string; url: string; }[];
+      file?: { id: string; name: string; url: string; }[];
+      folder?: { id: string; name: string; url: string; }[];
     };
   }): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
@@ -1120,6 +1160,24 @@ export function useSupabaseStorage() {
   const createProject = async (projectData: Omit<Project, 'id'>): Promise<Project> => {
     if (!user) throw new Error('User not authenticated');
 
+    // Serialize NamedLink arrays to JSON for database storage
+    const serializeLinks = (links: any) => {
+      if (!links) return null;
+      const serialized: any = {};
+      for (const [key, value] of Object.entries(links)) {
+        if (Array.isArray(value)) {
+          serialized[key] = value.map((link: any) => 
+            typeof link === 'object' && 'id' in link 
+              ? { id: link.id, name: link.name, url: link.url }
+              : link
+          );
+        } else {
+          serialized[key] = value;
+        }
+      }
+      return serialized;
+    };
+
     try {
       const { data, error } = await supabase
         .from('projects')
@@ -1134,7 +1192,7 @@ export function useSupabaseStorage() {
           status: projectData.status,
           cost_center: projectData.cost_center,
           team: projectData.team || [],
-          links: projectData.links || {}
+          links: serializeLinks(projectData.links)
           // Note: id will be automatically generated by the database trigger
         })
         .select()
@@ -1155,6 +1213,24 @@ export function useSupabaseStorage() {
   const updateProject = async (updatedProject: Project): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
+    // Serialize NamedLink arrays to JSON for database storage
+    const serializeLinks = (links: any) => {
+      if (!links) return null;
+      const serialized: any = {};
+      for (const [key, value] of Object.entries(links)) {
+        if (Array.isArray(value)) {
+          serialized[key] = value.map((link: any) => 
+            typeof link === 'object' && 'id' in link 
+              ? { id: link.id, name: link.name, url: link.url }
+              : link
+          );
+        } else {
+          serialized[key] = value;
+        }
+      }
+      return serialized;
+    };
+
     const { error } = await supabase
       .from('projects')
       .update({
@@ -1167,7 +1243,7 @@ export function useSupabaseStorage() {
         status: updatedProject.status,
         cost_center: updatedProject.cost_center,
         team: updatedProject.team || [],
-        links: updatedProject.links || {}
+        links: serializeLinks(updatedProject.links)
       })
       .eq('id', updatedProject.id)
       .eq('user_id', user.id);
