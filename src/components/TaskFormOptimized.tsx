@@ -1214,7 +1214,7 @@ export const TaskFormOptimized = React.memo(({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
-            {task ? `Edit Task: ${task.title}` : 'Create New Task'}
+            {task ? `Edit Task: ${task.id}_${task.title}` : 'Create New Task'}
           </DialogTitle>
           <DialogDescription>
             {task ? 'Modify the task details below' : 'Fill in the details to create a new task'}
