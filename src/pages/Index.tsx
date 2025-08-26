@@ -40,6 +40,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     tasks,
     projects: supabaseProjects,
     isLoading,
+    isInitialLoading, // Use the new initial loading state
     error,
     pagination,
     taskCounts,
@@ -353,8 +354,8 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     }
   }, [loadTasks, searchTasks, currentSearchTerm]);
 
-  // Show loading state
-  if (isLoading) {
+  // Show loading state only for initial load
+  if (isInitialLoading) {
     return <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
