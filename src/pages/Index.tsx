@@ -513,7 +513,13 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
                   </Button>
                   <div className="flex items-center space-x-3">
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                      T462 - Create ACN
+                      {selectedTask ? (
+                        <>
+                          <span className="text-blue-600 dark:text-blue-400">{selectedTask.id}</span> {selectedTask.title}
+                        </>
+                      ) : (
+                        "Create New Task"
+                      )}
                     </h1>
                     {selectedTask && (
                       <Button
