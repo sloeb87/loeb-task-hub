@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { X } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { useParameters } from "@/hooks/useParameters";
+import { MultiLinkInput } from "@/components/ui/multi-link-input";
+import { FileText, Users, Mail, File, Folder } from "lucide-react";
 
 interface ProjectFormProps {
   isOpen: boolean;
@@ -36,11 +38,11 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     tasks: project?.tasks || [] as string[],
     scope: project?.scope || [] as string[], // Changed to array
     links: {
-      oneNote: project?.links?.oneNote || '',
-      teams: project?.links?.teams || '',
-      email: project?.links?.email || '',
-      file: project?.links?.file || '',
-      folder: project?.links?.folder || '',
+      oneNote: Array.isArray(project?.links?.oneNote) ? project.links.oneNote : (project?.links?.oneNote ? [project.links.oneNote] : []),
+      teams: Array.isArray(project?.links?.teams) ? project.links.teams : (project?.links?.teams ? [project.links.teams] : []),
+      email: Array.isArray(project?.links?.email) ? project.links.email : (project?.links?.email ? [project.links.email] : []),
+      file: Array.isArray(project?.links?.file) ? project.links.file : (project?.links?.file ? [project.links.file] : []),
+      folder: Array.isArray(project?.links?.folder) ? project.links.folder : (project?.links?.folder ? [project.links.folder] : [])
     }
   });
 
@@ -59,12 +61,12 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     }));
   };
 
-  const handleLinkChange = (linkType: string, value: string) => {
+  const handleLinkChange = (linkType: string, links: string[]) => {
     setFormData(prev => ({
       ...prev,
       links: {
         ...prev.links,
-        [linkType]: value
+        [linkType]: links
       }
     }));
   };
@@ -147,11 +149,11 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
         tasks: project.tasks,
         scope: project.scope || [], // Changed to array
         links: {
-          oneNote: project.links?.oneNote || '',
-          teams: project.links?.teams || '',
-          email: project.links?.email || '',
-          file: project.links?.file || '',
-          folder: project.links?.folder || '',
+          oneNote: Array.isArray(project.links?.oneNote) ? project.links.oneNote : (project.links?.oneNote ? [project.links.oneNote] : []),
+          teams: Array.isArray(project.links?.teams) ? project.links.teams : (project.links?.teams ? [project.links.teams] : []),
+          email: Array.isArray(project.links?.email) ? project.links.email : (project.links?.email ? [project.links.email] : []),
+          file: Array.isArray(project.links?.file) ? project.links.file : (project.links?.file ? [project.links.file] : []),
+          folder: Array.isArray(project.links?.folder) ? project.links.folder : (project.links?.folder ? [project.links.folder] : [])
         }
       });
     }
@@ -341,58 +343,52 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
           {/* Project Links */}
           <div className="space-y-4">
             <h4 className="text-sm font-medium text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-600 pb-2">Project Links</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="oneNote" className="text-gray-700 dark:text-gray-300">OneNote</Label>
-                <Input
-                  id="oneNote"
-                  value={formData.links.oneNote}
-                  onChange={(e) => handleLinkChange('oneNote', e.target.value)}
-                  placeholder="OneNote link..."
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="teams" className="text-gray-700 dark:text-gray-300">Teams</Label>
-                <Input
-                  id="teams"
-                  value={formData.links.teams}
-                  onChange={(e) => handleLinkChange('teams', e.target.value)}
-                  placeholder="Teams link..."
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300">Email</Label>
-                <Input
-                  id="email"
-                  value={formData.links.email}
-                  onChange={(e) => handleLinkChange('email', e.target.value)}
-                  placeholder="project@example.com"
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-              <div>
-                <Label htmlFor="file" className="text-gray-700 dark:text-gray-300">File</Label>
-                <Input
-                  id="file"
-                  value={formData.links.file}
-                  onChange={(e) => handleLinkChange('file', e.target.value)}
-                  placeholder="File link..."
-                  className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="folder" className="text-gray-700 dark:text-gray-300">Folder</Label>
-              <Input
-                id="folder"
-                value={formData.links.folder}
-                onChange={(e) => handleLinkChange('folder', e.target.value)}
-                placeholder="Folder/SharePoint link..."
-                className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <MultiLinkInput
+                label="OneNote"
+                icon={<FileText className="w-4 h-4" />}
+                links={formData.links.oneNote}
+                placeholder="OneNote link..."
+                type="url"
+                onChange={(links) => handleLinkChange('oneNote', links)}
+              />
+              
+              <MultiLinkInput
+                label="Teams"
+                icon={<Users className="w-4 h-4" />}
+                links={formData.links.teams}
+                placeholder="Teams link..."
+                type="url"
+                onChange={(links) => handleLinkChange('teams', links)}
+              />
+              
+              <MultiLinkInput
+                label="Email"
+                icon={<Mail className="w-4 h-4" />}
+                links={formData.links.email}
+                placeholder="project@example.com"
+                type="email"
+                onChange={(links) => handleLinkChange('email', links)}
+              />
+              
+              <MultiLinkInput
+                label="File"
+                icon={<File className="w-4 h-4" />}
+                links={formData.links.file}
+                placeholder="File link..."
+                type="url"
+                onChange={(links) => handleLinkChange('file', links)}
               />
             </div>
+            
+            <MultiLinkInput
+              label="Folder"
+              icon={<Folder className="w-4 h-4" />}
+              links={formData.links.folder}
+              placeholder="Folder/SharePoint link..."
+              type="url"
+              onChange={(links) => handleLinkChange('folder', links)}
+            />
           </div>
 
               {/* Form Actions */}

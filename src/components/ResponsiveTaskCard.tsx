@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, User, FolderOpen, MessageSquarePlus, Clock, Play, Pause, Square, Mail, FileText, ExternalLink, Repeat, Link2 } from "lucide-react";
 import { format } from "date-fns";
 import { Task } from "@/types/task";
+import { getFirstLink, hasLinks } from "@/utils/linkUtils";
 
 interface ResponsiveTaskCardProps {
   task: Task;
@@ -233,56 +234,60 @@ export const ResponsiveTaskCard = ({
               <span>Task Links</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {task.links.folder && (
+              {hasLinks(task.links.folder) && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="justify-start h-auto py-2 px-3"
-                  onClick={(e) => handleLinkClick(task.links.folder!, e)}
+                  onClick={(e) => handleLinkClick(getFirstLink(task.links.folder), e)}
                 >
                   <FolderOpen className="w-4 h-4 mr-2 text-blue-600 dark:text-blue-400" />
                   <span className="text-xs">Folder</span>
                 </Button>
               )}
-              {task.links.email && (
+              {hasLinks(task.links.email) && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="justify-start h-auto py-2 px-3"
-                  onClick={(e) => handleLinkClick(`mailto:${task.links.email}`, e)}
+                  onClick={(e) => {
+                    const email = getFirstLink(task.links.email);
+                    const emailLink = email.startsWith('mailto:') ? email : `mailto:${email}`;
+                    handleLinkClick(emailLink, e);
+                  }}
                 >
                   <Mail className="w-4 h-4 mr-2 text-green-600 dark:text-green-400" />
                   <span className="text-xs">Email</span>
                 </Button>
               )}
-              {task.links.file && (
+              {hasLinks(task.links.file) && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="justify-start h-auto py-2 px-3"
-                  onClick={(e) => handleLinkClick(task.links.file!, e)}
+                  onClick={(e) => handleLinkClick(getFirstLink(task.links.file), e)}
                 >
                   <FileText className="w-4 h-4 mr-2 text-purple-600 dark:text-purple-400" />
                   <span className="text-xs">File</span>
                 </Button>
               )}
-              {task.links.oneNote && (
+              {hasLinks(task.links.oneNote) && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="justify-start h-auto py-2 px-3"
-                  onClick={(e) => handleLinkClick(task.links.oneNote!, e)}
+                  onClick={(e) => handleLinkClick(getFirstLink(task.links.oneNote), e)}
                 >
                   <ExternalLink className="w-4 h-4 mr-2 text-orange-600 dark:text-orange-400" />
                   <span className="text-xs">OneNote</span>
                 </Button>
               )}
-              {task.links.teams && (
+              {hasLinks(task.links.teams) && (
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="justify-start h-auto py-2 px-3"
-                  onClick={(e) => handleLinkClick(task.links.teams!, e)}
+                  onClick={(e) => handleLinkClick(getFirstLink(task.links.teams), e)}
                 >
                   <ExternalLink className="w-4 h-4 mr-2 text-indigo-600 dark:text-indigo-400" />
                   <span className="text-xs">Teams</span>

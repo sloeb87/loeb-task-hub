@@ -15,12 +15,13 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, Project, TaskType, TaskStatus, TaskPriority, ChecklistItem, FollowUp } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat, Folder } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { RecurrenceSelector } from "@/components/RecurrenceSelector";
+import { MultiLinkInput } from "@/components/ui/multi-link-input";
 import {
   DndContext,
   closestCenter,
@@ -125,11 +126,11 @@ interface TaskFormProps {
     details?: string;
     plannedTimeHours?: number;
     links?: {
-      oneNote?: string;
-      teams?: string;
-      email?: string;
-      file?: string;
-      folder?: string;
+      oneNote?: string[];
+      teams?: string[];
+      email?: string[];
+      file?: string[];
+      folder?: string[];
     };
   }) => void;
   onAddFollowUp?: (taskId: string, followUpText: string) => void;
@@ -164,11 +165,11 @@ interface FormData {
   dependencies: string[];
   checklist: ChecklistItem[];
   links: {
-    oneNote: string;
-    teams: string;
-    email: string;
-    file: string;
-    folder: string;
+    oneNote: string[];
+    teams: string[];
+    email: string[];
+    file: string[];
+    folder: string[];
   };
   stakeholders: string[];
   // Recurrence fields
@@ -197,11 +198,11 @@ const DEFAULT_FORM_DATA: FormData = {
   dependencies: [],
   checklist: [],
   links: {
-    oneNote: "",
-    teams: "",
-    email: "",
-    file: "",
-    folder: ""
+    oneNote: [],
+    teams: [],
+    email: [],
+    file: [],
+    folder: []
   },
   stakeholders: [],
   // Recurrence defaults
@@ -310,11 +311,11 @@ export const TaskFormOptimized = React.memo(({
         dependencies: task.dependencies || [],
         checklist: task.checklist || [],
         links: {
-          oneNote: task.links?.oneNote || "",
-          teams: task.links?.teams || "",
-          email: task.links?.email || "",
-          file: task.links?.file || "",
-          folder: task.links?.folder || ""
+          oneNote: Array.isArray(task.links?.oneNote) ? task.links.oneNote : (task.links?.oneNote ? [task.links.oneNote] : []),
+          teams: Array.isArray(task.links?.teams) ? task.links.teams : (task.links?.teams ? [task.links.teams] : []),
+          email: Array.isArray(task.links?.email) ? task.links.email : (task.links?.email ? [task.links.email] : []),
+          file: Array.isArray(task.links?.file) ? task.links.file : (task.links?.file ? [task.links.file] : []),
+          folder: Array.isArray(task.links?.folder) ? task.links.folder : (task.links?.folder ? [task.links.folder] : [])
         },
         stakeholders: task.stakeholders || [],
         // Recurrence fields
@@ -401,10 +402,10 @@ export const TaskFormOptimized = React.memo(({
     setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
-  const updateLinkField = useCallback((linkType: keyof FormData['links'], value: string) => {
+  const updateLinkField = useCallback((linkType: keyof FormData['links'], links: string[]) => {
     setFormData(prev => ({
       ...prev,
-      links: { ...prev.links, [linkType]: value }
+      links: { ...prev.links, [linkType]: links }
     }));
   }, []);
 
@@ -882,125 +883,52 @@ export const TaskFormOptimized = React.memo(({
               {/* Links Section */}
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="oneNote" className="flex items-center gap-2">
-                        <FileText className="w-4 h-4" />
-                        OneNote
-                      </Label>
-                      {formData.links.oneNote && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(formData.links.oneNote, '_blank')}
-                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Input
-                      id="oneNote"
-                      type="url"
-                      value={formData.links.oneNote}
-                      onChange={(e) => updateLinkField('oneNote', e.target.value)}
-                      placeholder="OneNote link"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <MultiLinkInput
+                    label="OneNote"
+                    icon={<FileText className="w-4 h-4" />}
+                    links={formData.links.oneNote}
+                    placeholder="OneNote link..."
+                    type="url"
+                    onChange={(links) => updateLinkField('oneNote', links)}
+                  />
                   
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="teams" className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        Teams
-                      </Label>
-                      {formData.links.teams && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(formData.links.teams, '_blank')}
-                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Input
-                      id="teams"
-                      type="url"
-                      value={formData.links.teams}
-                      onChange={(e) => updateLinkField('teams', e.target.value)}
-                      placeholder="Teams link"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
+                  <MultiLinkInput
+                    label="Teams"
+                    icon={<Users className="w-4 h-4" />}
+                    links={formData.links.teams}
+                    placeholder="Teams link..."
+                    type="url"
+                    onChange={(links) => updateLinkField('teams', links)}
+                  />
                   
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email
-                      </Label>
-                      {formData.links.email && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            if (formData.links.email.startsWith('http')) {
-                              window.open(formData.links.email, '_blank');
-                            } else {
-                              window.open(`mailto:${formData.links.email}`, '_blank');
-                            }
-                          }}
-                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Input
-                      id="email"
-                      type="text"
-                      value={formData.links.email}
-                      onChange={(e) => updateLinkField('email', e.target.value)}
-                      placeholder="Email link or address"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
+                  <MultiLinkInput
+                    label="Email"
+                    icon={<Mail className="w-4 h-4" />}
+                    links={formData.links.email}
+                    placeholder="Email link or address..."
+                    type="email"
+                    onChange={(links) => updateLinkField('email', links)}
+                  />
                   
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="file" className="flex items-center gap-2">
-                        <File className="w-4 h-4" />
-                        File
-                      </Label>
-                      {formData.links.file && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => window.open(formData.links.file, '_blank')}
-                          className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <Input
-                      id="file"
-                      type="url"
-                      value={formData.links.file}
-                      onChange={(e) => updateLinkField('file', e.target.value)}
-                      placeholder="File link"
-                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                    />
-                  </div>
+                  <MultiLinkInput
+                    label="File"
+                    icon={<File className="w-4 h-4" />}
+                    links={formData.links.file}
+                    placeholder="File link..."
+                    type="url"
+                    onChange={(links) => updateLinkField('file', links)}
+                  />
                 </div>
+                
+                <MultiLinkInput
+                  label="Folder"
+                  icon={<Folder className="w-4 h-4" />}
+                  links={formData.links.folder}
+                  placeholder="Folder/SharePoint link..."
+                  type="url"
+                  onChange={(links) => updateLinkField('folder', links)}
+                />
               </div>
             </div>
 

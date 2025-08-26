@@ -39,11 +39,11 @@ export interface Task {
   checklist: ChecklistItem[];
   details: string;
   links: {
-    oneNote?: string;
-    teams?: string;
-    email?: string;
-    file?: string;
-    folder?: string;
+    oneNote?: string[];
+    teams?: string[];
+    email?: string[];
+    file?: string[];
+    folder?: string[];
   };
   stakeholders: string[];
   // Recurring task fields
@@ -69,11 +69,11 @@ export interface Project {
   scope: string[]; // Changed to array to support multiple scopes
   cost_center?: string; // Added cost center to Project
   links?: {
-    oneNote?: string;
-    teams?: string;
-    email?: string;
-    file?: string;
-    folder?: string;
+    oneNote?: string[];
+    teams?: string[];
+    email?: string[];
+    file?: string[];
+    folder?: string[];
   };
 }
 
