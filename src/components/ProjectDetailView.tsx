@@ -362,7 +362,7 @@ export const ProjectDetailView = ({
           </Button>
           <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              <span className="text-green-700 dark:text-green-400">{project.id}</span> {project.name}
+              <span className="text-green-700 dark:text-green-400">{project.id}</span>_{project.name}
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">{project.description}</p>
           </div>
