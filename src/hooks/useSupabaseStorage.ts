@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Task, Project, FollowUp } from '@/types/task';
+import { Task, Project, FollowUp, NamedLink } from '@/types/task';
 import { useAuth } from './useAuth';
 import { useToast } from '@/hooks/use-toast';
 interface SupabaseTask {
@@ -69,6 +69,43 @@ export function useSupabaseStorage() {
   });
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  // Convert links from database format to NamedLink format
+  const convertLinks = (links: any): { oneNote?: NamedLink[]; teams?: NamedLink[]; email?: NamedLink[]; file?: NamedLink[]; folder?: NamedLink[]; } => {
+    if (!links) return {};
+    
+    const converted: any = {};
+    const generateId = () => Math.random().toString(36).substr(2, 9);
+    
+    for (const [key, value] of Object.entries(links)) {
+      if (Array.isArray(value)) {
+        converted[key] = value.map((link: any) => {
+          // If it's already a NamedLink object, keep it as is
+          if (typeof link === 'object' && link.id && link.name && link.url) {
+            return link;
+          }
+          // If it's a string (old format), convert to NamedLink
+          if (typeof link === 'string') {
+            return {
+              id: generateId(),
+              name: key.charAt(0).toUpperCase() + key.slice(1),
+              url: link
+            };
+          }
+          return link;
+        }).filter(link => link && (typeof link === 'string' || (link.url && link.url.trim())));
+      } else if (typeof value === 'string' && value.trim()) {
+        // Handle single string values (convert to array with one NamedLink)
+        converted[key] = [{
+          id: generateId(),
+          name: key.charAt(0).toUpperCase() + key.slice(1),
+          url: value
+        }];
+      }
+    }
+    
+    return converted;
+  };
+
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
     // For recurring tasks, fetch follow-ups for all tasks in the series
     // If this task has a parent_task_id, use that; otherwise use its own ID if it's a recurring parent
@@ -157,7 +194,7 @@ export function useSupabaseStorage() {
       checklist: Array.isArray(supabaseTask.checklist) ? supabaseTask.checklist : (typeof supabaseTask.checklist === 'string' ? JSON.parse(supabaseTask.checklist) : []), // Parse checklist from JSON
       followUps,
       details: supabaseTask.details || '',
-      links: supabaseTask.links || {},
+      links: convertLinks(supabaseTask.links || {}),
       stakeholders: supabaseTask.stakeholders || [],
       // Recurrence fields
       isRecurring: (supabaseTask as any).is_recurring || false,

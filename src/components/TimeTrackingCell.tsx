@@ -44,14 +44,14 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
 
   const handleLinkButtonClick = (linkType: 'oneNote' | 'teams' | 'email' | 'file' | 'folder', links: NamedLink[], e: React.MouseEvent) => {
     e.stopPropagation();
-    if (links.length === 1) {
+    if (links && links.length === 1 && links[0] && links[0].url) {
       // If only one link, open it directly
       let url = links[0].url;
       if (linkType === 'email' && !url.startsWith('http') && !url.startsWith('mailto:')) {
         url = `mailto:${url}`;
       }
       onLinkClick(url, e);
-    } else {
+    } else if (links && links.length > 1) {
       // If multiple links, open dialog
       setCurrentLinkType(linkType);
       setLinkDialogOpen(true);
