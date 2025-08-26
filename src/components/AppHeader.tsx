@@ -105,7 +105,7 @@ export const AppHeader = ({
     icon: Clock
   }, {
     key: 'task-edit',
-    label: editingTaskTitle && editingTaskId ? `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
+    label: editingTaskTitle && editingTaskId ? `${editingTaskId}_${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
     icon: ListTodo,
     disabled: !editingTaskTitle // Only show if editing a task
   }, {
@@ -233,7 +233,7 @@ export const AppHeader = ({
                 className={!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}
               >
                 <FolderKanban className="w-4 h-4 mr-2" />
-                {selectedProjectName && selectedProjectId ? `${selectedProjectId} : ${selectedProjectName}` : 'Project Details'}
+                {selectedProjectName && selectedProjectId ? `${selectedProjectId}_${selectedProjectName}` : 'Project Details'}
               </Button>
               
               <Button 
@@ -245,7 +245,7 @@ export const AppHeader = ({
               >
                 <ListTodo className="w-4 h-4 mr-2" />
                 {editingTaskTitle && editingTaskId ? (
-                  `${editingTaskId}: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
+                  `${editingTaskId}_${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
                 ) : (
                   'Task Details'
                 )}
