@@ -110,40 +110,6 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     });
   }, [isTaskFormOpen, selectedTask]);
   
-  // Prevent task form from closing accidentally on window focus changes
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      console.log('INDEX - Visibility changed:', {
-        visibilityState: document.visibilityState,
-        isTaskFormOpen,
-        documentHasFocus: document.hasFocus()
-      });
-      
-      // Prevent any unintended state changes when window becomes visible/hidden
-      if (document.visibilityState === 'visible' && isTaskFormOpen) {
-        // Ensure form stays open when coming back to the window
-        console.log('INDEX - Window became visible - keeping task form open');
-      }
-    };
-
-    const handleFocusChange = () => {
-      console.log('INDEX - Window focus changed:', {
-        hasFocus: document.hasFocus(),
-        isTaskFormOpen,
-        activeElement: document.activeElement?.tagName
-      });
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleFocusChange);
-    window.addEventListener('blur', handleFocusChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleFocusChange);
-      window.removeEventListener('blur', handleFocusChange);
-    };
-  }, [isTaskFormOpen]);
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [activeView, setActiveView] = useState<"tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit">("tasks");
