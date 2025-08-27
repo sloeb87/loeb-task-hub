@@ -114,29 +114,28 @@ export const AppHeader = ({
     icon: BarChart3
   }];
   const DesktopNavigation = () => (
-    <div className="flex items-center space-x-1 lg:space-x-2 bg-red-100 dark:bg-red-900 p-2 rounded border-2 border-red-500">
+    <div className="flex items-center space-x-1 lg:space-x-2 bg-red-100 dark:bg-red-900 p-2 rounded border-2 border-red-500 relative z-50">
       <span className="text-xs text-red-600 font-bold">NAV:</span>
-      {navigationItems.map(item => <Button
+      {navigationItems.map(item => <button
         key={item.key} 
-        variant={activeView === item.key ? "default" : "outline"} 
+        style={{ 
+          pointerEvents: 'auto',
+          position: 'relative',
+          zIndex: 100 
+        }}
         onClick={(e) => {
-          console.log('=== FIRST HEADER CLICK DEBUG ===');
+          console.log('=== RAW BUTTON CLICK ===');
           console.log('Button clicked:', item.key);
-          console.log('Current activeView:', activeView);
-          console.log('onViewChange function:', onViewChange);
-          console.log('Event object:', e);
-          e.preventDefault();
-          e.stopPropagation();
+          console.log('Event:', e);
+          console.log('Target:', e.target);
+          console.log('Current target:', e.currentTarget);
           onViewChange(item.key as any);
-          console.log('onViewChange called with:', item.key);
-          console.log('=== END DEBUG ===');
         }} 
-        size="sm"
-        className="text-xs md:text-sm px-1 md:px-2 lg:px-3 cursor-pointer"
+        className="px-2 py-1 border rounded bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
       >
-          <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
-          <span className="hidden md:inline">{item.label}</span>
-        </Button>)}
+          <item.icon className="w-4 h-4 inline mr-1" />
+          <span>{item.label}</span>
+        </button>)}
     </div>
   );
 
