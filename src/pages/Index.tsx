@@ -243,7 +243,10 @@ const Index = () => {
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
+    console.log('Current selectedTask before setting:', selectedTask);
+    console.log('Current activeView before setting:', activeView);
     setSelectedTask(task);
+    console.log('selectedTask set to:', task.id, task.title);
     // Also update navigation state
     updateSelectedTask(task);
     // Find and set the corresponding project for the task
@@ -252,7 +255,8 @@ const Index = () => {
       setSelectedProject(taskProject);
     }
     setActiveView("task-edit");
-  }, [projects, updateSelectedTask]);
+    console.log('activeView set to task-edit');
+  }, [projects, updateSelectedTask, selectedTask, activeView]);
 
   // Set up navigation callback for timer and other components  
   useEffect(() => {
