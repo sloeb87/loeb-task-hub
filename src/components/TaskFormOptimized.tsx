@@ -413,7 +413,18 @@ export const TaskFormOptimized = React.memo(({
 
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
+    console.log('=== TaskFormOptimized handleSubmit called ===');
+    console.log('Form data:', formData);
+    console.log('Environment:', formData.environment);
+    console.log('TaskType:', formData.taskType);
+    console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
+    
     e.preventDefault();
+    
+    if (!formData.environment || !formData.taskType) {
+      console.error('Missing required fields:', { environment: formData.environment, taskType: formData.taskType });
+      return;
+    }
 
     if (!formData.title.trim()) {
       toast({
