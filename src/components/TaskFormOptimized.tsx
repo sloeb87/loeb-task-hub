@@ -425,10 +425,11 @@ export const TaskFormOptimized = React.memo(({
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     console.log('=== TaskFormOptimized handleSubmit called ===');
-    console.log('Form data:', formData);
-    console.log('Environment:', formData.environment);
-    console.log('TaskType:', formData.taskType);
-    console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
+    console.log('Event type:', e.type);
+    console.log('Form data at submit:', formData);
+    console.log('Environment at submit:', formData.environment);
+    console.log('TaskType at submit:', formData.taskType);
+    console.log('Button disabled at submit?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
     
     e.preventDefault();
     
@@ -1147,15 +1148,21 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))} onClick={(e) => {
-                console.log('=== Update Task Button Clicked ===');
-                console.log('Environment:', formData.environment);
-                console.log('TaskType:', formData.taskType);
-                console.log('Status:', formData.status);
-                console.log('Priority:', formData.priority);
-                console.log('Is task edit:', !!task);
-                console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
-              }}>
+              <Button 
+                type="submit" 
+                disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))} 
+                onClick={(e) => {
+                  console.log('=== Update Task Button Clicked ===');
+                  console.log('Event:', e);
+                  console.log('Environment:', formData.environment);
+                  console.log('TaskType:', formData.taskType);
+                  console.log('Status:', formData.status);
+                  console.log('Priority:', formData.priority);
+                  console.log('Is task edit:', !!task);
+                  console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
+                  console.log('About to submit form...');
+                }}
+              >
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
