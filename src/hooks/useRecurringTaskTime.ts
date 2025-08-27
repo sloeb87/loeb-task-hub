@@ -26,12 +26,25 @@ export function useRecurringTaskTime() {
       let relatedTaskNumbers: string[] = [];
 
       if (isRecurring && !parentTaskId) {
+        // First get the task's UUID from its task number
+        const { data: parentTask, error: parentError } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('task_number', taskId)
+          .single();
+
+        if (parentError || !parentTask) {
+          console.error('Error fetching parent task:', parentError);
+          return { totalTime: 0, taskIds: [] };
+        }
+
         // This is the parent task - get all its children plus itself
         const { data: childTasks, error } = await supabase
           .from('tasks')
           .select('task_number')
           .eq('user_id', user.id)
-          .eq('parent_task_id', taskId);
+          .eq('parent_task_id', parentTask.id);
 
         if (error) {
           console.error('Error fetching child tasks:', error);
@@ -40,12 +53,25 @@ export function useRecurringTaskTime() {
 
         relatedTaskNumbers = [taskId, ...childTasks.map(t => t.task_number)];
       } else if (parentTaskId) {
+        // First get the parent task's UUID from its task number
+        const { data: parentTask, error: parentError } = await supabase
+          .from('tasks')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('task_number', parentTaskId)
+          .single();
+
+        if (parentError || !parentTask) {
+          console.error('Error fetching parent task for recurring lookup:', parentError);
+          return { totalTime: 0, taskIds: [] };
+        }
+
         // This is a child task - get the parent and all siblings
         const { data: allRelatedTasks, error } = await supabase
           .from('tasks')
           .select('task_number, id, is_recurring')
           .eq('user_id', user.id)
-          .or(`task_number.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`);
+          .or(`task_number.eq.${parentTaskId},parent_task_id.eq.${parentTask.id}`);
 
         if (error) {
           console.error('Error fetching related tasks:', error);
