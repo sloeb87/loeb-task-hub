@@ -554,6 +554,44 @@ const Index = () => {
             </Suspense>
           ) : activeView === "task-edit" ? (
             <div className="space-y-6">
+              {/* Emergency Navigation - Force escape from blocked task edit */}
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                      Emergency Navigation
+                    </h3>
+                    <p className="text-xs text-red-600 dark:text-red-300 mt-1">
+                      If you're stuck and can't navigate, use these buttons:
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => {
+                        console.log('EMERGENCY - Force navigation to tasks');
+                        setSelectedTask(null);
+                        setActiveView("tasks");
+                      }}
+                      variant="destructive" 
+                      size="sm"
+                    >
+                      Exit to Tasks
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        console.log('EMERGENCY - Force navigation to projects');
+                        setSelectedTask(null);
+                        setActiveView("projects");
+                      }}
+                      variant="destructive" 
+                      size="sm"
+                    >
+                      Exit to Projects
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Button variant="ghost" onClick={() => setActiveView("tasks")} className="p-2">
