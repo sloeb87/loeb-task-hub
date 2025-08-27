@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, Pause } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -11,30 +11,48 @@ interface RunningTimerDisplayProps {
   className?: string;
 }
 
-const RunningTimerDisplayComponent = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
+export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
+  console.log('RunningTimerDisplay - Component rendered/re-rendered');
   const { taskTimers, stopTimer } = useTimeTracking();
   const { navigateToTaskEdit } = useTaskNavigation();
   const [currentDuration, setCurrentDuration] = useState<string>("");
+  const [forceUpdate, setForceUpdate] = useState(0);
+
+  // Listen for timer changes from other components
+  useEffect(() => {
+    const handleTimerUpdate = () => {
+      console.log('RunningTimerDisplay - Timer update event received');
+      setForceUpdate(prev => prev + 1);
+    };
+
+    window.addEventListener('timerStateChanged', handleTimerUpdate);
+    return () => window.removeEventListener('timerStateChanged', handleTimerUpdate);
+  }, []);
 
   // Find the currently running task
   const NON_PROJECT_TASK_ID = 'non_project_time';
   const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
-  // Memoize task lookup map for better performance
-  const taskMap = useMemo(() => {
-    const map = new Map();
-    tasks.forEach(task => map.set(task.id, task));
-    return map;
-  }, [tasks]);
-
-  const runningTaskData = useMemo(() => {
-    const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
+  const runningTaskData = React.useMemo(() => {
+    console.log('RunningTimerDisplay - Checking for running timers...');
+    console.log('RunningTimerDisplay - taskTimers:', Array.from(taskTimers.entries()));
+    console.log('RunningTimerDisplay - tasks array length:', tasks.length);
+    console.log('RunningTimerDisplay - task ids in array:', tasks.map(t => t.id));
     
-    if (!runningTimerEntry) return null;
+    const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
+    console.log('RunningTimerDisplay - running timer entry:', runningTimerEntry);
+    
+    if (!runningTimerEntry) {
+      console.log('RunningTimerDisplay - No running timer found');
+      return null;
+    }
 
     const [taskId, timerData] = runningTimerEntry;
-    const task = taskMap.get(taskId);
+    console.log('RunningTimerDisplay - Looking for task with ID:', taskId);
+    
+    const task = tasks.find(task => task.id === taskId);
+    console.log('RunningTimerDisplay - Found task:', task);
     
     if (task) return { task, timerData, isNonProject: false };
 
@@ -47,57 +65,52 @@ const RunningTimerDisplayComponent = ({ tasks, className = "" }: RunningTimerDis
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
+    console.log('RunningTimerDisplay - Timer running for task not in tasks array:', taskId);
     return null;
-  }, [taskTimers, taskMap]);
+  }, [taskTimers, tasks]);
 
-  // Optimized duration calculation using RAF instead of setInterval
+  // Update duration display every second
   useEffect(() => {
     if (!runningTaskData?.timerData.currentSessionStart) {
       setCurrentDuration("");
       return;
     }
 
-    let rafId: number;
-    let lastSecond = -1;
-
     const updateDuration = () => {
       const startTime = new Date(runningTaskData.timerData.currentSessionStart!);
       const now = new Date();
       const diffMs = now.getTime() - startTime.getTime();
-      const currentSecond = Math.floor(diffMs / 1000);
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
       
-      // Only update state if the second changed to prevent unnecessary re-renders
-      if (currentSecond !== lastSecond) {
-        lastSecond = currentSecond;
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-        
-        const newDuration = hours > 0 
-          ? `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-          : `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        setCurrentDuration(newDuration);
+      if (hours > 0) {
+        setCurrentDuration(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      } else {
+        setCurrentDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
       }
-      
-      rafId = requestAnimationFrame(updateDuration);
     };
 
-    rafId = requestAnimationFrame(updateDuration);
-    return () => cancelAnimationFrame(rafId);
+    updateDuration();
+    const interval = setInterval(updateDuration, 1000);
+
+    return () => clearInterval(interval);
   }, [runningTaskData?.timerData.currentSessionStart]);
 
-  if (!runningTaskData) return null;
+  if (!runningTaskData) {
+    console.log('RunningTimerDisplay - No running task data, component will not render');
+    return null;
+  }
+
+  console.log('RunningTimerDisplay - Rendering with task:', runningTaskData.task.title);
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (runningTaskData) {
-      stopTimer(runningTaskData.task.id);
-    }
+    stopTimer(runningTaskData.task.id);
   };
 
   const handleTimerClick = () => {
-    if (!runningTaskData || runningTaskData.isNonProject) return; // Non-Project synthetic task is not editable
+    if (runningTaskData?.isNonProject) return; // Non-Project synthetic task is not editable
     navigateToTaskEdit(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
   };
 
@@ -148,20 +161,3 @@ const RunningTimerDisplayComponent = ({ tasks, className = "" }: RunningTimerDis
     </div>
   );
 };
-
-// Memoize the component to prevent unnecessary re-renders
-export const RunningTimerDisplay = React.memo(RunningTimerDisplayComponent, (prevProps, nextProps) => {
-  // Only re-render if tasks array actually changed (deep comparison of relevant fields)
-  if (prevProps.className !== nextProps.className) return false;
-  if (prevProps.tasks.length !== nextProps.tasks.length) return false;
-  
-  // Check if any task IDs or titles changed (these are the only fields we care about)
-  for (let i = 0; i < prevProps.tasks.length; i++) {
-    if (prevProps.tasks[i].id !== nextProps.tasks[i].id || 
-        prevProps.tasks[i].title !== nextProps.tasks[i].title) {
-      return false;
-    }
-  }
-  
-  return true;
-});

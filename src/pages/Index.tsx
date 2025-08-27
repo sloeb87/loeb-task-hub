@@ -23,10 +23,12 @@ import { AppHeader } from "@/components/AppHeader";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
   
-const Index = () => {
+  const Index = () => {
   const location = useLocation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  console.log('Index component rendered');
 
   // ... rest of component
   
@@ -160,29 +162,14 @@ const Index = () => {
   }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
-  const handleViewChange = useCallback((view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
-    console.log('=== NAVIGATION DEBUG START ===');
-    console.log('NAVIGATION - View change requested:', view);
-    console.log('NAVIGATION - Current view:', activeView);
-    console.log('NAVIGATION - Current selectedTask:', selectedTask?.id);
-    console.log('NAVIGATION - Callback function exists:', typeof handleViewChange);
-    
-    if (activeView === view) {
-      console.log('NAVIGATION - Same view, ignoring');
-      console.log('=== NAVIGATION DEBUG END ===');
-      return;
-    }
-    
-    console.log('NAVIGATION - About to set activeView to:', view);
+  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     setActiveView(view);
-    console.log('NAVIGATION - setActiveView called');
     
     // Set active filter and sorting when navigating to tasks view (same as clicking Active label)
     if (view === "tasks") {
       setActiveFilter("active");
       // Apply the same sorting as clicking the Active card
-      setSortField('dueDatePriority');
-      setSortDirection('asc');
+      handleSortChange('dueDatePriority', 'asc');
     }
     
     // Clear any navigation state/filters when switching to main views
@@ -196,12 +183,9 @@ const Index = () => {
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
     }
     
-    console.log('NAVIGATION - All navigation logic completed');
-    console.log('=== NAVIGATION DEBUG END ===');
-    
     // Don't clear selected project when navigating between tabs
     // Selected project should persist until a new project is explicitly selected
-  }, [activeView, selectedTask]);
+  };
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
@@ -225,7 +209,6 @@ const Index = () => {
     refreshTasks();
     setActiveView("tasks");
   }, [createTask, refreshTasks]);
-
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     await updateTask(updatedTask);
@@ -238,23 +221,10 @@ const Index = () => {
     }
     // Stay in task-edit view instead of switching back to tasks
   }, [updateTask, refreshTasks, tasks]);
-
-  const handleSaveTask = useCallback(async (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    if ('id' in taskData) {
-      // Existing task - update it
-      await handleUpdateTask(taskData as Task);
-    } else {
-      // New task - create it
-      await handleCreateTask(taskData);
-    }
-  }, [handleCreateTask, handleUpdateTask]);
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
-    console.log('Current selectedTask before setting:', selectedTask);
-    console.log('Current activeView before setting:', activeView);
     setSelectedTask(task);
-    console.log('selectedTask set to:', task.id, task.title);
     // Also update navigation state
     updateSelectedTask(task);
     // Find and set the corresponding project for the task
@@ -263,8 +233,7 @@ const Index = () => {
       setSelectedProject(taskProject);
     }
     setActiveView("task-edit");
-    console.log('activeView set to task-edit');
-  }, [projects, updateSelectedTask, selectedTask, activeView]);
+  }, [projects, updateSelectedTask]);
 
   // Set up navigation callback for timer and other components  
   useEffect(() => {
@@ -284,7 +253,7 @@ const Index = () => {
     };
     
     setNavigationCallback(handleNavigateToTaskEdit);
-  }, [handleEditTask, projects]);
+  }, [handleEditTask, projects, setNavigationCallback]);
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);
@@ -347,6 +316,16 @@ const Index = () => {
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
   }, [deleteTask]);
+  const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    console.log('Index - handleSaveTask called with:', taskData);
+    if ('id' in taskData) {
+      // Updating existing task
+      handleUpdateTask(taskData as Task);
+    } else {
+      // Creating new task
+      handleCreateTask(taskData);
+    }
+  }, [handleUpdateTask, handleCreateTask]);
 
   // Handler for when a project is selected for detail view
   const handleEditProject = useCallback((project: Project) => {
@@ -414,22 +393,12 @@ const Index = () => {
   }
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <AppHeader 
-          activeView={activeView}
-          onViewChange={(view) => {
-            console.log('MAIN - AppHeader onViewChange called with:', view);
-            console.log('MAIN - Calling handleViewChange...');
-            handleViewChange(view);
-          }}
-          isDarkMode={isDarkMode}
-          onToggleDarkMode={toggleDarkMode}
-          onOpenParameters={() => {
-            console.log('HEADER - Parameters button clicked');
-            setIsParametersOpen(true);
-          }}
-          onRefresh={() => {
-            console.log('HEADER - Refresh button clicked');
-            refreshTasks();
-          }}
+          activeView={activeView} 
+          onViewChange={handleViewChange}
+          isDarkMode={isDarkMode} 
+          onToggleDarkMode={toggleDarkMode} 
+          onOpenParameters={() => setIsParametersOpen(true)}
+          onRefresh={refreshTasks}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
           selectedProjectId={selectedProject?.id}
@@ -554,53 +523,6 @@ const Index = () => {
             </Suspense>
           ) : activeView === "task-edit" ? (
             <div className="space-y-6">
-              {/* Emergency Navigation - Force escape from blocked task edit */}
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                      🚨 EMERGENCY ESCAPE - You're Stuck!
-                    </h3>
-                    <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-                      Navigation is blocked. Use these emergency options:
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => {
-                        console.log('EMERGENCY - Forcing page refresh');
-                        window.location.reload();
-                      }}
-                      variant="destructive" 
-                      size="sm"
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      🔄 Refresh Page
-                    </Button>
-                    <Button 
-                      onClick={() => {
-                        console.log('EMERGENCY - Force navigation to tasks');
-                        try {
-                          setSelectedTask(null);
-                          setActiveView("tasks");
-                          console.log('EMERGENCY - Navigation attempted');
-                        } catch (error) {
-                          console.error('EMERGENCY - Navigation failed:', error);
-                          window.location.reload();
-                        }
-                      }}
-                      variant="destructive" 
-                      size="sm"
-                    >
-                      ➡️ Force Exit
-                    </Button>
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-red-500">
-                  Current view: {activeView} | Selected task: {selectedTask?.id || 'none'}
-                </div>
-              </div>
-
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <Button variant="ghost" onClick={() => setActiveView("tasks")} className="p-2">
@@ -686,7 +608,7 @@ const Index = () => {
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
-                onSaveTask={handleSaveTask}
+                onSaveTask={handleCreateTask}
               />
             </Suspense>
           ) : (
@@ -699,7 +621,7 @@ const Index = () => {
                 onUpdateProject={handleUpdateProject} 
                 onDeleteProject={handleDeleteProject} 
                 onCreateTask={handleCreateTask} 
-                onUpdateTask={handleUpdateTask}
+                onUpdateTask={handleUpdateTask} 
                 onDeleteTask={handleDeleteTask} 
                 projectFilter={projectFilter} 
                 setProjectFilter={setProjectFilter} 

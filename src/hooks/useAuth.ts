@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -8,39 +8,39 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    let initialLoadComplete = false;
 
-    // Set up auth state listener - this handles both initial session and changes
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!mounted) return;
-        
+        console.log('Auth state changed:', { event, hasSession: !!session, userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        // Only set loading to false if this is after the initial load
+        if (initialLoadComplete) {
+          setLoading(false);
+        }
       }
     );
 
-    // Get initial session
+    // Get existing session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
+      console.log('Got existing session:', { hasSession: !!session, userId: session?.user?.id });
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      initialLoadComplete = true;
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = useCallback(async () => {
+  const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);
     }
-  }, []);
+  };
 
   return {
     user,

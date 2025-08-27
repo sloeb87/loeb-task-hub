@@ -117,15 +117,8 @@ export const AppHeader = ({
       {navigationItems.map(item => <Button
         key={item.key} 
         variant={activeView === item.key ? "default" : "outline"} 
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log(`HEADER - Navigating to: ${item.key}`);
-          console.log(`HEADER - Current view: ${activeView}`);
-          onViewChange(item.key as any);
-        }} 
+        onClick={() => onViewChange(item.key as any)} 
         size="sm"
-        className="cursor-pointer"
       >
           <item.icon className="w-4 h-4 mr-2" />
           {item.label}
@@ -157,15 +150,11 @@ export const AppHeader = ({
           {allNavigationItems.map(item => <Button 
             key={item.key} 
             variant={activeView === item.key ? "default" : "ghost"} 
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log(`MOBILE - Navigating to: ${item.key}`);
-              console.log(`MOBILE - Current view: ${activeView}`);
+            onClick={() => {
               onViewChange(item.key as any);
               setMobileMenuOpen(false);
-            }}
-            className="justify-start cursor-pointer"
+            }} 
+            className="justify-start"
             disabled={item.disabled}
           >
               <item.icon className="w-4 h-4 mr-2" />

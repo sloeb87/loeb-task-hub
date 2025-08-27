@@ -15,7 +15,7 @@ interface TaskMetricsDetailProps {
   onEditTask?: (task: Task) => void;
 }
 
-export const TaskMetricsDetail = React.memo(({ 
+export const TaskMetricsDetail = ({ 
   isOpen, 
   onClose, 
   title, 
@@ -23,6 +23,7 @@ export const TaskMetricsDetail = React.memo(({
   metricType,
   onEditTask 
 }: TaskMetricsDetailProps) => {
+  console.log('TaskMetricsDetail rendered with onEditTask:', !!onEditTask);
   
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -152,4 +153,4 @@ export const TaskMetricsDetail = React.memo(({
       </DialogContent>
     </Dialog>
   );
-});
+};

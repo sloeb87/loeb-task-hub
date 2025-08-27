@@ -23,9 +23,10 @@ interface KPIDashboardProps {
   onEditTask?: (task: Task) => void;
 }
 
-export const KPIDashboard = React.memo(({ tasks, projects, onEditTask }: KPIDashboardProps) => {
+export const KPIDashboard = ({ tasks, projects, onEditTask }: KPIDashboardProps) => {
   const { getScopeStyle } = useScopeColor();
   const navigate = useNavigate();
+  console.log('KPIDashboard rendered with onEditTask:', !!onEditTask);
   
   const [selectedProject, setSelectedProject] = useState<string>("all");
   const [selectedScope, setSelectedScope] = useState<string>("all");
@@ -443,6 +444,4 @@ export const KPIDashboard = React.memo(({ tasks, projects, onEditTask }: KPIDash
       />
     </div>
   );
-});
-
-export default KPIDashboard;
+};
