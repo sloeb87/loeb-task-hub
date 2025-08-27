@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Plus, ListTodo, ArrowLeft, Play, CheckCircle } from "lucide-react";
 import { Task, Project } from "@/types/task";
 import { useLocation } from 'react-router-dom';
+import { toast } from "@/hooks/use-toast";
 
 
 import { TaskTable } from "@/components/TaskTable";
@@ -210,20 +211,32 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     setActiveView("tasks");
   }, [createTask, refreshTasks]);
    const handleUpdateTask = useCallback(async (updatedTask: Task) => {
-    console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
+    console.log('=== Index - handleUpdateTask called ===');
+    console.log('Updated task:', updatedTask.id, updatedTask.title, updatedTask.status);
     try {
+      console.log('Calling updateTask function...');
       await updateTask(updatedTask);
+      console.log('updateTask completed successfully');
+      
+      console.log('Refreshing tasks...');
       await refreshTasks();
+      console.log('Tasks refreshed successfully');
       
       // Keep the updated task selected and stay in edit view to maintain focus
       const refreshedTask = tasks.find(t => t.id === updatedTask.id);
       if (refreshedTask) {
+        console.log('Setting refreshed task as selected');
         setSelectedTask(refreshedTask);
       }
       // Stay in task-edit view instead of switching back to tasks
       console.log('Task updated successfully, maintaining edit view');
     } catch (error) {
       console.error('Failed to update task:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update the task. Please try again.",
+        variant: "destructive",
+      });
     }
   }, [updateTask, refreshTasks, tasks]);
   const handleEditTask = useCallback((task: Task) => {
@@ -320,11 +333,14 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     deleteTask(taskId);
   }, [deleteTask]);
   const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    console.log('Index - handleSaveTask called with:', taskData);
+    console.log('=== Index - handleSaveTask called ===');
+    console.log('Task data received:', taskData);
     if ('id' in taskData) {
+      console.log('Updating existing task with ID:', taskData.id);
       // Updating existing task
       handleUpdateTask(taskData as Task);
     } else {
+      console.log('Creating new task');
       // Creating new task
       handleCreateTask(taskData);
     }

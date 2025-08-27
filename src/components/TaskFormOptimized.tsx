@@ -413,9 +413,11 @@ export const TaskFormOptimized = React.memo(({
 
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
+    console.log('=== Form Submit Started ===');
     e.preventDefault();
     
     if (!formData.title.trim()) {
+      console.log('Title validation failed');
       toast({
         title: "Required Field Missing",
         description: "Please fill in the task title.",
@@ -423,6 +425,8 @@ export const TaskFormOptimized = React.memo(({
       });
       return;
     }
+
+    console.log('Creating task data object...');
 
     if (!formData.environment) {
       toast({
@@ -480,7 +484,12 @@ export const TaskFormOptimized = React.memo(({
       })
     };
 
+    console.log('Task data created:', taskData);
+    console.log('Calling onSave with task data...');
+    
     onSave(taskData);
+    
+    console.log('onSave called successfully');
     
     // Show success message
     toast({
