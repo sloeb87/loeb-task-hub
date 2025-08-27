@@ -114,7 +114,7 @@ export const AppHeader = ({
     icon: BarChart3
   }];
   const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-2">
-      {allNavigationItems.filter(item => !item.disabled).map(item => <Button 
+      {navigationItems.map(item => <Button
         key={item.key} 
         variant={activeView === item.key ? "default" : "outline"} 
         onClick={() => onViewChange(item.key as any)} 
