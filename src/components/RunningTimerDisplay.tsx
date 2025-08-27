@@ -14,28 +14,6 @@ interface RunningTimerDisplayProps {
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
   console.log('RunningTimerDisplay - Component rendered/re-rendered');
   const { taskTimers, stopTimer } = useTimeTracking();
-
-  // Function to stop all running timers
-  const stopAllRunningTimers = useCallback(async () => {
-    const runningTimers = Array.from(taskTimers.entries())
-      .filter(([_, data]) => data.isRunning)
-      .map(([taskId]) => taskId);
-    
-    console.log('Stopping all running timers:', runningTimers);
-    
-    for (const taskId of runningTimers) {
-      await stopTimer(taskId);
-    }
-  }, [taskTimers, stopTimer]);
-
-  // Auto-stop all running timers on component mount (one-time action)
-  useEffect(() => {
-    const hasRunningTimers = Array.from(taskTimers.entries()).some(([_, data]) => data.isRunning);
-    if (hasRunningTimers) {
-      console.log('Found running timers, stopping them...');
-      stopAllRunningTimers();
-    }
-  }, []); // Empty dependency array to run only once on mount
   const { openTaskForm } = useTaskForm();
   const [currentDuration, setCurrentDuration] = useState<string>("");
   const [forceUpdate, setForceUpdate] = useState(0);
