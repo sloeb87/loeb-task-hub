@@ -113,18 +113,24 @@ export const AppHeader = ({
     label: 'KPIs',
     icon: BarChart3
   }];
-  const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+  const DesktopNavigation = () => (
+    <div className="flex items-center space-x-1 lg:space-x-2 bg-red-100 dark:bg-red-900 p-2 rounded border-2 border-red-500">
+      <span className="text-xs text-red-600 font-bold">NAV:</span>
       {navigationItems.map(item => <Button
         key={item.key} 
         variant={activeView === item.key ? "default" : "outline"} 
-        onClick={() => onViewChange(item.key as any)} 
+        onClick={() => {
+          console.log('First header navigation clicked:', item.key);
+          onViewChange(item.key as any);
+        }} 
         size="sm"
         className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
       >
           <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
           <span className="hidden md:inline">{item.label}</span>
         </Button>)}
-    </div>;
+    </div>
+  );
 
   const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
       <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
