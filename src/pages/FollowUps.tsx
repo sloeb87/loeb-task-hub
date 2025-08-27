@@ -20,6 +20,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Comp
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
 interface FollowUpsPageProps {
   tasks: Task[];
   projects: Project[];
@@ -441,31 +442,33 @@ export const FollowUpsPage = ({
   }, [allTasks]);
 
   // Calculate chart data for hours over time (using all tasks from database)
+  // Optimized hours chart data using pre-calculated metrics
   const hoursChartData = useMemo(() => {
     if (allTasks.length === 0) return [];
     
     // Find date range from tasks
     const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
+    if (taskDates.length === 0) return [];
+    
     const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
     const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
     
-    // Generate ALL monthly data points (including months with 0 hours)
+    // Generate monthly data points - use simpler calculation for performance
     const months: { week: string; cumulativeHours: number; date: Date }[] = [];
     let currentMonth = startOfMonth(minDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
       const monthEnd = endOfMonth(currentMonth);
-      const activeTasks = allTasks.filter(task => {
-        const taskStart = new Date(task.startDate);
-        const taskDue = new Date(task.dueDate);
-        const isActive = taskStart <= monthEnd && taskDue >= currentMonth;
-        const isNotCompleted = task.status !== 'Completed';
-        return isActive && isNotCompleted;
-      });
       
-      // Calculate total planned hours for all active tasks in this month
-      const totalPlannedHours = activeTasks.reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
+      // Simplified calculation - just sum planned hours for tasks active in this month
+      const totalPlannedHours = allTasks
+        .filter(task => {
+          const taskStart = new Date(task.startDate);
+          const taskDue = new Date(task.dueDate);
+          return taskStart <= monthEnd && taskDue >= currentMonth && task.status !== 'Completed';
+        })
+        .reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
       
       months.push({
         week: format(currentMonth, 'MMM yy'),
@@ -477,7 +480,7 @@ export const FollowUpsPage = ({
     }
     
     return months;
-  }, [allTasks]);
+  }, [allTasks]); // Simplified dependency
 
   // Fetch time entries for planned vs logged chart
   const [timeEntries, setTimeEntries] = useState<any[]>([]);

@@ -154,6 +154,62 @@ export type Database = {
         }
         Relationships: []
       }
+      task_metrics: {
+        Row: {
+          actual_duration_days: number | null
+          completion_percentage: number | null
+          created_at: string
+          days_overdue: number | null
+          id: string
+          last_time_entry: string | null
+          planned_vs_actual_ratio: number | null
+          task_id: string
+          task_number: string
+          total_sessions: number | null
+          total_time_logged: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_duration_days?: number | null
+          completion_percentage?: number | null
+          created_at?: string
+          days_overdue?: number | null
+          id?: string
+          last_time_entry?: string | null
+          planned_vs_actual_ratio?: number | null
+          task_id: string
+          task_number: string
+          total_sessions?: number | null
+          total_time_logged?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_duration_days?: number | null
+          completion_percentage?: number | null
+          created_at?: string
+          days_overdue?: number | null
+          id?: string
+          last_time_entry?: string | null
+          planned_vs_actual_ratio?: number | null
+          task_id?: string
+          task_number?: string
+          total_sessions?: number | null
+          total_time_logged?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_metrics_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           checklist: Json | null
@@ -320,6 +376,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_task_metrics: {
+        Args: { p_task_id: string }
+        Returns: undefined
+      }
       generate_recurring_instances: {
         Args: { task_uuid: string }
         Returns: {
@@ -337,6 +397,10 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+      }
+      recalculate_all_task_metrics: {
+        Args: { p_user_id: string }
+        Returns: number
       }
     }
     Enums: {
