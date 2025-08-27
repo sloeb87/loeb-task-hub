@@ -119,12 +119,20 @@ export const AppHeader = ({
       {navigationItems.map(item => <Button
         key={item.key} 
         variant={activeView === item.key ? "default" : "outline"} 
-        onClick={() => {
-          console.log('First header navigation clicked:', item.key);
+        onClick={(e) => {
+          console.log('=== FIRST HEADER CLICK DEBUG ===');
+          console.log('Button clicked:', item.key);
+          console.log('Current activeView:', activeView);
+          console.log('onViewChange function:', onViewChange);
+          console.log('Event object:', e);
+          e.preventDefault();
+          e.stopPropagation();
           onViewChange(item.key as any);
+          console.log('onViewChange called with:', item.key);
+          console.log('=== END DEBUG ===');
         }} 
         size="sm"
-        className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
+        className="text-xs md:text-sm px-1 md:px-2 lg:px-3 cursor-pointer"
       >
           <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
           <span className="hidden md:inline">{item.label}</span>
@@ -234,7 +242,15 @@ export const AppHeader = ({
             <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
               <Button 
                 variant={activeView === 'project-details' ? "default" : "outline"} 
-                onClick={() => onViewChange('project-details')} 
+                onClick={() => {
+                  console.log('=== SECOND HEADER CLICK DEBUG ===');
+                  console.log('Project Details button clicked');
+                  console.log('Current activeView:', activeView);
+                  console.log('onViewChange function:', onViewChange);
+                  onViewChange('project-details');
+                  console.log('onViewChange called with: project-details');
+                  console.log('=== END SECOND HEADER DEBUG ===');
+                }} 
                 size="sm"
                 disabled={!selectedProjectName}
                 className={`text-xs md:text-sm px-1 md:px-2 lg:px-3 ${!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}`}
