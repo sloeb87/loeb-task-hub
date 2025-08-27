@@ -32,11 +32,11 @@ export function useRecurringTaskTime() {
           .select('id')
           .eq('user_id', user.id)
           .eq('task_number', taskId)
-          .single();
+          .maybeSingle();
 
         if (parentError || !parentTask) {
-          console.error('Error fetching parent task:', parentError);
-          return { totalTime: 0, taskIds: [] };
+          // Task not found, just return the single task
+          return { totalTime: getTaskTime(taskId).totalTime, taskIds: [taskId] };
         }
 
         // This is the parent task - get all its children plus itself
@@ -59,11 +59,11 @@ export function useRecurringTaskTime() {
           .select('id')
           .eq('user_id', user.id)
           .eq('task_number', parentTaskId)
-          .single();
+          .maybeSingle();
 
         if (parentError || !parentTask) {
-          console.error('Error fetching parent task for recurring lookup:', parentError);
-          return { totalTime: 0, taskIds: [] };
+          // Parent task not found, just return the single task
+          return { totalTime: getTaskTime(taskId).totalTime, taskIds: [taskId] };
         }
 
         // This is a child task - get the parent and all siblings
