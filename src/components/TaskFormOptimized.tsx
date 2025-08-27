@@ -284,10 +284,21 @@ export const TaskFormOptimized = React.memo(({
 
   // Initialize form data when task changes
   useEffect(() => {
-    if (!isOpen) return;
+    console.log('=== TaskForm useEffect triggered ===');
+    console.log('isOpen:', isOpen);
+    console.log('parameters.environments.length:', parameters.environments.length);
+    console.log('task:', !!task);
+    
+    if (!isOpen) {
+      console.log('Modal not open, returning');
+      return;
+    }
     
     // Wait for parameters to be loaded before setting form data
-    if (parameters.environments.length === 0) return;
+    if (parameters.environments.length === 0) {
+      console.log('Parameters not loaded yet, returning');
+      return;
+    }
 
     if (task) {
       console.log('TaskForm - Loading task data:', task);
