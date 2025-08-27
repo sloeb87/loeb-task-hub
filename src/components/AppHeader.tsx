@@ -114,28 +114,17 @@ export const AppHeader = ({
     icon: BarChart3
   }];
   const DesktopNavigation = () => (
-    <div className="flex items-center space-x-1 lg:space-x-2 bg-red-100 dark:bg-red-900 p-2 rounded border-2 border-red-500 relative z-50">
-      <span className="text-xs text-red-600 font-bold">NAV:</span>
-      {navigationItems.map(item => <button
+    <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+      {navigationItems.map(item => <Button
         key={item.key} 
-        style={{ 
-          pointerEvents: 'auto',
-          position: 'relative',
-          zIndex: 100 
-        }}
-        onClick={(e) => {
-          console.log('=== RAW BUTTON CLICK ===');
-          console.log('Button clicked:', item.key);
-          console.log('Event:', e);
-          console.log('Target:', e.target);
-          console.log('Current target:', e.currentTarget);
-          onViewChange(item.key as any);
-        }} 
-        className="px-2 py-1 border rounded bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+        variant={activeView === item.key ? "default" : "outline"} 
+        onClick={() => onViewChange(item.key as any)} 
+        size="sm"
+        className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
       >
-          <item.icon className="w-4 h-4 inline mr-1" />
-          <span>{item.label}</span>
-        </button>)}
+          <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
+          <span className="hidden md:inline">{item.label}</span>
+        </Button>)}
     </div>
   );
 
@@ -196,23 +185,11 @@ export const AppHeader = ({
     </Sheet>;
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
       {/* First Header Row */}
-      <div className="px-4 sm:px-6 lg:px-8" onClick={(e) => {
-        console.log('=== HEADER CONTAINER CLICKED ===');
-        console.log('Click detected on header container');
-        console.log('Target:', e.target);
-        console.log('Current target:', e.currentTarget);
-      }}>
-        <div className="flex justify-between items-center h-16" onClick={(e) => {
-          console.log('=== FLEX CONTAINER CLICKED ===');
-          console.log('Click detected on flex container');
-        }}>
-          <div className="flex items-center space-x-6" onClick={(e) => {
-            console.log('=== LEFT SECTION CLICKED ===');
-            console.log('Click detected on left section');
-          }}>
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <div className="flex items-center space-x-6">
             <div className="flex flex-col items-start">
               <button onClick={() => {
-              console.log('=== PMTASK BUTTON CLICKED ===');
               if (onBack) {
                 // If we're in project detail view, use the back function
                 onBack();
@@ -253,15 +230,7 @@ export const AppHeader = ({
             <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
               <Button 
                 variant={activeView === 'project-details' ? "default" : "outline"} 
-                onClick={() => {
-                  console.log('=== SECOND HEADER CLICK DEBUG ===');
-                  console.log('Project Details button clicked');
-                  console.log('Current activeView:', activeView);
-                  console.log('onViewChange function:', onViewChange);
-                  onViewChange('project-details');
-                  console.log('onViewChange called with: project-details');
-                  console.log('=== END SECOND HEADER DEBUG ===');
-                }} 
+                onClick={() => onViewChange('project-details')} 
                 size="sm"
                 disabled={!selectedProjectName}
                 className={`text-xs md:text-sm px-1 md:px-2 lg:px-3 ${!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}`}

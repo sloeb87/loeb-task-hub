@@ -107,29 +107,15 @@ export function useSupabaseStorage() {
   };
 
   const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask): Promise<Task> => {
-    // For recurring tasks, fetch follow-ups for all tasks in the series
-    // If this task has a parent_task_id, use that; otherwise use its own ID if it's a recurring parent
-    const followUpTaskId = (supabaseTask as any).parent_task_id || 
-                          ((supabaseTask as any).is_recurring ? supabaseTask.id : supabaseTask.id);
-    
-    // Fetch follow-ups for this task (or all tasks in recurring series)
-    let followUpsQuery = supabase
+    // Fetch follow-ups for this specific task only
+    const { data: followUpsData, error: followUpsError } = await supabase
       .from('follow_ups')
-      .select('id, text, created_at, task_status');
-    
-    if ((supabaseTask as any).parent_task_id || (supabaseTask as any).is_recurring) {
-      // For recurring tasks, get follow-ups from all instances in the series
-      followUpsQuery = followUpsQuery.eq('task_id', followUpTaskId);
-    } else {
-      // For non-recurring tasks, get follow-ups only for this specific task
-      followUpsQuery = followUpsQuery.eq('task_id', supabaseTask.id);
-    }
-    
-    const { data: followUpsData, error: followUpsError } = await followUpsQuery
+      .select('id, text, created_at, task_status')
+      .eq('task_id', supabaseTask.id)
       .order('created_at', { ascending: false });
 
     if (followUpsError) {
-      console.error('Error fetching follow-ups:', followUpsError);
+      console.error('Error fetching follow-ups for task', supabaseTask.task_number, ':', followUpsError);
     }
 
     const followUps = followUpsData?.map(followUp => ({
@@ -138,6 +124,8 @@ export function useSupabaseStorage() {
       timestamp: followUp.created_at,
       taskStatus: followUp.task_status || 'Unknown'
     })) || [];
+
+    console.log(`Task ${supabaseTask.task_number} has ${followUps.length} follow-ups:`, followUps.map(f => f.id));
 
     if (followUps.length > 0) {
       console.log(`Task ${supabaseTask.task_number} has ${followUps.length} follow-ups:`, followUps);
