@@ -35,12 +35,26 @@ export function useRecurringTaskTime() {
           let relatedTaskNumbers: string[] = [];
 
           if (isRecurring && !parentTaskId) {
-            // This is the parent task - get all its children plus itself
+            // First, get the actual task to find its UUID
+            const { data: parentTask, error: parentError } = await supabase
+              .from('tasks')
+              .select('id, task_number')
+              .eq('user_id', user.id)
+              .eq('task_number', taskId)
+              .single();
+
+            if (parentError || !parentTask) {
+              console.error('Error fetching parent task:', parentError);
+              resolve({ totalTime: 0, taskIds: [] });
+              return;
+            }
+
+            // Now get all children using the actual UUID
             const { data: childTasks, error } = await supabase
               .from('tasks')
               .select('task_number, id')
               .eq('user_id', user.id)
-              .eq('parent_task_id', taskId); // This should be the actual UUID, not task number
+              .eq('parent_task_id', parentTask.id);
 
             if (error) {
               console.error('Error fetching child tasks:', error);
@@ -50,12 +64,26 @@ export function useRecurringTaskTime() {
 
             relatedTaskNumbers = [taskId, ...childTasks.map(t => t.task_number)];
           } else if (parentTaskId) {
-            // This is a child task - get the parent and all siblings using task_number
+            // First, get the parent task's UUID if parentTaskId is a task number
+            const { data: parentTask, error: parentError } = await supabase
+              .from('tasks')
+              .select('id, task_number')
+              .eq('user_id', user.id)
+              .eq('task_number', parentTaskId)
+              .single();
+
+            if (parentError || !parentTask) {
+              console.error('Error fetching parent task:', parentError);
+              resolve({ totalTime: 0, taskIds: [] });
+              return;
+            }
+
+            // Get all related tasks using the parent's UUID
             const { data: allRelatedTasks, error } = await supabase
               .from('tasks')
               .select('task_number, id, is_recurring')
               .eq('user_id', user.id)
-              .or(`task_number.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`);
+              .or(`task_number.eq.${parentTaskId},parent_task_id.eq.${parentTask.id}`);
 
             if (error) {
               console.error('Error fetching related tasks:', error);
