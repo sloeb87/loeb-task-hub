@@ -284,21 +284,10 @@ export const TaskFormOptimized = React.memo(({
 
   // Initialize form data when task changes
   useEffect(() => {
-    console.log('=== TaskForm useEffect triggered ===');
-    console.log('isOpen:', isOpen);
-    console.log('parameters.environments.length:', parameters.environments.length);
-    console.log('task:', !!task);
-    
-    if (!isOpen) {
-      console.log('Modal not open, returning');
-      return;
-    }
+    if (!isOpen) return;
     
     // Wait for parameters to be loaded before setting form data
-    if (parameters.environments.length === 0) {
-      console.log('Parameters not loaded yet, returning');
-      return;
-    }
+    if (parameters.environments.length === 0) return;
 
     if (task) {
       console.log('TaskForm - Loading task data:', task);
@@ -424,20 +413,8 @@ export const TaskFormOptimized = React.memo(({
 
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
-    console.log('=== TaskFormOptimized handleSubmit called ===');
-    console.log('Event type:', e.type);
-    console.log('Form data at submit:', formData);
-    console.log('Environment at submit:', formData.environment);
-    console.log('TaskType at submit:', formData.taskType);
-    console.log('Button disabled at submit?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
-    
     e.preventDefault();
     
-    if (!formData.environment || !formData.taskType) {
-      console.error('Missing required fields:', { environment: formData.environment, taskType: formData.taskType });
-      return;
-    }
-
     if (!formData.title.trim()) {
       toast({
         title: "Required Field Missing",
@@ -504,6 +481,13 @@ export const TaskFormOptimized = React.memo(({
     };
 
     onSave(taskData);
+    
+    // Show success message
+    toast({
+      title: task ? "Task Updated" : "Task Created",
+      description: task ? `${taskData.title} has been updated successfully.` : `${taskData.title} has been created successfully.`,
+    });
+    
     // Don't close immediately - let parent handle success
     // onClose();
   }, [formData, date, task, onSave, onClose]);
@@ -1150,18 +1134,7 @@ export const TaskFormOptimized = React.memo(({
               </Button>
               <Button 
                 type="submit" 
-                disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))} 
-                onClick={(e) => {
-                  console.log('=== Update Task Button Clicked ===');
-                  console.log('Event:', e);
-                  console.log('Environment:', formData.environment);
-                  console.log('TaskType:', formData.taskType);
-                  console.log('Status:', formData.status);
-                  console.log('Priority:', formData.priority);
-                  console.log('Is task edit:', !!task);
-                  console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
-                  console.log('About to submit form...');
-                }}
+                disabled={!formData.title.trim()}
               >
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
