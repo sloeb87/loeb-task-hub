@@ -113,20 +113,20 @@ export const AppHeader = ({
     label: 'KPIs',
     icon: BarChart3
   }];
-  const DesktopNavigation = () => <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+  const DesktopNavigation = () => <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
       {navigationItems.map(item => <Button
         key={item.key} 
         variant={activeView === item.key ? "default" : "outline"} 
         onClick={() => onViewChange(item.key as any)} 
         size="sm"
-        className="text-xs lg:text-sm px-2 lg:px-3"
+        className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
       >
-          <item.icon className="w-4 h-4 lg:mr-2" />
-          <span className="hidden xl:inline">{item.label}</span>
+          <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
+          <span className="hidden md:inline">{item.label}</span>
         </Button>)}
     </div>;
 
-  const DesktopRightActions = () => <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+  const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
       <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
         <RotateCw className="w-4 h-4" />
       </Button>
@@ -142,7 +142,7 @@ export const AppHeader = ({
     </div>;
   const MobileNavigation = () => <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="lg:hidden">
+        <Button variant="outline" size="sm" className="md:hidden">
           <Menu className="w-4 h-4" />
         </Button>
       </SheetTrigger>
@@ -225,16 +225,16 @@ export const AppHeader = ({
             {/* Spacer to align Project Details with Projects from first row - matches space-x-6 */}
             <div className="w-6"></div>
             
-            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+            <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
               <Button 
                 variant={activeView === 'project-details' ? "default" : "outline"} 
                 onClick={() => onViewChange('project-details')} 
                 size="sm"
                 disabled={!selectedProjectName}
-                className={`text-xs lg:text-sm px-2 lg:px-3 ${!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`text-xs md:text-sm px-1 md:px-2 lg:px-3 ${!selectedProjectName ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <FolderKanban className="w-4 h-4 lg:mr-2" />
-                <span className="hidden xl:inline">
+                <FolderKanban className="w-4 h-4 md:mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">
                   {selectedProjectName && selectedProjectId ? `${selectedProjectId}_${selectedProjectName}` : 'Project Details'}
                 </span>
               </Button>
@@ -244,10 +244,10 @@ export const AppHeader = ({
                 onClick={() => onViewChange('task-edit')} 
                 size="sm"
                 disabled={!editingTaskTitle}
-                className={`text-xs lg:text-sm px-2 lg:px-3 ${!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`text-xs md:text-sm px-1 md:px-2 lg:px-3 ${!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}`}
               >
-                <ListTodo className="w-4 h-4 lg:mr-2" />
-                <span className="hidden xl:inline">
+                <ListTodo className="w-4 h-4 md:mr-1 lg:mr-2" />
+                <span className="hidden lg:inline">
                   {editingTaskTitle && editingTaskId ? (
                     `${editingTaskId}_${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
                   ) : (
