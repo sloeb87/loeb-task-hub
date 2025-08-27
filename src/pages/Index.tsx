@@ -251,7 +251,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     };
     
     setNavigationCallback(handleNavigateToTaskEdit);
-  }, [handleEditTask, projects, setNavigationCallback]);
+  }, [handleEditTask, projects]);
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);

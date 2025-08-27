@@ -53,9 +53,9 @@ export const TaskNavigationProvider: React.FC<{ children: React.ReactNode }> = (
     setTaskNavigationState(prev => ({ ...prev, formData }));
   };
 
-  const setNavigationCallbackWrapper = (callback: (projectName?: string, task?: Task, contextKey?: string) => void) => {
+  const setNavigationCallbackWrapper = React.useCallback((callback: (projectName?: string, task?: Task, contextKey?: string) => void) => {
     setNavigationCallback(() => callback);
-  };
+  }, []);
 
   return (
     <TaskNavigationContext.Provider value={{
