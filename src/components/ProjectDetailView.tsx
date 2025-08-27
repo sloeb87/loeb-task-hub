@@ -12,7 +12,7 @@ import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, Fol
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
-import { useTaskForm } from "@/contexts/TaskFormContext";
+import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { getFirstLink, hasLinks } from "@/utils/linkUtils";
 
 interface ProjectDetailViewProps {
@@ -51,7 +51,7 @@ export const ProjectDetailView = ({
   onSaveTask 
 }: ProjectDetailViewProps) => {
   const { getScopeStyle } = useScopeColor();
-  const { openTaskForm } = useTaskForm();
+  const { navigateToTaskEdit } = useTaskNavigation();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   

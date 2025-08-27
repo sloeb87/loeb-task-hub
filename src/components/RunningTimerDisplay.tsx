@@ -3,7 +3,7 @@ import { Clock, Pause } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
-import { useTaskForm } from "@/contexts/TaskFormContext";
+import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
 
 interface RunningTimerDisplayProps {
@@ -14,7 +14,7 @@ interface RunningTimerDisplayProps {
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
   console.log('RunningTimerDisplay - Component rendered/re-rendered');
   const { taskTimers, stopTimer } = useTimeTracking();
-  const { openTaskForm } = useTaskForm();
+  const { navigateToTaskEdit } = useTaskNavigation();
   const [currentDuration, setCurrentDuration] = useState<string>("");
   const [forceUpdate, setForceUpdate] = useState(0);
 
@@ -111,7 +111,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
   const handleTimerClick = () => {
     if (runningTaskData?.isNonProject) return; // Non-Project synthetic task is not editable
-    openTaskForm(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
+    navigateToTaskEdit(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
   };
 
   return (

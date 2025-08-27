@@ -18,10 +18,10 @@ const FollowUpsPage = lazy(() => import("./FollowUps").then(m => ({ default: m.F
 import Parameters from "@/components/Parameters";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
-import { GlobalTaskForm } from "@/components/GlobalTaskForm";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { AppHeader } from "@/components/AppHeader";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { useTaskNavigation } from "@/contexts/TaskFormContext";
   
   const Index = () => {
   const location = useLocation();
@@ -34,6 +34,9 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
   
   // Time tracking hook
   const { startTimer } = useTimeTracking();
+
+  // Task navigation hook for second header navigation
+  const { taskNavigationState, setNavigationCallback, updateSelectedTask } = useTaskNavigation();
 
   // Custom hooks for optimized data management
   const {
@@ -97,18 +100,10 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     const fresh = tasks.find(t => t.id === selectedTask.id);
     if (fresh && fresh !== selectedTask) {
       setSelectedTask(fresh);
+      // Also update navigation state
+      updateSelectedTask(fresh);
     }
-  }, [tasks, selectedTask?.id]);
-  
-  // Add debugging for task form state changes
-  useEffect(() => {
-    console.log('INDEX - Task form state changed:', { 
-      isTaskFormOpen, 
-      selectedTaskId: selectedTask?.id || 'new task',
-      visibilityState: document.visibilityState,
-      documentHasFocus: document.hasFocus()
-    });
-  }, [isTaskFormOpen, selectedTask]);
+  }, [tasks, selectedTask?.id, updateSelectedTask]);
   
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
@@ -230,13 +225,35 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
+    // Also update navigation state
+    updateSelectedTask(task);
     // Find and set the corresponding project for the task
     const taskProject = projects.find(project => project.name === task.project);
     if (taskProject) {
       setSelectedProject(taskProject);
     }
     setActiveView("task-edit");
-  }, [projects]);
+  }, [projects, updateSelectedTask]);
+
+  // Set up navigation callback for timer and other components  
+  useEffect(() => {
+    const handleNavigateToTaskEdit = (projectName?: string, task?: Task, contextKey?: string) => {
+      console.log('INDEX - Navigation callback triggered:', { projectName, taskId: task?.id, contextKey });
+      if (task) {
+        handleEditTask(task);
+      } else {
+        // New task creation
+        setSelectedTask(null);
+        if (projectName) {
+          const project = projects.find(p => p.name === projectName);
+          if (project) setSelectedProject(project);
+        }
+        setActiveView("task-edit");
+      }
+    };
+    
+    setNavigationCallback(handleNavigateToTaskEdit);
+  }, [handleEditTask, projects, setNavigationCallback]);
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {
       await addFollowUp(taskId, followUpText);
@@ -632,9 +649,6 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
             />
           </Suspense>
         )}
-
-        {/* Global Task Form - Persists across all component remounts */}
-        <GlobalTaskForm />
 
         {/* Parameters Dialog */}
         <Parameters isOpen={isParametersOpen} onClose={() => setIsParametersOpen(false)} />
