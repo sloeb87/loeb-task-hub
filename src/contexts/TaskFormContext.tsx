@@ -54,7 +54,7 @@ export const TaskNavigationProvider: React.FC<{ children: React.ReactNode }> = (
   };
 
   const setNavigationCallbackWrapper = (callback: (projectName?: string, task?: Task, contextKey?: string) => void) => {
-    setNavigationCallback(() => callback);
+    setNavigationCallback(callback);
   };
 
   return (
