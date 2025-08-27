@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Clock, Pause } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -89,15 +89,17 @@ const RunningTimerDisplayComponent = ({ tasks, className = "" }: RunningTimerDis
 
   if (!runningTaskData) return null;
 
-  const handleStopTimer = useCallback((e: React.MouseEvent) => {
+  const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    stopTimer(runningTaskData!.task.id);
-  }, [runningTaskData, stopTimer]);
+    if (runningTaskData) {
+      stopTimer(runningTaskData.task.id);
+    }
+  };
 
-  const handleTimerClick = useCallback(() => {
-    if (runningTaskData?.isNonProject) return; // Non-Project synthetic task is not editable
+  const handleTimerClick = () => {
+    if (!runningTaskData || runningTaskData.isNonProject) return; // Non-Project synthetic task is not editable
     navigateToTaskEdit(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
-  }, [runningTaskData, navigateToTaskEdit]);
+  };
 
   return (
     <div className={`flex items-center ${className}`}>
