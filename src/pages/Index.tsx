@@ -103,7 +103,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
       // Also update navigation state
       updateSelectedTask(fresh);
     }
-  }, [tasks, selectedTask?.id, updateSelectedTask]);
+  }, [tasks, selectedTask?.id]); // Removed updateSelectedTask from dependencies
   
   const [followUpTask, setFollowUpTask] = useState<Task | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
@@ -222,8 +222,6 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     // Stay in task-edit view instead of switching back to tasks
   }, [updateTask, refreshTasks, tasks]);
   const handleEditTask = useCallback((task: Task) => {
-    console.log('Index - handleEditTask called with task:', task);
-    console.log('Task object properties:', Object.keys(task));
     setSelectedTask(task);
     // Also update navigation state
     updateSelectedTask(task);
@@ -233,7 +231,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
       setSelectedProject(taskProject);
     }
     setActiveView("task-edit");
-  }, [projects, updateSelectedTask]);
+  }, [projects]); // Removed updateSelectedTask from dependencies
 
   // Set up navigation callback for timer and other components  
   useEffect(() => {
