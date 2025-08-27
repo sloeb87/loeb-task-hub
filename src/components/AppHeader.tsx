@@ -196,11 +196,23 @@ export const AppHeader = ({
     </Sheet>;
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
       {/* First Header Row */}
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-6">
+      <div className="px-4 sm:px-6 lg:px-8" onClick={(e) => {
+        console.log('=== HEADER CONTAINER CLICKED ===');
+        console.log('Click detected on header container');
+        console.log('Target:', e.target);
+        console.log('Current target:', e.currentTarget);
+      }}>
+        <div className="flex justify-between items-center h-16" onClick={(e) => {
+          console.log('=== FLEX CONTAINER CLICKED ===');
+          console.log('Click detected on flex container');
+        }}>
+          <div className="flex items-center space-x-6" onClick={(e) => {
+            console.log('=== LEFT SECTION CLICKED ===');
+            console.log('Click detected on left section');
+          }}>
             <div className="flex flex-col items-start">
               <button onClick={() => {
+              console.log('=== PMTASK BUTTON CLICKED ===');
               if (onBack) {
                 // If we're in project detail view, use the back function
                 onBack();
