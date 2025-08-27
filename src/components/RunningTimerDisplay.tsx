@@ -12,6 +12,7 @@ interface RunningTimerDisplayProps {
 }
 
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
+  console.log('RunningTimerDisplay - Component rendered/re-rendered');
   const { taskTimers, stopTimer } = useTimeTracking();
   const { openTaskForm } = useTaskForm();
   const [currentDuration, setCurrentDuration] = useState<string>("");
@@ -96,7 +97,12 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     return () => clearInterval(interval);
   }, [runningTaskData?.timerData.currentSessionStart]);
 
-  if (!runningTaskData) return null;
+  if (!runningTaskData) {
+    console.log('RunningTimerDisplay - No running task data, component will not render');
+    return null;
+  }
+
+  console.log('RunningTimerDisplay - Rendering with task:', runningTaskData.task.title);
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
