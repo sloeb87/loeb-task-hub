@@ -16,6 +16,7 @@ import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor, u
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 import { TimeTrackingCell } from "./TimeTrackingCell";
+import { useTaskForm } from "@/contexts/TaskFormContext";
 
 interface TaskTableProps {
   tasks: Task[];
@@ -86,6 +87,7 @@ export const TaskTable = ({
   const filterRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
   const { getRecurringTaskTime } = useRecurringTaskTime();
+  const { openTaskForm } = useTaskForm();
   const { getScopeStyle, loading: scopeLoading } = useScopeColor();
   const { getTaskTypeStyle, loading: taskTypeLoading } = useTaskTypeColor();
   const { getEnvironmentStyle, loading: environmentLoading } = useEnvironmentColor();
@@ -436,8 +438,10 @@ export const TaskTable = ({
       stopTimer(task.id);
     } else {
       startTimer(task.id, task.title, task.project, task.responsible);
+      // Open task form when starting timer
+      openTaskForm(task.project, task, 'timer-start');
     }
-  }, [getTaskTime, stopTimer, startTimer]);
+  }, [getTaskTime, stopTimer, startTimer, openTaskForm]);
 
   // formatTime is now imported from utils
 
