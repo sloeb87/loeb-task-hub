@@ -1135,7 +1135,15 @@ export const TaskFormOptimized = React.memo(({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))}>
+              <Button type="submit" disabled={!formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority))} onClick={(e) => {
+                console.log('=== Update Task Button Clicked ===');
+                console.log('Environment:', formData.environment);
+                console.log('TaskType:', formData.taskType);
+                console.log('Status:', formData.status);
+                console.log('Priority:', formData.priority);
+                console.log('Is task edit:', !!task);
+                console.log('Button disabled?', !formData.environment || !formData.taskType || (!task && (!formData.status || !formData.priority)));
+              }}>
                 {task ? 'Update Task' : 'Create Task'}
               </Button>
             </div>
