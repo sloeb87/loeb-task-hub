@@ -555,40 +555,49 @@ const Index = () => {
           ) : activeView === "task-edit" ? (
             <div className="space-y-6">
               {/* Emergency Navigation - Force escape from blocked task edit */}
-              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                      Emergency Navigation
+                      🚨 EMERGENCY ESCAPE - You're Stuck!
                     </h3>
                     <p className="text-xs text-red-600 dark:text-red-300 mt-1">
-                      If you're stuck and can't navigate, use these buttons:
+                      Navigation is blocked. Use these emergency options:
                     </p>
                   </div>
                   <div className="flex gap-2">
                     <Button 
                       onClick={() => {
-                        console.log('EMERGENCY - Force navigation to tasks');
-                        setSelectedTask(null);
-                        setActiveView("tasks");
+                        console.log('EMERGENCY - Forcing page refresh');
+                        window.location.reload();
                       }}
                       variant="destructive" 
                       size="sm"
+                      className="bg-red-600 hover:bg-red-700"
                     >
-                      Exit to Tasks
+                      🔄 Refresh Page
                     </Button>
                     <Button 
                       onClick={() => {
-                        console.log('EMERGENCY - Force navigation to projects');
-                        setSelectedTask(null);
-                        setActiveView("projects");
+                        console.log('EMERGENCY - Force navigation to tasks');
+                        try {
+                          setSelectedTask(null);
+                          setActiveView("tasks");
+                          console.log('EMERGENCY - Navigation attempted');
+                        } catch (error) {
+                          console.error('EMERGENCY - Navigation failed:', error);
+                          window.location.reload();
+                        }
                       }}
                       variant="destructive" 
                       size="sm"
                     >
-                      Exit to Projects
+                      ➡️ Force Exit
                     </Button>
                   </div>
+                </div>
+                <div className="mt-2 text-xs text-red-500">
+                  Current view: {activeView} | Selected task: {selectedTask?.id || 'none'}
                 </div>
               </div>
 
