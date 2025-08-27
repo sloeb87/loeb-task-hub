@@ -209,17 +209,22 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     refreshTasks();
     setActiveView("tasks");
   }, [createTask, refreshTasks]);
-  const handleUpdateTask = useCallback(async (updatedTask: Task) => {
+   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
-    await updateTask(updatedTask);
-    await refreshTasks();
-    
-    // Keep the updated task selected and stay in edit view to maintain focus
-    const refreshedTask = tasks.find(t => t.id === updatedTask.id);
-    if (refreshedTask) {
-      setSelectedTask(refreshedTask);
+    try {
+      await updateTask(updatedTask);
+      await refreshTasks();
+      
+      // Keep the updated task selected and stay in edit view to maintain focus
+      const refreshedTask = tasks.find(t => t.id === updatedTask.id);
+      if (refreshedTask) {
+        setSelectedTask(refreshedTask);
+      }
+      // Stay in task-edit view instead of switching back to tasks
+      console.log('Task updated successfully, maintaining edit view');
+    } catch (error) {
+      console.error('Failed to update task:', error);
     }
-    // Stay in task-edit view instead of switching back to tasks
   }, [updateTask, refreshTasks, tasks]);
   const handleEditTask = useCallback((task: Task) => {
     setSelectedTask(task);

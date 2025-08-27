@@ -503,7 +503,8 @@ export const TaskFormOptimized = React.memo(({
     };
 
     onSave(taskData);
-    onClose();
+    // Don't close immediately - let parent handle success
+    // onClose();
   }, [formData, date, task, onSave, onClose]);
 
   const handleFollowUpAdd = async (text: string) => {
