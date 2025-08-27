@@ -161,16 +161,21 @@ const Index = () => {
 
   // Handle view changes and trigger refresh for time tracking
   const handleViewChange = useCallback((view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
+    console.log('=== NAVIGATION DEBUG START ===');
     console.log('NAVIGATION - View change requested:', view);
     console.log('NAVIGATION - Current view:', activeView);
+    console.log('NAVIGATION - Current selectedTask:', selectedTask?.id);
+    console.log('NAVIGATION - Callback function exists:', typeof handleViewChange);
     
     if (activeView === view) {
       console.log('NAVIGATION - Same view, ignoring');
+      console.log('=== NAVIGATION DEBUG END ===');
       return;
     }
     
+    console.log('NAVIGATION - About to set activeView to:', view);
     setActiveView(view);
-    console.log('NAVIGATION - View changed to:', view);
+    console.log('NAVIGATION - setActiveView called');
     
     // Set active filter and sorting when navigating to tasks view (same as clicking Active label)
     if (view === "tasks") {
@@ -191,9 +196,12 @@ const Index = () => {
       window.dispatchEvent(new CustomEvent('timeEntriesUpdated'));
     }
     
+    console.log('NAVIGATION - All navigation logic completed');
+    console.log('=== NAVIGATION DEBUG END ===');
+    
     // Don't clear selected project when navigating between tabs
     // Selected project should persist until a new project is explicitly selected
-  }, [activeView]);
+  }, [activeView, selectedTask]);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
@@ -406,12 +414,22 @@ const Index = () => {
   }
   return <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
         <AppHeader 
-          activeView={activeView} 
-          onViewChange={handleViewChange}
-          isDarkMode={isDarkMode} 
-          onToggleDarkMode={toggleDarkMode} 
-          onOpenParameters={() => setIsParametersOpen(true)}
-          onRefresh={refreshTasks}
+          activeView={activeView}
+          onViewChange={(view) => {
+            console.log('MAIN - AppHeader onViewChange called with:', view);
+            console.log('MAIN - Calling handleViewChange...');
+            handleViewChange(view);
+          }}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+          onOpenParameters={() => {
+            console.log('HEADER - Parameters button clicked');
+            setIsParametersOpen(true);
+          }}
+          onRefresh={() => {
+            console.log('HEADER - Refresh button clicked');
+            refreshTasks();
+          }}
           onBack={isProjectDetailView ? () => setIsProjectDetailView(false) : undefined}
           selectedProjectName={selectedProject?.name}
           selectedProjectId={selectedProject?.id}
