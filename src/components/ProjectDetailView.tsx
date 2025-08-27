@@ -64,7 +64,7 @@ export const ProjectDetailView = ({
   const [completedTasksCurrentPage, setCompletedTasksCurrentPage] = useState(1);
   const [openMeetingsCurrentPage, setOpenMeetingsCurrentPage] = useState(1);
   const [completedMeetingsCurrentPage, setCompletedMeetingsCurrentPage] = useState(1);
-  const tasksPerPage = 50;
+  const tasksPerPage = 15; // Reduced for faster initial loading
 
   // Load all tasks for this project when component mounts or project changes
   useEffect(() => {
@@ -77,13 +77,10 @@ export const ProjectDetailView = ({
 
       try {
         setLoadingProjectTasks(true);
-        console.log('Loading all tasks for project:', project.name);
         const projectTasks = await loadAllTasksForProject(project.name);
-        console.log(`Loaded ${projectTasks.length} tasks for project ${project.name}`);
         setAllProjectTasks(projectTasks);
       } catch (error) {
         console.error('Error loading project tasks:', error);
-        // Fallback to using the tasks prop
         setAllProjectTasks(tasks.filter(task => task.project === project.name));
       } finally {
         setLoadingProjectTasks(false);
@@ -95,173 +92,89 @@ export const ProjectDetailView = ({
 
   // Listen for task updates to refresh the view
   useEffect(() => {
-    console.log('ProjectDetailView - Setting up task update listener');
     const handleTaskUpdate = () => {
-      console.log('ProjectDetailView - Task updated, refreshing view');
       setRefreshKey(prev => prev + 1);
     };
 
-    // Listen for custom task update events
     window.addEventListener('taskUpdated', handleTaskUpdate);
-    
-    return () => {
-      window.removeEventListener('taskUpdated', handleTaskUpdate);
-    };
+    return () => window.removeEventListener('taskUpdated', handleTaskUpdate);
   }, []);
 
   // Add effect to refresh when tasks prop changes (fallback)
   useEffect(() => {
     if (!loadAllTasksForProject) {
-      console.log('ProjectDetailView - Tasks prop changed, updating fallback tasks');
       setAllProjectTasks(tasks.filter(task => task.project === project.name));
     }
   }, [tasks, project.name, loadAllTasksForProject]);
   
-  // Use useMemo to recalculate project tasks when allProjectTasks changes
-  // All project tasks (for stats calculation, excluding meetings)
-  const allProjectTasksForStats = useMemo(() => {
-    return allProjectTasks.filter(task => task.taskType !== 'Meeting');
+  // Optimized task calculations with combined memoization
+  const taskCategories = useMemo(() => {
+    const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    const sortByDateAndPriority = (a: Task, b: Task) => {
+      const dateA = new Date(a.dueDate).getTime();
+      const dateB = new Date(b.dueDate).getTime();
+      if (dateA !== dateB) return dateA - dateB;
+      return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - 
+             (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
+    };
+
+    const allTasks = allProjectTasks.filter(task => task.taskType !== 'Meeting');
+    const allMeetings = allProjectTasks.filter(task => task.taskType === 'Meeting');
+
+    return {
+      allProjectTasksForStats: allTasks,
+      allOpenProjectTasks: allTasks
+        .filter(task => task.status !== 'Completed')
+        .sort(sortByDateAndPriority),
+      allCompletedProjectTasks: allTasks
+        .filter(task => task.status === 'Completed')
+        .sort((a, b) => new Date(b.completionDate || b.dueDate).getTime() - new Date(a.completionDate || a.dueDate).getTime()),
+      allOpenProjectMeetings: allMeetings
+        .filter(task => task.status !== 'Completed')
+        .sort(sortByDateAndPriority),
+      allCompletedProjectMeetings: allMeetings
+        .filter(task => task.status === 'Completed')
+        .sort((a, b) => new Date(b.completionDate || b.dueDate).getTime() - new Date(a.completionDate || a.dueDate).getTime())
+    };
   }, [allProjectTasks]);
 
-  // Active project tasks (excluding completed ones and meetings, sorted)
-  const allOpenProjectTasks = useMemo(() => {
-    console.log('ProjectDetailView - Recalculating project tasks for:', project.name);
-    const filtered = allProjectTasks
-      .filter(task => 
-        task.status !== 'Completed' && 
-        task.taskType !== 'Meeting'
-      ) // Exclude completed tasks and meetings
-      .sort((a, b) => {
-        // Sort by due date first (earliest first), then by priority
-        const dateA = new Date(a.dueDate);
-        const dateB = new Date(b.dueDate);
-        if (dateA.getTime() !== dateB.getTime()) {
-          return dateA.getTime() - dateB.getTime();
+  // Optimized pagination with combined calculations
+  const paginatedData = useMemo(() => {
+    const { allOpenProjectTasks, allCompletedProjectTasks, allOpenProjectMeetings, allCompletedProjectMeetings } = taskCategories;
+
+    const paginate = <T,>(items: T[], currentPage: number) => {
+      const startIndex = (currentPage - 1) * tasksPerPage;
+      const endIndex = startIndex + tasksPerPage;
+      return {
+        items: items.slice(startIndex, endIndex),
+        pagination: {
+          currentPage,
+          pageSize: tasksPerPage,
+          totalTasks: items.length,
+          totalPages: Math.ceil(items.length / tasksPerPage)
         }
-        // If dates are equal, sort by priority (High > Medium > Low)
-        const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-        return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
-      });
-    console.log('ProjectDetailView - Found', filtered.length, 'non-completed, non-meeting tasks for project');
-    return filtered;
-  }, [allProjectTasks, project.name]);
+      };
+    };
 
-  // Paginated open tasks
-  const projectTasks = useMemo(() => {
-    const startIndex = (openTasksCurrentPage - 1) * tasksPerPage;
-    const endIndex = startIndex + tasksPerPage;
-    return allOpenProjectTasks.slice(startIndex, endIndex);
-  }, [allOpenProjectTasks, openTasksCurrentPage, tasksPerPage]);
-
-  // Open tasks pagination info
-  const openTasksPagination = useMemo(() => ({
-    currentPage: openTasksCurrentPage,
-    pageSize: tasksPerPage,
-    totalTasks: allOpenProjectTasks.length,
-    totalPages: Math.ceil(allOpenProjectTasks.length / tasksPerPage)
-  }), [allOpenProjectTasks.length, openTasksCurrentPage, tasksPerPage]);
-
-  // All completed project tasks (excluding meetings)
-  const allCompletedProjectTasks = useMemo(() => {
-    const completed = allProjectTasks
-      .filter(task => 
-        task.status === 'Completed' && 
-        task.taskType !== 'Meeting'
-      )
-      .sort((a, b) => {
-        // Sort by completion date (most recent first)
-        const dateA = new Date(a.completionDate || a.dueDate);
-        const dateB = new Date(b.completionDate || b.dueDate);
-        return dateB.getTime() - dateA.getTime();
-      });
-    console.log('ProjectDetailView - Found', completed.length, 'completed, non-meeting tasks for project');
-    return completed;
-  }, [allProjectTasks]);
-
-  // All opened meetings for this project
-  const allOpenProjectMeetings = useMemo(() => {
-    const meetings = allProjectTasks
-      .filter(task => task.taskType === 'Meeting' && task.status !== 'Completed')
-      .sort((a, b) => {
-        // Sort by due date first (earliest first), then by priority
-        const dateA = new Date(a.dueDate);
-        const dateB = new Date(b.dueDate);
-        if (dateA.getTime() !== dateB.getTime()) {
-          return dateA.getTime() - dateB.getTime();
-        }
-        // If dates are equal, sort by priority (High > Medium > Low)
-        const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
-        return (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) - (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
-      });
-    console.log('ProjectDetailView - Found', meetings.length, 'open meetings for project');
-    return meetings;
-  }, [allProjectTasks]);
-
-  // All completed meetings for this project
-  const allCompletedProjectMeetings = useMemo(() => {
-    const meetings = allProjectTasks
-      .filter(task => task.taskType === 'Meeting' && task.status === 'Completed')
-      .sort((a, b) => {
-        // Sort by completion date (most recent first)
-        const dateA = new Date(a.completionDate || a.dueDate);
-        const dateB = new Date(b.completionDate || b.dueDate);
-        return dateB.getTime() - dateA.getTime();
-      });
-    console.log('ProjectDetailView - Found', meetings.length, 'completed meetings for project');
-    return meetings;
-  }, [allProjectTasks]);
-
-  // Paginated completed tasks
-  const completedProjectTasks = useMemo(() => {
-    const startIndex = (completedTasksCurrentPage - 1) * tasksPerPage;
-    const endIndex = startIndex + tasksPerPage;
-    return allCompletedProjectTasks.slice(startIndex, endIndex);
-  }, [allCompletedProjectTasks, completedTasksCurrentPage, tasksPerPage]);
-
-  // Completed tasks pagination info
-  const completedTasksPagination = useMemo(() => ({
-    currentPage: completedTasksCurrentPage,
-    pageSize: tasksPerPage,
-    totalTasks: allCompletedProjectTasks.length,
-    totalPages: Math.ceil(allCompletedProjectTasks.length / tasksPerPage)
-  }), [allCompletedProjectTasks.length, completedTasksCurrentPage, tasksPerPage]);
-
-  // Paginated open meetings
-  const paginatedOpenMeetings = useMemo(() => {
-    const startIndex = (openMeetingsCurrentPage - 1) * tasksPerPage;
-    const endIndex = startIndex + tasksPerPage;
-    return allOpenProjectMeetings.slice(startIndex, endIndex);
-  }, [allOpenProjectMeetings, openMeetingsCurrentPage, tasksPerPage]);
-
-  // Open meetings pagination info
-  const openMeetingsPagination = useMemo(() => ({
-    currentPage: openMeetingsCurrentPage,
-    pageSize: tasksPerPage,
-    totalTasks: allOpenProjectMeetings.length,
-    totalPages: Math.ceil(allOpenProjectMeetings.length / tasksPerPage)
-  }), [allOpenProjectMeetings.length, openMeetingsCurrentPage, tasksPerPage]);
-
-  // Paginated completed meetings
-  const paginatedCompletedMeetings = useMemo(() => {
-    const startIndex = (completedMeetingsCurrentPage - 1) * tasksPerPage;
-    const endIndex = startIndex + tasksPerPage;
-    return allCompletedProjectMeetings.slice(startIndex, endIndex);
-  }, [allCompletedProjectMeetings, completedMeetingsCurrentPage, tasksPerPage]);
-
-  // Completed meetings pagination info
-  const completedMeetingsPagination = useMemo(() => ({
-    currentPage: completedMeetingsCurrentPage,
-    pageSize: tasksPerPage,
-    totalTasks: allCompletedProjectMeetings.length,
-    totalPages: Math.ceil(allCompletedProjectMeetings.length / tasksPerPage)
-  }), [allCompletedProjectMeetings.length, completedMeetingsCurrentPage, tasksPerPage]);
+    return {
+      openTasks: paginate(allOpenProjectTasks, openTasksCurrentPage),
+      completedTasks: paginate(allCompletedProjectTasks, completedTasksCurrentPage),
+      openMeetings: paginate(allOpenProjectMeetings, openMeetingsCurrentPage),
+      completedMeetings: paginate(allCompletedProjectMeetings, completedMeetingsCurrentPage)
+    };
+  }, [taskCategories, openTasksCurrentPage, completedTasksCurrentPage, openMeetingsCurrentPage, completedMeetingsCurrentPage, tasksPerPage]);
   
-  const completedTasks = allCompletedProjectTasks.length;
-  const totalTasks = allOpenProjectTasks.length + allCompletedProjectTasks.length;
-  const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-  const overdueTasks = allOpenProjectTasks.filter(task => 
-    task.status !== 'Completed' && new Date(task.dueDate) < new Date()
-  ).length;
+  // Project statistics
+  const stats = useMemo(() => {
+    const { allOpenProjectTasks, allCompletedProjectTasks } = taskCategories;
+    const completedTasks = allCompletedProjectTasks.length;
+    const totalTasks = allOpenProjectTasks.length + completedTasks;
+    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+    const overdueTasks = allOpenProjectTasks.filter(task => 
+      new Date(task.dueDate) < new Date()
+    ).length;
+    return { completedTasks, totalTasks, completionRate, overdueTasks };
+  }, [taskCategories]);
 
   const handleTasksChange = (updatedTasks: Task[]) => {
     if (onUpdateTask) {
@@ -291,17 +204,12 @@ export const ProjectDetailView = ({
   };
 
   const handleEditTaskLocal = (task: Task) => {
-    console.log('ProjectDetailView - handleEditTaskLocal called with:', task.title);
-    console.log('ProjectDetailView - Switching to Task Details tab');
-    // Use the parent's onEditTask to switch to task-edit view
     onEditTask(task);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {
-    console.log('ProjectDetailView - handleFollowUpLocal called with:', updatedTask.title);
     if (onUpdateTask) {
       onUpdateTask(updatedTask);
-      // Force refresh the view
       setRefreshKey(prev => prev + 1);
     }
   };
@@ -316,8 +224,6 @@ export const ProjectDetailView = ({
   };
 
   const handleCreateTaskForProject = () => {
-    console.log('ProjectDetailView - Creating new task for project:', project.name);
-    // Navigate to full task detail view instead of modal
     onCreateTask();
   };
 
@@ -549,9 +455,9 @@ export const ProjectDetailView = ({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-900 dark:text-white">Completion</span>
-                <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(completionRate)}%</span>
+                <span className="text-sm text-gray-600 dark:text-gray-300">{Math.round(stats.completionRate)}%</span>
               </div>
-              <Progress value={completionRate} className="h-2" />
+              <Progress value={stats.completionRate} className="h-2" />
             </div>
 
             <Separator />
@@ -559,20 +465,20 @@ export const ProjectDetailView = ({
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">Total Tasks</span>
-                <span className="text-sm font-medium text-gray-900 dark:text-white">{totalTasks}</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">{stats.totalTasks}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">Completed</span>
-                <span className="text-sm font-medium text-green-600 dark:text-green-400">{completedTasks}</span>
+                <span className="text-sm font-medium text-green-600 dark:text-green-400">{stats.completedTasks}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600 dark:text-gray-300">Remaining</span>
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{totalTasks - completedTasks}</span>
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{stats.totalTasks - stats.completedTasks}</span>
               </div>
-              {overdueTasks > 0 && (
+              {stats.overdueTasks > 0 && (
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600 dark:text-gray-300">Overdue</span>
-                  <span className="text-sm font-medium text-red-600 dark:text-red-400">{overdueTasks}</span>
+                  <span className="text-sm font-medium text-red-600 dark:text-red-400">{stats.overdueTasks}</span>
                 </div>
               )}
             </div>
@@ -584,13 +490,13 @@ export const ProjectDetailView = ({
       <Tabs defaultValue="tasks" className="space-y-6">
         <TabsList>
           <TabsTrigger value="tasks">Opened Tasks</TabsTrigger>
-          {allCompletedProjectTasks.length > 0 && (
+          {taskCategories.allCompletedProjectTasks.length > 0 && (
             <TabsTrigger value="completed">Completed Tasks</TabsTrigger>
           )}
-          {(allOpenProjectMeetings.length > 0 || allCompletedProjectMeetings.length > 0) && (
+          {(taskCategories.allOpenProjectMeetings.length > 0 || taskCategories.allCompletedProjectMeetings.length > 0) && (
             <TabsTrigger value="open-meetings">Opened Meetings</TabsTrigger>
           )}
-          {allCompletedProjectMeetings.length > 0 && (
+          {taskCategories.allCompletedProjectMeetings.length > 0 && (
             <TabsTrigger value="completed-meetings">Completed Meetings</TabsTrigger>
           )}
         </TabsList>
@@ -619,19 +525,19 @@ export const ProjectDetailView = ({
                     ))}
                   </div>
                 </div>
-              ) : allOpenProjectTasks.length > 0 ? (
+              ) : taskCategories.allOpenProjectTasks.length > 0 ? (
                 <div className="space-y-4">
                   <TaskTable 
-                    tasks={projectTasks} 
+                    tasks={paginatedData.openTasks.items} 
                     onEditTask={handleEditTaskLocal}
                     onFollowUp={handleFollowUpLocal}
                     hideProjectColumn={true}
-                    pagination={openTasksPagination}
+                    pagination={paginatedData.openTasks.pagination}
                     onPageChange={setOpenTasksCurrentPage}
                   />
                   
                   {/* Pagination Controls for Open Tasks */}
-                  {openTasksPagination.totalPages > 1 && (
+                  {paginatedData.openTasks.pagination.totalPages > 1 && (
                     <div className="flex justify-center">
                       <Pagination>
                         <PaginationContent>
@@ -648,7 +554,7 @@ export const ProjectDetailView = ({
                             />
                           </PaginationItem>
                           
-                          {Array.from({ length: openTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                          {Array.from({ length: paginatedData.openTasks.pagination.totalPages }, (_, i) => i + 1).map((page) => (
                             <PaginationItem key={page}>
                               <PaginationLink
                                 href="#"
@@ -668,11 +574,11 @@ export const ProjectDetailView = ({
                               href="#"
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (openTasksCurrentPage < openTasksPagination.totalPages) {
+                                if (openTasksCurrentPage < paginatedData.openTasks.pagination.totalPages) {
                                   setOpenTasksCurrentPage(openTasksCurrentPage + 1);
                                 }
                               }}
-                              className={openTasksCurrentPage === openTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                              className={openTasksCurrentPage === paginatedData.openTasks.pagination.totalPages ? "pointer-events-none opacity-50" : ""}
                             />
                           </PaginationItem>
                         </PaginationContent>
@@ -694,7 +600,7 @@ export const ProjectDetailView = ({
           </Card>
         </TabsContent>
 
-        {allCompletedProjectTasks.length > 0 && (
+        {taskCategories.allCompletedProjectTasks.length > 0 && (
           <TabsContent value="completed">
             <Card>
               <CardHeader>
@@ -704,7 +610,7 @@ export const ProjectDetailView = ({
                     {project.name}
                   </span>
                   <Badge variant="secondary" className="text-xs">
-                    {allCompletedProjectTasks.length} completed
+                    {taskCategories.allCompletedProjectTasks.length} completed
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -725,16 +631,16 @@ export const ProjectDetailView = ({
                 ) : (
                   <div className="space-y-4">
                     <TaskTable 
-                      tasks={completedProjectTasks} 
+                      tasks={paginatedData.completedTasks.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       hideProjectColumn={true}
-                      pagination={completedTasksPagination}
+                      pagination={paginatedData.completedTasks.pagination}
                       onPageChange={setCompletedTasksCurrentPage}
                     />
                     
                     {/* Pagination Controls for Completed Tasks */}
-                    {completedTasksPagination.totalPages > 1 && (
+                    {paginatedData.completedTasks.pagination.totalPages > 1 && (
                       <div className="flex justify-center">
                         <Pagination>
                           <PaginationContent>
@@ -751,7 +657,7 @@ export const ProjectDetailView = ({
                               />
                             </PaginationItem>
                             
-                            {Array.from({ length: completedTasksPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: paginatedData.completedTasks.pagination.totalPages }, (_, i) => i + 1).map((page) => (
                               <PaginationItem key={page}>
                                 <PaginationLink
                                   href="#"
@@ -771,11 +677,11 @@ export const ProjectDetailView = ({
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (completedTasksCurrentPage < completedTasksPagination.totalPages) {
+                                  if (completedTasksCurrentPage < paginatedData.completedTasks.pagination.totalPages) {
                                     setCompletedTasksCurrentPage(completedTasksCurrentPage + 1);
                                   }
                                 }}
-                                className={completedTasksCurrentPage === completedTasksPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                                className={completedTasksCurrentPage === paginatedData.completedTasks.pagination.totalPages ? "pointer-events-none opacity-50" : ""}
                               />
                             </PaginationItem>
                           </PaginationContent>
@@ -789,7 +695,7 @@ export const ProjectDetailView = ({
           </TabsContent>
         )}
 
-        {(allOpenProjectMeetings.length > 0 || allCompletedProjectMeetings.length > 0) && (
+        {(taskCategories.allOpenProjectMeetings.length > 0 || taskCategories.allCompletedProjectMeetings.length > 0) && (
           <TabsContent value="open-meetings">
             <Card>
               <CardHeader>
@@ -799,7 +705,7 @@ export const ProjectDetailView = ({
                     {project.name}
                   </span>
                   <Badge variant="secondary" className="text-xs">
-                    {allOpenProjectMeetings.length} opened meetings
+                    {taskCategories.allOpenProjectMeetings.length} opened meetings
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -820,16 +726,16 @@ export const ProjectDetailView = ({
                 ) : (
                   <div className="space-y-4">
                     <TaskTable 
-                      tasks={paginatedOpenMeetings} 
+                      tasks={paginatedData.openMeetings.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       hideProjectColumn={true}
-                      pagination={openMeetingsPagination}
+                      pagination={paginatedData.openMeetings.pagination}
                       onPageChange={setOpenMeetingsCurrentPage}
                     />
                     
                     {/* Pagination Controls for Open Meetings */}
-                    {openMeetingsPagination.totalPages > 1 && (
+                    {paginatedData.openMeetings.pagination.totalPages > 1 && (
                       <div className="flex justify-center">
                         <Pagination>
                           <PaginationContent>
@@ -846,7 +752,7 @@ export const ProjectDetailView = ({
                               />
                             </PaginationItem>
                             
-                            {Array.from({ length: openMeetingsPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: paginatedData.openMeetings.pagination.totalPages }, (_, i) => i + 1).map((page) => (
                               <PaginationItem key={page}>
                                 <PaginationLink
                                   href="#"
@@ -866,11 +772,11 @@ export const ProjectDetailView = ({
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (openMeetingsCurrentPage < openMeetingsPagination.totalPages) {
+                                  if (openMeetingsCurrentPage < paginatedData.openMeetings.pagination.totalPages) {
                                     setOpenMeetingsCurrentPage(openMeetingsCurrentPage + 1);
                                   }
                                 }}
-                                className={openMeetingsCurrentPage === openMeetingsPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                                className={openMeetingsCurrentPage === paginatedData.openMeetings.pagination.totalPages ? "pointer-events-none opacity-50" : ""}
                               />
                             </PaginationItem>
                           </PaginationContent>
@@ -884,7 +790,7 @@ export const ProjectDetailView = ({
           </TabsContent>
         )}
 
-        {allCompletedProjectMeetings.length > 0 && (
+        {taskCategories.allCompletedProjectMeetings.length > 0 && (
           <TabsContent value="completed-meetings">
             <Card>
               <CardHeader>
@@ -894,7 +800,7 @@ export const ProjectDetailView = ({
                     {project.name}
                   </span>
                   <Badge variant="secondary" className="text-xs">
-                    {allCompletedProjectMeetings.length} completed meetings
+                    {taskCategories.allCompletedProjectMeetings.length} completed meetings
                   </Badge>
                 </CardTitle>
               </CardHeader>
@@ -915,16 +821,16 @@ export const ProjectDetailView = ({
                 ) : (
                   <div className="space-y-4">
                     <TaskTable 
-                      tasks={paginatedCompletedMeetings} 
+                      tasks={paginatedData.completedMeetings.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       hideProjectColumn={true}
-                      pagination={completedMeetingsPagination}
+                      pagination={paginatedData.completedMeetings.pagination}
                       onPageChange={setCompletedMeetingsCurrentPage}
                     />
                     
                     {/* Pagination Controls for Completed Meetings */}
-                    {completedMeetingsPagination.totalPages > 1 && (
+                    {paginatedData.completedMeetings.pagination.totalPages > 1 && (
                       <div className="flex justify-center">
                         <Pagination>
                           <PaginationContent>
@@ -941,7 +847,7 @@ export const ProjectDetailView = ({
                               />
                             </PaginationItem>
                             
-                            {Array.from({ length: completedMeetingsPagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            {Array.from({ length: paginatedData.completedMeetings.pagination.totalPages }, (_, i) => i + 1).map((page) => (
                               <PaginationItem key={page}>
                                 <PaginationLink
                                   href="#"
@@ -961,11 +867,11 @@ export const ProjectDetailView = ({
                                 href="#"
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  if (completedMeetingsCurrentPage < completedMeetingsPagination.totalPages) {
+                                  if (completedMeetingsCurrentPage < paginatedData.completedMeetings.pagination.totalPages) {
                                     setCompletedMeetingsCurrentPage(completedMeetingsCurrentPage + 1);
                                   }
                                 }}
-                                className={completedMeetingsCurrentPage === completedMeetingsPagination.totalPages ? "pointer-events-none opacity-50" : ""}
+                                className={completedMeetingsCurrentPage === paginatedData.completedMeetings.pagination.totalPages ? "pointer-events-none opacity-50" : ""}
                               />
                             </PaginationItem>
                           </PaginationContent>
