@@ -217,6 +217,7 @@ const Index = () => {
     refreshTasks();
     setActiveView("tasks");
   }, [createTask, refreshTasks]);
+
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     console.log('Index - handleUpdateTask called with:', updatedTask.id, updatedTask.title);
     await updateTask(updatedTask);
@@ -229,6 +230,16 @@ const Index = () => {
     }
     // Stay in task-edit view instead of switching back to tasks
   }, [updateTask, refreshTasks, tasks]);
+
+  const handleSaveTask = useCallback(async (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    if ('id' in taskData) {
+      // Existing task - update it
+      await handleUpdateTask(taskData as Task);
+    } else {
+      // New task - create it
+      await handleCreateTask(taskData);
+    }
+  }, [handleCreateTask, handleUpdateTask]);
   const handleEditTask = useCallback((task: Task) => {
     console.log('Index - handleEditTask called with task:', task);
     console.log('Task object properties:', Object.keys(task));
@@ -324,16 +335,6 @@ const Index = () => {
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
   }, [deleteTask]);
-  const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
-    console.log('Index - handleSaveTask called with:', taskData);
-    if ('id' in taskData) {
-      // Updating existing task
-      handleUpdateTask(taskData as Task);
-    } else {
-      // Creating new task
-      handleCreateTask(taskData);
-    }
-  }, [handleUpdateTask, handleCreateTask]);
 
   // Handler for when a project is selected for detail view
   const handleEditProject = useCallback((project: Project) => {
@@ -616,7 +617,7 @@ const Index = () => {
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
-                onSaveTask={handleCreateTask}
+                onSaveTask={handleSaveTask}
               />
             </Suspense>
           ) : (
@@ -629,7 +630,7 @@ const Index = () => {
                 onUpdateProject={handleUpdateProject} 
                 onDeleteProject={handleDeleteProject} 
                 onCreateTask={handleCreateTask} 
-                onUpdateTask={handleUpdateTask} 
+                onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask} 
                 projectFilter={projectFilter} 
                 setProjectFilter={setProjectFilter} 
