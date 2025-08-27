@@ -120,7 +120,8 @@ export const AppHeader = ({
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log(`Navigating to: ${item.key}`);
+          console.log(`HEADER - Navigating to: ${item.key}`);
+          console.log(`HEADER - Current view: ${activeView}`);
           onViewChange(item.key as any);
         }} 
         size="sm"
@@ -159,10 +160,11 @@ export const AppHeader = ({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              console.log(`Mobile navigating to: ${item.key}`);
+              console.log(`MOBILE - Navigating to: ${item.key}`);
+              console.log(`MOBILE - Current view: ${activeView}`);
               onViewChange(item.key as any);
               setMobileMenuOpen(false);
-            }} 
+            }}
             className="justify-start cursor-pointer"
             disabled={item.disabled}
           >
