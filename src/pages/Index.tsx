@@ -160,14 +160,24 @@ const Index = () => {
   }, [activeView]);
 
   // Handle view changes and trigger refresh for time tracking
-  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
+  const handleViewChange = useCallback((view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
+    console.log('NAVIGATION - View change requested:', view);
+    console.log('NAVIGATION - Current view:', activeView);
+    
+    if (activeView === view) {
+      console.log('NAVIGATION - Same view, ignoring');
+      return;
+    }
+    
     setActiveView(view);
+    console.log('NAVIGATION - View changed to:', view);
     
     // Set active filter and sorting when navigating to tasks view (same as clicking Active label)
     if (view === "tasks") {
       setActiveFilter("active");
       // Apply the same sorting as clicking the Active card
-      handleSortChange('dueDatePriority', 'asc');
+      setSortField('dueDatePriority');
+      setSortDirection('asc');
     }
     
     // Clear any navigation state/filters when switching to main views
@@ -183,7 +193,7 @@ const Index = () => {
     
     // Don't clear selected project when navigating between tabs
     // Selected project should persist until a new project is explicitly selected
-  };
+  }, [activeView]);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [projectFilter, setProjectFilter] = useState<'all' | 'active' | 'on-hold' | 'completed'>('active');
   const [projectToShowDetails, setProjectToShowDetails] = useState<string | null>(null);
