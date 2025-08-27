@@ -28,7 +28,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  console.log('Index component rendered');
+  
 
   // ... rest of component
   

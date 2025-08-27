@@ -12,7 +12,6 @@ interface RunningTimerDisplayProps {
 }
 
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
-  console.log('RunningTimerDisplay - Component rendered/re-rendered');
   const { taskTimers, stopTimer } = useTimeTracking();
   const { navigateToTaskEdit } = useTaskNavigation();
   const [currentDuration, setCurrentDuration] = useState<string>("");
@@ -21,7 +20,6 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   // Listen for timer changes from other components
   useEffect(() => {
     const handleTimerUpdate = () => {
-      console.log('RunningTimerDisplay - Timer update event received');
       setForceUpdate(prev => prev + 1);
     };
 
@@ -35,24 +33,14 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
   const runningTaskData = React.useMemo(() => {
-    console.log('RunningTimerDisplay - Checking for running timers...');
-    console.log('RunningTimerDisplay - taskTimers:', Array.from(taskTimers.entries()));
-    console.log('RunningTimerDisplay - tasks array length:', tasks.length);
-    console.log('RunningTimerDisplay - task ids in array:', tasks.map(t => t.id));
-    
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
-    console.log('RunningTimerDisplay - running timer entry:', runningTimerEntry);
     
     if (!runningTimerEntry) {
-      console.log('RunningTimerDisplay - No running timer found');
       return null;
     }
 
     const [taskId, timerData] = runningTimerEntry;
-    console.log('RunningTimerDisplay - Looking for task with ID:', taskId);
-    
     const task = tasks.find(task => task.id === taskId);
-    console.log('RunningTimerDisplay - Found task:', task);
     
     if (task) return { task, timerData, isNonProject: false };
 
@@ -65,9 +53,8 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
-    console.log('RunningTimerDisplay - Timer running for task not in tasks array:', taskId);
     return null;
-  }, [taskTimers, tasks]);
+  }, [taskTimers, tasks.length, forceUpdate]);
 
   // Update duration display every second
   useEffect(() => {
@@ -98,11 +85,8 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   }, [runningTaskData?.timerData.currentSessionStart]);
 
   if (!runningTaskData) {
-    console.log('RunningTimerDisplay - No running task data, component will not render');
     return null;
   }
-
-  console.log('RunningTimerDisplay - Rendering with task:', runningTaskData.task.title);
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
