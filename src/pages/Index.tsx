@@ -23,12 +23,10 @@ import { AppHeader } from "@/components/AppHeader";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
   
-  const Index = () => {
+const Index = () => {
   const location = useLocation();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // For project details view
   const [isDarkMode, setIsDarkMode] = useState(false);
-
-  console.log('Index component rendered');
 
   // ... rest of component
   

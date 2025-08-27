@@ -54,7 +54,7 @@ interface Filters {
   environment: string[];
 }
 
-export const TaskTable = ({
+export const TaskTable = React.memo(({
   tasks,
   onEditTask,
   onFollowUp,
@@ -1015,4 +1015,27 @@ export const TaskTable = ({
 
     </>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison for React.memo optimization
+  if (prevProps.tasks.length !== nextProps.tasks.length) return false;
+  if (prevProps.isLoading !== nextProps.isLoading) return false;
+  if (prevProps.sortField !== nextProps.sortField) return false;
+  if (prevProps.sortDirection !== nextProps.sortDirection) return false;
+  if (prevProps.currentSearchTerm !== nextProps.currentSearchTerm) return false;
+  if (prevProps.hideProjectColumn !== nextProps.hideProjectColumn) return false;
+  
+  // Check if pagination changed
+  if (prevProps.pagination?.currentPage !== nextProps.pagination?.currentPage) return false;
+  if (prevProps.pagination?.totalPages !== nextProps.pagination?.totalPages) return false;
+  
+  // Check if tasks array actually changed (shallow comparison of task objects)
+  for (let i = 0; i < prevProps.tasks.length; i++) {
+    if (prevProps.tasks[i].id !== nextProps.tasks[i].id || 
+        prevProps.tasks[i].title !== nextProps.tasks[i].title ||
+        prevProps.tasks[i].status !== nextProps.tasks[i].status) {
+      return false;
+    }
+  }
+  
+  return true;
+});
