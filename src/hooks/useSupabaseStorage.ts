@@ -783,16 +783,19 @@ export function useSupabaseStorage() {
       recurrence_days_of_week: updatedTask.recurrenceDaysOfWeek?.length ? updatedTask.recurrenceDaysOfWeek : null
     };
 
-    console.log('Update data being sent to DB:', updateData);
-    console.log('Array field types:', {
-      scope: typeof updateData.scope, scopeValue: updateData.scope,
-      dependencies: typeof updateData.dependencies, dependenciesValue: updateData.dependencies,
-      stakeholders: typeof updateData.stakeholders, stakeholdersValue: updateData.stakeholders
-    });
-    console.log('Environment value in update:', updatedTask.environment);
-    if (updatedTask.id === 'T34') {
-      console.error('CRITICAL: T34 is being updated! Task data:', updatedTask);
-    }
+    console.log('=== COMPREHENSIVE UPDATE DATA DEBUG ===');
+    console.log('Original updatedTask received:', JSON.stringify(updatedTask, null, 2));
+    console.log('Update data being sent to DB:', JSON.stringify(updateData, null, 2));
+    console.log('Database structure compatibility check:');
+    console.log('- scope:', { type: typeof updateData.scope, value: updateData.scope, isArray: Array.isArray(updateData.scope) });
+    console.log('- dependencies:', { type: typeof updateData.dependencies, value: updateData.dependencies, isArray: Array.isArray(updateData.dependencies) });
+    console.log('- stakeholders:', { type: typeof updateData.stakeholders, value: updateData.stakeholders, isArray: Array.isArray(updateData.stakeholders) });
+    console.log('- recurrence_days_of_week:', { type: typeof updateData.recurrence_days_of_week, value: updateData.recurrence_days_of_week, isArray: Array.isArray(updateData.recurrence_days_of_week) });
+    console.log('- links:', { type: typeof updateData.links, value: updateData.links });
+    console.log('- environment:', { type: typeof updateData.environment, value: updateData.environment });
+    console.log('Target task ID for update:', existingTask.id);
+    console.log('User ID for update:', user.id);
+    console.log('=== END COMPREHENSIVE DEBUG ===');
 
     const { error } = await supabase
       .from('tasks')
