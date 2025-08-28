@@ -416,6 +416,10 @@ export const TaskFormOptimized = React.memo(({
     console.log('=== Form Submit Started ===');
     e.preventDefault();
     
+    console.log('DEBUG: Form data before validation:', formData);
+    console.log('DEBUG: Task prop:', task);
+    console.log('DEBUG: onSave prop type:', typeof onSave);
+    
     if (!formData.title.trim()) {
       console.log('Title validation failed');
       toast({
@@ -485,11 +489,15 @@ export const TaskFormOptimized = React.memo(({
     };
 
     console.log('Task data created:', taskData);
-    console.log('Calling onSave with task data...');
+    console.log('DEBUG: About to call onSave...');
     
-    onSave(taskData);
-    
-    console.log('onSave called successfully');
+    try {
+      onSave(taskData);
+      console.log('onSave called successfully');
+    } catch (error) {
+      console.error('ERROR in onSave call:', error);
+      throw error;
+    }
     
     // Show success message
     toast({
