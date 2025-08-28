@@ -432,19 +432,20 @@ export const TaskFormOptimized = React.memo(({
 
     console.log('Creating task data object...');
 
-    if (!formData.environment) {
+    // Only require environment and taskType for new tasks
+    if (!task && !formData.environment) {
       toast({
         title: "Environment required",
-        description: "Please select an environment before saving the task.",
+        description: "Please select an environment before creating the task.",
         variant: "destructive",
       });
       return;
     }
 
-    if (!formData.taskType) {
+    if (!task && !formData.taskType) {
       toast({
         title: "Task Type required",
-        description: "Please select a task type before saving the task.",
+        description: "Please select a task type before creating the task.",
         variant: "destructive",
       });
       return;
