@@ -228,8 +228,9 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
         console.log('Setting refreshed task as selected');
         setSelectedTask(refreshedTask);
       }
-      // Stay in task-edit view instead of switching back to tasks
-      console.log('Task updated successfully, maintaining edit view');
+      // Navigate to project details after successful task update
+      console.log('Task updated successfully, navigating to project details');
+      setActiveView("project-details");
     } catch (error) {
       console.error('Failed to update task:', error);
       toast({

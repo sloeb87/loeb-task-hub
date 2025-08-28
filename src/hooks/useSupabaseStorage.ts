@@ -756,18 +756,18 @@ export function useSupabaseStorage() {
     };
 
     // CRITICAL: Ensure all array fields are properly formatted for PostgreSQL triggers
-    const formatForPostgresArray = (value: any): any[] | null => {
-      if (!value) return null;
-      if (Array.isArray(value) && value.length === 0) return null;
+    const formatForPostgresArray = (value: any): any[] => {
+      if (!value) return [];
+      if (Array.isArray(value) && value.length === 0) return [];
       if (Array.isArray(value)) return value;
       if (typeof value === 'string') return [value];
-      return null;
+      return [];
     };
 
-    // Special handling for recurrence_days_of_week - must be numeric array or null
+    // Special handling for recurrence_days_of_week - must be numeric array or empty array
     const safeDaysOfWeek = updatedTask.recurrenceDaysOfWeek?.length ? 
       updatedTask.recurrenceDaysOfWeek.filter(day => typeof day === 'number') : 
-      null;
+      [];
 
     const updateData = {
       scope: ensureArray(updatedTask.scope), // scope cannot be null per schema
