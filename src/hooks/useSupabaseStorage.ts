@@ -722,17 +722,18 @@ export function useSupabaseStorage() {
 
     // Serialize NamedLink arrays to JSON for database storage
     const serializeLinks = (links: any) => {
-      if (!links) return null;
+      if (!links) return {};
       const serialized: any = {};
       for (const [key, value] of Object.entries(links)) {
         if (Array.isArray(value)) {
-          serialized[key] = value.map((link: any) => 
+          // Convert empty arrays to empty strings to match database format
+          serialized[key] = value.length === 0 ? "" : value.map((link: any) => 
             typeof link === 'object' && 'id' in link 
               ? { id: link.id, name: link.name, url: link.url }
               : link
           );
         } else {
-          serialized[key] = value;
+          serialized[key] = value || "";
         }
       }
       return serialized;
