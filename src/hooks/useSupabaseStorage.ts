@@ -770,7 +770,8 @@ export function useSupabaseStorage() {
       is_recurring: updatedTask.isRecurring || false,
       recurrence_type: updatedTask.recurrenceType,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
-      recurrence_end_date: updatedTask.recurrenceEndDate
+      recurrence_end_date: updatedTask.recurrenceEndDate,
+      recurrence_days_of_week: ensureArray(updatedTask.recurrenceDaysOfWeek || [])
     };
 
     console.log('Update data being sent to DB:', updateData);
