@@ -754,7 +754,7 @@ export function useSupabaseStorage() {
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
       dependencies: updatedTask.dependencies || [],
-      checklist: JSON.stringify(updatedTask.checklist) || '[]',
+      checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]), // Convert to JSON for database
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
       stakeholders: updatedTask.stakeholders || [],
