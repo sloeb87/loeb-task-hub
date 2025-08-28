@@ -198,48 +198,105 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
   
   // Track when projects page is in detail view
   const [isProjectDetailView, setIsProjectDetailView] = useState(false);
+  
+  // Cache project tasks to prevent reloading when navigating back to project details
+  const [cachedProjectTasks, setCachedProjectTasks] = useState<Record<string, Task[]>>({});
+  const [loadingProjectCache, setLoadingProjectCache] = useState<Record<string, boolean>>({});
 
   // Use optimized filtering hook
   const {
     filteredTasks
   } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
 
+  // Clear cache when tasks are updated to ensure fresh data
+  const clearProjectTasksCache = useCallback((projectName?: string) => {
+    if (projectName) {
+      setCachedProjectTasks(prev => {
+        const newCache = { ...prev };
+        delete newCache[projectName];
+        return newCache;
+      });
+    } else {
+      setCachedProjectTasks({});
+    }
+  }, []);
+
+  // Enhanced loadAllTasksForProject that uses caching
+  const loadAllTasksForProjectCached = useCallback(async (projectName: string): Promise<Task[]> => {
+    // Return cached data if available and not currently loading
+    if (cachedProjectTasks[projectName] && !loadingProjectCache[projectName]) {
+      return cachedProjectTasks[projectName];
+    }
+    
+    // If already loading, wait for it to complete
+    if (loadingProjectCache[projectName]) {
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!loadingProjectCache[projectName] && cachedProjectTasks[projectName]) {
+            clearInterval(checkInterval);
+            resolve(cachedProjectTasks[projectName]);
+          }
+        }, 100);
+      });
+    }
+
+    try {
+      setLoadingProjectCache(prev => ({ ...prev, [projectName]: true }));
+      const projectTasks = await loadAllTasksForProject(projectName);
+      setCachedProjectTasks(prev => ({ ...prev, [projectName]: projectTasks }));
+      return projectTasks;
+    } catch (error) {
+      console.error('Error loading project tasks:', error);
+      // Fallback to filtered tasks
+      const fallbackTasks = tasks.filter(task => task.project === projectName);
+      setCachedProjectTasks(prev => ({ ...prev, [projectName]: fallbackTasks }));
+      return fallbackTasks;
+    } finally {
+      setLoadingProjectCache(prev => ({ ...prev, [projectName]: false }));
+    }
+  }, [cachedProjectTasks, loadingProjectCache, loadAllTasksForProject, tasks]);
+
   // Event handlers using useCallback for optimization
   const handleCreateTask = useCallback(async (taskData: Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     await createTask(taskData);
     refreshTasks();
+    // Clear cache for the project to ensure fresh data
+    clearProjectTasksCache(taskData.project);
     setActiveView("tasks");
-  }, [createTask, refreshTasks]);
+  }, [createTask, refreshTasks, clearProjectTasksCache]);
    const handleUpdateTask = useCallback(async (updatedTask: Task) => {
-    console.log('=== Index - handleUpdateTask called ===');
-    console.log('Updated task:', updatedTask.id, updatedTask.title, updatedTask.status);
-    try {
-      console.log('Calling updateTask function...');
-      await updateTask(updatedTask);
-      console.log('updateTask completed successfully');
-      
-      console.log('Refreshing tasks...');
-      await refreshTasks();
-      console.log('Tasks refreshed successfully');
-      
-      // Keep the updated task selected and stay in edit view to maintain focus
-      const refreshedTask = tasks.find(t => t.id === updatedTask.id);
-      if (refreshedTask) {
-        console.log('Setting refreshed task as selected');
-        setSelectedTask(refreshedTask);
-      }
-      // Navigate to project details after successful task update
-      console.log('Task updated successfully, navigating to project details');
-      setActiveView("project-details");
-    } catch (error) {
-      console.error('Failed to update task:', error);
-      toast({
-        title: "Update Failed",
-        description: "Failed to update the task. Please try again.",
-        variant: "destructive",
-      });
-    }
-  }, [updateTask, refreshTasks, tasks]);
+     console.log('=== Index - handleUpdateTask called ===');
+     console.log('Updated task:', updatedTask.id, updatedTask.title, updatedTask.status);
+     try {
+       console.log('Calling updateTask function...');
+       await updateTask(updatedTask);
+       console.log('updateTask completed successfully');
+       
+       console.log('Refreshing tasks...');
+       await refreshTasks();
+       console.log('Tasks refreshed successfully');
+       
+       // Update cached project tasks if they exist
+       clearProjectTasksCache(updatedTask.project);
+       
+       // Keep the updated task selected and stay in edit view to maintain focus
+       const refreshedTask = tasks.find(t => t.id === updatedTask.id);
+       if (refreshedTask) {
+         console.log('Setting refreshed task as selected');
+         setSelectedTask(refreshedTask);
+       }
+       // Navigate to project details after successful task update
+       console.log('Task updated successfully, navigating to project details');
+       setActiveView("project-details");
+     } catch (error) {
+       console.error('Failed to update task:', error);
+       toast({
+         title: "Update Failed",
+         description: "Failed to update the task. Please try again.",
+         variant: "destructive",
+       });
+     }
+   }, [updateTask, refreshTasks, tasks, clearProjectTasksCache]);
   const handleEditTask = useCallback((task: Task) => {
     setSelectedTask(task);
     // Also update navigation state
@@ -330,9 +387,32 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
       console.error('Failed to delete project:', error);
     }
   }, [deleteProject]);
-  const handleDeleteTask = useCallback((taskId: string) => {
-    deleteTask(taskId);
-  }, [deleteTask]);
+  const handleDeleteTask = useCallback(async (taskId: string) => {
+    try {
+      const taskToDelete = tasks.find(t => t.id === taskId);
+      await deleteTask(taskId);
+      await refreshTasks();
+      
+      // Clear cache for the project to ensure fresh data
+      if (taskToDelete) {
+        clearProjectTasksCache(taskToDelete.project);
+      }
+      
+      setSelectedTask(null);
+      
+      // If we're in task-edit view, go back to tasks
+      if (activeView === "task-edit") {
+        setActiveView("tasks");
+      }
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      toast({
+        title: "Error", 
+        description: "Failed to delete task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [tasks, deleteTask, refreshTasks, clearProjectTasksCache, activeView, toast]);
   const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('=== Index - handleSaveTask called ===');
     console.log('Task data received:', taskData);
@@ -605,7 +685,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
                 tasks={tasks}
                 allTasks={tasks}
                 allProjects={projects}
-                loadAllTasksForProject={loadAllTasksForProject}
+                loadAllTasksForProject={loadAllTasksForProjectCached}
                 onBack={() => setActiveView("projects")}
                 onEditProject={() => {}} // Not needed in this context
                 onUpdateProject={handleUpdateProject}

@@ -87,18 +87,24 @@ export const ProjectDetailView = ({
       }
     };
 
-    loadProjectTasks();
+    // Only load if we don't have data yet or if explicitly requested via refreshKey
+    if (allProjectTasks.length === 0 || refreshKey > 0) {
+      loadProjectTasks();
+    }
   }, [project.name, loadAllTasksForProject, refreshKey]);
 
-  // Listen for task updates to refresh the view
+  // Listen for task updates to refresh the view only when necessary
   useEffect(() => {
-    const handleTaskUpdate = () => {
-      setRefreshKey(prev => prev + 1);
+    const handleTaskUpdate = (event: CustomEvent) => {
+      // Only refresh if the updated task belongs to this project
+      if (event.detail && event.detail.project === project.name) {
+        setRefreshKey(prev => prev + 1);
+      }
     };
 
-    window.addEventListener('taskUpdated', handleTaskUpdate);
-    return () => window.removeEventListener('taskUpdated', handleTaskUpdate);
-  }, []);
+    window.addEventListener('taskUpdated', handleTaskUpdate as EventListener);
+    return () => window.removeEventListener('taskUpdated', handleTaskUpdate as EventListener);
+  }, [project.name]);
 
   // Add effect to refresh when tasks prop changes (fallback)
   useEffect(() => {
