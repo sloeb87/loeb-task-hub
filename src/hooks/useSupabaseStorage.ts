@@ -641,7 +641,7 @@ export function useSupabaseStorage() {
           links: serializeLinks(taskData.links),
           stakeholders: taskData.stakeholders || [],
           dependencies: taskData.dependencies || [],
-          checklist: JSON.stringify(taskData.checklist) || '[]',
+          checklist: (taskData.checklist || []) as any,
           // Recurring task fields
           is_recurring: taskData.isRecurring || false,
           recurrence_type: taskData.recurrenceType || null,
@@ -785,7 +785,7 @@ export function useSupabaseStorage() {
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
       dependencies: formatForPostgresArray(updatedTask.dependencies),
-      checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]),
+      checklist: (updatedTask.checklist || []) as any,
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
       stakeholders: formatForPostgresArray(updatedTask.stakeholders),
