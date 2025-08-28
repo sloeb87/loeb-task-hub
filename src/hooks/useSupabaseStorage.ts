@@ -747,6 +747,14 @@ export function useSupabaseStorage() {
       return [];
     };
 
+    // Handle nullable array fields - use null instead of empty arrays for nullable fields
+    const ensureNullableArray = (value: any): any[] | null => {
+      if (!value || (Array.isArray(value) && value.length === 0)) return null;
+      if (typeof value === 'string') return [value];
+      if (Array.isArray(value)) return value;
+      return null;
+    };
+
     const updateData = {
       scope: ensureArray(updatedTask.scope),
       project_id: projectId,
@@ -762,17 +770,17 @@ export function useSupabaseStorage() {
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
-      dependencies: ensureArray(updatedTask.dependencies),
+      dependencies: ensureNullableArray(updatedTask.dependencies),
       checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]),
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
-      stakeholders: ensureArray(updatedTask.stakeholders),
+      stakeholders: ensureNullableArray(updatedTask.stakeholders),
       // Recurrence fields
       is_recurring: updatedTask.isRecurring || false,
       recurrence_type: updatedTask.recurrenceType,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
       recurrence_end_date: updatedTask.recurrenceEndDate,
-      recurrence_days_of_week: ensureArray(updatedTask.recurrenceDaysOfWeek || [])
+      recurrence_days_of_week: ensureNullableArray(updatedTask.recurrenceDaysOfWeek || [])
     };
 
     console.log('Update data being sent to DB:', updateData);
