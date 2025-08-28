@@ -739,7 +739,7 @@ export function useSupabaseStorage() {
       return serialized;
     };
 
-    // Ensure all array fields are properly formatted
+    // Ensure all array fields are properly formatted - critical for trigger compatibility
     const ensureArray = (value: any): any[] => {
       if (!value) return [];
       if (typeof value === 'string') return [value];
@@ -754,6 +754,11 @@ export function useSupabaseStorage() {
       if (Array.isArray(value)) return value;
       return [];
     };
+
+    // CRITICAL: Ensure recurrence_days_of_week is handled properly for trigger
+    const safeDaysOfWeek = updatedTask.recurrenceDaysOfWeek?.length ? 
+      updatedTask.recurrenceDaysOfWeek.filter(day => typeof day === 'number') : 
+      null;
 
     const updateData = {
       scope: ensureArray(updatedTask.scope),
@@ -780,7 +785,7 @@ export function useSupabaseStorage() {
       recurrence_type: updatedTask.recurrenceType,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
       recurrence_end_date: updatedTask.recurrenceEndDate,
-      recurrence_days_of_week: updatedTask.recurrenceDaysOfWeek?.length ? updatedTask.recurrenceDaysOfWeek : null
+      recurrence_days_of_week: safeDaysOfWeek
     };
 
     console.log('=== COMPREHENSIVE UPDATE DATA DEBUG ===');
