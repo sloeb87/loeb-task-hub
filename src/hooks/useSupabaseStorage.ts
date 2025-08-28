@@ -747,12 +747,12 @@ export function useSupabaseStorage() {
       return [];
     };
 
-    // Handle nullable array fields - use null instead of empty arrays for nullable fields
-    const ensureNullableArray = (value: any): any[] | null => {
-      if (!value || (Array.isArray(value) && value.length === 0)) return null;
+    // Handle array fields - always return empty array for consistency with DB storage
+    const ensureArrayConsistent = (value: any): any[] => {
+      if (!value || (Array.isArray(value) && value.length === 0)) return [];
       if (typeof value === 'string') return [value];
       if (Array.isArray(value)) return value;
-      return null;
+      return [];
     };
 
     const updateData = {
@@ -770,17 +770,17 @@ export function useSupabaseStorage() {
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
-      dependencies: ensureNullableArray(updatedTask.dependencies),
+      dependencies: ensureArrayConsistent(updatedTask.dependencies),
       checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]),
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
-      stakeholders: ensureNullableArray(updatedTask.stakeholders),
+      stakeholders: ensureArrayConsistent(updatedTask.stakeholders),
       // Recurrence fields
       is_recurring: updatedTask.isRecurring || false,
       recurrence_type: updatedTask.recurrenceType,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
       recurrence_end_date: updatedTask.recurrenceEndDate,
-      recurrence_days_of_week: ensureNullableArray(updatedTask.recurrenceDaysOfWeek || [])
+      recurrence_days_of_week: updatedTask.recurrenceDaysOfWeek?.length ? updatedTask.recurrenceDaysOfWeek : null
     };
 
     console.log('Update data being sent to DB:', updateData);
