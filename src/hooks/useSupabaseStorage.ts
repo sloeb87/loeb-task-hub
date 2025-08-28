@@ -738,8 +738,16 @@ export function useSupabaseStorage() {
       return serialized;
     };
 
+    // Ensure all array fields are properly formatted
+    const ensureArray = (value: any): any[] => {
+      if (!value) return [];
+      if (typeof value === 'string') return [value];
+      if (Array.isArray(value)) return value;
+      return [];
+    };
+
     const updateData = {
-      scope: updatedTask.scope || [], // Handle array scope
+      scope: ensureArray(updatedTask.scope),
       project_id: projectId,
       environment: updatedTask.environment,
       task_type: updatedTask.taskType,
@@ -753,11 +761,11 @@ export function useSupabaseStorage() {
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
-      dependencies: updatedTask.dependencies || [],
-      checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]), // Convert to JSON for database
+      dependencies: ensureArray(updatedTask.dependencies),
+      checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]),
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
-      stakeholders: updatedTask.stakeholders || [],
+      stakeholders: ensureArray(updatedTask.stakeholders),
       // Recurrence fields
       is_recurring: updatedTask.isRecurring || false,
       recurrence_type: updatedTask.recurrenceType,
@@ -766,6 +774,11 @@ export function useSupabaseStorage() {
     };
 
     console.log('Update data being sent to DB:', updateData);
+    console.log('Array field types:', {
+      scope: typeof updateData.scope, scopeValue: updateData.scope,
+      dependencies: typeof updateData.dependencies, dependenciesValue: updateData.dependencies,
+      stakeholders: typeof updateData.stakeholders, stakeholdersValue: updateData.stakeholders
+    });
     console.log('Environment value in update:', updatedTask.environment);
     if (updatedTask.id === 'T34') {
       console.error('CRITICAL: T34 is being updated! Task data:', updatedTask);
