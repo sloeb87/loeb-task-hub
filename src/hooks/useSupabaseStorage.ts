@@ -755,13 +755,22 @@ export function useSupabaseStorage() {
       return [];
     };
 
-    // CRITICAL: Ensure recurrence_days_of_week is handled properly for trigger
+    // CRITICAL: Ensure all array fields are properly formatted for PostgreSQL triggers
+    const formatForPostgresArray = (value: any): any[] | null => {
+      if (!value) return null;
+      if (Array.isArray(value) && value.length === 0) return null;
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') return [value];
+      return null;
+    };
+
+    // Special handling for recurrence_days_of_week - must be numeric array or null
     const safeDaysOfWeek = updatedTask.recurrenceDaysOfWeek?.length ? 
       updatedTask.recurrenceDaysOfWeek.filter(day => typeof day === 'number') : 
       null;
 
     const updateData = {
-      scope: ensureArray(updatedTask.scope),
+      scope: ensureArray(updatedTask.scope), // scope cannot be null per schema
       project_id: projectId,
       environment: updatedTask.environment,
       task_type: updatedTask.taskType,
@@ -775,16 +784,16 @@ export function useSupabaseStorage() {
       completion_date: isBeingCompleted ? todayDate : (updatedTask.completionDate || null),
       duration: updatedTask.duration || null,
       planned_time_hours: updatedTask.plannedTimeHours || null,
-      dependencies: ensureArrayConsistent(updatedTask.dependencies),
+      dependencies: formatForPostgresArray(updatedTask.dependencies),
       checklist: updatedTask.checklist ? JSON.stringify(updatedTask.checklist) : JSON.stringify([]),
       details: updatedTask.details,
       links: serializeLinks(updatedTask.links),
-      stakeholders: ensureArrayConsistent(updatedTask.stakeholders),
-      // Recurrence fields
+      stakeholders: formatForPostgresArray(updatedTask.stakeholders),
+      // Recurrence fields - CRITICAL: these must be properly formatted for trigger
       is_recurring: updatedTask.isRecurring || false,
-      recurrence_type: updatedTask.recurrenceType,
+      recurrence_type: updatedTask.recurrenceType || null,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
-      recurrence_end_date: updatedTask.recurrenceEndDate,
+      recurrence_end_date: updatedTask.recurrenceEndDate || null,
       recurrence_days_of_week: safeDaysOfWeek
     };
 
