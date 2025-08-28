@@ -628,7 +628,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
                 onGenerateReport={() => {}} // Could be implemented later
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
-                onSaveTask={handleCreateTask}
+                onSaveTask={handleUpdateTask}
               />
             </Suspense>
           ) : (
