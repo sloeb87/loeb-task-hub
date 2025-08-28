@@ -202,6 +202,10 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
   // Cache project tasks to prevent reloading when navigating back to project details
   const [cachedProjectTasks, setCachedProjectTasks] = useState<Record<string, Task[]>>({});
   const [loadingProjectCache, setLoadingProjectCache] = useState<Record<string, boolean>>({});
+  
+  // Cache task form state to prevent reloading when navigating back to task-edit
+  const [cachedTaskFormData, setCachedTaskFormData] = useState<Record<string, any>>({});
+  const [taskFormInitialized, setTaskFormInitialized] = useState<Record<string, boolean>>({});
 
   // Use optimized filtering hook
   const {
@@ -220,6 +224,45 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
       setCachedProjectTasks({});
     }
   }, []);
+
+  // Task form cache management
+  const getTaskFormCacheKey = useCallback((taskId?: string) => {
+    return taskId || 'new-task';
+  }, []);
+
+  const clearTaskFormCache = useCallback((taskId?: string) => {
+    const cacheKey = getTaskFormCacheKey(taskId);
+    setCachedTaskFormData(prev => {
+      const newCache = { ...prev };
+      delete newCache[cacheKey];
+      return newCache;
+    });
+    setTaskFormInitialized(prev => {
+      const newInitialized = { ...prev };
+      delete newInitialized[cacheKey];
+      return newInitialized;
+    });
+  }, [getTaskFormCacheKey]);
+
+  const getCachedTaskFormData = useCallback((taskId?: string) => {
+    const cacheKey = getTaskFormCacheKey(taskId);
+    return cachedTaskFormData[cacheKey];
+  }, [cachedTaskFormData, getTaskFormCacheKey]);
+
+  const setCachedTaskFormDataForTask = useCallback((taskId: string | undefined, formData: any) => {
+    const cacheKey = getTaskFormCacheKey(taskId);
+    setCachedTaskFormData(prev => ({ ...prev, [cacheKey]: formData }));
+  }, [getTaskFormCacheKey]);
+
+  const isTaskFormInitializedForTask = useCallback((taskId?: string) => {
+    const cacheKey = getTaskFormCacheKey(taskId);
+    return taskFormInitialized[cacheKey] || false;
+  }, [taskFormInitialized, getTaskFormCacheKey]);
+
+  const setTaskFormInitializedForTask = useCallback((taskId: string | undefined, initialized: boolean) => {
+    const cacheKey = getTaskFormCacheKey(taskId);
+    setTaskFormInitialized(prev => ({ ...prev, [cacheKey]: initialized }));
+  }, [getTaskFormCacheKey]);
 
   // Enhanced loadAllTasksForProject that uses caching
   const loadAllTasksForProjectCached = useCallback(async (projectName: string): Promise<Task[]> => {
@@ -262,8 +305,10 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
     refreshTasks();
     // Clear cache for the project to ensure fresh data
     clearProjectTasksCache(taskData.project);
+    // Clear task form cache after successful creation
+    clearTaskFormCache(undefined);
     setActiveView("tasks");
-  }, [createTask, refreshTasks, clearProjectTasksCache]);
+  }, [createTask, refreshTasks, clearProjectTasksCache, clearTaskFormCache]);
    const handleUpdateTask = useCallback(async (updatedTask: Task) => {
      console.log('=== Index - handleUpdateTask called ===');
      console.log('Updated task:', updatedTask.id, updatedTask.title, updatedTask.status);
@@ -276,18 +321,20 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
        await refreshTasks();
        console.log('Tasks refreshed successfully');
        
-       // Update cached project tasks if they exist
-       clearProjectTasksCache(updatedTask.project);
-       
-       // Keep the updated task selected and stay in edit view to maintain focus
-       const refreshedTask = tasks.find(t => t.id === updatedTask.id);
-       if (refreshedTask) {
-         console.log('Setting refreshed task as selected');
-         setSelectedTask(refreshedTask);
-       }
-       // Navigate to project details after successful task update
-       console.log('Task updated successfully, navigating to project details');
-       setActiveView("project-details");
+        // Update cached project tasks if they exist
+        clearProjectTasksCache(updatedTask.project);
+        // Clear task form cache after successful update
+        clearTaskFormCache(updatedTask.id);
+        
+        // Keep the updated task selected and stay in edit view to maintain focus
+        const refreshedTask = tasks.find(t => t.id === updatedTask.id);
+        if (refreshedTask) {
+          console.log('Setting refreshed task as selected');
+          setSelectedTask(refreshedTask);
+        }
+        // Navigate to project details after successful task update
+        console.log('Task updated successfully, navigating to project details');
+        setActiveView("project-details");
      } catch (error) {
        console.error('Failed to update task:', error);
        toast({
@@ -296,7 +343,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
          variant: "destructive",
        });
      }
-   }, [updateTask, refreshTasks, tasks, clearProjectTasksCache]);
+   }, [updateTask, refreshTasks, tasks, clearProjectTasksCache, clearTaskFormCache]);
   const handleEditTask = useCallback((task: Task) => {
     setSelectedTask(task);
     // Also update navigation state
@@ -396,6 +443,8 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
       // Clear cache for the project to ensure fresh data
       if (taskToDelete) {
         clearProjectTasksCache(taskToDelete.project);
+        // Clear task form cache after successful deletion
+        clearTaskFormCache(taskToDelete.id);
       }
       
       setSelectedTask(null);
@@ -412,7 +461,7 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
         variant: "destructive",
       });
     }
-  }, [tasks, deleteTask, refreshTasks, clearProjectTasksCache, activeView, toast]);
+  }, [tasks, deleteTask, refreshTasks, clearProjectTasksCache, clearTaskFormCache, activeView, toast]);
   const handleSaveTask = useCallback((taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     console.log('=== Index - handleSaveTask called ===');
     console.log('Task data received:', taskData);
@@ -652,31 +701,31 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
                   </div>
                 </div>
               </div>
-              <TaskFormOptimized 
-                isOpen={true}
-                onClose={() => {
-                  setSelectedTask(null);
-                  setActiveView("tasks");
-                }}
-                onSave={handleSaveTask}
-                onDelete={handleDeleteTask}
-                onDeleteAllRecurring={deleteAllRecurringTasks}
-                onUpdateAllRecurring={updateAllRecurringTasks}
-                onAddFollowUp={handleAddFollowUpWrapper}
-                onUpdateFollowUp={handleUpdateFollowUpWrapper}
-                onDeleteFollowUp={handleDeleteFollowUpWrapper}
-                onFollowUpTask={handleFollowUpTask}
-                task={selectedTask}
-                allTasks={tasks}
-                allProjects={projects}
-                projectName={selectedProject?.name} // Pre-select project when creating from project details
-                onEditRelatedTask={handleEditTask}
-                onNavigateToProject={handleNavigateToProject}
-                getRelatedRecurringTasks={getRelatedRecurringTasks}
-                persistedFormData={undefined}
-                onFormDataChange={undefined}
-                renderInline={true}
-              />
+                <TaskFormOptimized 
+                  isOpen={true}
+                  onClose={() => {
+                    setSelectedTask(null);
+                    setActiveView("tasks");
+                  }}
+                  onSave={handleSaveTask}
+                  onDelete={handleDeleteTask}
+                  onDeleteAllRecurring={deleteAllRecurringTasks}
+                  onUpdateAllRecurring={updateAllRecurringTasks}
+                  onAddFollowUp={handleAddFollowUpWrapper}
+                  onUpdateFollowUp={handleUpdateFollowUpWrapper}
+                  onDeleteFollowUp={handleDeleteFollowUpWrapper}
+                  onFollowUpTask={handleFollowUpTask}
+                  task={selectedTask}
+                  allTasks={tasks}
+                  allProjects={projects}
+                  projectName={selectedProject?.name} // Pre-select project when creating from project details
+                  onEditRelatedTask={handleEditTask}
+                  onNavigateToProject={handleNavigateToProject}
+                  getRelatedRecurringTasks={getRelatedRecurringTasks}
+                  persistedFormData={getCachedTaskFormData(selectedTask?.id)}
+                  onFormDataChange={(formData) => setCachedTaskFormDataForTask(selectedTask?.id, formData)}
+                  renderInline={true}
+                />
             </div>
           ) : activeView === "project-details" && selectedProject ? (
             <Suspense fallback={<div className="py-10 text-center">Loading project details…</div>}>
