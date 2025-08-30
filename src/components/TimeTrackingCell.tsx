@@ -85,6 +85,7 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
           size="sm"
           variant={taskTime.isRunning ? "destructive" : "outline"}
           onClick={(e) => {
+            alert(`Timer button clicked for task: ${task.id}`);
             console.log('TimeTrackingCell - Timer button clicked for task:', task.id, task.title);
             console.log('TimeTrackingCell - onTimerToggle function:', typeof onTimerToggle);
             onTimerToggle(task, e);
