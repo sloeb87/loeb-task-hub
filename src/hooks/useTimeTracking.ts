@@ -222,6 +222,7 @@ export function useTimeTracking() {
 
       if (error) {
         console.error('Error creating time entry:', error);
+        alert('Database error: ' + JSON.stringify(error));
         toast({ title: 'Failed to start timer', variant: 'destructive' });
         return;
       }
