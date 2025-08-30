@@ -160,24 +160,34 @@ export function useTimeTracking() {
   };
 
   const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string) => {
-    if (!user) return;
+    console.log('startTimer called with:', { taskId, taskTitle, projectName, responsible, user: !!user });
+    if (!user) {
+      console.log('No user found, cannot start timer');
+      return;
+    }
 
     try {
       // Check if there's already a running timer for this task
       const existingTimer = taskTimers.get(taskId);
-      if (existingTimer?.isRunning) return;
+      console.log('Existing timer for task:', existingTimer);
+      if (existingTimer?.isRunning) {
+        console.log('Timer already running for this task, returning');
+        return;
+      }
 
       // Stop any other running timers
       const runningTasks = Array.from(taskTimers.entries())
         .filter(([_, data]) => data.isRunning)
         .map(([id]) => id);
       
+      console.log('Running tasks to stop:', runningTasks);
       for (const runningTaskId of runningTasks) {
         await stopTimer(runningTaskId);
       }
 
       // Create new time entry in database
       const startTime = new Date().toISOString();
+      console.log('Creating time entry with startTime:', startTime);
       
       const { data: newEntry, error } = await supabase
         .from('time_entries')
