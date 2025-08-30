@@ -432,6 +432,7 @@ export const TaskTable = ({
   }, [onFollowUp]);
 
   const handleTimerToggle = useCallback((task: Task, e: React.MouseEvent) => {
+    alert('handleTimerToggle called for task: ' + task.id);
     console.log('handleTimerToggle called for task:', task.id, task.title);
     e.stopPropagation();
     const taskTime = getTaskTime(task.id);
@@ -441,6 +442,7 @@ export const TaskTable = ({
       stopTimer(task.id);
     } else {
       console.log('Starting timer for task:', task.id, task.title, task.project, task.responsible);
+      alert('About to call startTimer for: ' + task.id);
       startTimer(task.id, task.title, task.project, task.responsible);
       // Navigate to task edit when starting timer
       navigateToTaskEdit(task.project, task, 'timer-start');
