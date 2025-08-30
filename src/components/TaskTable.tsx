@@ -432,22 +432,15 @@ export const TaskTable = ({
   }, [onFollowUp]);
 
   const handleTimerToggle = useCallback((task: Task, e: React.MouseEvent) => {
-    alert('handleTimerToggle called for task: ' + task.id);
-    console.log('handleTimerToggle called for task:', task.id, task.title);
     e.stopPropagation();
     const taskTime = getTaskTime(task.id);
-    console.log('Current task time:', taskTime);
+    
     if (taskTime.isRunning) {
-      console.log('Stopping timer for task:', task.id);
       stopTimer(task.id);
     } else {
-      console.log('Starting timer for task:', task.id, task.title, task.project, task.responsible);
-      alert('About to call startTimer for: ' + task.id);
       startTimer(task.id, task.title, task.project, task.responsible);
-      // Navigate to task edit when starting timer
-      navigateToTaskEdit(task.project, task, 'timer-start');
     }
-  }, [getTaskTime, stopTimer, startTimer, navigateToTaskEdit]);
+  }, [getTaskTime, stopTimer, startTimer]);
 
   // formatTime is now imported from utils
 
