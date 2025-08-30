@@ -9,10 +9,10 @@ import { toast } from "@/hooks/use-toast";
 
 import { TaskTable } from "@/components/TaskTable";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
+import ProjectsPage from "./Projects";
 // Lazy-load heavy views
 const KPIDashboard = lazy(() => import("@/components/KPIDashboard").then(m => ({ default: m.KPIDashboard })));
 const FollowUpDialog = lazy(() => import("@/components/FollowUpDialog").then(m => ({ default: m.FollowUpDialog })));
-const ProjectsPage = lazy(() => import("./Projects"));
 const ProjectDetailView = lazy(() => import("@/components/ProjectDetailView").then(m => ({ default: m.ProjectDetailView })));
 const TimeTrackingPage = lazy(() => import("./TimeTracking"));
 const FollowUpsPage = lazy(() => import("./FollowUps").then(m => ({ default: m.FollowUpsPage })));
