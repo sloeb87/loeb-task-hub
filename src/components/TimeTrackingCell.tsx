@@ -91,11 +91,12 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
             console.log('TimeTrackingCell - onTimerToggle function:', typeof onTimerToggle);
             console.log('TimeTrackingCell - Event details:', e.type, e.currentTarget);
             try {
+              console.log('TimeTrackingCell - About to call onTimerToggle');
               onTimerToggle(task, e);
               console.log('TimeTrackingCell - onTimerToggle called successfully');
             } catch (error) {
               console.error('TimeTrackingCell - Error calling onTimerToggle:', error);
-              alert('Error: ' + error);
+              alert('Error calling onTimerToggle: ' + error);
             }
           }}
           onMouseDown={(e) => {
