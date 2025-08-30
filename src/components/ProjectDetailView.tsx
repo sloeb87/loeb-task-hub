@@ -59,6 +59,12 @@ export const ProjectDetailView = ({
   const [allProjectTasks, setAllProjectTasks] = useState<Task[]>([]);
   const [loadingProjectTasks, setLoadingProjectTasks] = useState(false);
   
+  // Progressive loading states for different tab categories
+  const [openTasksLoaded, setOpenTasksLoaded] = useState(false);
+  const [completedTasksLoaded, setCompletedTasksLoaded] = useState(false);
+  const [openMeetingsLoaded, setOpenMeetingsLoaded] = useState(false);
+  const [completedMeetingsLoaded, setCompletedMeetingsLoaded] = useState(false);
+  
   // Pagination state for open tasks, completed tasks, and meetings
   const [openTasksCurrentPage, setOpenTasksCurrentPage] = useState(1);
   const [completedTasksCurrentPage, setCompletedTasksCurrentPage] = useState(1);
@@ -66,22 +72,73 @@ export const ProjectDetailView = ({
   const [completedMeetingsCurrentPage, setCompletedMeetingsCurrentPage] = useState(1);
   const tasksPerPage = 15; // Reduced for faster initial loading
 
-  // Load all tasks for this project when component mounts or project changes
+  // Progressive loading: Load opened tasks first, then background load others
   useEffect(() => {
-    const loadProjectTasks = async () => {
+    const loadProjectTasksProgressively = async () => {
       if (!loadAllTasksForProject) {
         console.log('loadAllTasksForProject function not provided, using fallback tasks');
-        setAllProjectTasks(tasks.filter(task => task.project === project.name));
+        const fallbackTasks = tasks.filter(task => task.project === project.name);
+        setAllProjectTasks(fallbackTasks);
+        setOpenTasksLoaded(true);
+        setCompletedTasksLoaded(true);
+        setOpenMeetingsLoaded(true);
+        setCompletedMeetingsLoaded(true);
         return;
       }
 
       try {
         setLoadingProjectTasks(true);
+        // Reset loading states
+        setOpenTasksLoaded(false);
+        setCompletedTasksLoaded(false);
+        setOpenMeetingsLoaded(false);
+        setCompletedMeetingsLoaded(false);
+        
+        // Load all tasks at once but process them progressively
         const projectTasks = await loadAllTasksForProject(project.name);
-        setAllProjectTasks(projectTasks);
+        
+        // First: Show opened tasks immediately (highest priority)
+        const openTasks = projectTasks.filter(task => 
+          task.taskType !== 'Meeting' && task.status !== 'Completed'
+        );
+        setAllProjectTasks(openTasks);
+        setOpenTasksLoaded(true);
+        
+        // Background loading: Load completed tasks after a short delay
+        setTimeout(() => {
+          const completedTasks = projectTasks.filter(task => 
+            task.taskType !== 'Meeting' && task.status === 'Completed'
+          );
+          setAllProjectTasks(prev => [...prev, ...completedTasks]);
+          setCompletedTasksLoaded(true);
+        }, 100);
+        
+        // Background loading: Load opened meetings
+        setTimeout(() => {
+          const openMeetings = projectTasks.filter(task => 
+            task.taskType === 'Meeting' && task.status !== 'Completed'
+          );
+          setAllProjectTasks(prev => [...prev, ...openMeetings]);
+          setOpenMeetingsLoaded(true);
+        }, 200);
+        
+        // Background loading: Load completed meetings last
+        setTimeout(() => {
+          const completedMeetings = projectTasks.filter(task => 
+            task.taskType === 'Meeting' && task.status === 'Completed'
+          );
+          setAllProjectTasks(prev => [...prev, ...completedMeetings]);
+          setCompletedMeetingsLoaded(true);
+        }, 300);
+        
       } catch (error) {
         console.error('Error loading project tasks:', error);
-        setAllProjectTasks(tasks.filter(task => task.project === project.name));
+        const fallbackTasks = tasks.filter(task => task.project === project.name);
+        setAllProjectTasks(fallbackTasks);
+        setOpenTasksLoaded(true);
+        setCompletedTasksLoaded(true);
+        setOpenMeetingsLoaded(true);
+        setCompletedMeetingsLoaded(true);
       } finally {
         setLoadingProjectTasks(false);
       }
@@ -89,7 +146,7 @@ export const ProjectDetailView = ({
 
     // Only load if we don't have data yet or if explicitly requested via refreshKey
     if (allProjectTasks.length === 0 || refreshKey > 0) {
-      loadProjectTasks();
+      loadProjectTasksProgressively();
     }
   }, [project.name, loadAllTasksForProject, refreshKey]);
 
@@ -520,10 +577,10 @@ export const ProjectDetailView = ({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {loadingProjectTasks ? (
+              {!openTasksLoaded ? (
                 <div className="space-y-4">
                   <div className="text-center py-4">
-                    <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                    <p className="text-gray-600 dark:text-gray-400">Loading opened tasks...</p>
                   </div>
                   <div className="space-y-3">
                     {Array.from({ length: 5 }).map((_, i) => (
@@ -623,10 +680,10 @@ export const ProjectDetailView = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingProjectTasks ? (
+               {!completedTasksLoaded ? (
                   <div className="space-y-4">
                     <div className="text-center py-4">
-                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                      <p className="text-gray-600 dark:text-gray-400">Loading completed tasks...</p>
                     </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -718,10 +775,10 @@ export const ProjectDetailView = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingProjectTasks ? (
+                {!openMeetingsLoaded ? (
                   <div className="space-y-4">
                     <div className="text-center py-4">
-                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                      <p className="text-gray-600 dark:text-gray-400">Loading opened meetings...</p>
                     </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
@@ -813,10 +870,10 @@ export const ProjectDetailView = ({
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {loadingProjectTasks ? (
+                {!completedMeetingsLoaded ? (
                   <div className="space-y-4">
                     <div className="text-center py-4">
-                      <p className="text-gray-600 dark:text-gray-400">Data loading...</p>
+                      <p className="text-gray-600 dark:text-gray-400">Loading completed meetings...</p>
                     </div>
                     <div className="space-y-3">
                       {Array.from({ length: 5 }).map((_, i) => (
