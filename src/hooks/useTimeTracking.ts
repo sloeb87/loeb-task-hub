@@ -160,52 +160,71 @@ export function useTimeTracking() {
   };
 
   const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string) => {
+    console.log('🔥 startTimer called with:', { taskId, taskTitle, projectName, responsible });
+    
     if (!user) {
-      console.log('No user found, cannot start timer');
+      console.log('❌ No user found, cannot start timer');
       toast({ title: 'Authentication required', description: 'Please log in to start timer', variant: 'destructive' });
       return;
     }
 
+    console.log('✅ User found, proceeding with timer start');
+
     try {
       // Check if there's already a running timer for this task
       const existingTimer = taskTimers.get(taskId);
+      console.log('⏰ Checking existing timer for task:', taskId, existingTimer);
+      
       if (existingTimer?.isRunning) {
-        console.log('Timer already running for this task, returning');
+        console.log('⚠️ Timer already running for this task, returning');
+        toast({ title: 'Timer already running', description: 'This task already has an active timer', variant: 'destructive' });
         return;
       }
 
+      console.log('🛑 Stopping other running timers...');
       // Stop any other running timers
       const runningTasks = Array.from(taskTimers.entries())
         .filter(([_, data]) => data.isRunning)
         .map(([id]) => id);
       
+      console.log('🛑 Found running tasks to stop:', runningTasks);
+      
       for (const runningTaskId of runningTasks) {
+        console.log('🛑 Stopping timer for task:', runningTaskId);
         await stopTimer(runningTaskId);
       }
 
+      console.log('🚀 Creating new timer entry in database...');
       // Create new time entry in database
       const startTime = new Date().toISOString();
+      console.log('📅 Start time:', startTime);
+      
+      const insertData = {
+        user_id: user.id,
+        task_id: taskId,
+        task_title: taskTitle || taskId,
+        project_name: projectName || 'Unknown Project',
+        responsible: responsible || 'Unknown',
+        start_time: startTime,
+        description: 'Timer session',
+        is_running: true
+      };
+      
+      console.log('📝 Insert data:', insertData);
       
       const { data: newEntry, error } = await supabase
         .from('time_entries')
-        .insert({
-          user_id: user.id,
-          task_id: taskId,
-          task_title: taskTitle || taskId,
-          project_name: projectName || 'Unknown Project',
-          responsible: responsible || 'Unknown',
-          start_time: startTime,
-          description: 'Timer session',
-          is_running: true
-        })
+        .insert(insertData)
         .select()
         .single();
 
       if (error) {
-        console.error('Error creating time entry:', error);
-        toast({ title: 'Failed to start timer', variant: 'destructive' });
+        console.error('❌ Database error creating time entry:', error);
+        toast({ title: 'Failed to start timer', description: error.message || 'Database error', variant: 'destructive' });
         return;
       }
+
+      console.log('✅ Timer entry created successfully:', newEntry);
 
       // Convert to TimeEntry format
       const timeEntry: TimeEntry = {
