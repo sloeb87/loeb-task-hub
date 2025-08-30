@@ -10,10 +10,10 @@ import { toast } from "@/hooks/use-toast";
 import { TaskTable } from "@/components/TaskTable";
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import ProjectsPage from "./Projects";
-// Lazy-load heavy views
-const KPIDashboard = lazy(() => import("@/components/KPIDashboard").then(m => ({ default: m.KPIDashboard })));
-const FollowUpDialog = lazy(() => import("@/components/FollowUpDialog").then(m => ({ default: m.FollowUpDialog })));
-const ProjectDetailView = lazy(() => import("@/components/ProjectDetailView").then(m => ({ default: m.ProjectDetailView })));
+// Import components directly to avoid dynamic import issues
+import { KPIDashboard } from "@/components/KPIDashboard";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
+import { ProjectDetailView } from "@/components/ProjectDetailView";
 const TimeTrackingPage = lazy(() => import("./TimeTracking"));
 const FollowUpsPage = lazy(() => import("./FollowUps").then(m => ({ default: m.FollowUpsPage })));
 import Parameters from "@/components/Parameters";
@@ -728,38 +728,36 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
                 />
             </div>
           ) : activeView === "project-details" && selectedProject ? (
-            <Suspense fallback={<div className="py-10 text-center">Loading project details…</div>}>
-              <ProjectDetailView
-                project={selectedProject}
-                tasks={tasks}
-                allTasks={tasks}
-                allProjects={projects}
-                loadAllTasksForProject={loadAllTasksForProjectCached}
-                onBack={() => setActiveView("projects")}
-                onEditProject={() => {}} // Not needed in this context
-                onUpdateProject={handleUpdateProject}
-                onDeleteProject={handleDeleteProject}
-                onCreateTask={() => {
-                  // Create new task with project pre-selected
-                  setSelectedTask(null);
-                  // selectedProject is already set for this detail view
-                  setActiveView("task-edit");
-                }} // Navigate to task-edit view for new task creation
-                onEditTask={(task) => {
-                  setSelectedTask(task);
-                  // Find and set the corresponding project for the task
-                  const taskProject = projects.find(project => project.name === task.project);
-                  if (taskProject) {
-                    setSelectedProject(taskProject);
-                  }
-                  setActiveView("task-edit");
-                }} // Switch to task-edit view and update project when task is clicked
-                onGenerateReport={() => {}} // Could be implemented later
-                onUpdateTask={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
-                onSaveTask={handleUpdateTask}
-              />
-            </Suspense>
+            <ProjectDetailView
+              project={selectedProject}
+              tasks={tasks}
+              allTasks={tasks}
+              allProjects={projects}
+              loadAllTasksForProject={loadAllTasksForProjectCached}
+              onBack={() => setActiveView("projects")}
+              onEditProject={() => {}} // Not needed in this context
+              onUpdateProject={handleUpdateProject}
+              onDeleteProject={handleDeleteProject}
+              onCreateTask={() => {
+                // Create new task with project pre-selected
+                setSelectedTask(null);
+                // selectedProject is already set for this detail view
+                setActiveView("task-edit");
+              }} // Navigate to task-edit view for new task creation
+              onEditTask={(task) => {
+                setSelectedTask(task);
+                // Find and set the corresponding project for the task
+                const taskProject = projects.find(project => project.name === task.project);
+                if (taskProject) {
+                  setSelectedProject(taskProject);
+                }
+                setActiveView("task-edit");
+              }} // Switch to task-edit view and update project when task is clicked
+              onGenerateReport={() => {}} // Could be implemented later
+              onUpdateTask={handleUpdateTask}
+              onDeleteTask={handleDeleteTask}
+              onSaveTask={handleUpdateTask}
+            />
           ) : (
             <Suspense fallback={<div className="py-10 text-center">Loading projects…</div>}>
               <ProjectsPage 
