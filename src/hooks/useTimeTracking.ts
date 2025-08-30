@@ -160,9 +160,11 @@ export function useTimeTracking() {
   };
 
   const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string) => {
+    alert('startTimer function called for task: ' + taskId);
     console.log('startTimer called with:', { taskId, taskTitle, projectName, responsible, user: !!user });
     if (!user) {
       console.log('No user found, cannot start timer');
+      alert('No user found, cannot start timer');
       return;
     }
 
