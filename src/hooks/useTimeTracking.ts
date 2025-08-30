@@ -172,12 +172,15 @@ export function useTimeTracking() {
       // Check if there's already a running timer for this task
       const existingTimer = taskTimers.get(taskId);
       console.log('Existing timer for task:', existingTimer);
+      alert('Checking existing timer: ' + JSON.stringify(existingTimer));
       if (existingTimer?.isRunning) {
         console.log('Timer already running for this task, returning');
+        alert('Timer already running for this task, stopping here');
         return;
       }
 
       console.log('Timer check passed, continuing with timer start...');
+      alert('Timer check passed, continuing...');
 
       // Stop any other running timers
       const runningTasks = Array.from(taskTimers.entries())
@@ -185,17 +188,22 @@ export function useTimeTracking() {
         .map(([id]) => id);
       
       console.log('Running tasks to stop:', runningTasks);
+      alert('Running tasks to stop: ' + runningTasks.length);
       console.log('About to process running tasks...');
       for (const runningTaskId of runningTasks) {
         console.log('Stopping running task:', runningTaskId);
+        alert('About to stop running task: ' + runningTaskId);
         await stopTimer(runningTaskId);
+        alert('Stopped running task: ' + runningTaskId);
       }
 
       console.log('All running timers stopped, creating new entry...');
+      alert('All running timers stopped, creating new entry...');
 
       // Create new time entry in database
       const startTime = new Date().toISOString();
       console.log('Creating time entry with startTime:', startTime);
+      alert('About to create DB entry...');
       
       const { data: newEntry, error } = await supabase
         .from('time_entries')
