@@ -85,25 +85,11 @@ export const TimeTrackingCell: React.FC<TimeTrackingCellProps> = ({
           size="sm"
           variant={taskTime.isRunning ? "destructive" : "outline"}
           onClick={(e) => {
-            console.log('TIMER BUTTON CLICKED - Event triggered for task:', task.id);
-            alert(`Timer button clicked for task: ${task.id}`);
-            console.log('TimeTrackingCell - Timer button clicked for task:', task.id, task.title);
-            console.log('TimeTrackingCell - onTimerToggle function:', typeof onTimerToggle);
-            console.log('TimeTrackingCell - Event details:', e.type, e.currentTarget);
             try {
-              console.log('TimeTrackingCell - About to call onTimerToggle');
               onTimerToggle(task, e);
-              console.log('TimeTrackingCell - onTimerToggle called successfully');
             } catch (error) {
               console.error('TimeTrackingCell - Error calling onTimerToggle:', error);
-              alert('Error calling onTimerToggle: ' + error);
             }
-          }}
-          onMouseDown={(e) => {
-            console.log('TIMER BUTTON MOUSE DOWN detected for task:', task.id);
-          }}
-          onMouseUp={(e) => {
-            console.log('TIMER BUTTON MOUSE UP detected for task:', task.id);
           }}
           className="h-7 w-7 p-0 relative z-10"
           title={taskTime.isRunning ? "Stop Timer" : "Start Timer"}
