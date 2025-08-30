@@ -210,6 +210,8 @@ export const ProjectDetailView = ({
   };
 
   const handleEditTaskLocal = (task: Task) => {
+    console.log('ProjectDetailView - handleEditTaskLocal called for task:', task.id, task.title);
+    alert(`Task clicked in Project Detail: ${task.id} - ${task.title}`);
     onEditTask(task);
   };
 
