@@ -175,15 +175,21 @@ export function useTimeTracking() {
         return;
       }
 
+      console.log('Timer check passed, continuing with timer start...');
+
       // Stop any other running timers
       const runningTasks = Array.from(taskTimers.entries())
         .filter(([_, data]) => data.isRunning)
         .map(([id]) => id);
       
       console.log('Running tasks to stop:', runningTasks);
+      console.log('About to process running tasks...');
       for (const runningTaskId of runningTasks) {
+        console.log('Stopping running task:', runningTaskId);
         await stopTimer(runningTaskId);
       }
+
+      console.log('All running timers stopped, creating new entry...');
 
       // Create new time entry in database
       const startTime = new Date().toISOString();
