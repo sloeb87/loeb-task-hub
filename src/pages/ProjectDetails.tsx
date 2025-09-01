@@ -19,7 +19,8 @@ const ProjectDetails = () => {
     deleteTask,
     updateProject,
     deleteProject,
-    refreshTasks
+    refreshTasks,
+    loadAllTasksForProject
   } = useSupabaseStorage();
 
   // Set up navigation callback for task editing
@@ -153,6 +154,7 @@ const ProjectDetails = () => {
           project={project}
           tasks={projectTasks}
           allTasks={tasks}
+          loadAllTasksForProject={loadAllTasksForProject}
           onBack={handleBack}
           onEditProject={handleEditProject}
           onCreateTask={handleCreateTask}
