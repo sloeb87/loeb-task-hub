@@ -4,10 +4,20 @@ import { AppHeader } from './AppHeader';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 
-interface LastViewedState {
-  project: { id: string; name: string } | null;
-  task: { id: string; title: string } | null;
+interface CachedItem {
+  id: string;
+  name?: string;
+  title?: string;
+  cachedAt: number;
 }
+
+interface LastViewedState {
+  project: CachedItem | null;
+  task: CachedItem | null;
+}
+
+// Cache for 5 minutes to avoid constant refetching
+const CACHE_DURATION = 5 * 60 * 1000;
 
 export const AppHeaderWrapper = () => {
   const location = useLocation();
@@ -17,16 +27,92 @@ export const AppHeaderWrapper = () => {
   const { taskNavigationState } = useTaskNavigation();
   const { tasks, projects, refreshTasks } = useSupabaseStorage();
 
-  // Persistent state for last viewed project and task
+  // Persistent state for last viewed project and task with caching
   const [lastViewed, setLastViewed] = useState<LastViewedState>(() => {
     const saved = localStorage.getItem('lastViewedItems');
-    return saved ? JSON.parse(saved) : { project: null, task: null };
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        // Check if cached data is still valid
+        const now = Date.now();
+        if (parsed.project && now - parsed.project.cachedAt > CACHE_DURATION) {
+          parsed.project = null;
+        }
+        if (parsed.task && now - parsed.task.cachedAt > CACHE_DURATION) {
+          parsed.task = null;
+        }
+        return parsed;
+      } catch (e) {
+        return { project: null, task: null };
+      }
+    }
+    return { project: null, task: null };
   });
+
+  // Cache for project and task details
+  const [projectCache, setProjectCache] = useState<Map<string, CachedItem>>(new Map());
+  const [taskCache, setTaskCache] = useState<Map<string, CachedItem>>(new Map());
 
   // Save to localStorage whenever lastViewed changes
   useEffect(() => {
     localStorage.setItem('lastViewedItems', JSON.stringify(lastViewed));
   }, [lastViewed]);
+
+  // Function to get project details with caching
+  const getProjectDetails = (projectId: string) => {
+    // Check cache first
+    if (projectCache.has(projectId)) {
+      return projectCache.get(projectId);
+    }
+    
+    // Check if already in lastViewed and still valid
+    if (lastViewed.project?.id === projectId && 
+        Date.now() - lastViewed.project.cachedAt < CACHE_DURATION) {
+      return lastViewed.project;
+    }
+
+    // Find in loaded projects
+    const project = projects.find(p => p.id === projectId);
+    if (project) {
+      const cachedProject: CachedItem = {
+        id: projectId,
+        name: project.name,
+        cachedAt: Date.now()
+      };
+      setProjectCache(prev => new Map(prev).set(projectId, cachedProject));
+      return cachedProject;
+    }
+
+    return null;
+  };
+
+  // Function to get task details with caching
+  const getTaskDetails = (taskId: string) => {
+    // Check cache first
+    if (taskCache.has(taskId)) {
+      return taskCache.get(taskId);
+    }
+
+    // Check if already in lastViewed and still valid
+    if (lastViewed.task?.id === taskId && 
+        Date.now() - lastViewed.task.cachedAt < CACHE_DURATION) {
+      return lastViewed.task;
+    }
+
+    // Find in loaded tasks
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      const cachedTask: CachedItem = {
+        id: taskId,
+        title: task.title,
+        cachedAt: Date.now()
+      };
+      setTaskCache(prev => new Map(prev).set(taskId, cachedTask));
+      return cachedTask;
+    }
+
+    return null;
+  };
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -71,12 +157,14 @@ export const AppHeaderWrapper = () => {
     // Update last viewed project if on project details page
     if (location.pathname.startsWith('/projects/')) {
       const projectId = location.pathname.split('/projects/')[1];
-      const project = projects.find(p => p.id === projectId);
-      if (project && (!lastViewed.project || lastViewed.project.id !== projectId)) {
-        setLastViewed(prev => ({
-          ...prev,
-          project: { id: projectId, name: project.name }
-        }));
+      if (!lastViewed.project || lastViewed.project.id !== projectId) {
+        const projectDetails = getProjectDetails(projectId);
+        if (projectDetails) {
+          setLastViewed(prev => ({
+            ...prev,
+            project: projectDetails
+          }));
+        }
       }
     }
 
@@ -84,18 +172,20 @@ export const AppHeaderWrapper = () => {
     if (location.pathname.startsWith('/tasks/') && location.pathname !== '/tasks') {
       const taskId = location.pathname.split('/tasks/')[1];
       if (taskId && taskId !== 'new') {
-        const task = tasks.find(t => t.id === taskId);
-        if (task && (!lastViewed.task || lastViewed.task.id !== taskId)) {
-          setLastViewed(prev => ({
-            ...prev,
-            task: { id: taskId, title: task.title }
-          }));
-        } else if (!task && (!lastViewed.task || lastViewed.task.id !== taskId)) {
-          // Task not loaded yet, store with placeholder
-          setLastViewed(prev => ({
-            ...prev,
-            task: { id: taskId, title: 'Loading...' }
-          }));
+        if (!lastViewed.task || lastViewed.task.id !== taskId) {
+          const taskDetails = getTaskDetails(taskId);
+          if (taskDetails) {
+            setLastViewed(prev => ({
+              ...prev,
+              task: taskDetails
+            }));
+          } else {
+            // Create placeholder for task that's not loaded yet
+            setLastViewed(prev => ({
+              ...prev,
+              task: { id: taskId, title: 'Loading...', cachedAt: Date.now() }
+            }));
+          }
         }
       } else if (taskId === 'new') {
         // Clear task when creating new task
@@ -105,7 +195,7 @@ export const AppHeaderWrapper = () => {
         }));
       }
     }
-  }, [location.pathname, projects, tasks, lastViewed.project, lastViewed.task]);
+  }, [location.pathname]);
 
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     switch (view) {
@@ -157,31 +247,16 @@ export const AppHeaderWrapper = () => {
     setIsParametersOpen(true);
   };
 
-  // Get editing task title and ID from URL if on task edit page
-  const getCurrentTaskFromUrl = () => {
-    if (location.pathname.startsWith('/tasks/') && location.pathname !== '/tasks') {
-      const taskId = location.pathname.split('/tasks/')[1];
-      if (taskId && taskId !== 'new') {
-        const task = tasks.find(t => t.id === taskId);
-        return task ? { id: taskId, title: task.title } : { id: taskId, title: 'Loading...' };
-      }
-      return { id: 'new', title: 'New Task' };
-    }
-    return null;
-  };
-
-  const currentTask = getCurrentTaskFromUrl();
-  
-  // Use persistent last viewed items for display, with current items as fallback
+  // Use cached last viewed items for immediate display
   const displayProject = lastViewed.project;
   const displayTask = lastViewed.task;
   
-  // Get current project name from state if available (legacy support)
-  const selectedProjectName = displayProject?.name || (location.state as any)?.selectedProject || null;
+  // Get current project name from cached state
+  const selectedProjectName = displayProject?.name || null;
   
-  // Get editing task title
-  const editingTaskTitle = displayTask?.title || taskNavigationState.selectedTask?.title || null;
-  const editingTaskId = displayTask?.id || taskNavigationState.selectedTask?.id || null;
+  // Get editing task title from cached state
+  const editingTaskTitle = displayTask?.title || null;
+  const editingTaskId = displayTask?.id || null;
 
   return (
     <AppHeader
