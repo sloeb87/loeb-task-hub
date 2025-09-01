@@ -33,18 +33,25 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
   const runningTaskData = React.useMemo(() => {
+    console.log('RunningTimerDisplay - Checking for running timers:', taskTimers.size, 'timers');
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
     
     if (!runningTimerEntry) {
+      console.log('RunningTimerDisplay - No running timer found');
       return null;
     }
 
+    console.log('RunningTimerDisplay - Found running timer:', runningTimerEntry);
     const [taskId, timerData] = runningTimerEntry;
     const task = tasks.find(task => task.id === taskId);
     
-    if (task) return { task, timerData, isNonProject: false };
+    if (task) {
+      console.log('RunningTimerDisplay - Found matching task:', task.title);
+      return { task, timerData, isNonProject: false };
+    }
 
     if (taskId === NON_PROJECT_TASK_ID) {
+      console.log('RunningTimerDisplay - Non-project task timer');
       const syntheticTask = {
         id: NON_PROJECT_TASK_ID,
         title: NON_PROJECT_TASK_TITLE,
@@ -53,6 +60,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
+    console.log('RunningTimerDisplay - Timer found but no matching task');
     return null;
   }, [taskTimers, tasks.length, forceUpdate]);
 
@@ -85,8 +93,11 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   }, [runningTaskData?.timerData.currentSessionStart]);
 
   if (!runningTaskData) {
+    console.log('RunningTimerDisplay - No running task data, not rendering');
     return null;
   }
+
+  console.log('RunningTimerDisplay - Rendering timer for:', runningTaskData.task.title);
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
