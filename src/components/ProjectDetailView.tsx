@@ -269,8 +269,8 @@ export const ProjectDetailView = ({
 
   const handleEditTaskLocal = (task: Task) => {
     console.log('ProjectDetailView - handleEditTaskLocal called for task:', task.id, task.title);
-    alert(`Task clicked in Project Detail: ${task.id} - ${task.title}`);
-    onEditTask(task);
+    console.log('ProjectDetailView - Using navigateToTaskEdit with project:', project.name, 'projectId:', project.id);
+    navigateToTaskEdit(project.name, task, 'projectDetail', project.id);
   };
 
   const handleFollowUpLocal = (updatedTask: Task) => {

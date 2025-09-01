@@ -160,7 +160,7 @@ export const AppHeaderWrapper = React.memo(() => {
 
   const activeView = getActiveViewFromPath(location.pathname);
 
-  // Track current project and task from URL and update lastViewed state
+  // Track current project and task from URL and task navigation context
   useEffect(() => {
     // Update last viewed project if on project details page
     if (location.pathname.startsWith('/projects/')) {
@@ -171,6 +171,37 @@ export const AppHeaderWrapper = React.memo(() => {
           setLastViewed(prev => ({
             ...prev,
             project: projectDetails
+          }));
+        }
+      }
+    }
+    // Also check if we have project info from task navigation context
+    else if (taskNavigationState.projectId && taskNavigationState.projectName) {
+      const contextProject: CachedItem = {
+        id: taskNavigationState.projectId,
+        name: taskNavigationState.projectName,
+        cachedAt: Date.now()
+      };
+      if (!lastViewed.project || lastViewed.project.id !== taskNavigationState.projectId) {
+        setLastViewed(prev => ({
+          ...prev,
+          project: contextProject
+        }));
+      }
+    }
+    // If we have project name from task but no ID, try to find the project ID
+    else if (taskNavigationState.projectName && !taskNavigationState.projectId) {
+      const foundProject = projects.find(p => p.name === taskNavigationState.projectName);
+      if (foundProject) {
+        const contextProject: CachedItem = {
+          id: foundProject.id,
+          name: foundProject.name,
+          cachedAt: Date.now()
+        };
+        if (!lastViewed.project || lastViewed.project.id !== foundProject.id) {
+          setLastViewed(prev => ({
+            ...prev,
+            project: contextProject
           }));
         }
       }
@@ -205,7 +236,21 @@ export const AppHeaderWrapper = React.memo(() => {
         }));
       }
     }
-  }, [location.pathname]);
+    // Also check if we have task info from task navigation context
+    else if (taskNavigationState.selectedTask) {
+      const contextTask: CachedItem = {
+        id: taskNavigationState.selectedTask.id,
+        title: taskNavigationState.selectedTask.title,
+        cachedAt: Date.now()
+      };
+      if (!lastViewed.task || lastViewed.task.id !== taskNavigationState.selectedTask.id) {
+        setLastViewed(prev => ({
+          ...prev,
+          task: contextTask
+        }));
+      }
+    }
+  }, [location.pathname, taskNavigationState, getProjectDetails, getTaskDetails, lastViewed.project, lastViewed.task, projects]);
 
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     switch (view) {
