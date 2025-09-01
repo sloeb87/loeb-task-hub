@@ -8,6 +8,7 @@ import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { toast } from "@/hooks/use-toast";
+import { ListTodo } from "lucide-react";
 
 const Tasks = () => {
   const location = useLocation();
@@ -143,7 +144,10 @@ const Tasks = () => {
     <div className="min-h-screen bg-background">
       <main className="w-full p-6 space-y-6">
         <header>
-          <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <ListTodo className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
+          </div>
           <p className="text-muted-foreground">
             Organize and track your tasks efficiently
           </p>
