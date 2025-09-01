@@ -13,9 +13,11 @@ interface RunningTimerDisplayProps {
 
 export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDisplayProps) => {
   const { taskTimers, stopTimer } = useTimeTracking();
-  const { navigateToTaskEdit } = useTaskNavigation();
+  const { navigateToTaskEdit } = useTaskNavigation();  
   const [currentDuration, setCurrentDuration] = useState<string>("");
   const [forceUpdate, setForceUpdate] = useState(0);
+  
+  console.log('🔍 RunningTimerDisplay RENDERED - tasks:', tasks.length, 'taskTimers size:', taskTimers?.size || 0);
 
   // Listen for timer changes from other components
   useEffect(() => {
