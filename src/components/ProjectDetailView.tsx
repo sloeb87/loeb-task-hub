@@ -98,9 +98,8 @@ export const ProjectDetailView = ({
         const projectTasks = await loadAllTasksForProject(project.name);
         
         // First: Show opened tasks immediately (highest priority)
-        const meetingTypes = ['Meeting', 'Review'];
         const openTasks = projectTasks.filter(task => 
-          !meetingTypes.includes(task.taskType) && task.status !== 'Completed'
+          task.taskType !== 'Meeting' && task.status !== 'Completed'
         );
         setAllProjectTasks(openTasks);
         setOpenTasksLoaded(true);
@@ -108,7 +107,7 @@ export const ProjectDetailView = ({
         // Background loading: Load completed tasks after a short delay
         setTimeout(() => {
           const completedTasks = projectTasks.filter(task => 
-            !meetingTypes.includes(task.taskType) && task.status === 'Completed'
+            task.taskType !== 'Meeting' && task.status === 'Completed'
           );
           setAllProjectTasks(prev => [...prev, ...completedTasks]);
           setCompletedTasksLoaded(true);
@@ -116,9 +115,8 @@ export const ProjectDetailView = ({
         
         // Background loading: Load opened meetings
         setTimeout(() => {
-          const meetingTypes = ['Meeting', 'Review'];
           const openMeetings = projectTasks.filter(task => 
-            meetingTypes.includes(task.taskType) && task.status !== 'Completed'
+            task.taskType === 'Meeting' && task.status !== 'Completed'
           );
           setAllProjectTasks(prev => [...prev, ...openMeetings]);
           setOpenMeetingsLoaded(true);
@@ -126,9 +124,8 @@ export const ProjectDetailView = ({
         
         // Background loading: Load completed meetings last
         setTimeout(() => {
-          const meetingTypes = ['Meeting', 'Review'];
           const completedMeetings = projectTasks.filter(task => 
-            meetingTypes.includes(task.taskType) && task.status === 'Completed'
+            task.taskType === 'Meeting' && task.status === 'Completed'
           );
           setAllProjectTasks(prev => [...prev, ...completedMeetings]);
           setCompletedMeetingsLoaded(true);
@@ -184,7 +181,7 @@ export const ProjectDetailView = ({
              (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
     };
 
-    const meetingTypes = ['Meeting', 'Review'];
+    const meetingTypes = ['Meeting', 'Workshop', 'Review', 'TroubleShooting'];
     const allTasks = allProjectTasks.filter(task => !meetingTypes.includes(task.taskType));
     const allMeetings = allProjectTasks.filter(task => meetingTypes.includes(task.taskType));
 
