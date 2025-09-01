@@ -22,12 +22,19 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   // Listen for timer changes from other components
   useEffect(() => {
     const handleTimerUpdate = () => {
+      console.log('🔔 RunningTimerDisplay - Timer state change event received, forcing update');
       setForceUpdate(prev => prev + 1);
     };
 
     window.addEventListener('timerStateChanged', handleTimerUpdate);
     return () => window.removeEventListener('timerStateChanged', handleTimerUpdate);
   }, []);
+
+  // Also listen for changes in taskTimers directly
+  useEffect(() => {
+    console.log('🔄 RunningTimerDisplay - taskTimers changed, size:', taskTimers.size);
+    setForceUpdate(prev => prev + 1);
+  }, [taskTimers]);
 
   // Find the currently running task
   const NON_PROJECT_TASK_ID = 'non_project_time';

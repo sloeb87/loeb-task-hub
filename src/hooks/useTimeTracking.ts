@@ -243,7 +243,7 @@ export function useTimeTracking() {
       // Update time entries
       setTimeEntries(prev => [timeEntry, ...prev]);
       
-      // Update local state
+      // Update local state immediately and then notify
       setTaskTimers(prev => {
         const newMap = new Map(prev);
         const current = newMap.get(taskId) || {
@@ -259,11 +259,16 @@ export function useTimeTracking() {
           currentEntryId: newEntry.id
         });
         
-        // Notify other components that timer state changed - IMMEDIATE
-        window.dispatchEvent(new CustomEvent('timerStateChanged'));
+        console.log('🔄 startTimer - Updated taskTimers for', taskId, 'new state:', newMap.get(taskId));
         
         return newMap;
       });
+
+      // Notify other components that timer state changed - IMMEDIATE AND DELAYED
+      window.dispatchEvent(new CustomEvent('timerStateChanged'));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('timerStateChanged'));
+      }, 50);
     } catch (error) {
       console.error('Error starting timer:', error);
     }
@@ -311,7 +316,7 @@ export function useTimeTracking() {
         )
       );
 
-      // Update local state
+      // Update local state immediately and then notify
       setTaskTimers(prev => {
         const newMap = new Map(prev);
         const current = newMap.get(taskId);
@@ -325,11 +330,16 @@ export function useTimeTracking() {
           });
         }
         
-        // Notify other components that timer state changed - IMMEDIATE
-        window.dispatchEvent(new CustomEvent('timerStateChanged'));
+        console.log('🔄 stopTimer - Updated taskTimers for', taskId, 'new state:', newMap.get(taskId));
         
         return newMap;
       });
+        
+      // Notify other components that timer state changed - IMMEDIATE AND DELAYED
+      window.dispatchEvent(new CustomEvent('timerStateChanged'));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('timerStateChanged'));
+      }, 50);
     } catch (error) {
       console.error('Error stopping timer:', error);
     }
