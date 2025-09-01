@@ -6,6 +6,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
+import Tasks from "./pages/Tasks";
+import Dashboard from "./pages/Dashboard";
+import ProjectsWrapper from "./pages/ProjectsWrapper";
+import TimeTrackingWrapper from "./pages/TimeTrackingWrapper";
+import FollowUpsWrapper from "./pages/FollowUpsWrapper";
+import TaskEdit from "./pages/TaskEdit";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { useAuth } from "./hooks/useAuth";
@@ -50,7 +56,15 @@ function App() {
                   <ProtectedRoute>
                     <Index />
                   </ProtectedRoute>
-                } />
+                }>
+                  <Route index element={<Tasks />} />
+                  <Route path="tasks" element={<Tasks />} />
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="projects" element={<ProjectsWrapper />} />
+                  <Route path="time-tracking" element={<TimeTrackingWrapper />} />
+                  <Route path="follow-ups" element={<FollowUpsWrapper />} />
+                  <Route path="tasks/:id" element={<TaskEdit />} />
+                </Route>
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
