@@ -141,7 +141,7 @@ const Tasks = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-6 space-y-6">
+      <main className="w-full p-6 space-y-6">
         <header>
           <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
           <p className="text-muted-foreground">
