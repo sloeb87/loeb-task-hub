@@ -90,11 +90,16 @@ export const AppHeader = ({
     key: 'project-details',
     label: selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details',
     icon: FolderKanban,
-    disabled: !selectedProjectName // Only disabled if no project is selected
+    disabled: !selectedProjectName
   }, {
     key: 'tasks',
     label: 'Tasks',
     icon: ListTodo
+  }, {
+    key: 'task-edit',
+    label: editingTaskTitle && editingTaskId ? `Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details',
+    icon: ListTodo,
+    disabled: !editingTaskTitle
   }, {
     key: 'followups',
     label: 'Follow-Ups',
@@ -103,11 +108,6 @@ export const AppHeader = ({
     key: 'timetracking',
     label: 'Time Tracking',
     icon: Clock
-  }, {
-    key: 'task-edit',
-    label: editingTaskTitle && editingTaskId ? `${editingTaskId}_${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Edit',
-    icon: ListTodo,
-    disabled: !editingTaskTitle // Only show if editing a task
   }, {
     key: 'dashboard',
     label: 'KPIs',
@@ -250,11 +250,7 @@ export const AppHeader = ({
               >
                 <ListTodo className="w-4 h-4 md:mr-1 lg:mr-2" />
                 <span className="hidden lg:inline">
-                  {editingTaskTitle && editingTaskId ? (
-                    `${editingTaskId}_${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`
-                  ) : (
-                    'Task Details'
-                  )}
+                  {editingTaskTitle ? `Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
                 </span>
               </Button>
             </div>
