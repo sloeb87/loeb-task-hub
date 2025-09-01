@@ -35,25 +35,26 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
   const runningTaskData = React.useMemo(() => {
-    console.log('RunningTimerDisplay - Checking for running timers:', taskTimers.size, 'timers');
+    console.log('🔍 TIMER CHECK - All timers:', Array.from(taskTimers.entries()).map(([id, data]) => ({ id, isRunning: data.isRunning, title: tasks.find(t => t.id === id)?.title || 'Unknown' })));
+    
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
     
     if (!runningTimerEntry) {
-      console.log('RunningTimerDisplay - No running timer found');
+      console.log('🔍 TIMER CHECK - No running timer found');
       return null;
     }
 
-    console.log('RunningTimerDisplay - Found running timer:', runningTimerEntry);
+    console.log('🔍 TIMER CHECK - Found running timer:', runningTimerEntry[0], 'isRunning:', runningTimerEntry[1].isRunning);
     const [taskId, timerData] = runningTimerEntry;
     const task = tasks.find(task => task.id === taskId);
     
     if (task) {
-      console.log('RunningTimerDisplay - Found matching task:', task.title);
+      console.log('🔍 TIMER CHECK - Found matching task:', task.title, 'for taskId:', taskId);
       return { task, timerData, isNonProject: false };
     }
 
     if (taskId === NON_PROJECT_TASK_ID) {
-      console.log('RunningTimerDisplay - Non-project task timer');
+      console.log('🔍 TIMER CHECK - Non-project task timer running');
       const syntheticTask = {
         id: NON_PROJECT_TASK_ID,
         title: NON_PROJECT_TASK_TITLE,
@@ -62,7 +63,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
-    console.log('RunningTimerDisplay - Timer found but no matching task');
+    console.log('🔍 TIMER CHECK - Timer found but no matching task, taskId:', taskId);
     return null;
   }, [taskTimers, tasks.length, forceUpdate]);
 
