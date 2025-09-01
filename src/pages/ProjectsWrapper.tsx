@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { useTaskNavigation } from "@/contexts/TaskFormContext";
+import { Task } from "@/types/task";
 import ProjectsPage from "./Projects";
 
 const ProjectsWrapper = () => {
@@ -15,6 +17,8 @@ const ProjectsWrapper = () => {
     deleteProject
   } = useSupabaseStorage();
 
+  const { navigateToTaskEdit } = useTaskNavigation();
+
   // SEO
   useEffect(() => {
     document.title = "Projects | Task Tracker";
@@ -25,6 +29,10 @@ const ProjectsWrapper = () => {
       document.head.appendChild(meta);
     }
   }, []);
+
+  const handleEditTask = (task: Task) => {
+    navigateToTaskEdit(task.id);
+  };
 
   return (
     <ProjectsPage
@@ -37,7 +45,7 @@ const ProjectsWrapper = () => {
       onUpdateTask={updateTask}
       onDeleteTask={deleteTask}
       onAddFollowUp={addFollowUp}
-      onEditTask={() => {}} // Will be handled by navigation
+      onEditTask={handleEditTask}
     />
   );
 };

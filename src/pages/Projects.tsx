@@ -132,10 +132,8 @@ const ProjectsPage = ({
 
   const handleEditProject = (project: Project) => {
     console.log('Navigating to project details for:', project.name);
-    // Call parent handler to set selected project and switch to project details view
-    if (onEditProject) {
-      onEditProject(project);
-    }
+    debugSetDetailProject(project);
+    debugSetViewMode('detail');
   };
 
   const handleEditProjectForm = () => {
@@ -209,6 +207,29 @@ const ProjectsPage = ({
   };
 
   // Detail view is now handled in separate window, no conditional rendering needed
+
+  // Handle project navigation - show detail view when project is selected
+  if (viewMode === 'detail' && detailProject) {
+    console.log('Projects page - Rendering detail view for project:', detailProject.name);
+    return (
+      <ProjectDetailView
+        project={detailProject}
+        tasks={tasks.filter(task => task.project === detailProject.name)}
+        allTasks={tasks}
+        onBack={() => {
+          debugSetViewMode('list');
+          debugSetDetailProject(null);
+        }}
+        onEditProject={handleEditProjectForm}
+        onCreateTask={handleCreateTaskForProject}
+        onUpdateTask={onUpdateTask}
+        onDeleteTask={onDeleteTask}
+        onSaveTask={handleSaveTask}
+        onEditTask={handleEditTask}
+        onGenerateReport={handleGenerateReport}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

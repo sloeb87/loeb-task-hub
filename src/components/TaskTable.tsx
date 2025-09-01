@@ -422,9 +422,9 @@ export const TaskTable = ({
       return;
     }
     
-    console.log('TaskTable - Calling onEditTask for:', task.title);
-    onEditTask(task);
-  }, [onEditTask]);
+    console.log('TaskTable - Navigating to task edit for:', task.title);
+    navigateToTaskEdit(task.id);
+  }, [navigateToTaskEdit]);
 
   const handleFollowUpClick = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();

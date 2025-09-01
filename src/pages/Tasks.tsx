@@ -139,8 +139,8 @@ const Tasks = () => {
           sortField={sortField}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
-          onEditTask={() => {}} // Will be handled by navigation
-          onFollowUp={() => {}} // Will be handled by navigation
+          onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
+          onFollowUp={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           pagination={pagination}
           onSearch={searchTasks}
           currentSearchTerm={currentSearchTerm}
