@@ -218,14 +218,27 @@ export const AppHeaderWrapper = React.memo(() => {
             task: { id: taskId, title: 'Loading...', cachedAt: Date.now() }
           }));
           
-          // Load task details asynchronously
+          // Load task details asynchronously with better error handling
           getTaskDetails(taskId).then(taskDetails => {
             if (taskDetails) {
               setLastViewed(prev => ({
                 ...prev,
                 task: taskDetails
               }));
+            } else {
+              // If task loading fails, clear the loading state
+              console.warn('Failed to load task details for:', taskId);
+              setLastViewed(prev => ({
+                ...prev,
+                task: { id: taskId, title: `Task ${taskId}`, cachedAt: Date.now() }
+              }));
             }
+          }).catch(error => {
+            console.error('Error loading task details:', error);
+            setLastViewed(prev => ({
+              ...prev,
+              task: { id: taskId, title: `Task ${taskId}`, cachedAt: Date.now() }
+            }));
           });
         }
       } else if (taskId === 'new') {
@@ -236,14 +249,14 @@ export const AppHeaderWrapper = React.memo(() => {
         }));
       }
     }
-    // Also check if we have task info from task navigation context
+    // Also check if we have task info from task navigation context (prioritize this over loading)
     else if (taskNavigationState.selectedTask) {
       const contextTask: CachedItem = {
         id: taskNavigationState.selectedTask.id,
         title: taskNavigationState.selectedTask.title,
         cachedAt: Date.now()
       };
-      if (!lastViewed.task || lastViewed.task.id !== taskNavigationState.selectedTask.id) {
+      if (!lastViewed.task || lastViewed.task.id !== taskNavigationState.selectedTask.id || lastViewed.task.title === 'Loading...') {
         setLastViewed(prev => ({
           ...prev,
           task: contextTask
