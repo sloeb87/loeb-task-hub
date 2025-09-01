@@ -7,7 +7,7 @@ import { Project, Task } from "@/types/task";
 import { toast } from "@/hooks/use-toast";
 
 const ProjectDetails = () => {
-  const { projectName } = useParams<{ projectName: string }>();
+  const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const { setNavigationCallback } = useTaskNavigation();
@@ -32,11 +32,10 @@ const ProjectDetails = () => {
     });
   }, [navigate, setNavigationCallback]);
 
-  // Find the project
+  // Find the project by ID
   useEffect(() => {
-    if (projectName && projects.length > 0) {
-      const decodedProjectName = decodeURIComponent(projectName);
-      const foundProject = projects.find(p => p.name === decodedProjectName);
+    if (projectId && projects.length > 0) {
+      const foundProject = projects.find(p => p.id === projectId);
       if (foundProject) {
         setProject(foundProject);
       } else {
@@ -44,7 +43,7 @@ const ProjectDetails = () => {
         navigate('/projects');
       }
     }
-  }, [projectName, projects, navigate]);
+  }, [projectId, projects, navigate]);
 
   // SEO
   useEffect(() => {
@@ -71,6 +70,7 @@ const ProjectDetails = () => {
     // Navigate to new task with project pre-selected
     navigate('/tasks/new', { 
       state: { 
+        projectId: project?.id,
         projectName: project?.name 
       } 
     });

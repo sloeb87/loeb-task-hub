@@ -74,7 +74,7 @@ const ProjectsPage = ({
 
   const handleEditProject = (project: Project) => {
     console.log('Navigating to project details for:', project.name);
-    navigate(`/projects/${encodeURIComponent(project.name)}`);
+    navigate(`/projects/${project.id}`);
   };
 
   const handleEditProjectForm = () => {
@@ -98,6 +98,7 @@ const ProjectsPage = ({
     if (project) {
       navigate('/tasks/new', { 
         state: { 
+          projectId: project.id,
           projectName: project.name 
         } 
       });

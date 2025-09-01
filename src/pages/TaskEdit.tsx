@@ -49,8 +49,13 @@ const TaskEdit = () => {
         }
       }
       
-      // Also check location state for project name
-      if (location.state && (location.state as any).projectName) {
+      // Also check location state for project info
+      if (location.state && (location.state as any).projectId) {
+        const project = projects.find(p => p.id === (location.state as any).projectId);
+        if (project) {
+          setSelectedProject(project);
+        }
+      } else if (location.state && (location.state as any).projectName) {
         const project = projects.find(p => p.name === (location.state as any).projectName);
         if (project) {
           setSelectedProject(project);
@@ -101,7 +106,7 @@ const TaskEdit = () => {
       
       // Navigate to project details if we have a project, otherwise tasks
       if (selectedProject) {
-        navigate(`/projects/${encodeURIComponent(selectedProject.name)}`);
+        navigate(`/projects/${selectedProject.id}`);
       } else {
         navigate('/tasks');
       }
@@ -117,7 +122,7 @@ const TaskEdit = () => {
 
   const handleCancel = () => {
     if (selectedProject) {
-      navigate(`/projects/${encodeURIComponent(selectedProject.name)}`);
+      navigate(`/projects/${selectedProject.id}`);
     } else {
       navigate('/tasks');
     }

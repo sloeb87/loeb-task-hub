@@ -10,7 +10,7 @@ export const AppHeaderWrapper = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const { taskNavigationState } = useTaskNavigation();
-  const { tasks, refreshTasks } = useSupabaseStorage();
+  const { tasks, projects, refreshTasks } = useSupabaseStorage();
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -50,16 +50,18 @@ export const AppHeaderWrapper = () => {
 
   const activeView = getActiveViewFromPath(location.pathname);
 
-  // Get current project name from URL if on project details page
+  // Get current project from URL if on project details page
   const getCurrentProjectFromUrl = () => {
     if (location.pathname.startsWith('/projects/')) {
-      const encodedProjectName = location.pathname.split('/projects/')[1];
-      return decodeURIComponent(encodedProjectName);
+      const projectId = location.pathname.split('/projects/')[1];
+      // Find project by ID and return both ID and name
+      const project = projects.length > 0 ? projects.find(p => p.id === projectId) : null;
+      return project ? { id: projectId, name: project.name } : { id: projectId, name: 'Loading...' };
     }
     return null;
   };
 
-  const currentProjectName = getCurrentProjectFromUrl();
+  const currentProject = getCurrentProjectFromUrl();
 
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     switch (view) {
@@ -74,8 +76,8 @@ export const AppHeaderWrapper = () => {
         break;
       case 'project-details':
         // Navigate back to the current project details if available
-        if (currentProjectName) {
-          navigate(`/projects/${encodeURIComponent(currentProjectName)}`);
+        if (currentProject?.id) {
+          navigate(`/projects/${currentProject.id}`);
         } else {
           navigate('/projects');
         }
@@ -122,7 +124,7 @@ export const AppHeaderWrapper = () => {
   const currentTask = getCurrentTaskFromUrl();
   
   // Get current project name from state if available (legacy support)
-  const selectedProjectName = currentProjectName || (location.state as any)?.selectedProject || null;
+  const selectedProjectName = currentProject?.name || (location.state as any)?.selectedProject || null;
   
   // Get editing task title
   const editingTaskTitle = currentTask?.title || taskNavigationState.selectedTask?.title || null;

@@ -62,7 +62,7 @@ function App() {
                   <Route path="tasks" element={<Tasks />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="projects" element={<ProjectsWrapper />} />
-                  <Route path="projects/:projectName" element={<ProjectDetails />} />
+                  <Route path="projects/:projectId" element={<ProjectDetails />} />
                   <Route path="time-tracking" element={<TimeTrackingWrapper />} />
                   <Route path="follow-ups" element={<FollowUpsWrapper />} />
                   <Route path="tasks/:id" element={<TaskEdit />} />
