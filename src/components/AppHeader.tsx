@@ -237,7 +237,7 @@ export const AppHeader = ({
               >
                 <FolderKanban className="w-4 h-4 md:mr-1 lg:mr-2" />
                 <span className="hidden lg:inline">
-                  {selectedProjectName && selectedProjectId ? `${selectedProjectId}_${selectedProjectName}` : 'Project Details'}
+                  {selectedProjectName ? `Project: ${selectedProjectName}` : 'Project Details'}
                 </span>
               </Button>
               

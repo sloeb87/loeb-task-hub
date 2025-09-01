@@ -41,6 +41,7 @@ export const AppHeaderWrapper = () => {
     if (pathname === '/tasks') return 'tasks';
     if (pathname === '/dashboard') return 'dashboard';
     if (pathname === '/projects') return 'projects';
+    if (pathname.startsWith('/projects/')) return 'project-details';
     if (pathname === '/time-tracking') return 'timetracking';
     if (pathname === '/follow-ups') return 'followups';
     if (pathname.startsWith('/tasks/')) return 'task-edit';
@@ -48,6 +49,17 @@ export const AppHeaderWrapper = () => {
   };
 
   const activeView = getActiveViewFromPath(location.pathname);
+
+  // Get current project name from URL if on project details page
+  const getCurrentProjectFromUrl = () => {
+    if (location.pathname.startsWith('/projects/')) {
+      const encodedProjectName = location.pathname.split('/projects/')[1];
+      return decodeURIComponent(encodedProjectName);
+    }
+    return null;
+  };
+
+  const currentProjectName = getCurrentProjectFromUrl();
 
   const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
     switch (view) {
@@ -59,6 +71,14 @@ export const AppHeaderWrapper = () => {
         break;
       case 'projects':
         navigate('/projects');
+        break;
+      case 'project-details':
+        // Navigate back to the current project details if available
+        if (currentProjectName) {
+          navigate(`/projects/${encodeURIComponent(currentProjectName)}`);
+        } else {
+          navigate('/projects');
+        }
         break;
       case 'timetracking':
         navigate('/time-tracking');
@@ -86,11 +106,27 @@ export const AppHeaderWrapper = () => {
     setIsParametersOpen(true);
   };
 
-  // Get current project name from state if available
-  const selectedProjectName = location.state?.selectedProject || null;
+  // Get editing task title and ID from URL if on task edit page
+  const getCurrentTaskFromUrl = () => {
+    if (location.pathname.startsWith('/tasks/') && location.pathname !== '/tasks') {
+      const taskId = location.pathname.split('/tasks/')[1];
+      if (taskId && taskId !== 'new') {
+        const task = tasks.find(t => t.id === taskId);
+        return task ? { id: taskId, title: task.title } : { id: taskId, title: 'Loading...' };
+      }
+      return { id: 'new', title: 'New Task' };
+    }
+    return null;
+  };
+
+  const currentTask = getCurrentTaskFromUrl();
+  
+  // Get current project name from state if available (legacy support)
+  const selectedProjectName = currentProjectName || (location.state as any)?.selectedProject || null;
   
   // Get editing task title
-  const editingTaskTitle = taskNavigationState.selectedTask?.title || null;
+  const editingTaskTitle = currentTask?.title || taskNavigationState.selectedTask?.title || null;
+  const editingTaskId = currentTask?.id || taskNavigationState.selectedTask?.id || null;
 
   return (
     <AppHeader
@@ -102,7 +138,9 @@ export const AppHeaderWrapper = () => {
       onRefresh={handleRefresh}
       onBack={handleBack}
       selectedProjectName={selectedProjectName}
+      selectedProjectId={null} // Remove ID display for cleaner look
       editingTaskTitle={editingTaskTitle}
+      editingTaskId={editingTaskId}
       tasks={tasks}
     />
   );
