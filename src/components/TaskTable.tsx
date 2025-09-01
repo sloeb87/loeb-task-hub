@@ -1053,34 +1053,48 @@ export const TaskTable = ({
       </div>
 
       {/* Bottom Pagination Controls for Desktop */}
-      {pagination && pagination.totalPages > 1 && onPageChange && (
+      {pagination && onPageChange && (
         <div className="p-4 border-t border-border bg-gray-50 dark:bg-gray-800/50">
-          <div className="flex items-center justify-center">
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(pagination.currentPage - 1)}
-                disabled={pagination.currentPage === 1 || isLoading}
-                className="px-2 py-1"
-              >
-                <ChevronDown className="w-4 h-4 rotate-90" />
-              </Button>
-              
-              <span className="text-sm text-muted-foreground whitespace-nowrap px-3">
-                Page {pagination.currentPage} of {pagination.totalPages}
-              </span>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(pagination.currentPage + 1)}
-                disabled={pagination.currentPage === pagination.totalPages || isLoading}
-                className="px-2 py-1"
-              >
-                <ChevronUp className="w-4 h-4 rotate-90" />
-              </Button>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Showing {Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, pagination.totalTasks)} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalTasks)} of{' '}
+              {pagination.totalTasks} tasks
             </div>
+            
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1 || isLoading}
+                  className="px-2 py-1"
+                >
+                  <ChevronDown className="w-4 h-4 rotate-90" />
+                </Button>
+                
+                <span className="text-sm font-medium whitespace-nowrap px-3">
+                  Page {pagination.currentPage} of {pagination.totalPages}
+                </span>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages || isLoading}
+                  className="px-2 py-1"
+                >
+                  <ChevronUp className="w-4 h-4 rotate-90" />
+                </Button>
+              </div>
+            )}
+            
+            {pagination.totalPages <= 1 && (
+              <div className="text-sm font-medium text-muted-foreground">
+                {pagination.totalPages === 0 ? 'No pages' : '1 page'}
+              </div>
+            )}
           </div>
         </div>
       )}
