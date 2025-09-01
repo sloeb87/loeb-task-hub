@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2, X } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2, X, CheckCircle2 } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -887,13 +887,33 @@ export const TaskTable = ({
                         </div>
                      </TableCell>
 
-                     {/* Time Tracking Column */}
+                     {/* Action Column */}
                      <TableCell>
-                       <TimeTrackingCell
-                         task={task}
-                         onTimerToggle={handleTimerToggle}
-                         onLinkClick={handleLinkClick}
-                       />
+                       <div className="flex items-center gap-2">
+                         <TimeTrackingCell
+                           task={task}
+                           onTimerToggle={handleTimerToggle}
+                           onLinkClick={handleLinkClick}
+                         />
+                         {task.status !== 'Completed' && (
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={(e) => {
+                               e.stopPropagation();
+                               onEditTask({
+                                 ...task,
+                                 status: 'Completed',
+                                 completionDate: new Date().toISOString().split('T')[0]
+                               });
+                             }}
+                             className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                             title="Mark as completed"
+                           >
+                             <CheckCircle2 className="w-4 h-4" />
+                           </Button>
+                         )}
+                       </div>
                      </TableCell>
 
                    {/* Follow Ups Column */}
