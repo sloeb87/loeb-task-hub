@@ -259,10 +259,8 @@ export function useTimeTracking() {
           currentEntryId: newEntry.id
         });
         
-        // Notify other components that timer state changed
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('timerStateChanged'));
-        }, 100);
+        // Notify other components that timer state changed - IMMEDIATE
+        window.dispatchEvent(new CustomEvent('timerStateChanged'));
         
         return newMap;
       });
@@ -327,10 +325,8 @@ export function useTimeTracking() {
           });
         }
         
-        // Notify other components that timer state changed
-        setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('timerStateChanged'));
-        }, 100);
+        // Notify other components that timer state changed - IMMEDIATE
+        window.dispatchEvent(new CustomEvent('timerStateChanged'));
         
         return newMap;
       });
