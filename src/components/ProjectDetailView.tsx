@@ -181,9 +181,8 @@ export const ProjectDetailView = ({
              (priorityOrder[a.priority as keyof typeof priorityOrder] || 0);
     };
 
-    const meetingTypes = ['Meeting', 'Workshop', 'Review', 'TroubleShooting'];
-    const allTasks = allProjectTasks.filter(task => !meetingTypes.includes(task.taskType));
-    const allMeetings = allProjectTasks.filter(task => meetingTypes.includes(task.taskType));
+    const allTasks = allProjectTasks.filter(task => task.taskType !== 'Meeting');
+    const allMeetings = allProjectTasks.filter(task => task.taskType === 'Meeting');
 
     return {
       allProjectTasksForStats: allTasks,
