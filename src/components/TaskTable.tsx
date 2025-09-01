@@ -891,32 +891,86 @@ export const TaskTable = ({
 
                       {/* Action Column */}
                      <TableCell>
-                       <div className="flex items-center gap-2">
-                         {/* Timer Button */}
-                         <Button
-                           size="sm"
-                           variant={(() => {
-                             const taskTime = getTaskTime(task.id);
-                             return taskTime.isRunning ? "destructive" : "outline";
-                           })()}
-                           onClick={(e) => handleTimerToggle(task, e)}
-                           className="h-7 w-7 p-0"
-                           title={(() => {
-                             const taskTime = getTaskTime(task.id);
-                             return taskTime.isRunning ? "Stop Timer" : "Start Timer";
-                           })()}
-                         >
-                           {(() => {
-                             const taskTime = getTaskTime(task.id);
-                             return taskTime.isRunning ? (
-                               <Pause className="w-3 h-3" />
-                             ) : (
-                               <Play className="w-3 h-3" />
-                             );
-                           })()}
-                         </Button>
+                       <div className="space-y-2">
+                         {/* First Row: Timer and Complete Buttons */}
+                         <div className="flex items-center gap-2">
+                           {/* Timer Button */}
+                           <Button
+                             size="sm"
+                             variant={(() => {
+                               const taskTime = getTaskTime(task.id);
+                               return taskTime.isRunning ? "destructive" : "outline";
+                             })()}
+                             onClick={(e) => handleTimerToggle(task, e)}
+                             className="h-7 w-7 p-0"
+                             title={(() => {
+                               const taskTime = getTaskTime(task.id);
+                               return taskTime.isRunning ? "Stop Timer" : "Start Timer";
+                             })()}
+                           >
+                             {(() => {
+                               const taskTime = getTaskTime(task.id);
+                               return taskTime.isRunning ? (
+                                 <Pause className="w-3 h-3" />
+                               ) : (
+                                 <Play className="w-3 h-3" />
+                               );
+                             })()}
+                           </Button>
+                           
+                           {/* Complete Button */}
+                           {task.status !== 'Completed' && (
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 if (onCompleteTask) {
+                                   onCompleteTask({
+                                     ...task,
+                                     status: 'Completed',
+                                     completionDate: new Date().toISOString().split('T')[0]
+                                   });
+                                 }
+                               }}
+                               className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                               title="Mark as completed"
+                             >
+                               <CheckCircle2 className="w-4 h-4" />
+                             </Button>
+                           )}
+                           
+                           {/* Time Display */}
+                           <div className="flex flex-col items-center text-xs text-gray-500">
+                             {(() => {
+                               const taskTime = getTaskTime(task.id);
+                               const totalTime = taskTime.totalTime;
+                               if (totalTime > 0) {
+                                 return (
+                                   <div className="flex items-center">
+                                     <Clock className="w-3 h-3 mr-1" />
+                                     <span>{formatTime(totalTime)}</span>
+                                   </div>
+                                 );
+                               }
+                               return null;
+                             })()}
+                             {(() => {
+                               const taskTime = getTaskTime(task.id);
+                               if (taskTime.isRunning) {
+                                 return (
+                                   <div className="flex items-center text-red-600 dark:text-red-400">
+                                     <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
+                                     <span className="text-xs">Live</span>
+                                   </div>
+                                 );
+                               }
+                               return null;
+                             })()}
+                           </div>
+                         </div>
 
-                         {/* Link Icons */}
+                         {/* Second Row: Link Icons */}
                          {(() => {
                            const hasLinks = task.links && (
                              (task.links.folder && task.links.folder.length > 0) ||
@@ -1014,57 +1068,6 @@ export const TaskTable = ({
                            }
                            return null;
                          })()}
-                         
-                         {/* Complete Button */}
-                         {task.status !== 'Completed' && (
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               if (onCompleteTask) {
-                                 onCompleteTask({
-                                   ...task,
-                                   status: 'Completed',
-                                   completionDate: new Date().toISOString().split('T')[0]
-                                 });
-                               }
-                             }}
-                             className="h-7 w-7 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
-                             title="Mark as completed"
-                           >
-                             <CheckCircle2 className="w-4 h-4" />
-                           </Button>
-                         )}
-                         
-                         {/* Time Display */}
-                         <div className="flex flex-col items-center text-xs text-gray-500">
-                           {(() => {
-                             const taskTime = getTaskTime(task.id);
-                             const totalTime = taskTime.totalTime;
-                             if (totalTime > 0) {
-                               return (
-                                 <div className="flex items-center">
-                                   <Clock className="w-3 h-3 mr-1" />
-                                   <span>{formatTime(totalTime)}</span>
-                                 </div>
-                               );
-                             }
-                             return null;
-                           })()}
-                           {(() => {
-                             const taskTime = getTaskTime(task.id);
-                             if (taskTime.isRunning) {
-                               return (
-                                 <div className="flex items-center text-red-600 dark:text-red-400">
-                                   <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse mr-1"></div>
-                                   <span className="text-xs">Live</span>
-                                 </div>
-                               );
-                             }
-                             return null;
-                           })()}
-                         </div>
                        </div>
                      </TableCell>
 
