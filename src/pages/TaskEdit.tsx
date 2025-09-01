@@ -19,50 +19,67 @@ const TaskEdit = () => {
     projects,
     createTask,
     updateTask,
-    refreshTasks
+    refreshTasks,
+    loadTaskById
   } = useSupabaseStorage();
 
   // Load task data
   useEffect(() => {
-    if (id && id !== 'new') {
-      const task = tasks.find(t => t.id === id);
-      if (task) {
-        setSelectedTask(task);
-        updateSelectedTask(task);
+    const loadTaskData = async () => {
+      if (id && id !== 'new') {
+        // First try to find task in current tasks array
+        let task = tasks.find(t => t.id === id);
         
-        // Find and set the corresponding project
-        const taskProject = projects.find(project => project.name === task.project);
-        if (taskProject) {
-          setSelectedProject(taskProject);
+        // If not found in current array (pagination issue), load directly from database
+        if (!task) {
+          console.log('Task not found in current tasks, loading from database:', id);
+          task = await loadTaskById(id);
+        }
+        
+        if (task) {
+          setSelectedTask(task);
+          updateSelectedTask(task);
+          
+          // Find and set the corresponding project
+          const taskProject = projects.find(project => project.name === task.project);
+          if (taskProject) {
+            setSelectedProject(taskProject);
+          }
+        } else {
+          console.log('Task not found:', id);
+          // Optionally redirect to tasks list if task doesn't exist
+          // navigate('/tasks');
+        }
+      } else {
+        // New task
+        setSelectedTask(null);
+        updateSelectedTask(null);
+        
+        // Use project from navigation state if available
+        if (taskNavigationState.projectName) {
+          const project = projects.find(p => p.name === taskNavigationState.projectName);
+          if (project) {
+            setSelectedProject(project);
+          }
+        }
+        
+        // Also check location state for project info
+        if (location.state && (location.state as any).projectId) {
+          const project = projects.find(p => p.id === (location.state as any).projectId);
+          if (project) {
+            setSelectedProject(project);
+          }
+        } else if (location.state && (location.state as any).projectName) {
+          const project = projects.find(p => p.name === (location.state as any).projectName);
+          if (project) {
+            setSelectedProject(project);
+          }
         }
       }
-    } else {
-      // New task
-      setSelectedTask(null);
-      updateSelectedTask(null);
-      
-      // Use project from navigation state if available
-      if (taskNavigationState.projectName) {
-        const project = projects.find(p => p.name === taskNavigationState.projectName);
-        if (project) {
-          setSelectedProject(project);
-        }
-      }
-      
-      // Also check location state for project info
-      if (location.state && (location.state as any).projectId) {
-        const project = projects.find(p => p.id === (location.state as any).projectId);
-        if (project) {
-          setSelectedProject(project);
-        }
-      } else if (location.state && (location.state as any).projectName) {
-        const project = projects.find(p => p.name === (location.state as any).projectName);
-        if (project) {
-          setSelectedProject(project);
-        }
-      }
-    }
-  }, [id, tasks, projects, taskNavigationState.projectName, location.state, updateSelectedTask]);
+    };
+
+    loadTaskData();
+  }, [id, tasks, projects, taskNavigationState.projectName, location.state, updateSelectedTask, loadTaskById]);
 
   // SEO
   useEffect(() => {

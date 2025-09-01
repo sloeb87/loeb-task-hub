@@ -470,6 +470,38 @@ export function useSupabaseStorage() {
       return [];
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
+  
+  // Load a specific task by ID (not dependent on pagination)
+  const loadTaskById = useCallback(async (taskId: string): Promise<Task | null> => {
+    if (!isAuthenticated || !user) {
+      console.log('loadTaskById: No authentication or user');
+      return null;
+    }
+
+    try {
+      // First get the task using task_number (which is the ID in the frontend)
+      const { data: taskData, error: taskError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('task_number', taskId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (taskError) throw taskError;
+      
+      if (!taskData) {
+        console.log('Task not found:', taskId);
+        return null;
+      }
+
+      // Convert the task
+      const convertedTask = await convertSupabaseTaskToTask(taskData);
+      return convertedTask;
+    } catch (err) {
+      console.error('Error loading task by ID:', err);
+      return null;
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
 
   // Search through ALL tasks with pagination support
   const searchTasks = useCallback(async (
@@ -1497,6 +1529,7 @@ export function useSupabaseStorage() {
     loadTasks,
     searchTasks,
     loadAllTasksForProject,
+    loadTaskById,
     createTask,
     updateTask,
     deleteTask,
