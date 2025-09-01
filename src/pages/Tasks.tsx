@@ -119,6 +119,16 @@ const Tasks = () => {
     setSortDirection(direction);
   };
 
+  const handlePageChange = useCallback((page: number) => {
+    if (currentSearchTerm.trim()) {
+      // If we're in search mode, use searchTasks with the current search term
+      searchTasks(currentSearchTerm, page, pagination.pageSize, sortField, sortDirection);
+    } else {
+      // If not searching, use loadTasks
+      loadTasks(page, pagination.pageSize, sortField, sortDirection);
+    }
+  }, [currentSearchTerm, searchTasks, loadTasks, pagination.pageSize, sortField, sortDirection]);
+
   if (error) {
     return (
       <div className="p-6">
@@ -156,6 +166,7 @@ const Tasks = () => {
           onFollowUp={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onCompleteTask={handleUpdateTask} // Handle task completion
           pagination={pagination}
+          onPageChange={handlePageChange}
           onSearch={searchTasks}
           currentSearchTerm={currentSearchTerm}
           isLoading={isLoading}
