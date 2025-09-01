@@ -110,7 +110,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       case 'scope':
         return [...new Set(baseEntries.flatMap(e => {
           const task = tasks.find(t => t.id === e.taskId);
-          return task?.scope || [];
+          if (!task) {
+            // If task not found, try to get scope from project
+            const project = projects.find(p => p.name === e.projectName);
+            const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+            return projectScopes.length > 0 ? projectScopes : ['Unassigned'];
+          }
+          return (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
         }).filter(Boolean))].sort();
       case 'type':
         return [...new Set(baseEntries.map(e => {
@@ -234,7 +240,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     if (multiSelectFilters.scope.length > 0) {
       filtered = filtered.filter(e => {
         const task = tasks.find(t => t.id === e.taskId);
-        return task && task.scope.some(scope => multiSelectFilters.scope.includes(scope));
+        if (!task) {
+          // If task not found, check project scope
+          const project = projects.find(p => p.name === e.projectName);
+          const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+          const scopesToCheck = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
+          return scopesToCheck.some(scope => multiSelectFilters.scope.includes(scope));
+        }
+        const taskScopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+        return taskScopes.some(scope => multiSelectFilters.scope.includes(scope));
       });
     }
     if (multiSelectFilters.type.length > 0) {
@@ -542,7 +556,17 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const now = new Date();
     filteredEntries.forEach((e) => {
       const task = tasks.find(t => t.id === e.taskId);
-      const scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      let scopes: string[];
+      
+      if (!task) {
+        // If task not found, try to get scope from project
+        const project = projects.find(p => p.name === e.projectName);
+        const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+        scopes = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
+      } else {
+        scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      }
+      
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
         : e.endTime
@@ -566,7 +590,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       .sort((a, b) => b.value - a.value);
     
     return applyParetoLogic(rawData);
-  }, [filteredEntries, tasks]);
+  }, [filteredEntries, tasks, projects]);
 
   const scopeChartConfig = useMemo<ChartConfig>(() => {
     return scopePieData.reduce((acc, item) => {
@@ -581,7 +605,17 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const now = new Date();
     filteredEntries.forEach((e) => {
       const task = tasks.find(t => t.id === e.taskId);
-      const scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      let scopes: string[];
+      
+      if (!task) {
+        // If task not found, try to get scope from project
+        const project = projects.find(p => p.name === e.projectName);
+        const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+        scopes = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
+      } else {
+        scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      }
+      
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
         : e.endTime
@@ -602,7 +636,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         percent: total ? Math.round((value / total) * 1000) / 10 : 0,
       }))
       .sort((a, b) => b.value - a.value);
-  }, [filteredEntries, tasks]);
+  }, [filteredEntries, tasks, projects]);
 
   const scopeColors = useMemo(
     () => scopePieData.map((_, i) => chartColors[i % chartColors.length]),
