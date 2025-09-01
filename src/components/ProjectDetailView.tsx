@@ -95,7 +95,7 @@ export const ProjectDetailView = ({
         setCompletedMeetingsLoaded(false);
         
         // Load all tasks at once but process them progressively
-        const projectTasks = await loadAllTasksForProject(project.name);
+        const projectTasks = await loadAllTasksForProject(project.id);
         
         // First: Show opened tasks immediately (highest priority)
         const openTasks = projectTasks.filter(task => 
@@ -148,7 +148,7 @@ export const ProjectDetailView = ({
     if (allProjectTasks.length === 0 || refreshKey > 0) {
       loadProjectTasksProgressively();
     }
-  }, [project.name, loadAllTasksForProject, refreshKey]);
+  }, [project.id, loadAllTasksForProject, refreshKey]);
 
   // Listen for task updates to refresh the view only when necessary
   useEffect(() => {

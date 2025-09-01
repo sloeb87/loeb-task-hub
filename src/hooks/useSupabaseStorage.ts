@@ -415,55 +415,64 @@ export function useSupabaseStorage() {
     }
   }, [isAuthenticated, user]);
 
-  // Load ALL tasks for a specific project (no pagination)
-  const loadAllTasksForProject = useCallback(async (projectName: string): Promise<Task[]> => {
+  // Load ALL tasks for a specific project by ID (no pagination)
+  const loadAllTasksForProject = useCallback(async (projectId: string): Promise<Task[]> => {
     if (!isAuthenticated || !user) {
       console.log('loadAllTasksForProject: No authentication or user');
       return [];
     }
 
     try {
-      console.log('loadAllTasksForProject called with projectName:', projectName);
+      console.log('loadAllTasksForProject called with projectId:', projectId);
       
-      // First find the project ID
-      const { data: projectData, error: projectError } = await supabase
-        .from('projects')
-        .select('id, name')
-        .eq('name', projectName)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      console.log('Project search result:', { projectData, error: projectError });
-
-      if (projectError) throw projectError;
-      
-      if (!projectData) {
-        console.log('Project not found:', projectName);
-        // Let's also check all available projects for debugging
-        const { data: allProjects } = await supabase
-          .from('projects')
-          .select('id, name')
-          .eq('user_id', user.id);
-        console.log('All available projects:', allProjects);
-        return [];
-      }
-
-      // Then get ALL tasks for this project (no pagination)
+      // Get ALL tasks for this project directly using project_id (no pagination)
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .eq('project_id', projectData.id)
+        .eq('project_id', projectId)
         .order('due_date', { ascending: true });
 
       if (error) throw error;
 
-      console.log(`Loaded ${data?.length || 0} total tasks for project ${projectName}`);
+      console.log(`Loaded ${data?.length || 0} total tasks for project ${projectId}`);
+
+      // Batch fetch all follow-ups and project names to avoid N+1 queries
+      const taskIds = (data || []).map(t => t.id);
+
+      // Fetch all follow-ups in one query
+      const { data: allFollowUps } = await supabase
+        .from('follow_ups')
+        .select('id, text, created_at, task_status, task_id')
+        .in('task_id', taskIds)
+        .order('created_at', { ascending: false });
+
+      // Group follow-ups by task_id
+      const followUpsMap = new Map<string, any[]>();
+      (allFollowUps || []).forEach(followUp => {
+        if (!followUpsMap.has(followUp.task_id)) {
+          followUpsMap.set(followUp.task_id, []);
+        }
+        followUpsMap.get(followUp.task_id)!.push(followUp);
+      });
+
+      // Get project name for the tasks
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('name')
+        .eq('id', projectId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const projectName = projectData?.name || '';
+      const projectNamesMap = new Map<string, string>();
+      projectNamesMap.set(projectId, projectName);
 
       const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task))
+        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
       );
 
+      console.log('Converted tasks with meetings:', convertedTasks.filter(t => t.taskType === 'Meeting').length, 'meetings');
       return convertedTasks;
     } catch (err) {
       console.error('Error loading all tasks for project:', err);
