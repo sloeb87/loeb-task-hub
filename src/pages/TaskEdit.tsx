@@ -19,6 +19,9 @@ const TaskEdit = () => {
     projects,
     createTask,
     updateTask,
+    deleteTask,
+    deleteAllRecurringTasks,
+    updateAllRecurringTasks,
     refreshTasks,
     loadTaskById
   } = useSupabaseStorage();
@@ -137,6 +140,58 @@ const TaskEdit = () => {
     }
   }, [updateTask, refreshTasks, navigate, selectedProject]);
 
+  const handleDeleteTask = useCallback(async (taskId: string) => {
+    try {
+      await deleteTask(taskId);
+      await refreshTasks();
+      toast({
+        title: "Success",
+        description: "Task deleted successfully",
+      });
+      navigate('/tasks');
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the task. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [deleteTask, refreshTasks, navigate]);
+
+  const handleDeleteAllRecurring = useCallback(async (taskId: string) => {
+    try {
+      await deleteAllRecurringTasks(taskId);
+      await refreshTasks();
+      navigate('/tasks');
+    } catch (error) {
+      console.error('Failed to delete recurring tasks:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete recurring tasks. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [deleteAllRecurringTasks, refreshTasks, navigate]);
+
+  const handleUpdateAllRecurring = useCallback(async (taskId: string, updateData: any) => {
+    try {
+      await updateAllRecurringTasks(taskId, updateData);
+      await refreshTasks();
+      toast({
+        title: "Success",
+        description: "All recurring tasks updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update recurring tasks:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update recurring tasks. Please try again.",
+        variant: "destructive",
+      });
+    }
+  }, [updateAllRecurringTasks, refreshTasks]);
+
   const handleCancel = () => {
     if (selectedProject) {
       navigate(`/projects/${selectedProject.id}`);
@@ -152,6 +207,9 @@ const TaskEdit = () => {
           isOpen={true}
           onClose={handleCancel}
           onSave={selectedTask ? handleUpdateTask : handleCreateTask}
+          onDelete={selectedTask ? handleDeleteTask : undefined}
+          onDeleteAllRecurring={selectedTask ? handleDeleteAllRecurring : undefined}
+          onUpdateAllRecurring={selectedTask ? handleUpdateAllRecurring : undefined}
           task={selectedTask}
           allTasks={tasks}
           allProjects={projects}
