@@ -139,6 +139,7 @@ const TaskEdit = () => {
           allTasks={tasks}
           allProjects={projects}
           projectName={selectedProject?.name}
+          renderInline={true}
         />
       </main>
     </div>
