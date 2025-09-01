@@ -25,7 +25,7 @@ export const AppHeaderWrapper = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const { taskNavigationState } = useTaskNavigation();
-  const { tasks, projects, refreshTasks } = useSupabaseStorage();
+  const { tasks, projects, refreshTasks, loadTaskById } = useSupabaseStorage();
 
   // Persistent state for last viewed project and task with caching
   const [lastViewed, setLastViewed] = useState<LastViewedState>(() => {
@@ -87,7 +87,7 @@ export const AppHeaderWrapper = () => {
   };
 
   // Function to get task details with caching
-  const getTaskDetails = (taskId: string) => {
+  const getTaskDetails = async (taskId: string) => {
     // Check cache first
     if (taskCache.has(taskId)) {
       return taskCache.get(taskId);
@@ -95,12 +95,20 @@ export const AppHeaderWrapper = () => {
 
     // Check if already in lastViewed and still valid
     if (lastViewed.task?.id === taskId && 
+        lastViewed.task.title !== 'Loading...' &&
         Date.now() - lastViewed.task.cachedAt < CACHE_DURATION) {
       return lastViewed.task;
     }
 
-    // Find in loaded tasks
-    const task = tasks.find(t => t.id === taskId);
+    // Find in loaded tasks first (faster)
+    let task = tasks.find(t => t.id === taskId);
+    
+    // If not found in current paginated tasks, load from database
+    if (!task) {
+      console.log('Task not in current page, loading from database:', taskId);
+      task = await loadTaskById(taskId);
+    }
+    
     if (task) {
       const cachedTask: CachedItem = {
         id: taskId,
@@ -173,19 +181,21 @@ export const AppHeaderWrapper = () => {
       const taskId = location.pathname.split('/tasks/')[1];
       if (taskId && taskId !== 'new') {
         if (!lastViewed.task || lastViewed.task.id !== taskId) {
-          const taskDetails = getTaskDetails(taskId);
-          if (taskDetails) {
-            setLastViewed(prev => ({
-              ...prev,
-              task: taskDetails
-            }));
-          } else {
-            // Create placeholder for task that's not loaded yet
-            setLastViewed(prev => ({
-              ...prev,
-              task: { id: taskId, title: 'Loading...', cachedAt: Date.now() }
-            }));
-          }
+          // Set loading state immediately
+          setLastViewed(prev => ({
+            ...prev,
+            task: { id: taskId, title: 'Loading...', cachedAt: Date.now() }
+          }));
+          
+          // Load task details asynchronously
+          getTaskDetails(taskId).then(taskDetails => {
+            if (taskDetails) {
+              setLastViewed(prev => ({
+                ...prev,
+                task: taskDetails
+              }));
+            }
+          });
         }
       } else if (taskId === 'new') {
         // Clear task when creating new task
