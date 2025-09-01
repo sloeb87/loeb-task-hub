@@ -3,8 +3,11 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
+import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { Task, Project } from "@/types/task";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Play, Pause, Clock } from "lucide-react";
 
 const TaskEdit = () => {
   const { id } = useParams();
@@ -13,6 +16,8 @@ const TaskEdit = () => {
   const { taskNavigationState, updateSelectedTask } = useTaskNavigation();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  
+  const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
 
   const {
     tasks,
@@ -200,9 +205,68 @@ const TaskEdit = () => {
     }
   };
 
+  const handleTimerToggle = useCallback(() => {
+    if (!selectedTask) return;
+    
+    const taskTime = getTaskTime(selectedTask.id);
+    if (taskTime.isRunning) {
+      stopTimer(selectedTask.id);
+      toast({
+        title: "Timer Stopped",
+        description: `Timer stopped for ${selectedTask.title}`,
+      });
+    } else {
+      startTimer(selectedTask.id, selectedTask.title, selectedTask.project, selectedTask.responsible);
+      toast({
+        title: "Timer Started",
+        description: `Timer started for ${selectedTask.title}`,
+      });
+    }
+  }, [selectedTask, startTimer, stopTimer, getTaskTime]);
+
+  const formatTime = useCallback((minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  }, []);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="container mx-auto p-6">
+        {selectedTask && (
+          <div className="mb-6 flex items-center justify-between bg-card p-4 rounded-lg border">
+            <div className="flex items-center gap-4">
+              <Clock className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <h3 className="font-medium">{selectedTask.title}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Total time: {formatTime(getTaskTime(selectedTask.id).totalTime)}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant={getTaskTime(selectedTask.id).isRunning ? "destructive" : "default"}
+              onClick={handleTimerToggle}
+              className="flex items-center gap-2"
+            >
+              {getTaskTime(selectedTask.id).isRunning ? (
+                <>
+                  <Pause className="h-4 w-4" />
+                  Stop Timer
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" />
+                  Start Timer
+                </>
+              )}
+            </Button>
+          </div>
+        )}
+        
         <TaskFormOptimized
           isOpen={true}
           onClose={handleCancel}
