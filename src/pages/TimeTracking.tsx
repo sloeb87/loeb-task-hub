@@ -1387,19 +1387,56 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                           </div>
                        </TableCell>
                        
-                        <TableCell>
-                           <div className="flex items-center flex-wrap gap-1">
-                             {task?.scope?.map((scopeName, index) => (
-                               <Badge 
-                                 key={index}
-                                 style={getScopeStyle(scopeName)}
-                                 className="text-sm"
-                               >
-                                 {scopeName}
-                               </Badge>
-                             )) || <span>-</span>}
-                           </div>
-                        </TableCell>
+                         <TableCell>
+                            <div className="flex items-center flex-wrap gap-1">
+                              {(() => {
+                                if (!task) {
+                                  console.warn(`Task not found for entry ${entry.id} with taskId: ${entry.taskId}`);
+                                  // If task not found, try to get scope from project
+                                  const project = projects.find(p => p.name === entry.projectName);
+                                  const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+                                  
+                                  return projectScopes.length > 0 ? projectScopes.map((scopeName, index) => (
+                                    <Badge 
+                                      key={index}
+                                      style={getScopeStyle(scopeName)}
+                                      className="text-sm"
+                                    >
+                                      {scopeName}
+                                    </Badge>
+                                  )) : <span className="text-muted-foreground">No scope</span>;
+                                }
+                                
+                                if (!task.scope || task.scope.length === 0) {
+                                  console.warn(`Task ${task.id} (${task.title}) has no scope data`);
+                                  // Fallback to project scope if task has no scope
+                                  const project = projects.find(p => p.name === entry.projectName);
+                                  const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
+                                  
+                                  return projectScopes.length > 0 ? projectScopes.map((scopeName, index) => (
+                                    <Badge 
+                                      key={index}
+                                      style={getScopeStyle(scopeName)}
+                                      className="text-sm opacity-75"
+                                      title="Scope from project"
+                                    >
+                                      {scopeName}
+                                    </Badge>
+                                  )) : <span className="text-muted-foreground">-</span>;
+                                }
+                                
+                                return task.scope.map((scopeName, index) => (
+                                  <Badge 
+                                    key={index}
+                                    style={getScopeStyle(scopeName)}
+                                    className="text-sm"
+                                  >
+                                    {scopeName}
+                                  </Badge>
+                                ));
+                              })()}
+                            </div>
+                         </TableCell>
                         
                         <TableCell>
                           <div className="flex items-center">
