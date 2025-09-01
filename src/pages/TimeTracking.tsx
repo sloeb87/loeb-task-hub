@@ -98,8 +98,16 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     totalMinutes: 0
   });
 
-  // Get unique values for multi-select filters
-  const getUniqueValues = (filterType: keyof MultiSelectFilters): string[] => {
+  // Memoized task lookup map for performance
+  const taskLookup = useMemo(() => {
+    return tasks.reduce((acc, task) => {
+      acc[task.taskNumber] = task;
+      return acc;
+    }, {} as Record<string, Task>);
+  }, [tasks]);
+
+  // Optimized unique values calculation with task lookup
+  const getUniqueValues = useCallback((filterType: keyof MultiSelectFilters): string[] => {
     const baseEntries = getFilteredTimeEntries(filters);
     
     switch (filterType) {
@@ -109,17 +117,17 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         return [...new Set(baseEntries.map(e => e.projectName))].sort();
       case 'scope':
         return [...new Set(baseEntries.flatMap(e => {
-          const task = tasks.find(t => t.id === e.taskId);
+          const task = taskLookup[e.taskId];
           return task?.scope || [];
         }).filter(Boolean))].sort();
       case 'type':
         return [...new Set(baseEntries.map(e => {
-          const task = tasks.find(t => t.id === e.taskId);
+          const task = taskLookup[e.taskId];
           return task?.taskType || '';
         }).filter(Boolean))].sort();
       case 'environment':
         return [...new Set(baseEntries.map(e => {
-          const task = tasks.find(t => t.id === e.taskId);
+          const task = taskLookup[e.taskId];
           return task?.environment || '';
         }).filter(Boolean))].sort();
       case 'date':
@@ -127,7 +135,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       default:
         return [];
     }
-  };
+  }, [getFilteredTimeEntries, filters, taskLookup]);
 
   // Multi-select filter handlers
   const handleFilterChange = (filterType: keyof MultiSelectFilters, value: string, checked: boolean) => {
