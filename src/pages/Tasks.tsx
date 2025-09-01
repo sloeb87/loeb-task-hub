@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Task, Project } from "@/types/task";
-import { TaskTable } from "@/components/TaskTable";
+import { TaskTableMemo } from "@/components/TaskTableMemo";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
@@ -147,7 +147,7 @@ const Tasks = () => {
           onSortChange={handleSortChange}
         />
 
-        <TaskTable
+        <TaskTableMemo
           tasks={filteredTasks}
           sortField={sortField}
           sortDirection={sortDirection}
