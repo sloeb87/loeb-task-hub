@@ -182,35 +182,12 @@ export function useTimeTracking() {
       }
 
       console.log('🛑 Stopping other running timers...');
-      // Stop any other running timers FIRST
+      // Stop any other running timers
       const runningTasks = Array.from(taskTimers.entries())
         .filter(([_, data]) => data.isRunning)
         .map(([id]) => id);
       
       console.log('🛑 Found running tasks to stop:', runningTasks);
-      
-      // Update state immediately to stop other timers
-      if (runningTasks.length > 0) {
-        setTaskTimers(prev => {
-          const newMap = new Map(prev);
-          runningTasks.forEach(runningTaskId => {
-            const current = newMap.get(runningTaskId);
-            if (current) {
-              newMap.set(runningTaskId, {
-                ...current,
-                isRunning: false,
-                currentSessionStart: undefined,
-                currentEntryId: undefined
-              });
-            }
-          });
-          console.log('🛑 IMMEDIATE - Stopped running timers in state');
-          return newMap;
-        });
-        
-        // Notify immediately about stopping timers
-        window.dispatchEvent(new CustomEvent('timerStateChanged'));
-      }
       
       for (const runningTaskId of runningTasks) {
         console.log('🛑 Stopping timer for task:', runningTaskId);
