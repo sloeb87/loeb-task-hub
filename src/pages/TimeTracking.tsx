@@ -38,23 +38,6 @@ interface TimeTrackingPageProps {
 
 export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPageProps) => {
   const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
-  
-  // Debug logging for T50
-  console.log('📊 TimeTrackingPage - All tasks count:', tasks.length);
-  const t50Task = tasks.find(t => t.title?.includes('T50') || t.id?.includes('T50'));
-  if (t50Task) {
-    console.log('🔍 Found T50 in tasks array:', {
-      id: t50Task.id,
-      title: t50Task.title,
-      scope: t50Task.scope,
-      project: t50Task.project
-    });
-  } else {
-    console.log('❌ T50 not found in tasks array. Available tasks:', 
-      tasks.map(t => ({ id: t.id, title: t.title })).slice(0, 10)
-    );
-  }
-  
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
@@ -240,17 +223,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   // Get filtered entries based on search and filters
   const filteredEntries = useMemo(() => {
     let filtered = getFilteredTimeEntries(filters);
-    
-    // Debug logging for T50 time entries
-    const t50Entries = filtered.filter(e => e.taskTitle?.includes('T50') || e.taskId?.includes('T50'));
-    if (t50Entries.length > 0) {
-      console.log('🔍 Found T50 time entries:', t50Entries.map(e => ({
-        id: e.id,
-        taskId: e.taskId,
-        taskTitle: e.taskTitle,
-        projectName: e.projectName
-      })));
-    }
     
     // Apply multi-select filters
     if (multiSelectFilters.task.length > 0) {
@@ -1411,19 +1383,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                     const endDate = entry.endTime ? new Date(entry.endTime) : null;
                     const task = tasks.find(t => t.id === entry.taskId);
                     
-                    // Debug logging for T50
-                    if (entry.taskTitle?.includes('T50') || entry.taskId?.includes('T50')) {
-                      console.log('🔍 T50 DEBUG - Time Entry:', {
-                        entryId: entry.id,
-                        taskId: entry.taskId,
-                        taskTitle: entry.taskTitle,
-                        foundTask: !!task,
-                        taskScope: task?.scope,
-                        taskProject: task?.project,
-                        entryProject: entry.projectName
-                      });
-                    }
-                    
                     return (
                       <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
                         <TableCell>
@@ -1442,12 +1401,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                             <div className="flex items-center flex-wrap gap-1">
                               {(() => {
                                 if (!task) {
-                                  console.log(`⚠️ Task not found for entry ${entry.id} with taskId: ${entry.taskId}, taskTitle: ${entry.taskTitle}`);
                                   return <span className="text-muted-foreground">No task</span>;
                                 }
                                 
                                 if (!task.scope || task.scope.length === 0) {
-                                  console.log(`⚠️ Task ${task.id} (${task.title}) has no scope data, actual scope:`, task.scope);
                                   return <span className="text-muted-foreground">No scope</span>;
                                 }
                                 

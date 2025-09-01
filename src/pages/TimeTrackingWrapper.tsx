@@ -1,9 +1,30 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
+import { Task } from "@/types/task";
 import TimeTrackingPage from "./TimeTracking";
 
 const TimeTrackingWrapper = () => {
-  const { tasks, projects } = useSupabaseStorage();
+  const { projects, loadAllTasks } = useSupabaseStorage();
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Load ALL tasks for time tracking (no pagination)
+  useEffect(() => {
+    const loadTasks = async () => {
+      setIsLoading(true);
+      try {
+        const tasks = await loadAllTasks();
+        setAllTasks(tasks);
+        console.log('🎯 TimeTrackingWrapper: Loaded', tasks.length, 'tasks for time tracking');
+      } catch (error) {
+        console.error('Error loading all tasks for time tracking:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTasks();
+  }, [loadAllTasks]);
 
   // SEO
   useEffect(() => {
@@ -16,8 +37,12 @@ const TimeTrackingWrapper = () => {
     }
   }, []);
 
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading all tasks for time tracking...</div>;
+  }
+
   return (
-    <TimeTrackingPage tasks={tasks} projects={projects} />
+    <TimeTrackingPage tasks={allTasks} projects={projects} />
   );
 };
 

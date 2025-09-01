@@ -512,6 +512,69 @@ export function useSupabaseStorage() {
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
 
+  // Load ALL tasks without pagination (for time tracking and other features that need complete data)
+  const loadAllTasks = useCallback(async (): Promise<Task[]> => {
+    if (!isAuthenticated || !user) {
+      console.log('loadAllTasks: No authentication or user');
+      return [];
+    }
+
+    try {
+      console.log('loadAllTasks: Loading all tasks for time tracking...');
+      
+      // Get ALL tasks without pagination limits
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('due_date', { ascending: true });
+
+      if (error) throw error;
+
+      console.log(`Loaded ${data?.length || 0} total tasks (all)`);
+
+      // Batch fetch all follow-ups and project names to avoid N+1 queries
+      const taskIds = (data || []).map(t => t.id);
+
+      // Fetch all follow-ups in one query
+      const { data: allFollowUps } = await supabase
+        .from('follow_ups')
+        .select('id, text, created_at, task_status, task_id')
+        .in('task_id', taskIds)
+        .order('created_at', { ascending: false });
+
+      // Group follow-ups by task_id
+      const followUpsMap = new Map<string, any[]>();
+      (allFollowUps || []).forEach(followUp => {
+        if (!followUpsMap.has(followUp.task_id)) {
+          followUpsMap.set(followUp.task_id, []);
+        }
+        followUpsMap.get(followUp.task_id)!.push(followUp);
+      });
+
+      // Get project names for all projects
+      const { data: projectNames } = await supabase
+        .from('projects')
+        .select('id, name')
+        .eq('user_id', user.id);
+
+      const projectNamesMap = new Map<string, string>();
+      (projectNames || []).forEach(project => {
+        projectNamesMap.set(project.id, project.name);
+      });
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
+      );
+
+      console.log('loadAllTasks: Successfully loaded all tasks, found T50:', convertedTasks.find(t => t.id === 'T50')?.title);
+      return convertedTasks;
+    } catch (err) {
+      console.error('Error loading all tasks:', err);
+      return [];
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
+
   // Search through ALL tasks with pagination support
   const searchTasks = useCallback(async (
     searchTerm: string,
@@ -1536,6 +1599,7 @@ export function useSupabaseStorage() {
     taskCounts,
     currentSearchTerm, // Export current search term
     loadTasks,
+    loadAllTasks, // Add the new function
     searchTasks,
     loadAllTasksForProject,
     loadTaskById,
