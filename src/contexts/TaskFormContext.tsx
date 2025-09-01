@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { Task } from '@/types/task';
 
 interface TaskNavigationState {
@@ -31,7 +31,7 @@ export const TaskNavigationProvider: React.FC<{ children: React.ReactNode }> = (
   
   const [navigationCallback, setNavigationCallback] = useState<((projectName?: string, task?: Task, contextKey?: string) => void) | undefined>();
 
-  const navigateToTaskEdit = (projectName?: string, task?: Task, contextKey = 'unknown') => {
+  const navigateToTaskEdit = useCallback((projectName?: string, task?: Task, contextKey = 'unknown') => {
     console.log('TASK_NAVIGATION - Navigating to task edit:', { projectName, taskId: task?.id, contextKey });
     setTaskNavigationState({
       selectedTask: task || null,
@@ -43,29 +43,32 @@ export const TaskNavigationProvider: React.FC<{ children: React.ReactNode }> = (
     if (navigationCallback) {
       navigationCallback(projectName, task, contextKey);
     }
-  };
+  }, [navigationCallback]);
 
-  const updateSelectedTask = (task: Task | null) => {
+  const updateSelectedTask = useCallback((task: Task | null) => {
     setTaskNavigationState(prev => ({ ...prev, selectedTask: task }));
-  };
+  }, []);
 
-  const saveFormData = (formData: any) => {
+  const saveFormData = useCallback((formData: any) => {
     setTaskNavigationState(prev => ({ ...prev, formData }));
-  };
+  }, []);
 
-  const setNavigationCallbackWrapper = React.useCallback((callback: (projectName?: string, task?: Task, contextKey?: string) => void) => {
+  const setNavigationCallbackWrapper = useCallback((callback: (projectName?: string, task?: Task, contextKey?: string) => void) => {
     setNavigationCallback(() => callback);
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    taskNavigationState,
+    navigateToTaskEdit,
+    updateSelectedTask,
+    saveFormData,
+    onNavigateToTaskEdit: navigationCallback,
+    setNavigationCallback: setNavigationCallbackWrapper
+  }), [taskNavigationState, navigateToTaskEdit, updateSelectedTask, saveFormData, navigationCallback, setNavigationCallbackWrapper]);
+
   return (
-    <TaskNavigationContext.Provider value={{
-      taskNavigationState,
-      navigateToTaskEdit,
-      updateSelectedTask,
-      saveFormData,
-      onNavigateToTaskEdit: navigationCallback,
-      setNavigationCallback: setNavigationCallbackWrapper
-    }}>
+    <TaskNavigationContext.Provider value={contextValue}>
       {children}
     </TaskNavigationContext.Provider>
   );

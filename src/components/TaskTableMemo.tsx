@@ -56,7 +56,7 @@ export const TaskTableMemo = React.memo<TaskTableMemoProps>(({
     />
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison for better performance
+  // Enhanced comparison for better performance
   return (
     prevProps.tasks === nextProps.tasks &&
     prevProps.isLoading === nextProps.isLoading &&
@@ -64,6 +64,12 @@ export const TaskTableMemo = React.memo<TaskTableMemoProps>(({
     prevProps.sortField === nextProps.sortField &&
     prevProps.sortDirection === nextProps.sortDirection &&
     prevProps.currentSearchTerm === nextProps.currentSearchTerm &&
+    prevProps.onEditTask === nextProps.onEditTask &&
+    prevProps.onFollowUp === nextProps.onFollowUp &&
+    prevProps.onCompleteTask === nextProps.onCompleteTask &&
+    prevProps.onSortChange === nextProps.onSortChange &&
+    prevProps.onSearch === nextProps.onSearch &&
+    prevProps.onPageChange === nextProps.onPageChange &&
     JSON.stringify(prevProps.pagination) === JSON.stringify(nextProps.pagination)
   );
 });

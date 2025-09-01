@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -35,18 +35,23 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = async () => {
+  // Memoize signOut function to prevent recreation
+  const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);
     }
-  };
+  }, []);
 
-  return {
+  // Memoize isAuthenticated to prevent object recreation
+  const isAuthenticated = useMemo(() => !!user, [user]);
+
+  // Memoize the return object to prevent recreation
+  return useMemo(() => ({
     user,
     session,
     loading,
     signOut,
-    isAuthenticated: !!user
-  };
+    isAuthenticated
+  }), [user, session, loading, signOut, isAuthenticated]);
 }

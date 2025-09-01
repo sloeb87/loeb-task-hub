@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -22,7 +22,7 @@ interface AppHeaderProps {
   editingTaskId?: string; // Optional task ID for task edit tab
   tasks: Task[]; // Tasks for running timer display
 }
-export const AppHeader = ({
+export const AppHeader = React.memo(({
   activeView,
   onViewChange,
   isDarkMode,
@@ -45,7 +45,8 @@ export const AppHeader = ({
   } = useToast();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const handleSignOut = async () => {
+  
+  const handleSignOut = useCallback(async () => {
     try {
       await signOut();
       toast({
@@ -59,8 +60,9 @@ export const AppHeader = ({
         variant: "destructive"
       });
     }
-  };
-  const navigationItems = [{
+  }, [signOut, toast]);
+  // Memoize navigation items to prevent recreation
+  const navigationItems = useMemo(() => [{
     key: 'projects',
     label: 'Projects',
     icon: FolderKanban
@@ -80,9 +82,9 @@ export const AppHeader = ({
     key: 'dashboard',
     label: 'KPIs',
     icon: BarChart3
-  }];
+  }], []);
 
-  const allNavigationItems = [{
+  const allNavigationItems = useMemo(() => [{
     key: 'projects',
     label: 'Projects',
     icon: FolderKanban
@@ -112,77 +114,88 @@ export const AppHeader = ({
     key: 'dashboard',
     label: 'KPIs',
     icon: BarChart3
-  }];
-  const DesktopNavigation = () => (
-    <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
-      {navigationItems.map(item => <Button
-        key={item.key} 
-        variant={activeView === item.key ? "default" : "outline"} 
-        onClick={() => onViewChange(item.key as any)} 
-        size="sm"
-        className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
-      >
-          <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
-          <span className="hidden md:inline">{item.label}</span>
-        </Button>)}
-    </div>
-  );
+  }], [selectedProjectName, editingTaskTitle, editingTaskId]);
+  // Memoized components to prevent recreation
+  const DesktopNavigation = useMemo(() => {
+    return () => (
+      <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        {navigationItems.map(item => <Button
+          key={item.key} 
+          variant={activeView === item.key ? "default" : "outline"} 
+          onClick={() => onViewChange(item.key as any)} 
+          size="sm"
+          className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
+        >
+            <item.icon className="w-4 h-4 md:mr-1 lg:mr-2" />
+            <span className="hidden md:inline">{item.label}</span>
+          </Button>)}
+      </div>
+    );
+  }, [navigationItems, activeView, onViewChange]);
 
-  const DesktopRightActions = () => <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
-      <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
-        <RotateCw className="w-4 h-4" />
-      </Button>
-      <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center p-2" aria-label="Parameters">
-        <Settings className="w-4 h-4" />
-      </Button>
-      <Button variant="outline" onClick={onToggleDarkMode} size="sm" className="flex items-center p-2" aria-label="Toggle theme">
-        {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-      </Button>
-      <Button variant="outline" onClick={handleSignOut} size="sm" className="flex items-center p-2" aria-label="Logout">
-        <LogOut className="w-4 h-4" />
-      </Button>
-    </div>;
-  const MobileNavigation = () => <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="md:hidden">
-          <Menu className="w-4 h-4" />
+  const DesktopRightActions = useMemo(() => {
+    return () => (
+      <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
+          <RotateCw className="w-4 h-4" />
         </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-64">
-        <div className="flex flex-col space-y-4 mt-6">
-          {allNavigationItems.map(item => <Button 
-            key={item.key} 
-            variant={activeView === item.key ? "default" : "ghost"} 
-            onClick={() => {
-              onViewChange(item.key as any);
+        <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center p-2" aria-label="Parameters">
+          <Settings className="w-4 h-4" />
+        </Button>
+        <Button variant="outline" onClick={onToggleDarkMode} size="sm" className="flex items-center p-2" aria-label="Toggle theme">
+          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+        </Button>
+        <Button variant="outline" onClick={handleSignOut} size="sm" className="flex items-center p-2" aria-label="Logout">
+          <LogOut className="w-4 h-4" />
+        </Button>
+      </div>
+    );
+  }, [onRefresh, onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut]);
+  const MobileNavigation = useMemo(() => {
+    return () => (
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetTrigger asChild>
+          <Button variant="outline" size="sm" className="md:hidden">
+            <Menu className="w-4 h-4" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-64">
+          <div className="flex flex-col space-y-4 mt-6">
+            {allNavigationItems.map(item => <Button 
+              key={item.key} 
+              variant={activeView === item.key ? "default" : "ghost"} 
+              onClick={() => {
+                onViewChange(item.key as any);
+                setMobileMenuOpen(false);
+              }} 
+              className="justify-start"
+              disabled={item.disabled}
+            >
+                <item.icon className="w-4 h-4 mr-2" />
+                {item.label}
+              </Button>)}
+            <div className="border-t pt-4 space-y-2">
+              <Button variant="ghost" onClick={() => {
+              onOpenParameters();
               setMobileMenuOpen(false);
-            }} 
-            className="justify-start"
-            disabled={item.disabled}
-          >
-              <item.icon className="w-4 h-4 mr-2" />
-              {item.label}
-            </Button>)}
-          <div className="border-t pt-4 space-y-2">
-            <Button variant="ghost" onClick={() => {
-            onOpenParameters();
-            setMobileMenuOpen(false);
-          }} className="justify-start w-full">
-              <Settings className="w-4 h-4 mr-2" />
-              Parameters
-            </Button>
-            <Button variant="ghost" onClick={onToggleDarkMode} className="justify-start w-full">
-              {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
-              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </Button>
-            <Button variant="ghost" onClick={handleSignOut} className="justify-start w-full">
-              <LogOut className="w-4 h-4 mr-2" />
-              Logout
-            </Button>
+            }} className="justify-start w-full">
+                <Settings className="w-4 h-4 mr-2" />
+                Parameters
+              </Button>
+              <Button variant="ghost" onClick={onToggleDarkMode} className="justify-start w-full">
+                {isDarkMode ? <Sun className="w-4 h-4 mr-2" /> : <Moon className="w-4 h-4 mr-2" />}
+                {isDarkMode ? 'Light Mode' : 'Dark Mode'}
+              </Button>
+              <Button variant="ghost" onClick={handleSignOut} className="justify-start w-full">
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
-        </div>
-      </SheetContent>
-    </Sheet>;
+        </SheetContent>
+      </Sheet>
+    );
+  }, [mobileMenuOpen, setMobileMenuOpen, allNavigationItems, activeView, onViewChange, onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut]);
   return <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-border">
       {/* First Header Row */}
       <div className="px-4 sm:px-6 lg:px-8">
@@ -261,4 +274,4 @@ export const AppHeader = ({
         </div>
       </div>
     </header>;
-};
+});

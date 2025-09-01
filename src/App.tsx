@@ -11,7 +11,16 @@ import { Loader2 } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { TaskFormProvider } from "./contexts/TaskFormContext";
 
-const queryClient = new QueryClient();
+// Create QueryClient outside component to prevent recreation
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (was cacheTime)
+    },
+  },
+});
+
 // Lazy load heavy components
 const Tasks = lazy(() => import("./pages/Tasks"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -22,13 +31,13 @@ const FollowUpsWrapper = lazy(() => import("./pages/FollowUpsWrapper"));
 const TaskEdit = lazy(() => import("./pages/TaskEdit"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-const LoadingSpinner = () => (
+const LoadingSpinner = React.memo(() => (
   <div className="min-h-screen flex items-center justify-center">
     <Loader2 className="h-8 w-8 animate-spin" />
   </div>
-);
+));
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, user } = useAuth();
 
   console.log('ProtectedRoute check:', { isAuthenticated, loading, userId: user?.id });
@@ -49,9 +58,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   console.log('ProtectedRoute: Authenticated, rendering protected content');
   return <>{children}</>;
-}
+});
 
-function App() {
+// Memoize the main App component to prevent unnecessary re-renders
+const App = React.memo(() => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -120,6 +130,6 @@ function App() {
       </ThemeProvider>
     </QueryClientProvider>
   );
-}
+});
 
 export default App;

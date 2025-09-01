@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
@@ -19,7 +19,7 @@ interface LastViewedState {
 // Cache for 5 minutes to avoid constant refetching
 const CACHE_DURATION = 5 * 60 * 1000;
 
-export const AppHeaderWrapper = () => {
+export const AppHeaderWrapper = React.memo(() => {
   const location = useLocation();
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -58,8 +58,8 @@ export const AppHeaderWrapper = () => {
     localStorage.setItem('lastViewedItems', JSON.stringify(lastViewed));
   }, [lastViewed]);
 
-  // Function to get project details with caching
-  const getProjectDetails = (projectId: string) => {
+  // Memoized function to get project details with caching
+  const getProjectDetails = useCallback((projectId: string) => {
     // Check cache first
     if (projectCache.has(projectId)) {
       return projectCache.get(projectId);
@@ -84,10 +84,10 @@ export const AppHeaderWrapper = () => {
     }
 
     return null;
-  };
+  }, [projectCache, lastViewed.project, projects]);
 
-  // Function to get task details with caching
-  const getTaskDetails = async (taskId: string) => {
+  // Memoized function to get task details with caching
+  const getTaskDetails = useCallback(async (taskId: string) => {
     // Check cache first
     if (taskCache.has(taskId)) {
       return taskCache.get(taskId);
@@ -120,7 +120,7 @@ export const AppHeaderWrapper = () => {
     }
 
     return null;
-  };
+  }, [taskCache, lastViewed.task, tasks, loadTaskById]);
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -135,7 +135,7 @@ export const AppHeaderWrapper = () => {
     }
   }, []);
 
-  const toggleDarkMode = () => {
+  const toggleDarkMode = useCallback(() => {
     const newDarkMode = !isDarkMode;
     setIsDarkMode(newDarkMode);
     localStorage.setItem('dark-mode', JSON.stringify(newDarkMode));
@@ -144,10 +144,10 @@ export const AppHeaderWrapper = () => {
     } else {
       document.documentElement.classList.remove('dark');
     }
-  };
+  }, [isDarkMode]);
 
-  // Map routes to activeView
-  const getActiveViewFromPath = (pathname: string) => {
+  // Memoized function to map routes to activeView
+  const getActiveViewFromPath = useCallback((pathname: string) => {
     if (pathname === '/tasks') return 'tasks';
     if (pathname === '/dashboard') return 'dashboard';
     if (pathname === '/projects') return 'projects';
@@ -156,7 +156,7 @@ export const AppHeaderWrapper = () => {
     if (pathname === '/follow-ups') return 'followups';
     if (pathname.startsWith('/tasks/')) return 'task-edit';
     return 'tasks';
-  };
+  }, []);
 
   const activeView = getActiveViewFromPath(location.pathname);
 
@@ -284,4 +284,4 @@ export const AppHeaderWrapper = () => {
       tasks={tasks}
     />
   );
-};
+});
