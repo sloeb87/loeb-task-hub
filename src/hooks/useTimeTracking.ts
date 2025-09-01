@@ -160,74 +160,115 @@ export function useTimeTracking() {
   };
 
   const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string) => {
-    console.log('🔥 startTimer called with:', { taskId, taskTitle, projectName, responsible });
-    
     if (!user) {
-      console.log('❌ No user found, cannot start timer');
       toast({ title: 'Authentication required', description: 'Please log in to start timer', variant: 'destructive' });
       return;
     }
 
-    console.log('✅ User found, proceeding with timer start');
+    // Check if there's already a running timer for this task
+    const existingTimer = taskTimers.get(taskId);
+    if (existingTimer?.isRunning) {
+      toast({ title: 'Timer already running', description: 'This task already has an active timer', variant: 'destructive' });
+      return;
+    }
 
-    try {
-      // Check if there's already a running timer for this task
-      const existingTimer = taskTimers.get(taskId);
-      console.log('⏰ Checking existing timer for task:', taskId, existingTimer);
+    const startTime = new Date().toISOString();
+
+    // 1. IMMEDIATELY update local state for instant UI feedback
+    setTaskTimers(prev => {
+      const newMap = new Map(prev);
       
-      if (existingTimer?.isRunning) {
-        console.log('⚠️ Timer already running for this task, returning');
-        toast({ title: 'Timer already running', description: 'This task already has an active timer', variant: 'destructive' });
-        return;
-      }
+      // Stop all other running timers in local state
+      newMap.forEach((data, id) => {
+        if (data.isRunning) {
+          newMap.set(id, { ...data, isRunning: false, currentSessionStart: undefined, currentEntryId: undefined });
+        }
+      });
+      
+      // Start the new timer
+      const current = newMap.get(taskId) || { taskId, totalTime: 0, isRunning: false };
+      newMap.set(taskId, {
+        ...current,
+        isRunning: true,
+        currentSessionStart: startTime,
+        currentEntryId: 'temp-' + Date.now() // temporary ID
+      });
+      
+      return newMap;
+    });
 
-      console.log('🛑 Stopping other running timers...');
-      // Stop any other running timers
+    // 2. IMMEDIATELY notify UI components
+    window.dispatchEvent(new CustomEvent('timerStateChanged'));
+
+    // 3. Handle database operations in background
+    try {
+      // Stop other running timers in database (without calling stopTimer to avoid circular dependency)
       const runningTasks = Array.from(taskTimers.entries())
         .filter(([_, data]) => data.isRunning)
         .map(([id]) => id);
       
-      console.log('🛑 Found running tasks to stop:', runningTasks);
-      
+      // Stop running timers in database
       for (const runningTaskId of runningTasks) {
-        console.log('🛑 Stopping timer for task:', runningTaskId);
-        await stopTimer(runningTaskId);
+        const runningTaskData = taskTimers.get(runningTaskId);
+        if (runningTaskData?.currentEntryId && runningTaskData.currentSessionStart) {
+          const endTime = new Date();
+          const startTime = new Date(runningTaskData.currentSessionStart);
+          const duration = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+          
+          await supabase
+            .from('time_entries')
+            .update({
+              end_time: endTime.toISOString(),
+              duration: duration,
+              is_running: false
+            })
+            .eq('id', runningTaskData.currentEntryId)
+            .eq('user_id', user.id);
+        }
       }
 
-      console.log('🚀 Creating new timer entry in database...');
       // Create new time entry in database
-      const startTime = new Date().toISOString();
-      console.log('📅 Start time:', startTime);
-      
-      const insertData = {
-        user_id: user.id,
-        task_id: taskId,
-        task_title: taskTitle || taskId,
-        project_name: projectName || 'Unknown Project',
-        responsible: responsible || 'Unknown',
-        start_time: startTime,
-        description: 'Timer session',
-        is_running: true
-      };
-      
-      console.log('📝 Insert data:', insertData);
-      
       const { data: newEntry, error } = await supabase
         .from('time_entries')
-        .insert(insertData)
+        .insert({
+          user_id: user.id,
+          task_id: taskId,
+          task_title: taskTitle || taskId,
+          project_name: projectName || 'Unknown Project',
+          responsible: responsible || 'Unknown',
+          start_time: startTime,
+          description: 'Timer session',
+          is_running: true
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('❌ Database error creating time entry:', error);
+        // Revert local state on error
+        setTaskTimers(prev => {
+          const newMap = new Map(prev);
+          const current = newMap.get(taskId);
+          if (current) {
+            newMap.set(taskId, { ...current, isRunning: false, currentSessionStart: undefined, currentEntryId: undefined });
+          }
+          return newMap;
+        });
         toast({ title: 'Failed to start timer', description: error.message || 'Database error', variant: 'destructive' });
         return;
       }
 
-      console.log('✅ Timer entry created successfully:', newEntry);
+      // Update with real database ID
+      setTaskTimers(prev => {
+        const newMap = new Map(prev);
+        const current = newMap.get(taskId);
+        if (current) {
+          newMap.set(taskId, { ...current, currentEntryId: newEntry.id });
+        }
+        return newMap;
+      });
 
-      // Convert to TimeEntry format
-      const timeEntry: TimeEntry = {
+      // Update time entries
+      setTimeEntries(prev => [{
         id: newEntry.id,
         taskId: newEntry.task_id,
         taskTitle: newEntry.task_title,
@@ -238,39 +279,19 @@ export function useTimeTracking() {
         description: newEntry.description,
         isRunning: newEntry.is_running,
         createdAt: newEntry.created_at
-      };
+      }, ...prev]);
 
-      // Update time entries
-      setTimeEntries(prev => [timeEntry, ...prev]);
-      
-      // Update local state immediately and then notify
-      setTaskTimers(prev => {
-        const newMap = new Map(prev);
-        const current = newMap.get(taskId) || {
-          taskId,
-          totalTime: 0,
-          isRunning: false
-        };
-        
-        newMap.set(taskId, {
-          ...current,
-          isRunning: true,
-          currentSessionStart: startTime,
-          currentEntryId: newEntry.id
-        });
-        
-        console.log('🔄 startTimer - Updated taskTimers for', taskId, 'new state:', newMap.get(taskId));
-        
-        return newMap;
-      });
-
-      // Notify other components that timer state changed - IMMEDIATE AND DELAYED
-      window.dispatchEvent(new CustomEvent('timerStateChanged'));
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('timerStateChanged'));
-      }, 50);
     } catch (error) {
       console.error('Error starting timer:', error);
+      // Revert local state on error
+      setTaskTimers(prev => {
+        const newMap = new Map(prev);
+        const current = newMap.get(taskId);
+        if (current) {
+          newMap.set(taskId, { ...current, isRunning: false, currentSessionStart: undefined, currentEntryId: undefined });
+        }
+        return newMap;
+      });
     }
   }, [user, taskTimers]);
 
