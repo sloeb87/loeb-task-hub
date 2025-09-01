@@ -423,18 +423,28 @@ export function useSupabaseStorage() {
     }
 
     try {
+      console.log('loadAllTasksForProject called with projectName:', projectName);
+      
       // First find the project ID
       const { data: projectData, error: projectError } = await supabase
         .from('projects')
-        .select('id')
+        .select('id, name')
         .eq('name', projectName)
         .eq('user_id', user.id)
         .maybeSingle();
+
+      console.log('Project search result:', { projectData, error: projectError });
 
       if (projectError) throw projectError;
       
       if (!projectData) {
         console.log('Project not found:', projectName);
+        // Let's also check all available projects for debugging
+        const { data: allProjects } = await supabase
+          .from('projects')
+          .select('id, name')
+          .eq('user_id', user.id);
+        console.log('All available projects:', allProjects);
         return [];
       }
 
