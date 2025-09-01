@@ -889,7 +889,7 @@ export const TaskTable = ({
                         </div>
                      </TableCell>
 
-                     {/* Action Column */}
+                      {/* Action Column */}
                      <TableCell>
                        <div className="flex items-center gap-2">
                          {/* Timer Button */}
@@ -915,6 +915,105 @@ export const TaskTable = ({
                              );
                            })()}
                          </Button>
+
+                         {/* Link Icons */}
+                         {(() => {
+                           const hasLinks = task.links && (
+                             (task.links.folder && task.links.folder.length > 0) ||
+                             (task.links.email && task.links.email.length > 0) ||
+                             (task.links.file && task.links.file.length > 0) ||
+                             (task.links.oneNote && task.links.oneNote.length > 0) ||
+                             (task.links.teams && task.links.teams.length > 0)
+                           );
+                           
+                           if (hasLinks) {
+                             return (
+                               <div className="flex items-center gap-1">
+                                 {task.links.folder && task.links.folder.length > 0 && (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       if (task.links.folder?.[0]?.url) {
+                                         window.open(task.links.folder[0].url, '_blank');
+                                       }
+                                     }}
+                                     className="h-6 w-6 p-0 text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:text-yellow-300 dark:hover:bg-yellow-900/20"
+                                     title="Open folder"
+                                   >
+                                     <FolderOpen className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                                 {task.links.email && task.links.email.length > 0 && (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       if (task.links.email?.[0]?.url) {
+                                         window.open(`mailto:${task.links.email[0].url}`, '_blank');
+                                       }
+                                     }}
+                                     className="h-6 w-6 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/20"
+                                     title="Send email"
+                                   >
+                                     <Mail className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                                 {task.links.file && task.links.file.length > 0 && (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       if (task.links.file?.[0]?.url) {
+                                         window.open(task.links.file[0].url, '_blank');
+                                       }
+                                     }}
+                                     className="h-6 w-6 p-0 text-gray-600 hover:text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-300 dark:hover:bg-gray-900/20"
+                                     title="Open file"
+                                   >
+                                     <FileText className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                                 {task.links.oneNote && task.links.oneNote.length > 0 && (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       if (task.links.oneNote?.[0]?.url) {
+                                         window.open(task.links.oneNote[0].url, '_blank');
+                                       }
+                                     }}
+                                     className="h-6 w-6 p-0 text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:text-purple-400 dark:hover:text-purple-300 dark:hover:bg-purple-900/20"
+                                     title="Open OneNote"
+                                   >
+                                     <FileText className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                                 {task.links.teams && task.links.teams.length > 0 && (
+                                   <Button
+                                     variant="ghost"
+                                     size="sm"
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       if (task.links.teams?.[0]?.url) {
+                                         window.open(task.links.teams[0].url, '_blank');
+                                       }
+                                     }}
+                                     className="h-6 w-6 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:text-indigo-300 dark:hover:bg-indigo-900/20"
+                                     title="Open Teams"
+                                   >
+                                     <Users className="w-3 h-3" />
+                                   </Button>
+                                 )}
+                               </div>
+                             );
+                           }
+                           return null;
+                         })()}
                          
                          {/* Complete Button */}
                          {task.status !== 'Completed' && (
