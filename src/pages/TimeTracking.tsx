@@ -98,10 +98,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     totalMinutes: 0
   });
 
-  // Memoized task lookup map for performance
+  // Memoized task lookup map for performance (using taskId from time entries)
   const taskLookup = useMemo(() => {
     return tasks.reduce((acc, task) => {
-      acc[task.taskNumber] = task;
+      acc[task.id] = task;
       return acc;
     }, {} as Record<string, Task>);
   }, [tasks]);
