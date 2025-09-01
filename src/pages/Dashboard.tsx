@@ -18,7 +18,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-6 space-y-6">
+      <main className="w-full p-6 space-y-6">
         <header>
           <h1 className="text-3xl font-bold tracking-tight">KPI Dashboard</h1>
           <p className="text-muted-foreground">
@@ -26,7 +26,9 @@ const Dashboard = () => {
           </p>
         </header>
 
-        <KPIDashboard tasks={tasks} projects={projects} />
+        <div className="w-full">
+          <KPIDashboard tasks={tasks} projects={projects} />
+        </div>
       </main>
     </div>
   );
