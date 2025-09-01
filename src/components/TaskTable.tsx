@@ -22,6 +22,7 @@ interface TaskTableProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
   onFollowUp: (task: Task) => void;
+  onCompleteTask?: (task: Task) => void; // New prop for completing tasks
   hideProjectColumn?: boolean; // New prop to hide project name
   pagination?: {
     currentPage: number;
@@ -58,6 +59,7 @@ export const TaskTable = ({
   tasks,
   onEditTask,
   onFollowUp,
+  onCompleteTask,
   hideProjectColumn = false, // Default to false for backward compatibility
   pagination,
   onPageChange,
@@ -423,7 +425,7 @@ export const TaskTable = ({
     }
     
     console.log('TaskTable - Navigating to task edit for:', task.title);
-    navigateToTaskEdit(task.id);
+    navigateToTaskEdit(task.project, task, 'taskTable');
   }, [navigateToTaskEdit]);
 
   const handleFollowUpClick = useCallback((task: Task, e: React.MouseEvent) => {
@@ -895,24 +897,26 @@ export const TaskTable = ({
                            onTimerToggle={handleTimerToggle}
                            onLinkClick={handleLinkClick}
                          />
-                         {task.status !== 'Completed' && (
-                           <Button
-                             variant="ghost"
-                             size="sm"
-                             onClick={(e) => {
-                               e.stopPropagation();
-                               onEditTask({
-                                 ...task,
-                                 status: 'Completed',
-                                 completionDate: new Date().toISOString().split('T')[0]
-                               });
-                             }}
-                             className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
-                             title="Mark as completed"
-                           >
-                             <CheckCircle2 className="w-4 h-4" />
-                           </Button>
-                         )}
+                          {task.status !== 'Completed' && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onCompleteTask) {
+                                  onCompleteTask({
+                                    ...task,
+                                    status: 'Completed',
+                                    completionDate: new Date().toISOString().split('T')[0]
+                                  });
+                                }
+                              }}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
+                              title="Mark as completed"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                            </Button>
+                          )}
                        </div>
                      </TableCell>
 

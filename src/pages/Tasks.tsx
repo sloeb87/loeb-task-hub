@@ -1,20 +1,33 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Task, Project } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
+import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { toast } from "@/hooks/use-toast";
 
 const Tasks = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const { startTimer } = useTimeTracking();
+  const { setNavigationCallback } = useTaskNavigation();
+
+  // Set up navigation callback for task editing
+  useEffect(() => {
+    setNavigationCallback((projectName?: string, task?: Task) => {
+      if (task) {
+        console.log('Tasks - Navigating to task edit:', task.id);
+        navigate(`/tasks/${task.id}`);
+      }
+    });
+  }, [navigate, setNavigationCallback]);
 
   const {
     tasks,
@@ -141,6 +154,7 @@ const Tasks = () => {
           onSortChange={handleSortChange}
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onFollowUp={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
+          onCompleteTask={handleUpdateTask} // Handle task completion
           pagination={pagination}
           onSearch={searchTasks}
           currentSearchTerm={currentSearchTerm}

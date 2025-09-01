@@ -1,10 +1,12 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
 import ProjectsPage from "./Projects";
 
 const ProjectsWrapper = () => {
+  const navigate = useNavigate();
   const {
     tasks,
     projects,
@@ -17,7 +19,17 @@ const ProjectsWrapper = () => {
     deleteProject
   } = useSupabaseStorage();
 
-  const { navigateToTaskEdit } = useTaskNavigation();
+  const { setNavigationCallback } = useTaskNavigation();
+
+  // Set up navigation callback for task editing
+  useEffect(() => {
+    setNavigationCallback((projectName?: string, task?: Task) => {
+      if (task) {
+        console.log('Projects - Navigating to task edit:', task.id);
+        navigate(`/tasks/${task.id}`);
+      }
+    });
+  }, [navigate, setNavigationCallback]);
 
   // SEO
   useEffect(() => {
@@ -31,7 +43,8 @@ const ProjectsWrapper = () => {
   }, []);
 
   const handleEditTask = (task: Task) => {
-    navigateToTaskEdit(task.id);
+    console.log('ProjectsWrapper - Handling task edit:', task.id);
+    navigate(`/tasks/${task.id}`);
   };
 
   return (
