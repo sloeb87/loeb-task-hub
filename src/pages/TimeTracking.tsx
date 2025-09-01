@@ -110,13 +110,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       case 'scope':
         return [...new Set(baseEntries.flatMap(e => {
           const task = tasks.find(t => t.id === e.taskId);
-          if (!task) {
-            // If task not found, try to get scope from project
-            const project = projects.find(p => p.name === e.projectName);
-            const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-            return projectScopes.length > 0 ? projectScopes : ['Unassigned'];
-          }
-          return (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+          return task?.scope || [];
         }).filter(Boolean))].sort();
       case 'type':
         return [...new Set(baseEntries.map(e => {
@@ -240,15 +234,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     if (multiSelectFilters.scope.length > 0) {
       filtered = filtered.filter(e => {
         const task = tasks.find(t => t.id === e.taskId);
-        if (!task) {
-          // If task not found, check project scope
-          const project = projects.find(p => p.name === e.projectName);
-          const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-          const scopesToCheck = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
-          return scopesToCheck.some(scope => multiSelectFilters.scope.includes(scope));
-        }
-        const taskScopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
-        return taskScopes.some(scope => multiSelectFilters.scope.includes(scope));
+        return task && task.scope && task.scope.some(scope => multiSelectFilters.scope.includes(scope));
       });
     }
     if (multiSelectFilters.type.length > 0) {
@@ -556,17 +542,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const now = new Date();
     filteredEntries.forEach((e) => {
       const task = tasks.find(t => t.id === e.taskId);
-      let scopes: string[];
-      
-      if (!task) {
-        // If task not found, try to get scope from project
-        const project = projects.find(p => p.name === e.projectName);
-        const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-        scopes = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
-      } else {
-        scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      // Only use task scope, skip entries without task or task scope
+      if (!task || !task.scope || task.scope.length === 0) {
+        return; // Skip this entry
       }
       
+      const scopes = task.scope;
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
         : e.endTime
@@ -590,7 +571,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       .sort((a, b) => b.value - a.value);
     
     return applyParetoLogic(rawData);
-  }, [filteredEntries, tasks, projects]);
+  }, [filteredEntries, tasks]);
 
   const scopeChartConfig = useMemo<ChartConfig>(() => {
     return scopePieData.reduce((acc, item) => {
@@ -605,17 +586,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const now = new Date();
     filteredEntries.forEach((e) => {
       const task = tasks.find(t => t.id === e.taskId);
-      let scopes: string[];
-      
-      if (!task) {
-        // If task not found, try to get scope from project
-        const project = projects.find(p => p.name === e.projectName);
-        const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-        scopes = projectScopes.length > 0 ? projectScopes : ['Unassigned'];
-      } else {
-        scopes = (task?.scope && task.scope.length > 0) ? task.scope : ['Unassigned'];
+      // Only use task scope, skip entries without task or task scope
+      if (!task || !task.scope || task.scope.length === 0) {
+        return; // Skip this entry
       }
       
+      const scopes = task.scope;
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
         : e.endTime
@@ -636,7 +612,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         percent: total ? Math.round((value / total) * 1000) / 10 : 0,
       }))
       .sort((a, b) => b.value - a.value);
-  }, [filteredEntries, tasks, projects]);
+  }, [filteredEntries, tasks]);
 
   const scopeColors = useMemo(
     () => scopePieData.map((_, i) => chartColors[i % chartColors.length]),
@@ -1425,38 +1401,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                             <div className="flex items-center flex-wrap gap-1">
                               {(() => {
                                 if (!task) {
-                                  console.warn(`Task not found for entry ${entry.id} with taskId: ${entry.taskId}`);
-                                  // If task not found, try to get scope from project
-                                  const project = projects.find(p => p.name === entry.projectName);
-                                  const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-                                  
-                                  return projectScopes.length > 0 ? projectScopes.map((scopeName, index) => (
-                                    <Badge 
-                                      key={index}
-                                      style={getScopeStyle(scopeName)}
-                                      className="text-sm"
-                                    >
-                                      {scopeName}
-                                    </Badge>
-                                  )) : <span className="text-muted-foreground">No scope</span>;
+                                  return <span className="text-muted-foreground">No task</span>;
                                 }
                                 
                                 if (!task.scope || task.scope.length === 0) {
-                                  console.warn(`Task ${task.id} (${task.title}) has no scope data`);
-                                  // Fallback to project scope if task has no scope
-                                  const project = projects.find(p => p.name === entry.projectName);
-                                  const projectScopes = Array.isArray(project?.scope) ? project.scope : (project?.scope ? [project.scope] : []);
-                                  
-                                  return projectScopes.length > 0 ? projectScopes.map((scopeName, index) => (
-                                    <Badge 
-                                      key={index}
-                                      style={getScopeStyle(scopeName)}
-                                      className="text-sm opacity-75"
-                                      title="Scope from project"
-                                    >
-                                      {scopeName}
-                                    </Badge>
-                                  )) : <span className="text-muted-foreground">-</span>;
+                                  return <span className="text-muted-foreground">No scope</span>;
                                 }
                                 
                                 return task.scope.map((scopeName, index) => (
