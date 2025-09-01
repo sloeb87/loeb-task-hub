@@ -19,21 +19,37 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   
   console.log('🔍 RunningTimerDisplay RENDERED - tasks:', tasks.length, 'taskTimers size:', taskTimers?.size || 0);
 
+  // Force immediate re-render when taskTimers changes
+  const [renderKey, setRenderKey] = useState(0);
+  
   // Listen for timer changes from other components
   useEffect(() => {
     const handleTimerUpdate = () => {
       console.log('🔔 RunningTimerDisplay - Timer state change event received, forcing update');
       setForceUpdate(prev => prev + 1);
+      setRenderKey(prev => prev + 1);
     };
 
     window.addEventListener('timerStateChanged', handleTimerUpdate);
     return () => window.removeEventListener('timerStateChanged', handleTimerUpdate);
   }, []);
 
-  // Also listen for changes in taskTimers directly
+  // Also listen for changes in taskTimers directly with immediate updates
   useEffect(() => {
     console.log('🔄 RunningTimerDisplay - taskTimers changed, size:', taskTimers.size);
     setForceUpdate(prev => prev + 1);
+    setRenderKey(prev => prev + 1);
+  }, [taskTimers]);
+  
+  // Force update every second when timer is running to ensure visibility
+  useEffect(() => {
+    const hasRunningTimer = Array.from(taskTimers.values()).some(timer => timer.isRunning);
+    if (hasRunningTimer) {
+      const interval = setInterval(() => {
+        setForceUpdate(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }
   }, [taskTimers]);
 
   // Find the currently running task
@@ -72,7 +88,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
     console.log('🔍 TIMER CHECK - Timer found but no matching task, taskId:', taskId);
     return null;
-  }, [taskTimers, tasks.length, forceUpdate]);
+  }, [taskTimers, tasks.length, forceUpdate, renderKey]);
 
   // Update duration display every second
   useEffect(() => {
