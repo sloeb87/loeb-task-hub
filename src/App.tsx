@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Tasks from "./pages/Tasks";
 import Dashboard from "./pages/Dashboard";
 import ProjectsWrapper from "./pages/ProjectsWrapper";
+import ProjectDetails from "./pages/ProjectDetails";
 import TimeTrackingWrapper from "./pages/TimeTrackingWrapper";
 import FollowUpsWrapper from "./pages/FollowUpsWrapper";
 import TaskEdit from "./pages/TaskEdit";
@@ -61,6 +62,7 @@ function App() {
                   <Route path="tasks" element={<Tasks />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="projects" element={<ProjectsWrapper />} />
+                  <Route path="projects/:projectName" element={<ProjectDetails />} />
                   <Route path="time-tracking" element={<TimeTrackingWrapper />} />
                   <Route path="follow-ups" element={<FollowUpsWrapper />} />
                   <Route path="tasks/:id" element={<TaskEdit />} />

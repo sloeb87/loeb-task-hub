@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, FolderKanban } from "lucide-react";
@@ -6,7 +7,6 @@ import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task, Project } from "@/types/task";
 import { ProjectTable } from "@/components/ProjectTable";
 import { ProjectForm } from "@/components/ProjectForm";
-import { ProjectDetailView } from "@/components/ProjectDetailView";
 import { ReportModal } from "@/components/ReportModal";
 
 interface ProjectsPageProps {
@@ -21,10 +21,6 @@ interface ProjectsPageProps {
   onAddFollowUp: (taskId: string, followUpText: string) => void;
   projectFilter?: 'all' | 'active' | 'on-hold' | 'completed';
   setProjectFilter?: (filter: 'all' | 'active' | 'on-hold' | 'completed') => void;
-  initialDetailProject?: string | null;
-  onBackToList?: () => void; // Callback when back action is needed
-  isInDetailView?: boolean; // Flag to indicate if in detail view
-  onEditProject?: (project: Project) => void; // Handler for opening project details
   chartDateFilter?: { from: Date; to: Date }; // Date filter from chart clicks
   onEditTask?: (task: Task) => void; // Add callback to redirect to Task Details
 }
@@ -41,25 +37,16 @@ const ProjectsPage = ({
   onAddFollowUp,
   projectFilter = 'all',
   setProjectFilter,
-  initialDetailProject = null,
-  onBackToList,
-  isInDetailView,
-  onEditProject,
   chartDateFilter,
   onEditTask
 }: ProjectsPageProps) => {
+  const navigate = useNavigate();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  // Task form state - REMOVED, now redirects to Task Details
-  // const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
-  // const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  // const [taskProjectId, setTaskProjectId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
-  const [detailProject, setDetailProject] = useState<Project | null>(null);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [reportProject, setReportProject] = useState<Project | null>(null);
 
-  console.log('Projects page render - viewMode:', viewMode, 'detailProject:', detailProject?.name);
+  console.log('Projects page render - Projects list view');
   
   // Apply date filtering if chartDateFilter is provided
   const filteredProjects = React.useMemo(() => {
@@ -85,59 +72,13 @@ const ProjectsPage = ({
     filteredProjects: filteredProjects.length
   });
 
-  // Add debugging to track when setViewMode is called
-  const debugSetViewMode = (newMode: 'list' | 'detail') => {
-    console.log('PROJECTS - setViewMode called:', { from: viewMode, to: newMode, stack: new Error().stack });
-    setViewMode(newMode);
-  };
-
-  // Add debugging to track when setDetailProject is called
-  const debugSetDetailProject = (project: Project | null) => {
-    console.log('PROJECTS - setDetailProject called:', { 
-      from: detailProject?.name || 'null', 
-      to: project?.name || 'null',
-      stack: new Error().stack 
-    });
-    setDetailProject(project);
-  };
-
-  // Task form debugging - REMOVED for redirect approach
-  // React.useEffect(() => {
-  //   console.log('PROJECTS - Task form state changed:', { 
-  //     isTaskFormOpen, 
-  //     selectedTaskId: selectedTask?.id || 'new task'
-  //   });
-  // }, [isTaskFormOpen, selectedTask]);
-
-  // Handle initial detail project navigation
-  React.useEffect(() => {
-    if (initialDetailProject) {
-      const project = projects.find(p => p.name === initialDetailProject);
-      if (project) {
-        console.log('PROJECTS - Setting detail project from initialDetailProject:', project.name);
-        debugSetDetailProject(project);
-        debugSetViewMode('detail');
-      }
-    }
-  }, [initialDetailProject, projects]);
-
-
-  // Notify parent when entering/exiting detail view
-  React.useEffect(() => {
-    // Notify parent about detail view state changes
-    if (viewMode === 'detail' && onBackToList) {
-      // We're entering detail view - parent should track this
-    }
-  }, [viewMode, onBackToList]);
-
   const handleEditProject = (project: Project) => {
     console.log('Navigating to project details for:', project.name);
-    debugSetDetailProject(project);
-    debugSetViewMode('detail');
+    navigate(`/projects/${encodeURIComponent(project.name)}`);
   };
 
   const handleEditProjectForm = () => {
-    setSelectedProject(detailProject);
+    setSelectedProject(null); // Open form for new project or current project
     setIsProjectFormOpen(true);
   };
 
@@ -152,22 +93,23 @@ const ProjectsPage = ({
   };
 
   const handleCreateTaskForProject = (projectId?: string) => {
-    // This could potentially create a task directly or redirect to Task Details
-    // For now, redirect to Task Details for all task creation/editing
-    if (onEditTask) {
-      // Create a placeholder task for the new task form
-      const project = projectId ? projects.find(p => p.id === projectId) : detailProject;
-      if (project) {
-        // You could implement task creation redirect here if needed
-        console.log('Create task for project:', project.name);
-      }
+    // Navigate to new task with project pre-selected
+    const project = projectId ? projects.find(p => p.id === projectId) : null;
+    if (project) {
+      navigate('/tasks/new', { 
+        state: { 
+          projectName: project.name 
+        } 
+      });
+    } else {
+      navigate('/tasks/new');
     }
   };
 
   const handleEditTask = (task: Task) => {
     console.log('handleEditTask called with:', task.title);
     if (onEditTask) {
-      onEditTask(task); // Redirect to Task Details page
+      onEditTask(task); // This will navigate to task edit page
     }
   };
 
@@ -177,7 +119,6 @@ const ProjectsPage = ({
   };
 
   const handleAddTaskToProject = (projectId: string) => {
-    // For now, just open task form to create new task
     handleCreateTaskForProject(projectId);
   };
 
@@ -193,43 +134,19 @@ const ProjectsPage = ({
 
   const handleGenerateReport = (project?: Project) => {
     console.log('handleGenerateReport called with project:', project?.name);
-    console.log('detailProject state:', detailProject?.name);
-    const targetProject = project || detailProject;
+    const targetProject = project;
     if (!targetProject) {
       console.error('No project found for report generation');
       return;
     }
     console.log('Setting report project:', targetProject.name);
-    console.log('Current isReportModalOpen state:', isReportModalOpen);
     setReportProject(targetProject);
     setIsReportModalOpen(true);
-    console.log('After setting modal to true');
   };
 
   // Detail view is now handled in separate window, no conditional rendering needed
 
-  // Handle project navigation - show detail view when project is selected
-  if (viewMode === 'detail' && detailProject) {
-    console.log('Projects page - Rendering detail view for project:', detailProject.name);
-    return (
-      <ProjectDetailView
-        project={detailProject}
-        tasks={tasks.filter(task => task.project === detailProject.name)}
-        allTasks={tasks}
-        onBack={() => {
-          debugSetViewMode('list');
-          debugSetDetailProject(null);
-        }}
-        onEditProject={handleEditProjectForm}
-        onCreateTask={handleCreateTaskForProject}
-        onUpdateTask={onUpdateTask}
-        onDeleteTask={onDeleteTask}
-        onSaveTask={handleSaveTask}
-        onEditTask={handleEditTask}
-        onGenerateReport={handleGenerateReport}
-      />
-    );
-  }
+  // Remove all conditional rendering and debug functions - now using proper routing
 
   return (
     <div className="space-y-6">

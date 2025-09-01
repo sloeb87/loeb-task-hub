@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 const TaskEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { taskNavigationState, updateSelectedTask } = useTaskNavigation();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -47,8 +48,16 @@ const TaskEdit = () => {
           setSelectedProject(project);
         }
       }
+      
+      // Also check location state for project name
+      if (location.state && (location.state as any).projectName) {
+        const project = projects.find(p => p.name === (location.state as any).projectName);
+        if (project) {
+          setSelectedProject(project);
+        }
+      }
     }
-  }, [id, tasks, projects, taskNavigationState.projectName, updateSelectedTask]);
+  }, [id, tasks, projects, taskNavigationState.projectName, location.state, updateSelectedTask]);
 
   // SEO
   useEffect(() => {
@@ -90,14 +99,9 @@ const TaskEdit = () => {
         description: "Task updated successfully",
       });
       
-      // Navigate to project details if we have a project
+      // Navigate to project details if we have a project, otherwise tasks
       if (selectedProject) {
-        navigate('/projects', { 
-          state: { 
-            selectedProject: selectedProject.name,
-            view: 'details' 
-          } 
-        });
+        navigate(`/projects/${encodeURIComponent(selectedProject.name)}`);
       } else {
         navigate('/tasks');
       }
@@ -113,12 +117,7 @@ const TaskEdit = () => {
 
   const handleCancel = () => {
     if (selectedProject) {
-      navigate('/projects', { 
-        state: { 
-          selectedProject: selectedProject.name,
-          view: 'details' 
-        } 
-      });
+      navigate(`/projects/${encodeURIComponent(selectedProject.name)}`);
     } else {
       navigate('/tasks');
     }
