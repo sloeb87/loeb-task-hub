@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
+import { Task } from "@/types/task";
 
 interface CachedItem {
   id: string;
@@ -25,7 +26,23 @@ export const AppHeaderWrapper = React.memo(() => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const { taskNavigationState } = useTaskNavigation();
-  const { tasks, projects, refreshTasks, loadTaskById } = useSupabaseStorage();
+  const { tasks: currentTasks, projects, refreshTasks, loadTaskById, loadAllTasks } = useSupabaseStorage();
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+  
+  // Load ALL tasks for timer display (not just current page/project)
+  useEffect(() => {
+    const loadAllTasksForTimer = async () => {
+      try {
+        const tasks = await loadAllTasks();
+        setAllTasks(tasks);
+        console.log('AppHeaderWrapper: Loaded', tasks.length, 'tasks for timer display');
+      } catch (error) {
+        console.error('Error loading all tasks for timer display:', error);
+      }
+    };
+
+    loadAllTasksForTimer();
+  }, [loadAllTasks]);
 
   // Persistent state for last viewed project and task with caching
   const [lastViewed, setLastViewed] = useState<LastViewedState>(() => {
@@ -101,7 +118,7 @@ export const AppHeaderWrapper = React.memo(() => {
     }
 
     // Find in loaded tasks first (faster)
-    let task = tasks.find(t => t.id === taskId);
+    let task = currentTasks.find(t => t.id === taskId);
     
     // If not found in current paginated tasks, load from database
     if (!task) {
@@ -120,7 +137,7 @@ export const AppHeaderWrapper = React.memo(() => {
     }
 
     return null;
-  }, [taskCache, lastViewed.task, tasks, loadTaskById]);
+  }, [taskCache, lastViewed.task, currentTasks, loadTaskById]);
 
   // Initialize dark mode from localStorage
   useEffect(() => {
@@ -339,7 +356,7 @@ export const AppHeaderWrapper = React.memo(() => {
       selectedProjectId={null} // Remove ID display for cleaner look
       editingTaskTitle={editingTaskTitle}
       editingTaskId={editingTaskId}
-      tasks={tasks}
+      tasks={allTasks}
     />
   );
 });
