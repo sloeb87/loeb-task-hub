@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Clock, Pause } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
@@ -16,11 +17,11 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const [currentDuration, setCurrentDuration] = useState<string>("");
 
   // Find the currently running task
-  const runningTaskData = useMemo(() => {
-    if (!taskTimers || taskTimers.size === 0) {
-      return null;
-    }
+  const NON_PROJECT_TASK_ID = 'non_project_time';
+  const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
+  const NON_PROJECT_PROJECT_NAME = 'Non Project';
 
+  const runningTaskData = React.useMemo(() => {
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
     
     if (!runningTimerEntry) {
@@ -28,31 +29,19 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     }
 
     const [taskId, timerData] = runningTimerEntry;
+    const task = tasks.find(task => task.id === taskId);
     
-    // Handle non-project task
-    if (taskId === 'non_project_time') {
-      const syntheticTask = {
-        id: 'non_project_time',
-        title: 'Non-Project Time',
-        project: 'Non Project',
-      } as Task;
-      return { task: syntheticTask, timerData, isNonProject: true };
-    }
-
-    // Find task in tasks array
-    const task = tasks?.find(task => task.id === taskId);
     if (task) {
       return { task, timerData, isNonProject: false };
     }
 
-    // If task not found but timer is running, create a placeholder
-    if (timerData.isRunning) {
-      const placeholderTask = {
-        id: taskId,
-        title: `Task ${taskId}`,
-        project: 'Unknown Project',
+    if (taskId === NON_PROJECT_TASK_ID) {
+      const syntheticTask = {
+        id: NON_PROJECT_TASK_ID,
+        title: NON_PROJECT_TASK_TITLE,
+        project: NON_PROJECT_PROJECT_NAME,
       } as Task;
-      return { task: placeholderTask, timerData, isNonProject: false };
+      return { task: syntheticTask, timerData, isNonProject: true };
     }
 
     return null;
@@ -60,34 +49,23 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
   // Update duration display every second
   useEffect(() => {
-    if (!runningTaskData?.timerData?.currentSessionStart) {
+    if (!runningTaskData?.timerData.currentSessionStart) {
       setCurrentDuration("");
       return;
     }
 
     const updateDuration = () => {
-      try {
-        const startTime = new Date(runningTaskData.timerData.currentSessionStart!);
-        const now = new Date();
-        const diffMs = now.getTime() - startTime.getTime();
-        
-        if (diffMs < 0) {
-          setCurrentDuration("0:00");
-          return;
-        }
-        
-        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-        
-        if (hours > 0) {
-          setCurrentDuration(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-        } else {
-          setCurrentDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-        }
-      } catch (error) {
-        console.error('Error updating timer duration:', error);
-        setCurrentDuration("0:00");
+      const startTime = new Date(runningTaskData.timerData.currentSessionStart!);
+      const now = new Date();
+      const diffMs = now.getTime() - startTime.getTime();
+      const hours = Math.floor(diffMs / (1000 * 60 * 60));
+      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      if (hours > 0) {
+        setCurrentDuration(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+      } else {
+        setCurrentDuration(`${minutes}:${seconds.toString().padStart(2, '0')}`);
       }
     };
 
@@ -95,7 +73,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     const interval = setInterval(updateDuration, 1000);
 
     return () => clearInterval(interval);
-  }, [runningTaskData?.timerData?.currentSessionStart]);
+  }, [runningTaskData?.timerData.currentSessionStart]);
 
   if (!runningTaskData) {
     return null;
@@ -103,56 +81,53 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (runningTaskData?.task?.id) {
-      stopTimer(runningTaskData.task.id);
-    }
+    stopTimer(runningTaskData.task.id);
   };
 
   const handleTimerClick = () => {
-    if (runningTaskData?.isNonProject || !runningTaskData?.task) return;
-    try {
-      navigateToTaskEdit(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
-    } catch (error) {
-      console.error('Error navigating to task edit:', error);
-    }
+    if (runningTaskData?.isNonProject) return; // Non-Project synthetic task is not editable
+    navigateToTaskEdit(runningTaskData.task.project, runningTaskData.task, 'runningTimer');
   };
 
   return (
     <div className={`flex items-center ${className}`}>
       <div 
-        className="flex items-center space-x-3 h-12 px-4 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
+        className="flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 group"
         onClick={handleTimerClick}
-        title={runningTaskData.isNonProject ? "Non-project time tracking" : "Click to edit task"}
+        title="Click to edit task"
       >
+        {/* Status indicator */}
         <div className="flex items-center space-x-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-          <Clock className="w-4 h-4 text-green-600 dark:text-green-400" />
+          <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
+          <Clock className="w-4 h-4 text-timer-text" />
         </div>
         
+        {/* Task info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-semibold text-green-700 dark:text-green-300 truncate max-w-48">
-              {runningTaskData.task.title}
+          <span className="text-sm font-semibold text-green-600 dark:text-green-400 truncate max-w-48 leading-tight">
+            {runningTaskData.task.title}
+          </span>
+          <div className="flex items-center space-x-2 text-xs">
+            <span className="text-green-600/80 dark:text-green-400/80 truncate">
+              {runningTaskData.task.project} • {runningTaskData.task.id}
             </span>
             {currentDuration && (
               <>
                 <span className="text-green-500">•</span>
-                <span className="text-sm font-mono font-bold text-green-600 dark:text-green-400">
+                <span className="font-mono font-bold text-green-500">
                   {currentDuration}
                 </span>
               </>
             )}
           </div>
-          <span className="text-xs text-green-600/70 dark:text-green-400/70 truncate">
-            {runningTaskData.task.project}
-          </span>
         </div>
         
+        {/* Stop button */}
         <Button
           size="sm"
           variant="ghost"
           onClick={handleStopTimer}
-          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-200 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-800/50"
+          className="h-8 w-8 p-0 text-timer-text hover:text-timer-accent hover:bg-timer-border/10 transition-all duration-200"
           title="Stop Timer"
         >
           <Pause className="w-3 h-3" />
