@@ -18,7 +18,7 @@ import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
 import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
 
 interface MultiSelectFilters {
@@ -37,7 +37,7 @@ interface TimeTrackingPageProps {
 }
 
 export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPageProps) => {
-  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry } = useTimeTracking();
+  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry, taskTimers } = useTimeTracking();
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
@@ -845,6 +845,27 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Debug Timer Button */}
+          <Button
+            variant="outline"
+            onClick={() => {
+              console.log('=== TIMER DEBUG INFO ===');
+              console.log('taskTimers:', taskTimers);
+              console.log('taskTimers size:', taskTimers.size);
+              const runningEntries = Array.from(taskTimers.entries()).filter(([_, data]) => data.isRunning);
+              console.log('running timers:', runningEntries);
+              console.log('tasks count:', tasks.length);
+              
+              // Show alert with timer info
+              const runningCount = runningEntries.length;
+              const totalTimers = taskTimers.size;
+              alert(`Timer Debug Info:\n- Total Timers: ${totalTimers}\n- Running Timers: ${runningCount}\n- Tasks Available: ${tasks.length}\n\nCheck console for detailed info.`);
+            }}
+            className="text-xs"
+          >
+            Debug Timers
+          </Button>
+          
           {!isNonProjectRunning && (
             <Button
               variant="secondary"

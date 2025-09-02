@@ -84,14 +84,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   }, [runningTaskData?.timerData.currentSessionStart]);
 
   if (!runningTaskData) {
-    // Temporarily show a placeholder for debugging
-    return (
-      <div className={`flex items-center ${className}`}>
-        <div className="text-xs text-muted-foreground px-4">
-          No running timers (Debug: {taskTimers.size} timers total)
-        </div>
-      </div>
-    );
+    return null;
   }
 
   const handleStopTimer = (e: React.MouseEvent) => {
