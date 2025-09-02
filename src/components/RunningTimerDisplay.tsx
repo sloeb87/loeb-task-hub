@@ -120,31 +120,39 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   return (
     <div className={`flex items-center ${className}`}>
       <div 
-        className="flex items-center space-x-2 h-10 px-3 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
+        className="flex items-center space-x-3 h-12 px-4 rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 cursor-pointer hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-200"
         onClick={handleTimerClick}
         title={runningTaskData.isNonProject ? "Non-project time tracking" : "Click to edit task"}
       >
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
           <Clock className="w-4 h-4 text-green-600 dark:text-green-400" />
         </div>
         
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-medium text-green-700 dark:text-green-300 truncate max-w-32">
-            {runningTaskData.task.title}
-          </span>
-          {currentDuration && (
-            <span className="text-xs font-mono font-bold text-green-600 dark:text-green-400">
-              {currentDuration}
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm font-semibold text-green-700 dark:text-green-300 truncate max-w-48">
+              {runningTaskData.task.title}
             </span>
-          )}
+            {currentDuration && (
+              <>
+                <span className="text-green-500">•</span>
+                <span className="text-sm font-mono font-bold text-green-600 dark:text-green-400">
+                  {currentDuration}
+                </span>
+              </>
+            )}
+          </div>
+          <span className="text-xs text-green-600/70 dark:text-green-400/70 truncate">
+            {runningTaskData.task.project}
+          </span>
         </div>
         
         <Button
           size="sm"
           variant="ghost"
           onClick={handleStopTimer}
-          className="h-6 w-6 p-0 text-green-600 hover:text-green-700 hover:bg-green-200 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-800/50"
+          className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-200 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-800/50"
           title="Stop Timer"
         >
           <Pause className="w-3 h-3" />
