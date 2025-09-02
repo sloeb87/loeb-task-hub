@@ -83,8 +83,72 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     return () => clearInterval(interval);
   }, [runningTaskData?.timerData.currentSessionStart]);
 
-  if (!runningTaskData) {
+  // Force display if we have any running timers, even if task matching fails
+  const hasRunningTimers = Array.from(taskTimers.entries()).some(([_, data]) => data.isRunning);
+  
+  if (!runningTaskData && !hasRunningTimers) {
     return null;
+  }
+  
+  // If we have running timers but no matched task data, create fallback display
+  if (!runningTaskData && hasRunningTimers) {
+    const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
+    if (runningTimerEntry) {
+      const [taskId, timerData] = runningTimerEntry;
+      
+      // Create fallback task data
+      const fallbackTask = {
+        id: taskId,
+        title: taskId.includes('_') ? taskId.split('_').slice(1).join('_') : taskId,
+        project: 'Unknown Project',
+      } as Task;
+      
+      console.log('RunningTimerDisplay - Using fallback task data:', fallbackTask);
+      
+      return (
+        <div className={`flex items-center ${className}`}>
+          <div 
+            className="flex items-center space-x-3 h-12 px-4 cursor-pointer transition-all duration-300 group"
+            title="Running timer (fallback display)"
+          >
+            {/* Status indicator */}
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-timer-accent rounded-full animate-pulse"></div>
+              <Clock className="w-4 h-4 text-timer-text" />
+            </div>
+            
+            {/* Task info */}
+            <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex items-center space-x-2 text-sm font-semibold text-green-600 dark:text-green-400">
+                <span className="truncate max-w-48">
+                  {fallbackTask.id}_{fallbackTask.title}
+                </span>
+                <span className="font-mono text-green-500">
+                  Running...
+                </span>
+              </div>
+              <div className="text-xs text-green-600/80 dark:text-green-400/80 truncate">
+                {fallbackTask.project}
+              </div>
+            </div>
+            
+            {/* Stop button */}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                stopTimer(taskId);
+              }}
+              className="h-8 w-8 p-0 text-timer-text hover:text-timer-accent hover:bg-timer-border/10 transition-all duration-200"
+              title="Stop Timer"
+            >
+              <Pause className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      );
+    }
   }
 
   const handleStopTimer = (e: React.MouseEvent) => {
