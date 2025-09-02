@@ -16,6 +16,14 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const { navigateToTaskEdit } = useTaskNavigation();  
   const [currentDuration, setCurrentDuration] = useState<string>("");
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('RunningTimerDisplay - taskTimers:', taskTimers);
+    console.log('RunningTimerDisplay - tasks count:', tasks.length);
+    const runningEntries = Array.from(taskTimers.entries()).filter(([_, data]) => data.isRunning);
+    console.log('RunningTimerDisplay - running timers:', runningEntries);
+  }, [taskTimers, tasks]);
+
   // Find the currently running task
   const NON_PROJECT_TASK_ID = 'non_project_time';
   const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
@@ -76,7 +84,14 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   }, [runningTaskData?.timerData.currentSessionStart]);
 
   if (!runningTaskData) {
-    return null;
+    // Temporarily show a placeholder for debugging
+    return (
+      <div className={`flex items-center ${className}`}>
+        <div className="text-xs text-muted-foreground px-4">
+          No running timers (Debug: {taskTimers.size} timers total)
+        </div>
+      </div>
+    );
   }
 
   const handleStopTimer = (e: React.MouseEvent) => {
