@@ -33,17 +33,26 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     const runningTimerEntry = Array.from(taskTimers.entries()).find(([_, data]) => data.isRunning);
     
     if (!runningTimerEntry) {
+      console.log('RunningTimerDisplay - No running timer entry found');
       return null;
     }
 
     const [taskId, timerData] = runningTimerEntry;
+    console.log('RunningTimerDisplay - Found running timer for taskId:', taskId);
+    console.log('RunningTimerDisplay - Timer data:', timerData);
+    console.log('RunningTimerDisplay - Available tasks count:', tasks.length);
+    console.log('RunningTimerDisplay - Sample task IDs:', tasks.slice(0, 5).map(t => t.id));
+    
     const task = tasks.find(task => task.id === taskId);
+    console.log('RunningTimerDisplay - Found matching task:', task ? `YES (${task.title})` : 'NO');
     
     if (task) {
+      console.log('RunningTimerDisplay - Using matched task data');
       return { task, timerData, isNonProject: false };
     }
 
     if (taskId === NON_PROJECT_TASK_ID) {
+      console.log('RunningTimerDisplay - Using non-project synthetic task');
       const syntheticTask = {
         id: NON_PROJECT_TASK_ID,
         title: NON_PROJECT_TASK_TITLE,
@@ -52,6 +61,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
       return { task: syntheticTask, timerData, isNonProject: true };
     }
 
+    console.log('RunningTimerDisplay - No task match found, will use fallback');
     return null;
   }, [taskTimers, tasks]);
 
