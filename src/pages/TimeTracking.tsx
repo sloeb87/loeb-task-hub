@@ -845,27 +845,6 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </div>
         
         <div className="flex items-center gap-2">
-          {/* Debug Timer Button */}
-          <Button
-            variant="outline"
-            onClick={() => {
-              console.log('=== TIMER DEBUG INFO ===');
-              console.log('taskTimers:', taskTimers);
-              console.log('taskTimers size:', taskTimers.size);
-              const runningEntries = Array.from(taskTimers.entries()).filter(([_, data]) => data.isRunning);
-              console.log('running timers:', runningEntries);
-              console.log('tasks count:', tasks.length);
-              
-              // Show alert with timer info
-              const runningCount = runningEntries.length;
-              const totalTimers = taskTimers.size;
-              alert(`Timer Debug Info:\n- Total Timers: ${totalTimers}\n- Running Timers: ${runningCount}\n- Tasks Available: ${tasks.length}\n\nCheck console for detailed info.`);
-            }}
-            className="text-xs"
-          >
-            Debug Timers
-          </Button>
-          
           {!isNonProjectRunning && (
             <Button
               variant="secondary"
