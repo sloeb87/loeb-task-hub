@@ -68,6 +68,7 @@ const Tasks = () => {
   // Load initial data with correct page size for default filter
   useEffect(() => {
     const pageSize = getPageSize();
+    console.log('Tasks: Loading with activeFilter:', activeFilter);
     loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
   }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
 
@@ -171,12 +172,14 @@ const Tasks = () => {
           taskCounts={taskCounts}
           activeFilter={activeFilter}
           onFilterChange={(filter) => {
+            console.log('Tasks: Filter changed to:', filter);
             setActiveFilter(filter);
             // Reload with new page size and filter when filter changes
             const pageSize = getPageSize();
             if (currentSearchTerm.trim()) {
               searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
             } else {
+              console.log('Tasks: Loading tasks with filter:', filter);
               loadTasks(1, pageSize, sortField, sortDirection, filter);
             }
           }}

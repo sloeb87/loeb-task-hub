@@ -244,6 +244,8 @@ export function useSupabaseStorage() {
       setIsLoading(true);
       setCurrentSearchTerm(""); // Clear search term when loading regular tasks
       
+      console.log('useSupabaseStorage.loadTasks called with:', { page, pageSize, sortField, sortDirection, filterType });
+      
       // First, get the total count for the filtered tasks
       let countQuery = supabase
         .from('tasks')
@@ -252,6 +254,7 @@ export function useSupabaseStorage() {
       
       // Apply filter to count query
       if (filterType === 'active') {
+        console.log('Applying ACTIVE filter to count query');
         countQuery = countQuery.in('status', ['Open', 'In Progress']);
       } else if (filterType === 'open') {
         countQuery = countQuery.eq('status', 'Open');
@@ -328,6 +331,7 @@ export function useSupabaseStorage() {
       
       // Apply the same filter to the data query
       if (filterType === 'active') {
+        console.log('Applying ACTIVE filter to data query');
         query = query.in('status', ['Open', 'In Progress']);
       } else if (filterType === 'open') {
         query = query.eq('status', 'Open');
@@ -356,6 +360,11 @@ export function useSupabaseStorage() {
       const { data, error } = await query;
 
       if (error) throw error;
+
+      console.log(`loadTasks result: Got ${data?.length || 0} tasks with filter "${filterType}"`);
+      if (data && data.length > 0) {
+        console.log('Sample task statuses:', data.slice(0, 3).map(t => ({ id: t.task_number, status: t.status })));
+      }
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
       const taskIds = (data || []).map(t => t.id);
