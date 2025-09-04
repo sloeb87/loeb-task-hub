@@ -40,7 +40,7 @@ const followupSchema = z.object({
 
 type FollowupFormData = z.infer<typeof followupSchema>;
 
-export const SimpleFollowups = () => {
+const SimpleFollowups = () => {
   const { followups, tasks, createFollowup, deleteFollowup, loading } = useSimpleApp();
   const [showForm, setShowForm] = useState(false);
   const [deleteFollowup_State, setDeleteFollowup_State] = useState<SimpleFollowup | undefined>();
@@ -211,3 +211,5 @@ export const SimpleFollowups = () => {
     </div>
   );
 };
+
+export default SimpleFollowups;

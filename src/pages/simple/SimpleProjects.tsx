@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export const SimpleProjects = () => {
+const SimpleProjects = () => {
   const { projects, deleteProject, loading } = useSimpleApp();
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState<SimpleProject | undefined>();
@@ -154,3 +154,5 @@ export const SimpleProjects = () => {
     </div>
   );
 };
+
+export default SimpleProjects;

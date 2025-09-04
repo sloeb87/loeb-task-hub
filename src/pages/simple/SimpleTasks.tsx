@@ -16,7 +16,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-export const SimpleTasks = () => {
+const SimpleTasks = () => {
   const { tasks, deleteTask, loading } = useSimpleApp();
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<SimpleTask | undefined>();
@@ -181,3 +181,5 @@ export const SimpleTasks = () => {
     </div>
   );
 };
+
+export default SimpleTasks;

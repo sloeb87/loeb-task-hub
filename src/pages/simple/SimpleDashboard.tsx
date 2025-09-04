@@ -13,7 +13,7 @@ import {
   CheckCircle
 } from 'lucide-react';
 
-export const SimpleDashboard = () => {
+const SimpleDashboard = () => {
   const { projects, tasks, followups, timeEntries, loading } = useSimpleApp();
 
   if (loading) {
@@ -246,3 +246,5 @@ export const SimpleDashboard = () => {
     </div>
   );
 };
+
+export default SimpleDashboard;

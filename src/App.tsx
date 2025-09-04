@@ -76,7 +76,8 @@ const App = React.memo(() => {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
           <TaskFormProvider>
-            <BrowserRouter>
+            <div className="dark">
+              <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/" element={
@@ -122,16 +123,90 @@ const App = React.memo(() => {
                   <Route path="tasks/:id" element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <TaskEdit />
-                    </Suspense>
-                  } />
-                </Route>
-                <Route path="*" element={
-                  <Suspense fallback={<LoadingSpinner />}>
+                  </Suspense>
+                } />
+              </Route>
+              
+              {/* Simple App Routes */}
+              <Route path="/simple" element={
+                <ProtectedRoute>
+                  <SimpleAppProvider>
+                    <div className="min-h-screen bg-background">
+                      <SimpleHeader />
+                      <main>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <SimpleDashboard />
+                        </Suspense>
+                      </main>
+                    </div>
+                  </SimpleAppProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/simple/projects" element={
+                <ProtectedRoute>
+                  <SimpleAppProvider>
+                    <div className="min-h-screen bg-background">
+                      <SimpleHeader />
+                      <main>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <SimpleProjects />
+                        </Suspense>
+                      </main>
+                    </div>
+                  </SimpleAppProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/simple/tasks" element={
+                <ProtectedRoute>
+                  <SimpleAppProvider>
+                    <div className="min-h-screen bg-background">
+                      <SimpleHeader />
+                      <main>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <SimpleTasks />
+                        </Suspense>
+                      </main>
+                    </div>
+                  </SimpleAppProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/simple/followups" element={
+                <ProtectedRoute>
+                  <SimpleAppProvider>
+                    <div className="min-h-screen bg-background">
+                      <SimpleHeader />
+                      <main>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <SimpleFollowups />
+                        </Suspense>
+                      </main>
+                    </div>
+                  </SimpleAppProvider>
+                </ProtectedRoute>
+              } />
+              <Route path="/simple/time" element={
+                <ProtectedRoute>
+                  <SimpleAppProvider>
+                    <div className="min-h-screen bg-background">
+                      <SimpleHeader />
+                      <main>
+                        <Suspense fallback={<LoadingSpinner />}>
+                          <SimpleTimeTracking />
+                        </Suspense>
+                      </main>
+                    </div>
+                  </SimpleAppProvider>
+                </ProtectedRoute>
+              } />
+              
+              <Route path="*" element={
+                <Suspense fallback={<LoadingSpinner />}>
                     <NotFound />
                   </Suspense>
                 } />
               </Routes>
             </BrowserRouter>
+            </div>
           </TaskFormProvider>
           <Toaster />
           <Sonner />

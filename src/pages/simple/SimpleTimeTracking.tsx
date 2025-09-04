@@ -44,7 +44,7 @@ const timeEntrySchema = z.object({
 
 type TimeEntryFormData = z.infer<typeof timeEntrySchema>;
 
-export const SimpleTimeTracking = () => {
+const SimpleTimeTracking = () => {
   const { timeEntries, tasks, projects, createTimeEntry, updateTimeEntry, deleteTimeEntry, loading } = useSimpleApp();
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<SimpleTimeEntry | undefined>();
@@ -339,3 +339,5 @@ export const SimpleTimeTracking = () => {
     </div>
   );
 };
+
+export default SimpleTimeTracking;

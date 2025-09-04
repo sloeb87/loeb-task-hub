@@ -136,6 +136,10 @@ export const AppHeader = React.memo(({
   const DesktopRightActions = useMemo(() => {
     return () => (
       <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        <Button variant="ghost" onClick={() => navigate('/simple')} size="sm" className="flex items-center px-2 text-xs" title="Switch to Simple Mode">
+          <Moon className="w-4 h-4 mr-1" />
+          <span>Simple</span>
+        </Button>
         <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
           <RotateCw className="w-4 h-4" />
         </Button>
