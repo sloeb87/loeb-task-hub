@@ -17,9 +17,9 @@ const Tasks = () => {
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Dynamic page size based on filter
-  const getPageSize = useCallback((filter: FilterType) => {
-    return filter === "active" ? 25 : 50;
+  // Dynamic page size - 25 for all filters
+  const getPageSize = useCallback(() => {
+    return 25;
   }, []);
 
   const { startTimer } = useTimeTracking();
@@ -67,7 +67,7 @@ const Tasks = () => {
 
   // Load initial data with correct page size for default filter
   useEffect(() => {
-    const pageSize = getPageSize(activeFilter);
+    const pageSize = getPageSize();
     loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
   }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
 
@@ -82,7 +82,8 @@ const Tasks = () => {
     }
   }, []);
 
-  const { filteredTasks } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
+  // Since filtering is now done at database level, no need for frontend filtering
+  // const { filteredTasks } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
 
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     try {
@@ -132,7 +133,7 @@ const Tasks = () => {
   };
 
   const handlePageChange = useCallback((page: number) => {
-    const pageSize = getPageSize(activeFilter);
+    const pageSize = getPageSize();
     if (currentSearchTerm.trim()) {
       // If we're in search mode, use searchTasks with the current search term
       searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
@@ -172,7 +173,7 @@ const Tasks = () => {
           onFilterChange={(filter) => {
             setActiveFilter(filter);
             // Reload with new page size and filter when filter changes
-            const pageSize = getPageSize(filter);
+            const pageSize = getPageSize();
             if (currentSearchTerm.trim()) {
               searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
             } else {
@@ -183,7 +184,7 @@ const Tasks = () => {
         />
 
         <TaskTableMemo
-          tasks={filteredTasks}
+          tasks={tasks}
           sortField={sortField}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
@@ -193,7 +194,7 @@ const Tasks = () => {
           pagination={pagination}
           onPageChange={handlePageChange}
           onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
-            const pageSize = getPageSize(activeFilter);
+            const pageSize = getPageSize();
             searchTasks(searchTerm, page, pageSize, sortField, sortDirection);
           }}
           currentSearchTerm={currentSearchTerm}
