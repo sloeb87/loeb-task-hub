@@ -3,7 +3,6 @@ import { useAuth } from './useAuth';
 import { TimeEntry, TimeEntryFilters, TimeEntryStats } from '@/types/timeEntry';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { startOfDay, endOfDay } from 'date-fns';
 
 export interface TaskTimeData {
   taskId: string;
@@ -19,21 +18,19 @@ export function useTimeTracking() {
   const [taskTimers, setTaskTimers] = useState<Map<string, TaskTimeData>>(new Map());
   const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [loadedDateRange, setLoadedDateRange] = useState<{ from: Date; to: Date } | null>(null);
 
-  // Load existing time data - today by default
+  // Load existing time data
   useEffect(() => {
     if (user) {
-      const now = new Date();
-      loadTimeData(startOfDay(now), endOfDay(now));
+      loadTimeData();
     }
   }, [user]);
 
   // Listen for manual data refresh events
   useEffect(() => {
     const handleTimeEntriesUpdated = () => {
-      if (user && loadedDateRange) {
-        loadTimeData(loadedDateRange.from, loadedDateRange.to);
+      if (user) {
+        loadTimeData();
       }
     };
 
@@ -50,9 +47,7 @@ export function useTimeTracking() {
     const channel = supabase
       .channel('schema-db-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'time_entries' }, () => {
-        if (loadedDateRange) {
-          loadTimeData(loadedDateRange.from, loadedDateRange.to);
-        }
+        loadTimeData();
       })
       .subscribe();
 
@@ -95,27 +90,18 @@ export function useTimeTracking() {
     return () => clearInterval(interval);
   }, []);
 
-  const loadTimeData = async (fromDate?: Date, toDate?: Date) => {
+  const loadTimeData = async () => {
     if (!user) return;
     
     try {
       setIsLoading(true);
       
-      // Default to today if no range specified
-      const now = new Date();
-      const from = fromDate || startOfDay(now);
-      const to = toDate || endOfDay(now);
-      
-      // Load time entries from database with date range filter
-      let query = supabase
+      // Load time entries from database
+      const { data: timeEntriesData, error: timeEntriesError } = await supabase
         .from('time_entries')
         .select('*')
         .eq('user_id', user.id)
-        .gte('start_time', from.toISOString())
-        .lte('start_time', to.toISOString())
         .order('created_at', { ascending: false });
-
-      const { data: timeEntriesData, error: timeEntriesError } = await query;
 
       if (timeEntriesError) {
         console.error('Error loading time entries:', timeEntriesError);
@@ -139,7 +125,6 @@ export function useTimeTracking() {
       }));
 
       setTimeEntries(entries);
-      setLoadedDateRange({ from, to });
 
       // Calculate task totals from database entries
       const taskTimeMap = new Map<string, TaskTimeData>();
@@ -400,24 +385,6 @@ export function useTimeTracking() {
   }, [timeEntries]);
 
   const getFilteredTimeEntries = useCallback((filters: TimeEntryFilters): TimeEntry[] => {
-    // Check if filters require data outside of currently loaded range
-    if (filters.dateRange?.from && filters.dateRange?.to && loadedDateRange) {
-      const filterFrom = new Date(filters.dateRange.from);
-      const filterTo = new Date(filters.dateRange.to);
-      const loadedFrom = loadedDateRange.from;
-      const loadedTo = loadedDateRange.to;
-      
-      // Check if we need to load more data
-      if (filterFrom < loadedFrom || filterTo > loadedTo) {
-        // Expand the loaded range to include the filter range
-        const newFrom = filterFrom < loadedFrom ? filterFrom : loadedFrom;
-        const newTo = filterTo > loadedTo ? filterTo : loadedTo;
-        
-        // Load additional data asynchronously
-        loadTimeData(newFrom, newTo);
-      }
-    }
-    
     return timeEntries.filter(entry => {
       const entryDate = new Date(entry.startTime);
       
@@ -455,7 +422,7 @@ export function useTimeTracking() {
       
       return true;
     });
-  }, [timeEntries, loadedDateRange]);
+  }, [timeEntries]);
 
   const getTimeEntryStats = useCallback((entries: TimeEntry[]): TimeEntryStats => {
     const totalTime = entries.reduce((sum, entry) => sum + (entry.duration || 0), 0);
@@ -494,9 +461,7 @@ export function useTimeTracking() {
       setTimeEntries(prev => prev.filter(entry => entry.id !== entryId));
       
       // Reload time data to recalculate totals
-      if (loadedDateRange) {
-        await loadTimeData(loadedDateRange.from, loadedDateRange.to);
-      }
+      await loadTimeData();
     } catch (error) {
       console.error('Error deleting time entry:', error);
     }
