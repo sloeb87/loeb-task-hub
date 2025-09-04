@@ -229,7 +229,7 @@ export function useSupabaseStorage() {
     pageSize: number = 50, 
     sortField: string = 'due_date', 
     sortDirection: 'asc' | 'desc' = 'asc',
-    filterType?: string
+    filterType: string = 'active' // Default to active to avoid loading completed tasks
   ) => {
     if (!isAuthenticated || !user) {
       console.log('loadTasks: No authentication or user:', { isAuthenticated, hasUser: !!user });
@@ -246,13 +246,19 @@ export function useSupabaseStorage() {
       
       console.log('useSupabaseStorage.loadTasks called with:', { page, pageSize, sortField, sortDirection, filterType });
       
+      // Create base task query
+      const baseTaskQuery = supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+      
       // First, get the total count for the filtered tasks
       let countQuery = supabase
         .from('tasks')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id);
       
-      // Apply filter to count query
+      // Apply filter to count query - always exclude completed unless specifically requested
       if (filterType === 'active') {
         console.log('Applying ACTIVE filter to count query');
         countQuery = countQuery.in('status', ['Open', 'In Progress']);
@@ -264,6 +270,12 @@ export function useSupabaseStorage() {
         countQuery = countQuery.eq('status', 'On Hold');
       } else if (filterType === 'critical') {
         countQuery = countQuery.eq('priority', 'Critical').neq('status', 'Completed');
+      } else if (filterType === 'all') {
+        // Only include all tasks (including completed) when explicitly requested
+        // No additional filter needed
+      } else {
+        // Default case - show only active tasks to avoid loading completed ones
+        countQuery = countQuery.in('status', ['Open', 'In Progress']);
       }
       
       const { count: filteredCount, error: countError } = await countQuery;
@@ -329,7 +341,7 @@ export function useSupabaseStorage() {
         .select('*')
         .eq('user_id', user.id);
       
-      // Apply the same filter to the data query
+      // Apply the same filter to the data query - always exclude completed unless specifically requested
       if (filterType === 'active') {
         console.log('Applying ACTIVE filter to data query');
         query = query.in('status', ['Open', 'In Progress']);
@@ -341,6 +353,12 @@ export function useSupabaseStorage() {
         query = query.eq('status', 'On Hold');
       } else if (filterType === 'critical') {
         query = query.eq('priority', 'Critical').neq('status', 'Completed');
+      } else if (filterType === 'all') {
+        // Only include all tasks (including completed) when explicitly requested
+        // No additional filter needed
+      } else {
+        // Default case - show only active tasks to avoid loading completed ones
+        query = query.in('status', ['Open', 'In Progress']);
       }
 
       // Handle special sorting cases
@@ -368,7 +386,7 @@ export function useSupabaseStorage() {
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
       const taskIds = (data || []).map(t => t.id);
-      const projectIds = [...new Set((data || []).map(t => t.project_id).filter(Boolean))];
+      const projectIds = [...new Set((data || []).map(t => t.project_id).filter(Boolean))].filter((id): id is string => typeof id === 'string');
 
       // Fetch all follow-ups in one query
       const { data: allFollowUps } = await supabase
@@ -626,7 +644,8 @@ export function useSupabaseStorage() {
     page: number = 1,
     pageSize: number = 50,
     sortField: string = 'due_date', 
-    sortDirection: 'asc' | 'desc' = 'asc'
+    sortDirection: 'asc' | 'desc' = 'asc',
+    filterType: string = 'active' // Default to active to avoid loading completed tasks
   ) => {
     if (!isAuthenticated || !user) {
       console.log('searchTasks: No authentication or user');
@@ -639,7 +658,7 @@ export function useSupabaseStorage() {
     if (!searchTerm.trim()) {
       // If no search term, clear current search and load regular paginated tasks
       setCurrentSearchTerm("");
-      loadTasks(page, pageSize, sortField, sortDirection);
+      loadTasks(page, pageSize, sortField, sortDirection, filterType);
       return;
     }
 
@@ -664,11 +683,27 @@ export function useSupabaseStorage() {
         }
       })();
 
-      // Search across ALL tasks (but with pagination support)
+      // Search with filtering to avoid loading completed tasks by default
       let query = supabase
         .from('tasks')
         .select('*')
         .eq('user_id', user.id);
+
+      // Apply filter to exclude completed tasks unless specifically requested
+      if (filterType === 'active') {
+        query = query.in('status', ['Open', 'In Progress']);
+      } else if (filterType === 'open') {
+        query = query.eq('status', 'Open');
+      } else if (filterType === 'inprogress') {
+        query = query.eq('status', 'In Progress');
+      } else if (filterType === 'onhold') {
+        query = query.eq('status', 'On Hold');
+      } else if (filterType === 'critical') {
+        query = query.eq('priority', 'Critical').neq('status', 'Completed');
+      } else if (filterType !== 'all') {
+        // Default case - show only active tasks to avoid loading completed ones
+        query = query.in('status', ['Open', 'In Progress']);
+      }
 
       // First, get task IDs from follow-ups that match the search term
       const { data: followUpResults } = await supabase

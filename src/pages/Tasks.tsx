@@ -137,7 +137,7 @@ const Tasks = () => {
     const pageSize = getPageSize();
     if (currentSearchTerm.trim()) {
       // If we're in search mode, use searchTasks with the current search term
-      searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
+            searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
     } else {
       // If not searching, use loadTasks with filter
       loadTasks(page, pageSize, sortField, sortDirection, activeFilter);
