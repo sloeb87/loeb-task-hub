@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { TaskFormProvider } from "./contexts/TaskFormContext";
+import { SimpleAppProvider } from "./contexts/SimpleAppContext";
+import { SimpleHeader } from "./components/simple/SimpleHeader";
 
 // Create QueryClient outside component to prevent recreation
 const queryClient = new QueryClient({
@@ -30,6 +32,13 @@ const TimeTrackingWrapper = lazy(() => import("./pages/TimeTrackingWrapper"));
 const FollowUpsWrapper = lazy(() => import("./pages/FollowUpsWrapper"));
 const TaskEdit = lazy(() => import("./pages/TaskEdit"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Simple app components
+const SimpleDashboard = lazy(() => import("./pages/simple/SimpleDashboard"));
+const SimpleProjects = lazy(() => import("./pages/simple/SimpleProjects"));
+const SimpleTasks = lazy(() => import("./pages/simple/SimpleTasks"));
+const SimpleFollowups = lazy(() => import("./pages/simple/SimpleFollowups"));
+const SimpleTimeTracking = lazy(() => import("./pages/simple/SimpleTimeTracking"));
 
 const LoadingSpinner = React.memo(() => (
   <div className="min-h-screen flex items-center justify-center">
