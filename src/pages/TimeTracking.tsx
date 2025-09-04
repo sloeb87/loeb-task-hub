@@ -1141,8 +1141,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       {/* Daily Hours History */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle>Daily Hours (Last 30 Days)</CardTitle>
-          <CardDescription>Total hours per day. Ends today.</CardDescription>
+          <CardTitle>Daily Hours (Last 31 Days)</CardTitle>
+          <CardDescription>Total hours per day before {filters.dateRange?.to ? new Date(filters.dateRange.to).toLocaleDateString() : 'today'}.</CardDescription>
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-80 w-full">
