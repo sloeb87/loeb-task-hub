@@ -16,6 +16,11 @@ const Tasks = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
+  // Dynamic page size based on filter
+  const getPageSize = useCallback((filter: FilterType) => {
+    return filter === "active" ? 25 : 50;
+  }, []);
 
   const { startTimer } = useTimeTracking();
   const { setNavigationCallback } = useTaskNavigation();
@@ -59,6 +64,12 @@ const Tasks = () => {
       }
     }
   }, [location.state]);
+
+  // Load initial data with correct page size for default filter
+  useEffect(() => {
+    const pageSize = getPageSize(activeFilter);
+    loadTasks(1, pageSize, sortField, sortDirection);
+  }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
 
   // SEO
   useEffect(() => {
@@ -121,14 +132,15 @@ const Tasks = () => {
   };
 
   const handlePageChange = useCallback((page: number) => {
+    const pageSize = getPageSize(activeFilter);
     if (currentSearchTerm.trim()) {
       // If we're in search mode, use searchTasks with the current search term
-      searchTasks(currentSearchTerm, page, pagination.pageSize, sortField, sortDirection);
+      searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
     } else {
       // If not searching, use loadTasks
-      loadTasks(page, pagination.pageSize, sortField, sortDirection);
+      loadTasks(page, pageSize, sortField, sortDirection);
     }
-  }, [currentSearchTerm, searchTasks, loadTasks, pagination.pageSize, sortField, sortDirection]);
+  }, [currentSearchTerm, searchTasks, loadTasks, activeFilter, getPageSize, sortField, sortDirection]);
 
   if (error) {
     return (
@@ -157,7 +169,16 @@ const Tasks = () => {
           tasks={tasks}
           taskCounts={taskCounts}
           activeFilter={activeFilter}
-          onFilterChange={setActiveFilter}
+          onFilterChange={(filter) => {
+            setActiveFilter(filter);
+            // Reload with new page size when filter changes
+            const pageSize = getPageSize(filter);
+            if (currentSearchTerm.trim()) {
+              searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
+            } else {
+              loadTasks(1, pageSize, sortField, sortDirection);
+            }
+          }}
           onSortChange={handleSortChange}
         />
 
@@ -171,7 +192,10 @@ const Tasks = () => {
           onCompleteTask={handleUpdateTask} // Handle task completion
           pagination={pagination}
           onPageChange={handlePageChange}
-          onSearch={searchTasks}
+          onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
+            const pageSize = getPageSize(activeFilter);
+            searchTasks(searchTerm, page, pageSize, sortField, sortDirection);
+          }}
           currentSearchTerm={currentSearchTerm}
           isLoading={isLoading}
         />
