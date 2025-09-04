@@ -281,6 +281,11 @@ export function useTimeTracking() {
         createdAt: newEntry.created_at
       }, ...prev]);
 
+      // Refresh the page after successfully starting the timer
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+
     } catch (error) {
       console.error('Error starting timer:', error);
       // Revert local state on error
