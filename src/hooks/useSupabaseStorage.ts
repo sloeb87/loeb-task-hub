@@ -228,7 +228,8 @@ export function useSupabaseStorage() {
     page: number = 1, 
     pageSize: number = 50, 
     sortField: string = 'due_date', 
-    sortDirection: 'asc' | 'desc' = 'asc'
+    sortDirection: 'asc' | 'desc' = 'asc',
+    filterType?: string
   ) => {
     if (!isAuthenticated || !user) {
       console.log('loadTasks: No authentication or user:', { isAuthenticated, hasUser: !!user });
@@ -243,7 +244,29 @@ export function useSupabaseStorage() {
       setIsLoading(true);
       setCurrentSearchTerm(""); // Clear search term when loading regular tasks
       
-      // First, get the total count and stats for all tasks
+      // First, get the total count for the filtered tasks
+      let countQuery = supabase
+        .from('tasks')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+      
+      // Apply filter to count query
+      if (filterType === 'active') {
+        countQuery = countQuery.in('status', ['Open', 'In Progress']);
+      } else if (filterType === 'open') {
+        countQuery = countQuery.eq('status', 'Open');
+      } else if (filterType === 'inprogress') {
+        countQuery = countQuery.eq('status', 'In Progress');
+      } else if (filterType === 'onhold') {
+        countQuery = countQuery.eq('status', 'On Hold');
+      } else if (filterType === 'critical') {
+        countQuery = countQuery.eq('priority', 'Critical').neq('status', 'Completed');
+      }
+      
+      const { count: filteredCount, error: countError } = await countQuery;
+      if (countError) throw countError;
+      
+      // Then get the total count and stats for all tasks (for the summary cards)
       const { data: allTasksData, error: allTasksError } = await supabase
         .from('tasks')
         .select('status, priority')
@@ -275,9 +298,9 @@ export function useSupabaseStorage() {
         completed: completedTasks
       });
 
-      const totalPages = Math.ceil(totalTasks / pageSize);
+      const totalPages = Math.ceil((filteredCount || 0) / pageSize);
       
-      // Then get the paginated data with sorting
+      // Then get the paginated data with sorting and filtering
       const from = (page - 1) * pageSize;
       const to = from + pageSize - 1;
       
@@ -302,6 +325,19 @@ export function useSupabaseStorage() {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id);
+      
+      // Apply the same filter to the data query
+      if (filterType === 'active') {
+        query = query.in('status', ['Open', 'In Progress']);
+      } else if (filterType === 'open') {
+        query = query.eq('status', 'Open');
+      } else if (filterType === 'inprogress') {
+        query = query.eq('status', 'In Progress');
+      } else if (filterType === 'onhold') {
+        query = query.eq('status', 'On Hold');
+      } else if (filterType === 'critical') {
+        query = query.eq('priority', 'Critical').neq('status', 'Completed');
+      }
 
       // Handle special sorting cases
       if (sortField === 'priority') {
@@ -380,7 +416,7 @@ export function useSupabaseStorage() {
       setPagination({
         currentPage: page,
         pageSize,
-        totalTasks,
+        totalTasks: filteredCount || 0,
         totalPages
       });
       setError(null);

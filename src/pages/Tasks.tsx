@@ -68,7 +68,7 @@ const Tasks = () => {
   // Load initial data with correct page size for default filter
   useEffect(() => {
     const pageSize = getPageSize(activeFilter);
-    loadTasks(1, pageSize, sortField, sortDirection);
+    loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
   }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
 
   // SEO
@@ -137,8 +137,8 @@ const Tasks = () => {
       // If we're in search mode, use searchTasks with the current search term
       searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
     } else {
-      // If not searching, use loadTasks
-      loadTasks(page, pageSize, sortField, sortDirection);
+      // If not searching, use loadTasks with filter
+      loadTasks(page, pageSize, sortField, sortDirection, activeFilter);
     }
   }, [currentSearchTerm, searchTasks, loadTasks, activeFilter, getPageSize, sortField, sortDirection]);
 
@@ -171,12 +171,12 @@ const Tasks = () => {
           activeFilter={activeFilter}
           onFilterChange={(filter) => {
             setActiveFilter(filter);
-            // Reload with new page size when filter changes
+            // Reload with new page size and filter when filter changes
             const pageSize = getPageSize(filter);
             if (currentSearchTerm.trim()) {
               searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
             } else {
-              loadTasks(1, pageSize, sortField, sortDirection);
+              loadTasks(1, pageSize, sortField, sortDirection, filter);
             }
           }}
           onSortChange={handleSortChange}
