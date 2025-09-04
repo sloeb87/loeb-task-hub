@@ -3,6 +3,7 @@ import { useAuth } from './useAuth';
 import { TimeEntry, TimeEntryFilters, TimeEntryStats } from '@/types/timeEntry';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { startOfDay, endOfDay } from 'date-fns';
 
 export interface TaskTimeData {
   taskId: string;
@@ -20,12 +21,11 @@ export function useTimeTracking() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadedDateRange, setLoadedDateRange] = useState<{ from: Date; to: Date } | null>(null);
 
-  // Load existing time data - last 30 days by default
+  // Load existing time data - today by default
   useEffect(() => {
     if (user) {
       const now = new Date();
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      loadTimeData(thirtyDaysAgo, now);
+      loadTimeData(startOfDay(now), endOfDay(now));
     }
   }, [user]);
 
@@ -101,10 +101,10 @@ export function useTimeTracking() {
     try {
       setIsLoading(true);
       
-      // Default to last 30 days if no range specified
+      // Default to today if no range specified
       const now = new Date();
-      const from = fromDate || new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const to = toDate || now;
+      const from = fromDate || startOfDay(now);
+      const to = toDate || endOfDay(now);
       
       // Load time entries from database with date range filter
       let query = supabase

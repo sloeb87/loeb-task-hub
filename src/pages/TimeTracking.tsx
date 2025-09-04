@@ -45,8 +45,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<TimeEntryFilters>(() => {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    return { dateRange: { from: startOfDay(thirtyDaysAgo), to: endOfDay(now) } };
+    return { dateRange: { from: startOfDay(now), to: endOfDay(now) } };
   });
 
   // Modal state for detailed pie chart view

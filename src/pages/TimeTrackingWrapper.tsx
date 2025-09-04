@@ -38,7 +38,7 @@ const TimeTrackingWrapper = () => {
   }, []);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading all tasks for time tracking...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
   }
 
   return (
