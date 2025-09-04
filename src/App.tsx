@@ -10,8 +10,6 @@ import Auth from "./pages/Auth";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "./hooks/useAuth";
 import { TaskFormProvider } from "./contexts/TaskFormContext";
-import { SimpleAppProvider } from "./contexts/SimpleAppContext";
-import { SimpleHeader } from "./components/simple/SimpleHeader";
 
 // Create QueryClient outside component to prevent recreation
 const queryClient = new QueryClient({
@@ -32,13 +30,6 @@ const TimeTrackingWrapper = lazy(() => import("./pages/TimeTrackingWrapper"));
 const FollowUpsWrapper = lazy(() => import("./pages/FollowUpsWrapper"));
 const TaskEdit = lazy(() => import("./pages/TaskEdit"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
-// Simple app components
-const SimpleDashboard = lazy(() => import("./pages/simple/SimpleDashboard"));
-const SimpleProjects = lazy(() => import("./pages/simple/SimpleProjects"));
-const SimpleTasks = lazy(() => import("./pages/simple/SimpleTasks"));
-const SimpleFollowups = lazy(() => import("./pages/simple/SimpleFollowups"));
-const SimpleTimeTracking = lazy(() => import("./pages/simple/SimpleTimeTracking"));
 
 const LoadingSpinner = React.memo(() => (
   <div className="min-h-screen flex items-center justify-center">
@@ -76,8 +67,7 @@ const App = React.memo(() => {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
           <TaskFormProvider>
-            <div className="dark">
-              <BrowserRouter>
+            <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/" element={
@@ -123,90 +113,16 @@ const App = React.memo(() => {
                   <Route path="tasks/:id" element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <TaskEdit />
-                  </Suspense>
-                } />
-              </Route>
-              
-              {/* Simple App Routes */}
-              <Route path="/simple" element={
-                <ProtectedRoute>
-                  <SimpleAppProvider>
-                    <div className="min-h-screen bg-background">
-                      <SimpleHeader />
-                      <main>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <SimpleDashboard />
-                        </Suspense>
-                      </main>
-                    </div>
-                  </SimpleAppProvider>
-                </ProtectedRoute>
-              } />
-              <Route path="/simple/projects" element={
-                <ProtectedRoute>
-                  <SimpleAppProvider>
-                    <div className="min-h-screen bg-background">
-                      <SimpleHeader />
-                      <main>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <SimpleProjects />
-                        </Suspense>
-                      </main>
-                    </div>
-                  </SimpleAppProvider>
-                </ProtectedRoute>
-              } />
-              <Route path="/simple/tasks" element={
-                <ProtectedRoute>
-                  <SimpleAppProvider>
-                    <div className="min-h-screen bg-background">
-                      <SimpleHeader />
-                      <main>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <SimpleTasks />
-                        </Suspense>
-                      </main>
-                    </div>
-                  </SimpleAppProvider>
-                </ProtectedRoute>
-              } />
-              <Route path="/simple/followups" element={
-                <ProtectedRoute>
-                  <SimpleAppProvider>
-                    <div className="min-h-screen bg-background">
-                      <SimpleHeader />
-                      <main>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <SimpleFollowups />
-                        </Suspense>
-                      </main>
-                    </div>
-                  </SimpleAppProvider>
-                </ProtectedRoute>
-              } />
-              <Route path="/simple/time" element={
-                <ProtectedRoute>
-                  <SimpleAppProvider>
-                    <div className="min-h-screen bg-background">
-                      <SimpleHeader />
-                      <main>
-                        <Suspense fallback={<LoadingSpinner />}>
-                          <SimpleTimeTracking />
-                        </Suspense>
-                      </main>
-                    </div>
-                  </SimpleAppProvider>
-                </ProtectedRoute>
-              } />
-              
-              <Route path="*" element={
-                <Suspense fallback={<LoadingSpinner />}>
+                    </Suspense>
+                  } />
+                </Route>
+                <Route path="*" element={
+                  <Suspense fallback={<LoadingSpinner />}>
                     <NotFound />
                   </Suspense>
                 } />
               </Routes>
             </BrowserRouter>
-            </div>
           </TaskFormProvider>
           <Toaster />
           <Sonner />
