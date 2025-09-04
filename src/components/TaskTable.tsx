@@ -1159,9 +1159,9 @@ export const TaskTable = ({
         <div className="p-4 border-t border-border bg-gray-50 dark:bg-gray-800/50">
           <div className="flex items-center justify-between">
             <div className="text-sm text-muted-foreground">
-              Showing {Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, pagination.totalTasks)} to{' '}
-              {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalTasks)} of{' '}
-              {pagination.totalTasks} tasks
+              Showing {Math.min((pagination.currentPage - 1) * pagination.pageSize + 1, tasks.length)} to{' '}
+              {Math.min(pagination.currentPage * pagination.pageSize, tasks.length)} of{' '}
+              {tasks.length} tasks
             </div>
             
             {pagination.totalPages > 1 && (
