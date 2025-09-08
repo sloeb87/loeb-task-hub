@@ -5,7 +5,8 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 
 export const mockTasks: Task[] = [
   {
-    id: "1",
+    id: "T001", // Changed to task number as primary ID
+    uuid: "550e8400-e29b-41d4-a716-446655440001", // Added UUID for database operations
     scope: ["User Management"], // Changed to array
     project: "Website Redesign",
     environment: "Production",
@@ -32,7 +33,8 @@ export const mockTasks: Task[] = [
     stakeholders: ["John Doe", "Jane Smith", "Security Team"]
   },
   {
-    id: "2",
+    id: "T002", // Changed to task number as primary ID
+    uuid: "550e8400-e29b-41d4-a716-446655440002", // Added UUID for database operations
     scope: ["Database", "API"], // Changed to array
     project: "Website Redesign",
     environment: "Development",
@@ -59,7 +61,8 @@ export const mockTasks: Task[] = [
     stakeholders: ["Jane Smith", "Database Team"]
   },
   {
-    id: "3",
+    id: "T003", // Changed to task number as primary ID
+    uuid: "550e8400-e29b-41d4-a716-446655440003", // Added UUID for database operations
     scope: ["UI/UX"], // Changed to array
     project: "Mobile App",
     environment: "Design",
@@ -87,7 +90,8 @@ export const mockTasks: Task[] = [
     stakeholders: ["Mike Johnson", "Design Team", "Product Manager"]
   },
   {
-    id: "4",
+    id: "T004", // Changed to task number as primary ID
+    uuid: "550e8400-e29b-41d4-a716-446655440004", // Added UUID for database operations
     scope: ["API", "Integration"], // Changed to array
     project: "API Integration",
     environment: "Testing",
@@ -114,7 +118,8 @@ export const mockTasks: Task[] = [
     stakeholders: ["Sarah Wilson", "QA Team", "Backend Team"]
   },
   {
-    id: "5",
+    id: "T005", // Changed to task number as primary ID
+    uuid: "550e8400-e29b-41d4-a716-446655440005", // Added UUID for database operations
     scope: ["Documentation"], // Changed to array
     project: "Website Redesign",
     environment: "Documentation",

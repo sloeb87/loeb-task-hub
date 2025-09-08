@@ -775,7 +775,7 @@ export const TaskTable = ({
                     <div className="space-y-2">
                          <div className="flex items-start justify-between">
                           <div className="flex items-center space-x-2">
-                            <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.taskNumber || task.id}</span>
+                            <span className="text-base font-medium text-blue-600 dark:text-blue-400">{task.id}</span>
                             <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2">
                               {task.title}
                             </h3>

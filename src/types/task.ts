@@ -24,8 +24,8 @@ export interface NamedLink {
 }
 
 export interface Task {
-  id: string;
-  taskNumber?: string; // Display-friendly task number like T468 (optional for compatibility)
+  id: string; // Task number like T468 - this is the primary identifier users see and work with
+  uuid?: string; // Database UUID for internal operations (optional for compatibility)
   scope: string[]; // Changed to array to support multiple scopes
   project: string;
   environment: string;

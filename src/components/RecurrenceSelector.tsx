@@ -124,8 +124,13 @@ export const RecurrenceSelector = ({
     setIsGenerating(true);
     
     try {
+      if (!taskId) {
+        toast.error("Task ID is required for recurring instance generation");
+        return;
+      }
+
       const { data, error } = await supabase.rpc('generate_recurring_instances', {
-        task_uuid: taskId
+        task_uuid: taskId // taskId is now the UUID passed from parent
       });
 
       if (error) {

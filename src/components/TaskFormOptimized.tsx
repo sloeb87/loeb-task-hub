@@ -760,7 +760,7 @@ export const TaskFormOptimized = React.memo(({
                        recurrenceInterval={formData.recurrenceInterval}
                        recurrenceEndDate={formData.recurrenceEndDate}
                        recurrenceDaysOfWeek={formData.recurrenceDaysOfWeek}
-                       taskId={task?.id}  // Pass the task ID for the generate button
+                       taskId={task?.uuid}  // Pass the UUID for database operations
                       onRecurrenceChange={(recurrence) => {
                         setFormData(prev => ({
                           ...prev,
