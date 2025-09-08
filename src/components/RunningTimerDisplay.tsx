@@ -144,7 +144,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center space-x-2 text-sm font-semibold text-green-600 dark:text-green-400">
                 <span className="truncate max-w-48">
-                  {fallbackTask.id}_{fallbackTask.title}
+                  {(fallbackTask.taskNumber || fallbackTask.id)}_{fallbackTask.title}
                 </span>
                 <span className="font-mono text-green-500">
                   Running...
@@ -201,7 +201,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center space-x-2 text-sm font-semibold text-green-600 dark:text-green-400">
             <span className="truncate max-w-48">
-              {runningTaskData.task.id}_{runningTaskData.task.title}
+              {(runningTaskData.task.taskNumber || runningTaskData.task.id)}_{runningTaskData.task.title}
             </span>
             {currentDuration && (
               <span className="font-mono text-green-500">
