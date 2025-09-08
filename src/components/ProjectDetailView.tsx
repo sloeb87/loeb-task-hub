@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useScopeColor } from '@/hooks/useParameterColors';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -279,6 +279,16 @@ export const ProjectDetailView = ({
       setRefreshKey(prev => prev + 1);
     }
   };
+
+  const handleCompleteTask = useCallback((task: Task) => {
+    const completedTask = {
+      ...task,
+      status: 'Completed' as const,
+      completionDate: new Date().toISOString().split('T')[0]
+    };
+    onUpdateTask(completedTask);
+    setRefreshKey(prev => prev + 1);
+  }, [onUpdateTask]);
 
   const handleSaveTaskLocal = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     if (onSaveTask) {
@@ -597,6 +607,7 @@ export const ProjectDetailView = ({
                     tasks={paginatedData.openTasks.items} 
                     onEditTask={handleEditTaskLocal}
                     onFollowUp={handleFollowUpLocal}
+                    onCompleteTask={handleCompleteTask}
                     hideProjectColumn={true}
                     pagination={paginatedData.openTasks.pagination}
                     onPageChange={setOpenTasksCurrentPage}
@@ -700,6 +711,7 @@ export const ProjectDetailView = ({
                       tasks={paginatedData.completedTasks.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
+                      onCompleteTask={handleCompleteTask}
                       hideProjectColumn={true}
                       pagination={paginatedData.completedTasks.pagination}
                       onPageChange={setCompletedTasksCurrentPage}
@@ -795,6 +807,7 @@ export const ProjectDetailView = ({
                       tasks={paginatedData.openMeetings.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
+                      onCompleteTask={handleCompleteTask}
                       hideProjectColumn={true}
                       pagination={paginatedData.openMeetings.pagination}
                       onPageChange={setOpenMeetingsCurrentPage}
@@ -890,6 +903,7 @@ export const ProjectDetailView = ({
                       tasks={paginatedData.completedMeetings.items} 
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
+                      onCompleteTask={handleCompleteTask}
                       hideProjectColumn={true}
                       pagination={paginatedData.completedMeetings.pagination}
                       onPageChange={setCompletedMeetingsCurrentPage}
