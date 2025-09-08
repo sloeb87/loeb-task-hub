@@ -28,7 +28,10 @@ const TaskEdit = () => {
     deleteAllRecurringTasks,
     updateAllRecurringTasks,
     refreshTasks,
-    loadTaskById
+    loadTaskById,
+    addFollowUp,
+    updateFollowUp,
+    deleteFollowUp
   } = useSupabaseStorage();
 
   // Load task data
@@ -274,6 +277,9 @@ const TaskEdit = () => {
           onDelete={selectedTask ? handleDeleteTask : undefined}
           onDeleteAllRecurring={selectedTask ? handleDeleteAllRecurring : undefined}
           onUpdateAllRecurring={selectedTask ? handleUpdateAllRecurring : undefined}
+          onAddFollowUp={addFollowUp}
+          onUpdateFollowUp={updateFollowUp}
+          onDeleteFollowUp={deleteFollowUp}
           task={selectedTask}
           allTasks={tasks}
           allProjects={projects}
