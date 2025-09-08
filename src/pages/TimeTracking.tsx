@@ -98,10 +98,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     totalMinutes: 0
   });
 
-  // Memoized task lookup map for performance (using taskId from time entries)
+  // Memoized task lookup map for performance (using both taskId and UUID from time entries)
   const taskLookup = useMemo(() => {
     return tasks.reduce((acc, task) => {
-      acc[task.id] = task;
+      acc[task.id] = task; // Task number lookup
+      if (task.uuid) {
+        acc[task.uuid] = task; // UUID lookup
+      }
       return acc;
     }, {} as Record<string, Task>);
   }, [tasks]);
@@ -241,19 +244,19 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }
     if (multiSelectFilters.scope.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => t.id === e.taskId);
+        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
         return task && task.scope && task.scope.some(scope => multiSelectFilters.scope.includes(scope));
       });
     }
     if (multiSelectFilters.type.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => t.id === e.taskId);
+        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
         return task && multiSelectFilters.type.includes(task.taskType);
       });
     }
     if (multiSelectFilters.environment.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => t.id === e.taskId);
+        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
         return task && multiSelectFilters.environment.includes(task.environment);
       });
     }
@@ -477,7 +480,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => t.id === e.taskId);
+      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
       const type = task?.taskType || 'Unassigned';
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
@@ -513,7 +516,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => t.id === e.taskId);
+      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
       const type = task?.taskType || 'Unassigned';
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
@@ -549,7 +552,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => t.id === e.taskId);
+      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
       // Only use task scope, skip entries without task or task scope
       if (!task || !task.scope || task.scope.length === 0) {
         return; // Skip this entry
@@ -593,7 +596,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => t.id === e.taskId);
+      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
       // Only use task scope, skip entries without task or task scope
       if (!task || !task.scope || task.scope.length === 0) {
         return; // Skip this entry
@@ -720,11 +723,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    const runningEntry = filteredEntries.find(entry => entry.taskId === taskId && entry.isRunning);
+    const timerId = task.uuid || task.id; // Use UUID for timer operations
+    const runningEntry = filteredEntries.find(entry => entry.taskId === timerId && entry.isRunning);
     if (runningEntry) {
-      stopTimer(taskId);
+      stopTimer(timerId);
     } else {
-      startTimer(taskId, task.title, task.project, task.responsible);
+      startTimer(timerId, task.title, task.project, task.responsible);
     }
   };
 
@@ -803,7 +807,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   };
 
   const handleRowClick = (entry: TimeEntry) => {
-    const task = tasks.find(t => t.id === entry.taskId);
+    const task = tasks.find(t => (t.uuid || t.id) === entry.taskId);
     if (task && onEditTask) {
       onEditTask(task); // Redirect to Task Details page
     }
@@ -1389,13 +1393,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                   {sortedEntries.map((entry) => {
                     const startDate = new Date(entry.startTime);
                     const endDate = entry.endTime ? new Date(entry.endTime) : null;
-                    const task = tasks.find(t => t.id === entry.taskId);
+                    const task = tasks.find(t => (t.uuid || t.id) === entry.taskId);
                     
                     return (
                       <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
                         <TableCell>
                           <div className="font-medium text-gray-900 dark:text-white truncate">
-                            {entry.taskId === NON_PROJECT_TASK_ID ? 'Non_Project_Task' : `${entry.taskId}_${entry.taskTitle}`}
+                            {entry.taskId === NON_PROJECT_TASK_ID ? 'Non_Project_Task' : `${task?.id || entry.taskId}_${entry.taskTitle}`}
                           </div>
                         </TableCell>
                         

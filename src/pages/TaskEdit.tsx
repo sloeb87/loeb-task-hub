@@ -211,15 +211,16 @@ const TaskEdit = () => {
   const handleTimerToggle = useCallback(() => {
     if (!selectedTask) return;
     
-    const taskTime = getTaskTime(selectedTask.id);
+    const timerId = selectedTask.uuid || selectedTask.id;
+    const taskTime = getTaskTime(timerId);
     if (taskTime.isRunning) {
-      stopTimer(selectedTask.id);
+      stopTimer(timerId);
       toast({
         title: "Timer Stopped",
         description: `Timer stopped for ${selectedTask.title}`,
       });
     } else {
-      startTimer(selectedTask.id, selectedTask.title, selectedTask.project, selectedTask.responsible);
+      startTimer(timerId, selectedTask.title, selectedTask.project, selectedTask.responsible);
       toast({
         title: "Timer Started",
         description: `Timer started for ${selectedTask.title}`,

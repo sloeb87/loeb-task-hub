@@ -56,7 +56,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     console.log('RunningTimerDisplay - Available tasks count:', tasks.length);
     console.log('RunningTimerDisplay - Sample task IDs:', tasks.slice(0, 5).map(t => t.id));
     
-    const task = tasks.find(task => task.id === taskId);
+    const task = tasks.find(task => (task.uuid || task.id) === taskId);
     console.log('RunningTimerDisplay - Found matching task:', task ? `YES (${task.title})` : 'NO');
     
     if (task) {
@@ -119,11 +119,15 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     if (runningTimerEntry) {
       const [taskId, timerData] = runningTimerEntry;
       
-      // Create fallback task data
+      // Create fallback task data - find actual task for display
+      const actualTask = tasks.find(t => (t.uuid || t.id) === taskId);
+      const displayId = actualTask ? actualTask.id : taskId;
+      const displayTitle = actualTask ? actualTask.title : (taskId.includes('_') ? taskId.split('_').slice(1).join('_') : taskId);
+      
       const fallbackTask = {
-        id: taskId,
-        title: taskId.includes('_') ? taskId.split('_').slice(1).join('_') : taskId,
-        project: 'Unknown Project',
+        id: displayId,
+        title: displayTitle,
+        project: actualTask ? actualTask.project : 'Unknown Project',
       } as Task;
       
       console.log('RunningTimerDisplay - Using fallback task data:', fallbackTask);
@@ -144,7 +148,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
             <div className="flex flex-col min-w-0 flex-1">
               <div className="flex items-center space-x-2 text-sm font-semibold text-green-600 dark:text-green-400">
                 <span className="truncate max-w-48">
-                  {fallbackTask.id}_{fallbackTask.title}
+                 {fallbackTask.id}_{fallbackTask.title}
                 </span>
                 <span className="font-mono text-green-500">
                   Running...
@@ -176,7 +180,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    stopTimer(runningTaskData.task.id);
+    stopTimer(runningTaskData.task.uuid || runningTaskData.task.id);
   };
 
   const handleTimerClick = () => {
