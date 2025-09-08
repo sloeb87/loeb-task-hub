@@ -175,7 +175,7 @@ export function useSupabaseStorage() {
     }
 
     return {
-      id: supabaseTask.task_number, // Use task_number as the ID for compatibility
+      id: supabaseTask.id, // Use actual UUID instead of task_number for compatibility with database functions
       scope: supabaseTask.scope || [], // Handle array scope
       project: projectName,
       environment: supabaseTask.environment,
