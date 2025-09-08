@@ -25,6 +25,7 @@ export interface NamedLink {
 
 export interface Task {
   id: string;
+  taskNumber?: string; // Display-friendly task number like T468 (optional for compatibility)
   scope: string[]; // Changed to array to support multiple scopes
   project: string;
   environment: string;

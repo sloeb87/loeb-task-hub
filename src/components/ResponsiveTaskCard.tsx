@@ -75,6 +75,7 @@ export const ResponsiveTaskCard = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 mb-2">
                 <FolderOpen className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">{task.taskNumber || task.id}</span>
                 <h3 className="font-semibold text-base truncate text-foreground">
                   {task.title}
                 </h3>
