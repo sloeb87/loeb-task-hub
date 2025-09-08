@@ -16,6 +16,19 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
   const { navigateToTaskEdit } = useTaskNavigation();  
   const [currentDuration, setCurrentDuration] = useState<string>("");
 
+  // Listen for timer state changes to force re-render
+  useEffect(() => {
+    const handleTimerStateChange = () => {
+      // Force component to re-evaluate by updating a dummy state
+      setCurrentDuration(prev => prev);
+    };
+
+    window.addEventListener('timerStateChanged', handleTimerStateChange);
+    return () => {
+      window.removeEventListener('timerStateChanged', handleTimerStateChange);
+    };
+  }, []);
+
   // Debug logging
   React.useEffect(() => {
     console.log('RunningTimerDisplay - taskTimers:', taskTimers);
