@@ -211,7 +211,7 @@ const TaskEdit = () => {
   const handleTimerToggle = useCallback(() => {
     if (!selectedTask) return;
     
-    const timerId = selectedTask.uuid || selectedTask.id;
+    const timerId = selectedTask.id; // Use task.id (task_number)
     const taskTime = getTaskTime(timerId);
     if (taskTime.isRunning) {
       stopTimer(timerId);

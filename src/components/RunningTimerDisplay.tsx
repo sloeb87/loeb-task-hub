@@ -56,7 +56,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
     console.log('RunningTimerDisplay - Available tasks count:', tasks.length);
     console.log('RunningTimerDisplay - Sample task IDs:', tasks.slice(0, 5).map(t => t.id));
     
-    const task = tasks.find(task => (task.uuid || task.id) === taskId);
+    const task = tasks.find(task => task.id === taskId);
     console.log('RunningTimerDisplay - Found matching task:', task ? `YES (${task.title})` : 'NO');
     
     if (task) {
@@ -180,7 +180,7 @@ export const RunningTimerDisplay = ({ tasks, className = "" }: RunningTimerDispl
 
   const handleStopTimer = (e: React.MouseEvent) => {
     e.stopPropagation();
-    stopTimer(runningTaskData.task.uuid || runningTaskData.task.id);
+    stopTimer(runningTaskData.task.id);
   };
 
   const handleTimerClick = () => {

@@ -1242,14 +1242,13 @@ export function useSupabaseStorage() {
       .eq('user_id', user.id)
       .maybeSingle();
 
-    // For recurring tasks, use the parent task ID (or original task ID if this is the parent)
-    const followUpTaskId = existingTask.parent_task_id || 
-                          (existingTask.is_recurring ? existingTask.id : existingTask.id);
+    // For recurring tasks, use the task_number directly since follow_ups now uses task_number
+    const followUpTaskId = taskId; // Use the task_number (e.g., T468) directly
 
     const { error } = await supabase
       .from('follow_ups')
       .insert({
-        task_id: followUpTaskId,
+        task_id: followUpTaskId, // Now uses task_number instead of UUID
         text: followUpText,
         task_status: existingTask.status,
         created_at: new Date().toISOString()

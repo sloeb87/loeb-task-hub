@@ -771,7 +771,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
     
-    const timerId = task.uuid || task.id; // Use UUID for timer operations
+    const timerId = task.id; // Use task.id (task_number) for timer operations
     const runningEntry = filteredEntries.find(entry => entry.taskId === timerId && entry.isRunning);
     if (runningEntry) {
       stopTimer(timerId);

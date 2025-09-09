@@ -435,7 +435,7 @@ export const TaskTable = ({
 
   const handleTimerToggle = useCallback((task: Task, e: React.MouseEvent) => {
     e.stopPropagation();
-    const timerId = task.uuid || task.id; // Use UUID for timer operations
+    const timerId = task.id; // Use task.id (task_number) for timer operations
     const taskTime = getTaskTime(timerId);
     
     if (taskTime.isRunning) {
@@ -545,10 +545,10 @@ export const TaskTable = ({
             task={task}
             onEditTask={onEditTask}
             onFollowUp={onFollowUp}
-            onStartTimer={(taskId) => startTimer(task.uuid || task.id, task.title, task.project, task.responsible)}
+            onStartTimer={(taskId) => startTimer(task.id, task.title, task.project, task.responsible)}
             onStopTimer={stopTimer}
-            isTimerRunning={getTaskTime(task.uuid || task.id).isRunning}
-            timeSpent={getTaskTime(task.uuid || task.id).totalTime}
+            isTimerRunning={getTaskTime(task.id).isRunning}
+            timeSpent={getTaskTime(task.id).totalTime}
           />
         ))}
 

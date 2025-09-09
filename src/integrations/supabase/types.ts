@@ -36,15 +36,7 @@ export type Database = {
           task_status?: string | null
           text?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "follow_ups_task_id_fkey"
-            columns: ["task_id"]
-            isOneToOne: false
-            referencedRelation: "tasks"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       parameters: {
         Row: {
@@ -555,11 +547,11 @@ export type Database = {
     }
     Functions: {
       calculate_task_metrics: {
-        Args: { p_task_id: string }
+        Args: { p_task_id: string } | { p_task_number: string }
         Returns: undefined
       }
       generate_recurring_instances: {
-        Args: { task_uuid: string }
+        Args: { task_number_param: string } | { task_uuid: string }
         Returns: {
           created_count: number
           message: string
