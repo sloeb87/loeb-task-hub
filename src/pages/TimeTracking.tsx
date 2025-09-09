@@ -128,17 +128,29 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         return [...new Set(baseEntries.map(e => e.projectName))].sort();
       case 'scope':
         return [...new Set(baseEntries.flatMap(e => {
-          const task = taskLookup[e.taskId];
+          const task = taskLookup[e.taskId] || 
+                       tasks.find(t => t.id === e.taskId) ||
+                       tasks.find(t => t.uuid === e.taskId) ||
+                       tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                       tasks.find(t => t.title === e.taskTitle);
           return task?.scope || [];
         }).filter(Boolean))].sort();
       case 'type':
         return [...new Set(baseEntries.map(e => {
-          const task = taskLookup[e.taskId];
+          const task = taskLookup[e.taskId] || 
+                       tasks.find(t => t.id === e.taskId) ||
+                       tasks.find(t => t.uuid === e.taskId) ||
+                       tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                       tasks.find(t => t.title === e.taskTitle);
           return task?.taskType || '';
         }).filter(Boolean))].sort();
       case 'environment':
         return [...new Set(baseEntries.map(e => {
-          const task = taskLookup[e.taskId];
+          const task = taskLookup[e.taskId] || 
+                       tasks.find(t => t.id === e.taskId) ||
+                       tasks.find(t => t.uuid === e.taskId) ||
+                       tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                       tasks.find(t => t.title === e.taskTitle);
           return task?.environment || '';
         }).filter(Boolean))].sort();
       case 'date':
@@ -252,19 +264,31 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }
     if (multiSelectFilters.scope.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+        const task = taskLookup[e.taskId] || 
+                     tasks.find(t => t.id === e.taskId) ||
+                     tasks.find(t => t.uuid === e.taskId) ||
+                     tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                     tasks.find(t => t.title === e.taskTitle);
         return task && task.scope && task.scope.some(scope => multiSelectFilters.scope.includes(scope));
       });
     }
     if (multiSelectFilters.type.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+        const task = taskLookup[e.taskId] || 
+                     tasks.find(t => t.id === e.taskId) ||
+                     tasks.find(t => t.uuid === e.taskId) ||
+                     tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                     tasks.find(t => t.title === e.taskTitle);
         return task && multiSelectFilters.type.includes(task.taskType);
       });
     }
     if (multiSelectFilters.environment.length > 0) {
       filtered = filtered.filter(e => {
-        const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+        const task = taskLookup[e.taskId] || 
+                     tasks.find(t => t.id === e.taskId) ||
+                     tasks.find(t => t.uuid === e.taskId) ||
+                     tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                     tasks.find(t => t.title === e.taskTitle);
         return task && multiSelectFilters.environment.includes(task.environment);
       });
     }
@@ -488,7 +512,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+      const task = taskLookup[e.taskId] || 
+                   tasks.find(t => t.id === e.taskId) ||
+                   tasks.find(t => t.uuid === e.taskId) ||
+                   tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                   tasks.find(t => t.title === e.taskTitle);
       const type = task?.taskType || 'Unassigned';
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
@@ -524,7 +552,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+      const task = taskLookup[e.taskId] || 
+                   tasks.find(t => t.id === e.taskId) ||
+                   tasks.find(t => t.uuid === e.taskId) ||
+                   tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                   tasks.find(t => t.title === e.taskTitle);
       const type = task?.taskType || 'Unassigned';
       const mins = typeof e.duration === 'number' && !isNaN(e.duration)
         ? e.duration
@@ -560,7 +592,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+      const task = taskLookup[e.taskId] || 
+                   tasks.find(t => t.id === e.taskId) ||
+                   tasks.find(t => t.uuid === e.taskId) ||
+                   tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                   tasks.find(t => t.title === e.taskTitle);
       // Only use task scope, skip entries without task or task scope
       if (!task || !task.scope || task.scope.length === 0) {
         return; // Skip this entry
@@ -604,7 +640,11 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     const totals: Record<string, number> = {};
     const now = new Date();
     filteredEntries.forEach((e) => {
-      const task = tasks.find(t => (t.uuid || t.id) === e.taskId);
+      const task = taskLookup[e.taskId] || 
+                   tasks.find(t => t.id === e.taskId) ||
+                   tasks.find(t => t.uuid === e.taskId) ||
+                   tasks.find(t => `${t.id}_${t.title}` === e.taskId) ||
+                   tasks.find(t => t.title === e.taskTitle);
       // Only use task scope, skip entries without task or task scope
       if (!task || !task.scope || task.scope.length === 0) {
         return; // Skip this entry
