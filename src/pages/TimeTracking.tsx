@@ -101,9 +101,17 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   // Memoized task lookup map for performance (using both taskId and UUID from time entries)
   const taskLookup = useMemo(() => {
     return tasks.reduce((acc, task) => {
-      acc[task.id] = task; // Task number lookup
+      // Add all possible lookup keys for maximum compatibility
+      acc[task.id] = task; // Task number lookup (e.g., "T123")
       if (task.uuid) {
         acc[task.uuid] = task; // UUID lookup
+      }
+      // Also add combined ID_Title format if it exists in entries
+      if (task.title) {
+        acc[`${task.id}_${task.title}`] = task;
+        if (task.uuid) {
+          acc[`${task.uuid}_${task.title}`] = task;
+        }
       }
       return acc;
     }, {} as Record<string, Task>);
@@ -1393,7 +1401,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                   {sortedEntries.map((entry) => {
                     const startDate = new Date(entry.startTime);
                     const endDate = entry.endTime ? new Date(entry.endTime) : null;
-                    const task = tasks.find(t => (t.uuid || t.id) === entry.taskId);
+                    // Enhanced task lookup - try multiple lookup strategies
+                    let task = taskLookup[entry.taskId] || 
+                               tasks.find(t => t.id === entry.taskId) ||
+                               tasks.find(t => t.uuid === entry.taskId) ||
+                               tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
+                               tasks.find(t => t.title === entry.taskTitle);
                     
                     return (
                       <TableRow key={entry.id} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={() => handleRowClick(entry)}>
