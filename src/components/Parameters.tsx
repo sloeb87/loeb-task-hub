@@ -80,46 +80,46 @@ const predefinedColors = [
 ];
 
 const defaultEnvironments: ColoredItem[] = [
+  { id: "env-5", name: "Demo", color: "#10b981" },
   { id: "env-1", name: "Development", color: "#3b82f6" },
-  { id: "env-2", name: "Testing", color: "#f59e0b" },
-  { id: "env-3", name: "Staging", color: "#8b5cf6" },
   { id: "env-4", name: "Production", color: "#ef4444" },
-  { id: "env-5", name: "Demo", color: "#10b981" }
-];
+  { id: "env-3", name: "Staging", color: "#8b5cf6" },
+  { id: "env-2", name: "Testing", color: "#f59e0b" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const defaultTaskTypes: ColoredItem[] = [
   { id: "task-1", name: "Development", color: "#3b82f6" },
-  { id: "task-2", name: "Testing", color: "#f59e0b" },
   { id: "task-3", name: "Documentation", color: "#10b981" },
-  { id: "task-4", name: "Review", color: "#8b5cf6" },
   { id: "task-5", name: "Meeting", color: "#ec4899" },
-  { id: "task-6", name: "Research", color: "#06b6d4" }
-];
+  { id: "task-6", name: "Research", color: "#06b6d4" },
+  { id: "task-4", name: "Review", color: "#8b5cf6" },
+  { id: "task-2", name: "Testing", color: "#f59e0b" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const defaultStatuses: ColoredItem[] = [
-  { id: "status-1", name: "Open", color: "#6b7280" },
-  { id: "status-2", name: "In Progress", color: "#3b82f6" },
   { id: "status-3", name: "Completed", color: "#10b981" },
-  { id: "status-4", name: "On Hold", color: "#f59e0b" }
-];
+  { id: "status-2", name: "In Progress", color: "#3b82f6" },
+  { id: "status-4", name: "On Hold", color: "#f59e0b" },
+  { id: "status-1", name: "Open", color: "#6b7280" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const defaultPriorities: ColoredItem[] = [
-  { id: "priority-1", name: "Low", color: "#10b981" },
-  { id: "priority-2", name: "Medium", color: "#f59e0b" },
+  { id: "priority-4", name: "Critical", color: "#dc2626" },
   { id: "priority-3", name: "High", color: "#ef4444" },
-  { id: "priority-4", name: "Critical", color: "#dc2626" }
-];
+  { id: "priority-1", name: "Low", color: "#10b981" },
+  { id: "priority-2", name: "Medium", color: "#f59e0b" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const defaultScopes: ColoredItem[] = [
-  { id: "scope-1", name: "Frontend", color: "#3b82f6" },
+  { id: "scope-6", name: "API", color: "#06b6d4" },
   { id: "scope-2", name: "Backend", color: "#10b981" },
   { id: "scope-3", name: "Database", color: "#f59e0b" },
+  { id: "scope-8", name: "DevOps", color: "#84cc16" },
+  { id: "scope-1", name: "Frontend", color: "#3b82f6" },
   { id: "scope-4", name: "Infrastructure", color: "#ef4444" },
   { id: "scope-5", name: "Mobile", color: "#8b5cf6" },
-  { id: "scope-6", name: "API", color: "#06b6d4" },
-  { id: "scope-7", name: "UI/UX", color: "#ec4899" },
-  { id: "scope-8", name: "DevOps", color: "#84cc16" }
-];
+  { id: "scope-7", name: "UI/UX", color: "#ec4899" }
+].sort((a, b) => a.name.localeCompare(b.name));
 
 const SortableItem = ({ 
   item, 
@@ -400,21 +400,36 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
           return acc;
         }, {} as Record<string, any[]>);
 
-        // Update state with loaded parameters
+        // Update state with loaded parameters (sorted alphabetically)
         if (groupedParams.scopes) {
-          setScopes(groupedParams.scopes.map((p, index) => ({ id: `scope-${index}`, name: p.name, color: p.color })));
+          setScopes(groupedParams.scopes
+            .map((p, index) => ({ id: `scope-${index}`, name: p.name, color: p.color }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          );
         }
         if (groupedParams.environments) {
-          setEnvironments(groupedParams.environments.map((p, index) => ({ id: `env-${index}`, name: p.name, color: p.color })));
+          setEnvironments(groupedParams.environments
+            .map((p, index) => ({ id: `env-${index}`, name: p.name, color: p.color }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          );
         }
         if (groupedParams.taskTypes) {
-          setTaskTypes(groupedParams.taskTypes.map((p, index) => ({ id: `task-${index}`, name: p.name, color: p.color })));
+          setTaskTypes(groupedParams.taskTypes
+            .map((p, index) => ({ id: `task-${index}`, name: p.name, color: p.color }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          );
         }
         if (groupedParams.statuses) {
-          setStatuses(groupedParams.statuses.map((p, index) => ({ id: `status-${index}`, name: p.name, color: p.color })));
+          setStatuses(groupedParams.statuses
+            .map((p, index) => ({ id: `status-${index}`, name: p.name, color: p.color }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          );
         }
         if (groupedParams.priorities) {
-          setPriorities(groupedParams.priorities.map((p, index) => ({ id: `priority-${index}`, name: p.name, color: p.color })));
+          setPriorities(groupedParams.priorities
+            .map((p, index) => ({ id: `priority-${index}`, name: p.name, color: p.color }))
+            .sort((a, b) => a.name.localeCompare(b.name))
+          );
         }
       }
     } catch (error) {
@@ -511,7 +526,11 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     placeholder: string,
     newColor: string,
     setNewColor: React.Dispatch<React.SetStateAction<string>>
-  ) => (
+  ) => {
+    // Sort items alphabetically for display
+    const sortedItems = [...items].sort((a, b) => a.name.localeCompare(b.name));
+    
+    return (
     <div className="space-y-6">
       {/* Add new item */}
       <div className="p-4 bg-muted/30 rounded-xl border border-dashed border-border">
@@ -571,9 +590,9 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         collisionDetection={closestCenter}
         onDragEnd={(event) => handleDragEnd(event, setter)}
       >
-        <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={sortedItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-            {items.map((item, index) => (
+            {sortedItems.map((item, index) => (
               <SortableItem
                 key={item.id}
                 item={item}
@@ -594,7 +613,8 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         </SortableContext>
       </DndContext>
     </div>
-  );
+    );
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
