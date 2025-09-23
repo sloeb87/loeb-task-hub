@@ -15,7 +15,7 @@ import { Users } from "lucide-react";
 const Meetings = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<FilterType>("active");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("open");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
@@ -42,12 +42,15 @@ const Meetings = () => {
 
   const {
     tasks: allTasks,
+    allMeetings,
+    meetingCounts,
     isLoading,
     error,
     pagination,
     taskCounts,
     currentSearchTerm,
     loadTasks,
+    loadAllMeetings,
     searchTasks,
     updateTask,
     addFollowUp,
@@ -60,45 +63,13 @@ const Meetings = () => {
     refreshTasks
   } = useSupabaseStorage();
 
-  // Filter tasks to only include meetings
+  // Use all meetings from the dedicated hook
   const tasks = React.useMemo(() => {
-    return allTasks.filter(task => task.taskType === 'Meeting');
-  }, [allTasks]);
+    return allMeetings || [];
+  }, [allMeetings]);
 
-  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB) 
-  const meetingTaskCounts = React.useMemo(() => {
-    if (!taskCounts) return taskCounts;
-    
-    // Get meeting counts from current filtered data (this is just for proportional estimation)
-    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
-    const allTasksInMemory = allTasks.length;
-    const meetingsInMemory = meetingTasks.length;
-    const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
-    
-    // Estimate meeting proportions from total database counts
-    const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
-    const estimatedTotalMeetings = Math.round(taskCounts.total * estimatedMeetingRatio);
-    const estimatedCompletedMeetings = Math.round(taskCounts.completed * estimatedMeetingRatio);
-    
-    // Calculate meeting counts
-    const meetingTotal = estimatedTotalMeetings;
-    const meetingCompleted = estimatedCompletedMeetings;
-    const meetingActive = meetingTotal - meetingCompleted; // All meetings minus completed = active
-    
-    return {
-      total: meetingTotal,
-      active: meetingActive,
-      completed: meetingCompleted,
-      overdue: meetingTasks.filter(task => {
-        if (task.status === 'Completed') return false;
-        const today = new Date();
-        const dueDate = new Date(task.dueDate);
-        return dueDate < today;
-      }).length,
-      onHold: meetingTasks.filter(task => task.status === 'On Hold').length,
-      critical: meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
-    };
-  }, [taskCounts, allTasks]);
+  // Use meeting counts directly from the hook
+  const meetingTaskCounts = meetingCounts;
 
   // Handle navigation state from chart clicks
   useEffect(() => {
@@ -110,12 +81,11 @@ const Meetings = () => {
     }
   }, [location.state]);
 
-  // Load initial data with correct page size for default filter
+  // Load all meetings on component mount
   useEffect(() => {
-    const pageSize = getPageSize();
-    console.log('Meetings: Loading with activeFilter:', activeFilter);
-    loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
-  }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
+    console.log('Meetings: Loading all meetings');
+    loadAllMeetings();
+  }, [loadAllMeetings]);
 
   // SEO
   useEffect(() => {
@@ -247,20 +217,24 @@ const Meetings = () => {
           onFilterChange={(filter) => {
             console.log('Meetings: Filter changed to:', filter);
             setActiveFilter(filter);
-            // Reload with new page size and filter when filter changes
-            const pageSize = getPageSize();
-            if (currentSearchTerm.trim()) {
-              searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
-            } else {
-              console.log('Meetings: Loading meetings with filter:', filter);
-              loadTasks(1, pageSize, sortField, sortDirection, filter);
-            }
+            // Reset display limit when filter changes
+            setDisplayLimit(5);
           }}
           onSortChange={handleSortChange}
         />
 
         <TaskTableMemo
-          tasks={tasks.slice(0, displayLimit)}
+          tasks={tasks
+            .filter(task => {
+              // Apply active filter locally
+              if (activeFilter === 'open') return task.status === 'Open';
+              if (activeFilter === 'inprogress') return task.status === 'In Progress';
+              if (activeFilter === 'onhold') return task.status === 'On Hold';
+              if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
+              return true; // 'all' or any other filter
+            })
+            .slice(0, displayLimit)
+          }
           sortField={sortField}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
@@ -276,7 +250,14 @@ const Meetings = () => {
         />
 
         {/* Load More Button */}
-        {displayLimit < tasks.length && (
+        {displayLimit < tasks.filter(task => {
+          // Apply same filter logic for the "Load More" button visibility
+          if (activeFilter === 'open') return task.status === 'Open';
+          if (activeFilter === 'inprogress') return task.status === 'In Progress';
+          if (activeFilter === 'onhold') return task.status === 'On Hold';
+          if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
+          return true;
+        }).length && (
           <div className="flex justify-center p-6">
             <Button 
               onClick={() => setDisplayLimit(prev => prev + 5)}

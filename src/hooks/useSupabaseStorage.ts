@@ -50,6 +50,7 @@ interface SupabaseProject {
 
 export function useSupabaseStorage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [allMeetings, setAllMeetings] = useState<Task[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +62,13 @@ export function useSupabaseStorage() {
     totalPages: 0
   });
   const [taskCounts, setTaskCounts] = useState({
+    total: 0,
+    active: 0,
+    onHold: 0,
+    critical: 0,
+    completed: 0
+  });
+  const [meetingCounts, setMeetingCounts] = useState({
     total: 0,
     active: 0,
     onHold: 0,
@@ -635,6 +643,90 @@ export function useSupabaseStorage() {
       return convertedTasks;
     } catch (err) {
       console.error('Error loading all tasks:', err);
+      return [];
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
+
+  // Load ALL meetings specifically for the meetings page
+  const loadAllMeetings = useCallback(async (): Promise<Task[]> => {
+    if (!isAuthenticated || !user) {
+      console.log('loadAllMeetings: No authentication or user');
+      return [];
+    }
+
+    try {
+      console.log('loadAllMeetings: Loading all meetings...');
+      
+      // Get ALL meeting tasks without filters or pagination
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('task_type', 'Meeting')
+        .order('due_date', { ascending: false });
+
+      if (error) throw error;
+
+      console.log(`Loaded ${data?.length || 0} meeting tasks`);
+
+      // Batch fetch all follow-ups and project names to avoid N+1 queries
+      const taskIds = (data || []).map(t => t.id);
+
+      // Fetch all follow-ups in one query
+      const { data: allFollowUps } = await supabase
+        .from('follow_ups')
+        .select('id, text, created_at, task_status, task_id')
+        .in('task_id', taskIds)
+        .order('created_at', { ascending: false });
+
+      // Group follow-ups by task_id
+      const followUpsMap = new Map<string, any[]>();
+      (allFollowUps || []).forEach(followUp => {
+        if (!followUpsMap.has(followUp.task_id)) {
+          followUpsMap.set(followUp.task_id, []);
+        }
+        followUpsMap.get(followUp.task_id)!.push(followUp);
+      });
+
+      // Get unique project IDs and fetch project names
+      const uniqueProjectIds = [...new Set((data || []).map(t => t.project_id).filter(Boolean))];
+      
+      let projectNamesMap = new Map<string, string>();
+      if (uniqueProjectIds.length > 0) {
+        const { data: projectsData } = await supabase
+          .from('projects')
+          .select('id, name')
+          .in('id', uniqueProjectIds)
+          .eq('user_id', user.id);
+
+        if (projectsData) {
+          projectsData.forEach(project => {
+            projectNamesMap.set(project.id, project.name);
+          });
+        }
+      }
+
+      const convertedTasks = await Promise.all(
+        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
+      );
+
+      // Calculate meeting counts
+      const counts = {
+        total: convertedTasks.length,
+        active: convertedTasks.filter(t => t.status === 'Open').length,
+        completed: convertedTasks.filter(t => t.status === 'Completed').length,
+        onHold: convertedTasks.filter(t => t.status === 'On Hold').length,
+        critical: convertedTasks.filter(t => t.priority === 'High' || t.priority === 'Critical').length
+      };
+
+      setMeetingCounts(counts);
+      setAllMeetings(convertedTasks);
+
+      console.log('Meeting counts calculated:', counts);
+      return convertedTasks;
+    } catch (err) {
+      console.error('Error loading all meetings:', err);
+      setError(err instanceof Error ? err.message : 'Error loading meetings');
       return [];
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
@@ -1672,6 +1764,8 @@ export function useSupabaseStorage() {
 
   return {
     tasks,
+    allMeetings,
+    meetingCounts,
     projects,
     isLoading,
     error,
@@ -1680,6 +1774,7 @@ export function useSupabaseStorage() {
     currentSearchTerm, // Export current search term
     loadTasks,
     loadAllTasks, // Add the new function
+    loadAllMeetings,
     searchTasks,
     loadAllTasksForProject,
     loadTaskById,
