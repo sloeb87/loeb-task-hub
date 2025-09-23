@@ -51,7 +51,7 @@ export const ProjectTable = ({
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const getProjectStats = (project: Project) => {
-    const projectTasks = tasks.filter(task => task.project === project.id);
+    const projectTasks = tasks.filter(task => task.project === project.name);
     
     // Separate tasks and meetings
     const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
