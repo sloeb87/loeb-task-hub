@@ -17,7 +17,7 @@ const Meetings = () => {
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
