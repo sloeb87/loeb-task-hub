@@ -134,7 +134,7 @@ const ProjectDetails = () => {
   if (!project) {
     return (
       <div className="min-h-screen bg-background">
-        <main className="container mx-auto p-6">
+        <main className="w-full p-6">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <h1 className="text-2xl font-bold mb-4">Loading project details...</h1>
@@ -149,7 +149,7 @@ const ProjectDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto p-6">
+      <main className="w-full p-6">
         <ProjectDetailView
           project={project}
           tasks={projectTasks}
