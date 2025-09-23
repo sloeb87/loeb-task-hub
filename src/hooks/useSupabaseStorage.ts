@@ -1695,8 +1695,7 @@ export function useSupabaseStorage() {
 
   const loadAllMeetings = useCallback(async () => {
     if (!isAuthenticated || !user) {
-      setTasks([]);
-      return;
+      return []; // Always return an array, never undefined
     }
 
     try {
@@ -1719,10 +1718,10 @@ export function useSupabaseStorage() {
         (data || []).map(task => convertSupabaseTaskToTask(task))
       );
 
-      return convertedTasks;
+      return convertedTasks || []; // Always return an array
     } catch (err) {
       console.error('Error loading all meetings:', err);
-      return [];
+      return []; // Return empty array on error
     }
   }, [isAuthenticated, user, convertSupabaseTaskToTask]);
   return {

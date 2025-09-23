@@ -67,22 +67,25 @@ const Meetings = () => {
 
   // Filter meetings to show based on current filter
   const tasks = React.useMemo(() => {
-    if (!allMeetings.length) return [];
+    // Safety check: ensure allMeetings is always an array
+    const meetings = Array.isArray(allMeetings) ? allMeetings : [];
+    
+    if (!meetings.length) return [];
     
     switch (activeFilter) {
       case 'active':
-        return allMeetings.filter(task => task.status === 'Open' || task.status === 'In Progress');
+        return meetings.filter(task => task.status === 'Open' || task.status === 'In Progress');
       case 'open':
-        return allMeetings.filter(task => task.status === 'Open');
+        return meetings.filter(task => task.status === 'Open');
       case 'inprogress':
-        return allMeetings.filter(task => task.status === 'In Progress');
+        return meetings.filter(task => task.status === 'In Progress');
       case 'onhold':
-        return allMeetings.filter(task => task.status === 'On Hold');
+        return meetings.filter(task => task.status === 'On Hold');
       case 'critical':
-        return allMeetings.filter(task => task.priority === 'Critical' || task.priority === 'High');
+        return meetings.filter(task => task.priority === 'Critical' || task.priority === 'High');
       case 'all':
       default:
-        return allMeetings;
+        return meetings;
     }
   }, [allMeetings, activeFilter]);
 
@@ -103,8 +106,14 @@ const Meetings = () => {
   useEffect(() => {
     const loadMeetings = async () => {
       if (loadAllMeetings) {
-        const meetings = await loadAllMeetings();
-        setAllMeetings(meetings);
+        try {
+          const meetings = await loadAllMeetings();
+          // Ensure we always set an array, never undefined
+          setAllMeetings(Array.isArray(meetings) ? meetings : []);
+        } catch (error) {
+          console.error('Error loading meetings:', error);
+          setAllMeetings([]); // Fallback to empty array
+        }
       }
     };
     loadMeetings();
