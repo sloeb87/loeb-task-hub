@@ -46,7 +46,6 @@ const Meetings = () => {
     error,
     pagination,
     taskCounts,
-    meetingCounts,
     currentSearchTerm,
     loadTasks,
     searchTasks,
@@ -66,8 +65,40 @@ const Meetings = () => {
     return allTasks.filter(task => task.taskType === 'Meeting');
   }, [allTasks]);
 
-  // Stable counts from DB (meetings only)
-  const meetingTaskCounts = meetingCounts;
+  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB) 
+  const meetingTaskCounts = React.useMemo(() => {
+    if (!taskCounts) return taskCounts;
+    
+    // Get meeting counts from current filtered data (this is just for proportional estimation)
+    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
+    const allTasksInMemory = allTasks.length;
+    const meetingsInMemory = meetingTasks.length;
+    const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
+    
+    // Estimate meeting proportions from total database counts
+    const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
+    const estimatedTotalMeetings = Math.round(taskCounts.total * estimatedMeetingRatio);
+    const estimatedCompletedMeetings = Math.round(taskCounts.completed * estimatedMeetingRatio);
+    
+    // Calculate meeting counts
+    const meetingTotal = estimatedTotalMeetings;
+    const meetingCompleted = estimatedCompletedMeetings;
+    const meetingActive = meetingTotal - meetingCompleted; // All meetings minus completed = active
+    
+    return {
+      total: meetingTotal,
+      active: meetingActive,
+      completed: meetingCompleted,
+      overdue: meetingTasks.filter(task => {
+        if (task.status === 'Completed') return false;
+        const today = new Date();
+        const dueDate = new Date(task.dueDate);
+        return dueDate < today;
+      }).length,
+      onHold: meetingTasks.filter(task => task.status === 'On Hold').length,
+      critical: meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
+    };
+  }, [taskCounts, allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {

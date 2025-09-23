@@ -67,13 +67,6 @@ export function useSupabaseStorage() {
     critical: 0,
     completed: 0
   });
-  const [meetingCounts, setMeetingCounts] = useState({
-    total: 0,
-    active: 0,
-    onHold: 0,
-    critical: 0,
-    completed: 0
-  });
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
   // Convert links from database format to NamedLink format
@@ -292,7 +285,7 @@ export function useSupabaseStorage() {
       // Then get the total count and stats for all tasks (for the summary cards)
       const { data: allTasksData, error: allTasksError } = await supabase
         .from('tasks')
-        .select('status, priority, task_type')
+        .select('status, priority')
         .eq('user_id', user.id);
 
       console.log('loadTasks: Query result:', { 
@@ -319,22 +312,6 @@ export function useSupabaseStorage() {
         onHold: onHoldTasks,
         critical: criticalTasks,
         completed: completedTasks
-      });
-
-      // Calculate meeting-only counts from all tasks data (stable across filters)
-      const meetingsData = (allTasksData || []).filter(t => t.task_type === "Meeting");
-      const meetingTotal = meetingsData.length;
-      const meetingCompleted = meetingsData.filter(t => t.status === "Completed").length;
-      const meetingActive = meetingTotal - meetingCompleted; // Active = Total - Completed
-      const meetingOnHold = meetingsData.filter(t => t.status === "On Hold").length;
-      const meetingCritical = meetingsData.filter(t => t.priority === "Critical" && t.status !== "Completed").length;
-
-      setMeetingCounts({
-        total: meetingTotal,
-        active: meetingActive,
-        onHold: meetingOnHold,
-        critical: meetingCritical,
-        completed: meetingCompleted
       });
 
       const totalPages = Math.ceil((filteredCount || 0) / pageSize);
@@ -1700,7 +1677,6 @@ export function useSupabaseStorage() {
     error,
     pagination,
     taskCounts,
-    meetingCounts,
     currentSearchTerm, // Export current search term
     loadTasks,
     loadAllTasks, // Add the new function
