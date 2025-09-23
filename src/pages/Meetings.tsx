@@ -10,6 +10,7 @@ import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import { OptimizedLoading } from "@/components/OptimizedLoading";
 import { Users } from "lucide-react";
 
 const Meetings = () => {
@@ -197,6 +198,49 @@ const Meetings = () => {
     );
   }
 
+  // Show optimized loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="w-full p-6 space-y-6">
+          <header>
+            <div className="flex items-center gap-3 mb-2">
+              <Users className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
+            </div>
+            <p className="text-muted-foreground">
+              Organize and track your meetings efficiently
+            </p>
+          </header>
+          <OptimizedLoading type="meetings" count={5} />
+        </main>
+      </div>
+    );
+  }
+
+  // Memoize filtered tasks for better performance
+  const filteredTasks = React.useMemo(() => {
+    return tasks.filter(task => {
+      // Apply active filter locally
+      if (activeFilter === 'open') return task.status === 'Open';
+      if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
+      if (activeFilter === 'inprogress') return task.status === 'In Progress';
+      if (activeFilter === 'onhold') return task.status === 'On Hold';
+      if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
+      return true; // 'all' or any other filter
+    });
+  }, [tasks, activeFilter]);
+
+  // Memoize sorted and sliced tasks
+  const displayedTasks = React.useMemo(() => {
+    const sorted = filteredTasks.sort((a, b) => {
+      const aTime = new Date(a.dueDate).getTime();
+      const bTime = new Date(b.dueDate).getTime();
+      return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+    });
+    return sorted.slice(0, displayLimit);
+  }, [filteredTasks, sortDirection, displayLimit]);
+
   return (
     <div className="min-h-screen bg-background">
       <main className="w-full p-6 space-y-6">
@@ -224,23 +268,7 @@ const Meetings = () => {
         />
 
         <TaskTableMemo
-          tasks={tasks
-            .filter(task => {
-              // Apply active filter locally
-              if (activeFilter === 'open') return task.status === 'Open';
-              if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
-              if (activeFilter === 'inprogress') return task.status === 'In Progress';
-              if (activeFilter === 'onhold') return task.status === 'On Hold';
-              if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
-              return true; // 'all' or any other filter
-            })
-            .sort((a, b) => {
-              const aTime = new Date(a.dueDate).getTime();
-              const bTime = new Date(b.dueDate).getTime();
-              return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
-            })
-            .slice(0, displayLimit)
-          }
+          tasks={displayedTasks}
           sortField={sortField}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
@@ -256,15 +284,7 @@ const Meetings = () => {
         />
 
         {/* Load More Button */}
-        {displayLimit < tasks.filter(task => {
-          // Apply same filter logic for the "Load More" button visibility
-          if (activeFilter === 'open') return task.status === 'Open';
-          if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
-          if (activeFilter === 'inprogress') return task.status === 'In Progress';
-          if (activeFilter === 'onhold') return task.status === 'On Hold';
-          if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
-          return true;
-        }).length && (
+        {displayLimit < filteredTasks.length && (
           <div className="flex justify-center p-6">
             <Button 
               onClick={() => setDisplayLimit(prev => prev + 5)}
