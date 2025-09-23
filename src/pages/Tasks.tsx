@@ -20,7 +20,7 @@ const Tasks = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
-  const [displayLimit, setDisplayLimit] = useState(5);
+  const [displayLimit, setDisplayLimit] = useState(10);
   
   // Progressive loading - start with 5, load 5 more each time
   const getPageSize = useCallback(() => {
@@ -282,7 +282,7 @@ const Tasks = () => {
         {displayLimit < tasks.length && (
           <div className="flex justify-center p-6">
             <Button 
-              onClick={() => setDisplayLimit(prev => prev + 5)}
+              onClick={() => setDisplayLimit(prev => prev + 10)}
               variant="outline"
               size="lg"
               className="min-w-40"
