@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { 
   Plus, 
   Trash2, 
@@ -13,11 +14,31 @@ import {
   Check,
   X,
   Edit3,
-  Palette
+  Palette,
+  GripVertical,
+  Tag
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ParametersProps {
   isOpen: boolean;
@@ -25,8 +46,24 @@ interface ParametersProps {
 }
 
 interface ColoredItem {
+  id: string;
   name: string;
   color: string;
+}
+
+interface SortableItemProps {
+  item: ColoredItem | string;
+  index: number;
+  type: string;
+  isEditing: boolean;
+  editingValue: string;
+  editingColor?: string;
+  onEdit: (type: string, index: number, value: string, color?: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onRemove: (type: string, index: number) => void;
+  onEditChange: (value: string, color?: string) => void;
+  predefinedColors: { name: string; value: string }[];
 }
 
 const predefinedColors = [
@@ -43,46 +80,184 @@ const predefinedColors = [
 ];
 
 const defaultEnvironments: ColoredItem[] = [
-  { name: "Development", color: "#3b82f6" },
-  { name: "Testing", color: "#f59e0b" },
-  { name: "Staging", color: "#8b5cf6" },
-  { name: "Production", color: "#ef4444" },
-  { name: "Demo", color: "#10b981" }
+  { id: "env-1", name: "Development", color: "#3b82f6" },
+  { id: "env-2", name: "Testing", color: "#f59e0b" },
+  { id: "env-3", name: "Staging", color: "#8b5cf6" },
+  { id: "env-4", name: "Production", color: "#ef4444" },
+  { id: "env-5", name: "Demo", color: "#10b981" }
 ];
 
 const defaultTaskTypes: ColoredItem[] = [
-  { name: "Development", color: "#3b82f6" },
-  { name: "Testing", color: "#f59e0b" },
-  { name: "Documentation", color: "#10b981" },
-  { name: "Review", color: "#8b5cf6" },
-  { name: "Meeting", color: "#ec4899" },
-  { name: "Research", color: "#06b6d4" }
+  { id: "task-1", name: "Development", color: "#3b82f6" },
+  { id: "task-2", name: "Testing", color: "#f59e0b" },
+  { id: "task-3", name: "Documentation", color: "#10b981" },
+  { id: "task-4", name: "Review", color: "#8b5cf6" },
+  { id: "task-5", name: "Meeting", color: "#ec4899" },
+  { id: "task-6", name: "Research", color: "#06b6d4" }
 ];
 
 const defaultStatuses: ColoredItem[] = [
-  { name: "Open", color: "#6b7280" },
-  { name: "In Progress", color: "#3b82f6" },
-  { name: "Completed", color: "#10b981" },
-  { name: "On Hold", color: "#f59e0b" }
+  { id: "status-1", name: "Open", color: "#6b7280" },
+  { id: "status-2", name: "In Progress", color: "#3b82f6" },
+  { id: "status-3", name: "Completed", color: "#10b981" },
+  { id: "status-4", name: "On Hold", color: "#f59e0b" }
 ];
 
 const defaultPriorities: ColoredItem[] = [
-  { name: "Low", color: "#10b981" },
-  { name: "Medium", color: "#f59e0b" },
-  { name: "High", color: "#ef4444" },
-  { name: "Critical", color: "#dc2626" }
+  { id: "priority-1", name: "Low", color: "#10b981" },
+  { id: "priority-2", name: "Medium", color: "#f59e0b" },
+  { id: "priority-3", name: "High", color: "#ef4444" },
+  { id: "priority-4", name: "Critical", color: "#dc2626" }
 ];
 
 const defaultScopes: ColoredItem[] = [
-  { name: "Frontend", color: "#3b82f6" },
-  { name: "Backend", color: "#10b981" },
-  { name: "Database", color: "#f59e0b" },
-  { name: "Infrastructure", color: "#ef4444" },
-  { name: "Mobile", color: "#8b5cf6" },
-  { name: "API", color: "#06b6d4" },
-  { name: "UI/UX", color: "#ec4899" },
-  { name: "DevOps", color: "#84cc16" }
+  { id: "scope-1", name: "Frontend", color: "#3b82f6" },
+  { id: "scope-2", name: "Backend", color: "#10b981" },
+  { id: "scope-3", name: "Database", color: "#f59e0b" },
+  { id: "scope-4", name: "Infrastructure", color: "#ef4444" },
+  { id: "scope-5", name: "Mobile", color: "#8b5cf6" },
+  { id: "scope-6", name: "API", color: "#06b6d4" },
+  { id: "scope-7", name: "UI/UX", color: "#ec4899" },
+  { id: "scope-8", name: "DevOps", color: "#84cc16" }
 ];
+
+const SortableItem = ({ 
+  item, 
+  index, 
+  type, 
+  isEditing, 
+  editingValue, 
+  editingColor, 
+  onEdit, 
+  onSave, 
+  onCancel, 
+  onRemove, 
+  onEditChange, 
+  predefinedColors 
+}: SortableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: typeof item === 'object' ? item.id : `item-${index}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const coloredItem = typeof item === 'object' ? item : null;
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/20 ${
+        isDragging ? 'shadow-lg ring-2 ring-primary/20' : ''
+      }`}
+    >
+      {isEditing ? (
+        <div className="flex items-center gap-3 flex-1">
+          <GripVertical className="w-4 h-4 text-muted-foreground/50" />
+          <Input
+            value={editingValue}
+            onChange={(e) => onEditChange(e.target.value, editingColor)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') onSave();
+              if (e.key === 'Escape') onCancel();
+            }}
+            autoFocus
+            className="flex-1 border-primary/50 focus:border-primary focus:ring-primary/20"
+          />
+          {coloredItem && (
+            <div className="flex items-center p-2 bg-muted/50 rounded-lg border">
+              <Palette className="w-4 h-4 text-muted-foreground mr-2" />
+              <div className="flex items-center gap-1">
+                {predefinedColors.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    title={color.name}
+                    className={`
+                      relative w-7 h-7 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-md
+                      ${editingColor === color.value 
+                        ? 'border-foreground shadow-md ring-2 ring-primary/50' 
+                        : 'border-border hover:border-primary/50'
+                      }
+                    `}
+                    style={{ backgroundColor: color.value }}
+                    onClick={() => onEditChange(editingValue, color.value)}
+                  >
+                    {editingColor === color.value && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-white drop-shadow-sm" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={onSave} className="h-8 px-3">
+              <Check className="w-3 h-3" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={onCancel} className="h-8 px-3">
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-3 flex-1">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted/50 rounded transition-colors"
+            >
+              <GripVertical className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground" />
+            </div>
+            {coloredItem ? (
+              <Badge 
+                className="text-sm font-medium px-4 py-1.5 text-white border-0 shadow-sm"
+                style={{ backgroundColor: coloredItem.color }}
+              >
+                <Tag className="w-3 h-3 mr-2" />
+                {coloredItem.name}
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-sm font-medium px-4 py-1.5 bg-background border-border">
+                {typeof item === 'string' ? item : ''}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onEdit(type, index, coloredItem?.name || (typeof item === 'string' ? item : ''), coloredItem?.color)}
+              className="h-8 px-3 hover:bg-muted"
+            >
+              <Edit3 className="w-3 h-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onRemove(type, index)}
+              className="h-8 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const { user } = useAuth();
@@ -110,6 +285,17 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
   const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string, color?: string} | null>(null);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const generateId = () => {
+    return `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
   useEffect(() => {
     if (isOpen && user) {
       loadParameters();
@@ -120,11 +306,8 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
   const handleAddItem = (type: string, value: string, setter: React.Dispatch<React.SetStateAction<any[]>>, resetInput: () => void, color?: string) => {
     if (value.trim()) {
-      if (color) {
-        setter(prev => [...prev, { name: value.trim(), color }]);
-      } else {
-        setter(prev => [...prev, value.trim()]);
-      }
+      const newItem = color ? { id: generateId(), name: value.trim(), color } : value.trim();
+      setter(prev => [...prev, newItem]);
       resetInput();
       toast({
         title: "Item Added",
@@ -150,7 +333,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
       setter(prev => prev.map((item, i) => {
         if (i === editingItem.index) {
           if (editingItem.color !== undefined) {
-            return { name: editingItem.value.trim(), color: editingItem.color };
+            return { id: typeof item === 'object' ? item.id : generateId(), name: editingItem.value.trim(), color: editingItem.color };
           } else {
             return editingItem.value.trim();
           }
@@ -181,6 +364,19 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     });
   };
 
+  const handleDragEnd = (event: any, setter: React.Dispatch<React.SetStateAction<ColoredItem[]>>) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      setter((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const loadParameters = async () => {
     if (!user) return;
     
@@ -208,19 +404,19 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
         // Update state with loaded parameters
         if (groupedParams.scopes) {
-          setScopes(groupedParams.scopes.map(p => ({ name: p.name, color: p.color })));
+          setScopes(groupedParams.scopes.map((p, index) => ({ id: `scope-${index}`, name: p.name, color: p.color })));
         }
         if (groupedParams.environments) {
-          setEnvironments(groupedParams.environments.map(p => ({ name: p.name, color: p.color })));
+          setEnvironments(groupedParams.environments.map((p, index) => ({ id: `env-${index}`, name: p.name, color: p.color })));
         }
         if (groupedParams.taskTypes) {
-          setTaskTypes(groupedParams.taskTypes.map(p => ({ name: p.name, color: p.color })));
+          setTaskTypes(groupedParams.taskTypes.map((p, index) => ({ id: `task-${index}`, name: p.name, color: p.color })));
         }
         if (groupedParams.statuses) {
-          setStatuses(groupedParams.statuses.map(p => ({ name: p.name, color: p.color })));
+          setStatuses(groupedParams.statuses.map((p, index) => ({ id: `status-${index}`, name: p.name, color: p.color })));
         }
         if (groupedParams.priorities) {
-          setPriorities(groupedParams.priorities.map(p => ({ name: p.name, color: p.color })));
+          setPriorities(groupedParams.priorities.map((p, index) => ({ id: `priority-${index}`, name: p.name, color: p.color })));
         }
       }
     } catch (error) {
@@ -318,23 +514,23 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     newColor: string,
     setNewColor: React.Dispatch<React.SetStateAction<string>>
   ) => (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Add new item */}
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={newValue}
-          onChange={(e) => setNewValue(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleAddItem(type, newValue, setter, () => setNewValue(""), newColor);
-            }
-          }}
-          className="flex-1 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-        />
-        <div className="flex items-center gap-2">
-          <div className="flex items-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-            <Palette className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-2" />
+      <div className="p-4 bg-muted/30 rounded-xl border border-dashed border-border">
+        <div className="flex gap-3">
+          <Input
+            placeholder={placeholder}
+            value={newValue}
+            onChange={(e) => setNewValue(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleAddItem(type, newValue, setter, () => setNewValue(""), newColor);
+              }
+            }}
+            className="flex-1 border-primary/30 focus:border-primary"
+          />
+          <div className="flex items-center p-2 bg-background rounded-lg border">
+            <Palette className="w-4 h-4 text-muted-foreground mr-2" />
             <div className="flex items-center gap-1">
               {predefinedColors.map((color) => (
                 <button
@@ -342,10 +538,10 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                   type="button"
                   title={color.name}
                   className={`
-                    relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg
+                    relative w-7 h-7 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-md
                     ${newColor === color.value 
-                      ? 'border-gray-900 dark:border-white shadow-md ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500' 
-                      : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400'
+                      ? 'border-foreground shadow-md ring-2 ring-primary/50' 
+                      : 'border-border hover:border-primary/50'
                     }
                   `}
                   style={{ backgroundColor: color.value }}
@@ -353,224 +549,87 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
                 >
                   {newColor === color.value && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Check className="w-4 h-4 text-white drop-shadow-sm" />
+                      <Check className="w-3 h-3 text-white drop-shadow-sm" />
                     </div>
                   )}
                 </button>
               ))}
             </div>
           </div>
+          <Button
+            onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""), newColor)}
+            size="sm"
+            className="px-4"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add
+          </Button>
         </div>
-        <Button
-          onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""), newColor)}
-          size="sm"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
       </div>
 
-      {/* Items list */}
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {items.map((item, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            {editingItem?.type === type && editingItem?.index === index ? (
-              <div className="flex items-center gap-2 flex-1">
-                <Input
-                  value={editingItem.value}
-                  onChange={(e) => setEditingItem({...editingItem, value: e.target.value})}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') handleSaveEdit(setter);
-                    if (e.key === 'Escape') handleCancelEdit();
-                  }}
-                  autoFocus
-                  className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <div className="flex items-center p-2 bg-gray-100 dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500">
-                  <Palette className="w-4 h-4 text-gray-500 dark:text-gray-400 mr-2" />
-                  <div className="flex items-center gap-1">
-                    {predefinedColors.map((color) => (
-                      <button
-                        key={color.value}
-                        type="button"
-                        title={color.name}
-                        className={`
-                          relative w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 hover:shadow-lg
-                          ${editingItem.color === color.value 
-                            ? 'border-gray-900 dark:border-white shadow-md ring-2 ring-offset-1 ring-gray-400 dark:ring-gray-500' 
-                            : 'border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400'
-                          }
-                        `}
-                        style={{ backgroundColor: color.value }}
-                        onClick={() => setEditingItem({...editingItem, color: color.value})}
-                      >
-                        {editingItem.color === color.value && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <Check className="w-4 h-4 text-white drop-shadow-sm" />
-                          </div>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => handleSaveEdit(setter)}>
-                  <Check className="w-4 h-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-3">
-                  <Badge 
-                    className="text-sm font-semibold px-3 py-1.5 shadow-sm text-white border-0"
-                    style={{ 
-                      backgroundColor: item.color
-                    }}
-                  >
-                    {item.name}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEditItem(type, index, item.name, item.color)}
-                    className="dark:hover:bg-gray-700"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoveItem(type, index, setter)}
-                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </>
-            )}
+      {/* Items list with drag and drop */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={(event) => handleDragEnd(event, setter)}
+      >
+        <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
+          <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+            {items.map((item, index) => (
+              <SortableItem
+                key={item.id}
+                item={item}
+                index={index}
+                type={type}
+                isEditing={editingItem?.type === type && editingItem?.index === index}
+                editingValue={editingItem?.value || ''}
+                editingColor={editingItem?.color}
+                onEdit={handleEditItem}
+                onSave={() => handleSaveEdit(setter)}
+                onCancel={handleCancelEdit}
+                onRemove={(type, index) => handleRemoveItem(type, index, setter)}
+                onEditChange={(value, color) => setEditingItem(prev => prev ? {...prev, value, color} : null)}
+                predefinedColors={predefinedColors}
+              />
+            ))}
           </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderItemList = (
-    items: string[], 
-    setter: React.Dispatch<React.SetStateAction<string[]>>, 
-    type: string,
-    newValue: string,
-    setNewValue: React.Dispatch<React.SetStateAction<string>>,
-    placeholder: string
-  ) => (
-    <div className="space-y-4">
-      {/* Add new item */}
-      <div className="flex gap-2">
-        <Input
-          placeholder={placeholder}
-          value={newValue}
-          onChange={(e) => setNewValue(e.target.value)}
-          onKeyPress={(e) => {
-            if (e.key === 'Enter') {
-              handleAddItem(type, newValue, setter, () => setNewValue(""));
-            }
-          }}
-          className="dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-        />
-        <Button
-          onClick={() => handleAddItem(type, newValue, setter, () => setNewValue(""))}
-          size="sm"
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-
-      {/* Items list */}
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {items.map((item, index) => (
-          <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            {editingItem?.type === type && editingItem?.index === index ? (
-              <div className="flex items-center gap-2 flex-1">
-                <Input
-                  value={editingItem.value}
-                  onChange={(e) => setEditingItem({...editingItem, value: e.target.value})}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') handleSaveEdit(setter);
-                    if (e.key === 'Escape') handleCancelEdit();
-                  }}
-                  autoFocus
-                  className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                />
-                <Button size="sm" variant="outline" onClick={() => handleSaveEdit(setter)}>
-                  <Check className="w-4 h-4" />
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleCancelEdit}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <Badge variant="outline" className="text-sm text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700">
-                  {item}
-                </Badge>
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleEditItem(type, index, item)}
-                    className="dark:hover:bg-gray-700"
-                  >
-                    <Edit3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleRemoveItem(type, index, setter)}
-                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-gray-700"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden p-0">
+        <DialogHeader className="p-6 pb-4">
           <div className="flex items-center gap-3">
-            <Settings className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Settings className="w-6 h-6 text-primary" />
+            </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Parameters Management</h2>
-              <p className="text-gray-600 dark:text-gray-300">Manage dropdown values used throughout the application</p>
+              <DialogTitle className="text-2xl font-semibold">Parameter Management</DialogTitle>
+              <p className="text-muted-foreground mt-1">Customize dropdown options used throughout the application</p>
             </div>
           </div>
-          <Button variant="ghost" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
+        </DialogHeader>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)]">
+        <div className="px-6 pb-6 overflow-y-auto flex-1">
           <Tabs defaultValue="scopes" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 dark:bg-gray-800">
-              <TabsTrigger value="scopes" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Scopes</TabsTrigger>
-              <TabsTrigger value="environments" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Environments</TabsTrigger>
-              <TabsTrigger value="taskTypes" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Task Types</TabsTrigger>
-              <TabsTrigger value="statuses" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Statuses</TabsTrigger>
-              <TabsTrigger value="priorities" className="dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">Priorities</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsTrigger value="scopes" className="text-sm">Scopes</TabsTrigger>
+              <TabsTrigger value="environments" className="text-sm">Environments</TabsTrigger>
+              <TabsTrigger value="taskTypes" className="text-sm">Task Types</TabsTrigger>
+              <TabsTrigger value="statuses" className="text-sm">Statuses</TabsTrigger>
+              <TabsTrigger value="priorities" className="text-sm">Priorities</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="scopes" className="mt-6">
-              <Card className="dark:bg-gray-800 dark:border-gray-700">
-                <CardHeader>
-                  <CardTitle className="dark:text-white">Scope Options</CardTitle>
+            <TabsContent value="scopes" className="mt-0">
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Tag className="w-5 h-5 text-primary" />
+                    Scope Options
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderColoredItemList(
@@ -587,10 +646,13 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="environments" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Environment Options</CardTitle>
+            <TabsContent value="environments" className="mt-0">
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Settings className="w-5 h-5 text-primary" />
+                    Environment Options
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderColoredItemList(
@@ -607,10 +669,13 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="taskTypes" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Task Type Options</CardTitle>
+            <TabsContent value="taskTypes" className="mt-0">
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Tag className="w-5 h-5 text-primary" />
+                    Task Type Options
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderColoredItemList(
@@ -627,10 +692,13 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="statuses" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status Options</CardTitle>
+            <TabsContent value="statuses" className="mt-0">
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Settings className="w-5 h-5 text-primary" />
+                    Status Options
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderColoredItemList(
@@ -647,10 +715,13 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="priorities" className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Priority Options</CardTitle>
+            <TabsContent value="priorities" className="mt-0">
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Settings className="w-5 h-5 text-primary" />
+                    Priority Options
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {renderColoredItemList(
@@ -669,18 +740,18 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
           </Tabs>
         </div>
 
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="flex items-center justify-between p-6 border-t bg-muted/30">
           <Button
             variant="outline"
             onClick={handleResetToDefaults}
-            className="flex items-center gap-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             Reset to Defaults
           </Button>
           
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700">
+            <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>
             <Button onClick={handleSaveAll} disabled={loading} className="flex items-center gap-2">
@@ -689,8 +760,8 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 
