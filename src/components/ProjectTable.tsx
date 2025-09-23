@@ -60,14 +60,19 @@ export const ProjectTable = ({
     // Calculate totals
     const totalTasks = regularTasks.length;
     const totalMeetings = meetings.length;
+    const totalItems = totalTasks + totalMeetings;
+    
+    // Calculate completed counts
+    const completedTasks = regularTasks.filter(task => task.status === 'Completed').length;
+    const completedMeetings = meetings.filter(task => task.status === 'Completed').length;
+    const totalCompleted = completedTasks + completedMeetings;
     
     // Calculate active (non-completed) counts
     const activeTasks = regularTasks.filter(task => task.status !== 'Completed').length;
     const activeMeetings = meetings.filter(task => task.status !== 'Completed').length;
     
-    // Calculate completion rate for progress bar
-    const completedTasks = regularTasks.filter(task => task.status === 'Completed').length;
-    const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
+    // Calculate completion rate for progress bar based on all items
+    const completionRate = totalItems > 0 ? Math.round(totalCompleted / totalItems * 100) : 0;
     
     return {
       activeTasks,
@@ -75,7 +80,10 @@ export const ProjectTable = ({
       activeMeetings,
       totalMeetings,
       completionRate,
-      completedTasks
+      completedTasks,
+      completedMeetings,
+      totalCompleted,
+      totalItems
     };
   };
   const getStatusColor = (status: string) => {
@@ -473,12 +481,8 @@ export const ProjectTable = ({
                         <Progress value={stats.completionRate} className="h-2" />
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <ListTodo className="w-3 h-3" />
-                            <span>{stats.activeTasks}/{stats.totalTasks} tasks</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            <span>{stats.activeMeetings}/{stats.totalMeetings} meetings</span>
+                            <CheckCircle className="w-3 h-3" />
+                            <span>{stats.totalCompleted}/{stats.totalItems} completed</span>
                           </div>
                         </div>
                       </div>
