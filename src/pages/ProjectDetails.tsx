@@ -117,6 +117,44 @@ const ProjectDetails = () => {
     }
   };
 
+  const handleUpdateProject = async (updatedProject: Project) => {
+    try {
+      await updateProject(updatedProject);
+      // Update local state to reflect changes immediately
+      setProject(updatedProject);
+      toast({
+        title: "Success",
+        description: "Project updated successfully",
+      });
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      toast({
+        title: "Update Failed",
+        description: "Failed to update the project. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    try {
+      await deleteProject(projectId);
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      });
+      // Navigate back to projects list after deletion
+      navigate('/projects');
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      toast({
+        title: "Delete Failed",
+        description: "Failed to delete the project. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleGenerateReport = () => {
     console.log('Generate report for project:', project?.name);
   };
@@ -154,6 +192,8 @@ const ProjectDetails = () => {
           loadAllTasksForProject={loadAllTasksForProject}
           onBack={handleBack}
           onEditProject={handleEditProject}
+          onUpdateProject={handleUpdateProject}
+          onDeleteProject={handleDeleteProject}
           onCreateTask={handleCreateTask}
           onEditTask={handleEditTask}
           onUpdateTask={handleUpdateTask}
