@@ -65,15 +65,14 @@ const Tasks = () => {
     return allTasks.filter(task => task.taskType !== 'Meeting');
   }, [allTasks]);
 
-  // Filter task counts to exclude meetings
+  // Filter task counts to only exclude meetings - calculate from all available tasks
   const nonMeetingTaskCounts = React.useMemo(() => {
-    if (!taskCounts) return taskCounts;
-    
-    // We need to recalculate counts based on filtered non-meeting tasks
+    // Always calculate from allTasks to get accurate counts, regardless of taskCounts limitations
     const nonMeetingTasks = allTasks.filter(task => task.taskType !== 'Meeting');
     
     return {
-      ...taskCounts,
+      // Show ALL non-meeting tasks (completed, in progress, open, on hold)
+      total: nonMeetingTasks.length,
       active: nonMeetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
       completed: nonMeetingTasks.filter(task => task.status === 'Completed').length,
       overdue: nonMeetingTasks.filter(task => {
@@ -82,9 +81,10 @@ const Tasks = () => {
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
       }).length,
-      total: nonMeetingTasks.length
+      onHold: nonMeetingTasks.filter(task => task.status === 'On Hold').length,
+      critical: nonMeetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
     };
-  }, [taskCounts, allTasks]);
+  }, [allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {

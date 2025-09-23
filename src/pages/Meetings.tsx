@@ -65,15 +65,14 @@ const Meetings = () => {
     return allTasks.filter(task => task.taskType === 'Meeting');
   }, [allTasks]);
 
-  // Filter task counts to only include meetings
+  // Filter task counts to only include meetings - calculate from all available tasks
   const meetingTaskCounts = React.useMemo(() => {
-    if (!taskCounts) return taskCounts;
-    
-    // We need to recalculate counts based on filtered meeting tasks
+    // Always calculate from allTasks to get accurate counts, regardless of taskCounts limitations
     const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
     
     return {
-      ...taskCounts,
+      // Show ALL meeting tasks (completed, in progress, open, on hold)
+      total: meetingTasks.length,
       active: meetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
       completed: meetingTasks.filter(task => task.status === 'Completed').length,
       overdue: meetingTasks.filter(task => {
@@ -82,9 +81,10 @@ const Meetings = () => {
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
       }).length,
-      total: meetingTasks.length
+      onHold: meetingTasks.filter(task => task.status === 'On Hold').length,
+      critical: meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
     };
-  }, [taskCounts, allTasks]);
+  }, [allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {
