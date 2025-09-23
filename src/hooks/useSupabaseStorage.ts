@@ -120,8 +120,8 @@ export function useSupabaseStorage() {
   const convertSupabaseTaskToTask = useCallback((supabaseTask: SupabaseTask, followUpsMap?: Map<string, any[]>, projectNamesMap?: Map<string, string>): Task => {
     // PERFORMANCE: Use cached follow-ups (always required now to prevent N+1 queries)
     let followUps: any[] = [];
-    if (followUpsMap?.has(supabaseTask.id)) {
-      followUps = followUpsMap.get(supabaseTask.id)!.map(followUp => ({
+    if (followUpsMap?.has(supabaseTask.task_number)) {
+      followUps = followUpsMap.get(supabaseTask.task_number)!.map(followUp => ({
         id: followUp.id,
         text: followUp.text,
         timestamp: followUp.created_at,
@@ -378,17 +378,17 @@ export function useSupabaseStorage() {
       }
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
-      const taskIds = (data || []).map(t => t.id);
+      const taskNumbers = (data || []).map(t => t.task_number);
       const projectIds = [...new Set((data || []).map(t => t.project_id).filter(Boolean))].filter((id): id is string => typeof id === 'string');
 
-      // Fetch all follow-ups in one query
+      // Fetch all follow-ups in one query using task_numbers (not UUIDs)
       const { data: allFollowUps } = await supabase
         .from('follow_ups')
         .select('id, text, created_at, task_status, task_id')
-        .in('task_id', taskIds)
+        .in('task_id', taskNumbers)
         .order('created_at', { ascending: false });
 
-      // Group follow-ups by task_id
+      // Group follow-ups by task_number (stored in task_id field)
       const followUpsMap = new Map<string, any[]>();
       (allFollowUps || []).forEach(followUp => {
         if (!followUpsMap.has(followUp.task_id)) {
@@ -492,16 +492,16 @@ export function useSupabaseStorage() {
       console.log(`Loaded ${data?.length || 0} total tasks for project ${projectId}`);
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
-      const taskIds = (data || []).map(t => t.id);
+      const taskNumbers = (data || []).map(t => t.task_number);
 
-      // Fetch all follow-ups in one query
+      // Fetch all follow-ups in one query using task_numbers (not UUIDs)
       const { data: allFollowUps } = await supabase
         .from('follow_ups')
         .select('id, text, created_at, task_status, task_id')
-        .in('task_id', taskIds)
+        .in('task_id', taskNumbers)
         .order('created_at', { ascending: false });
 
-      // Group follow-ups by task_id
+      // Group follow-ups by task_number (stored in task_id field)
       const followUpsMap = new Map<string, any[]>();
       (allFollowUps || []).forEach(followUp => {
         if (!followUpsMap.has(followUp.task_id)) {
@@ -588,16 +588,16 @@ export function useSupabaseStorage() {
       console.log(`Loaded ${data?.length || 0} total tasks (all)`);
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
-      const taskIds = (data || []).map(t => t.id);
+      const taskNumbers = (data || []).map(t => t.task_number);
 
-      // Fetch all follow-ups in one query
+      // Fetch all follow-ups in one query using task_numbers (not UUIDs)
       const { data: allFollowUps } = await supabase
         .from('follow_ups')
         .select('id, text, created_at, task_status, task_id')
-        .in('task_id', taskIds)
+        .in('task_id', taskNumbers)
         .order('created_at', { ascending: false });
 
-      // Group follow-ups by task_id
+      // Group follow-ups by task_number (stored in task_id field)
       const followUpsMap = new Map<string, any[]>();
       (allFollowUps || []).forEach(followUp => {
         if (!followUpsMap.has(followUp.task_id)) {
@@ -656,16 +656,16 @@ export function useSupabaseStorage() {
       console.log(`Loaded ${data?.length || 0} meeting tasks`);
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
-      const taskIds = (data || []).map(t => t.id);
+      const taskNumbers = (data || []).map(t => t.task_number);
 
-      // Fetch all follow-ups in one query
+      // Fetch all follow-ups in one query using task_numbers (not UUIDs)
       const { data: allFollowUps } = await supabase
         .from('follow_ups')
         .select('id, text, created_at, task_status, task_id')
-        .in('task_id', taskIds)
+        .in('task_id', taskNumbers)
         .order('created_at', { ascending: false });
 
-      // Group follow-ups by task_id
+      // Group follow-ups by task_number (stored in task_id field)
       const followUpsMap = new Map<string, any[]>();
       (allFollowUps || []).forEach(followUp => {
         if (!followUpsMap.has(followUp.task_id)) {
@@ -811,17 +811,17 @@ export function useSupabaseStorage() {
       console.log(`Search found ${data?.length || 0} tasks for term: "${searchTerm}"`);
 
       // Batch fetch all follow-ups and project names to avoid N+1 queries
-      const taskIds = (data || []).map(t => t.id);
+      const taskNumbers = (data || []).map(t => t.task_number);
       const projectIds = [...new Set((data || []).map(t => t.project_id).filter(Boolean))];
 
-      // Fetch all follow-ups in one query
+      // Fetch all follow-ups in one query using task_numbers (not UUIDs)
       const { data: allFollowUps } = await supabase
         .from('follow_ups')
         .select('id, text, created_at, task_status, task_id')
-        .in('task_id', taskIds)
+        .in('task_id', taskNumbers)
         .order('created_at', { ascending: false });
 
-      // Group follow-ups by task_id
+      // Group follow-ups by task_number (stored in task_id field)
       const followUpsMap = new Map<string, any[]>();
       (allFollowUps || []).forEach(followUp => {
         if (!followUpsMap.has(followUp.task_id)) {
@@ -1442,7 +1442,7 @@ export function useSupabaseStorage() {
     // Find all tasks in the recurring series
     const { data: allRecurringTasks, error: fetchError } = await supabase
       .from('tasks')
-      .select('id')
+      .select('id, task_number')
       .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
       .eq('user_id', user.id);
 
@@ -1454,12 +1454,13 @@ export function useSupabaseStorage() {
     }
 
     const taskIds = allRecurringTasks.map(task => task.id);
+    const taskNumbers = allRecurringTasks.map(task => task.task_number);
 
-    // Delete all follow-ups for all recurring tasks
+    // Delete all follow-ups for all recurring tasks (using task_numbers)
     const { error: followUpsError } = await supabase
       .from('follow_ups')
       .delete()
-      .in('task_id', taskIds);
+      .in('task_id', taskNumbers);
 
     if (followUpsError) throw followUpsError;
 
