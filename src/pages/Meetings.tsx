@@ -65,24 +65,20 @@ const Meetings = () => {
     return allTasks.filter(task => task.taskType === 'Meeting');
   }, [allTasks]);
 
-  // Filter task counts to only include meetings - calculate from all available tasks
+  // Simple count calculation - All meetings = all meeting tasks in database
   const meetingTaskCounts = React.useMemo(() => {
-    // Always calculate from allTasks to get accurate counts, regardless of taskCounts limitations
-    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
-    
     return {
-      // Show ALL meeting tasks (completed, in progress, open, on hold)
-      total: meetingTasks.length,
-      active: meetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
-      completed: meetingTasks.filter(task => task.status === 'Completed').length,
-      overdue: meetingTasks.filter(task => {
-        if (task.status === 'Completed') return false;
+      total: allTasks.filter(task => task.taskType === 'Meeting').length,
+      active: allTasks.filter(task => task.taskType === 'Meeting' && (task.status === 'Open' || task.status === 'In Progress')).length,
+      completed: allTasks.filter(task => task.taskType === 'Meeting' && task.status === 'Completed').length,
+      overdue: allTasks.filter(task => {
+        if (task.taskType !== 'Meeting' || task.status === 'Completed') return false;
         const today = new Date();
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
       }).length,
-      onHold: meetingTasks.filter(task => task.status === 'On Hold').length,
-      critical: meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
+      onHold: allTasks.filter(task => task.taskType === 'Meeting' && task.status === 'On Hold').length,
+      critical: allTasks.filter(task => task.taskType === 'Meeting' && (task.priority === 'High' || task.priority === 'Critical')).length
     };
   }, [allTasks]);
 
