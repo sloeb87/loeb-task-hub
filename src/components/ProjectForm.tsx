@@ -153,7 +153,6 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
       console.error('Error in onSave:', error);
     }
   };
-  };
 
   const handleDelete = () => {
     if (project && onDelete && window.confirm('Are you sure you want to delete this project? This will also delete all associated tasks.')) {
