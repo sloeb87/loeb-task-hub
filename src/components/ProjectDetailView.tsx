@@ -12,6 +12,8 @@ import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, Fol
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
+import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { getFirstLink, hasLinks } from "@/utils/linkUtils";
 
@@ -52,8 +54,11 @@ export const ProjectDetailView = ({
 }: ProjectDetailViewProps) => {
   const { getScopeStyle } = useScopeColor();
   const { navigateToTaskEdit } = useTaskNavigation();
+  const { addFollowUp, updateFollowUp, deleteFollowUp } = useSupabaseStorage();
   const [isProjectFormOpen, setIsProjectFormOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
   // State to store all project tasks (loaded directly from database)
   const [allProjectTasks, setAllProjectTasks] = useState<Task[]>([]);
@@ -273,10 +278,41 @@ export const ProjectDetailView = ({
     navigateToTaskEdit(project.name, task, 'projectDetail', project.id);
   };
 
-  const handleFollowUpLocal = (updatedTask: Task) => {
-    if (onUpdateTask) {
-      onUpdateTask(updatedTask);
+  const handleFollowUpLocal = (task: Task) => {
+    setSelectedTaskForFollowUp(task);
+    setFollowUpDialogOpen(true);
+  };
+
+  const handleCloseFollowUpDialog = () => {
+    setFollowUpDialogOpen(false);
+    setSelectedTaskForFollowUp(null);
+  };
+
+  const handleAddFollowUpFromDialog = async (followUpText: string) => {
+    if (!selectedTaskForFollowUp) return;
+    try {
+      await addFollowUp(selectedTaskForFollowUp.id, followUpText);
       setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('Failed to add follow-up:', error);
+    }
+  };
+
+  const handleUpdateFollowUpFromDialog = async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
+    try {
+      await updateFollowUp(followUpId, text, timestamp);
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('Failed to update follow-up:', error);
+    }
+  };
+
+  const handleDeleteFollowUpFromDialog = async (followUpId: string) => {
+    try {
+      await deleteFollowUp(followUpId);
+      setRefreshKey(prev => prev + 1);
+    } catch (error) {
+      console.error('Failed to delete follow-up:', error);
     }
   };
 
@@ -980,6 +1016,18 @@ export const ProjectDetailView = ({
         allTasks={allTasks}
         onUpdateTask={onUpdateTask}
       />
+
+      {/* Follow-up Dialog */}
+      {selectedTaskForFollowUp && (
+        <FollowUpDialog
+          isOpen={followUpDialogOpen}
+          onClose={handleCloseFollowUpDialog}
+          onAddFollowUp={handleAddFollowUpFromDialog}
+          onUpdateFollowUp={handleUpdateFollowUpFromDialog}
+          onDeleteFollowUp={handleDeleteFollowUpFromDialog}
+          task={selectedTaskForFollowUp}
+        />
+      )}
     </div>
   );
 };
