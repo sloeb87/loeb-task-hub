@@ -15,30 +15,11 @@ import {
   X,
   Edit3,
   Palette,
-  GripVertical,
   Tag
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import {
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 
 interface ParametersProps {
   isOpen: boolean;
@@ -51,7 +32,7 @@ interface ColoredItem {
   color: string;
 }
 
-interface SortableItemProps {
+interface ItemProps {
   item: ColoredItem | string;
   index: number;
   type: string;
@@ -121,7 +102,7 @@ const defaultScopes: ColoredItem[] = [
   { id: "scope-7", name: "UI/UX", color: "#ec4899" }
 ].sort((a, b) => a.name.localeCompare(b.name));
 
-const SortableItem = ({ 
+const Item = ({ 
   item, 
   index, 
   type, 
@@ -134,35 +115,13 @@ const SortableItem = ({
   onRemove, 
   onEditChange, 
   predefinedColors 
-}: SortableItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: typeof item === 'object' ? item.id : `item-${index}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
+}: ItemProps) => {
   const coloredItem = typeof item === 'object' ? item : null;
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`group flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/20 ${
-        isDragging ? 'shadow-lg ring-2 ring-primary/20' : ''
-      }`}
-    >
+    <div className="group flex items-center justify-between p-4 bg-card rounded-xl border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:border-primary/20">
       {isEditing ? (
         <div className="flex items-center gap-3 flex-1">
-          <GripVertical className="w-4 h-4 text-muted-foreground/50" />
           <Input
             value={editingValue}
             onChange={(e) => onEditChange(e.target.value, editingColor)}
@@ -214,13 +173,6 @@ const SortableItem = ({
       ) : (
         <>
           <div className="flex items-center gap-3 flex-1">
-            <div
-              {...attributes}
-              {...listeners}
-              className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted/50 rounded transition-colors"
-            >
-              <GripVertical className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground" />
-            </div>
             {coloredItem ? (
               <Badge 
                 className="text-sm font-medium px-4 py-1.5 text-white border-0 shadow-sm"
@@ -284,13 +236,6 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
   const [newScopeColor, setNewScopeColor] = useState(predefinedColors[0].value);
 
   const [editingItem, setEditingItem] = useState<{type: string, index: number, value: string, color?: string} | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
 
   const generateId = () => {
     return `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -360,19 +305,6 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
       title: "Reset Complete",
       description: "All parameters have been reset to default values.",
     });
-  };
-
-  const handleDragEnd = (event: any, setter: React.Dispatch<React.SetStateAction<ColoredItem[]>>) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      setter((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
   };
 
   const loadParameters = async () => {
@@ -584,34 +516,26 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         </div>
       </div>
 
-      {/* Items list with drag and drop */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={(event) => handleDragEnd(event, setter)}
-      >
-        <SortableContext items={sortedItems.map(item => item.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
-            {sortedItems.map((item, index) => (
-              <SortableItem
-                key={item.id}
-                item={item}
-                index={index}
-                type={type}
-                isEditing={editingItem?.type === type && editingItem?.index === index}
-                editingValue={editingItem?.value || ''}
-                editingColor={editingItem?.color}
-                onEdit={handleEditItem}
-                onSave={() => handleSaveEdit(setter)}
-                onCancel={handleCancelEdit}
-                onRemove={(type, index) => handleRemoveItem(type, index, setter)}
-                onEditChange={(value, color) => setEditingItem(prev => prev ? {...prev, value, color} : null)}
-                predefinedColors={predefinedColors}
-              />
-            ))}
-          </div>
-        </SortableContext>
-      </DndContext>
+      {/* Items list */}
+      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+        {sortedItems.map((item, index) => (
+          <Item
+            key={item.id}
+            item={item}
+            index={index}
+            type={type}
+            isEditing={editingItem?.type === type && editingItem?.index === index}
+            editingValue={editingItem?.value || ''}
+            editingColor={editingItem?.color}
+            onEdit={handleEditItem}
+            onSave={() => handleSaveEdit(setter)}
+            onCancel={handleCancelEdit}
+            onRemove={(type, index) => handleRemoveItem(type, index, setter)}
+            onEditChange={(value, color) => setEditingItem(prev => prev ? {...prev, value, color} : null)}
+            predefinedColors={predefinedColors}
+          />
+        ))}
+      </div>
     </div>
     );
   };
