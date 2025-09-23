@@ -141,23 +141,7 @@ export function useSupabaseStorage() {
       // REMOVED: Individual project fetching to eliminate additional queries
     }
 
-    if (supabaseTask.task_number === 'T34') {
-      console.log('Converting T34 from Supabase:', { 
-        environment: supabaseTask.environment,
-        task_type: supabaseTask.task_type,
-        priority: supabaseTask.priority,
-        status: supabaseTask.status
-      });
-    }
-
-    if (supabaseTask.task_number === 'T36') {
-      console.log('Converting T36 from Supabase:', { 
-        environment: supabaseTask.environment,
-        task_type: supabaseTask.task_type,
-        priority: supabaseTask.priority,
-        status: supabaseTask.status
-      });
-    }
+    // REMOVED: Debug logging for specific tasks to reduce console noise
 
     return {
       id: supabaseTask.task_number, // Use task number as the primary ID (T468, etc.)
