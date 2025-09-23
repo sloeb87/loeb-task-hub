@@ -234,6 +234,11 @@ const Meetings = () => {
               if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
               return true; // 'all' or any other filter
             })
+            .sort((a, b) => {
+              const aTime = new Date(a.dueDate).getTime();
+              const bTime = new Date(b.dueDate).getTime();
+              return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+            })
             .slice(0, displayLimit)
           }
           sortField={sortField}
