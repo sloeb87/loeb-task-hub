@@ -472,13 +472,10 @@ export function useSupabaseStorage() {
   // Load ALL tasks for a specific project by ID (no pagination)
   const loadAllTasksForProject = useCallback(async (projectId: string): Promise<Task[]> => {
     if (!isAuthenticated || !user) {
-      console.log('loadAllTasksForProject: No authentication or user');
       return [];
     }
 
     try {
-      console.log('loadAllTasksForProject called with projectId:', projectId);
-      
       // Get ALL tasks for this project directly using project_id (no pagination)
       const { data, error } = await supabase
         .from('tasks')
@@ -569,13 +566,10 @@ export function useSupabaseStorage() {
   // Load ALL tasks without pagination (for time tracking and other features that need complete data)
   const loadAllTasks = useCallback(async (): Promise<Task[]> => {
     if (!isAuthenticated || !user) {
-      console.log('loadAllTasks: No authentication or user');
       return [];
     }
 
     try {
-      console.log('loadAllTasks: Loading all tasks for time tracking...');
-      
       // Get ALL tasks without pagination limits
       const { data, error } = await supabase
         .from('tasks')
@@ -619,7 +613,7 @@ export function useSupabaseStorage() {
 
       const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
-      console.log('loadAllTasks: Successfully loaded all tasks, found T50:', convertedTasks.find(t => t.id === 'T50')?.title);
+      console.log(`Loaded ${convertedTasks.length} total tasks (all)`);
       return convertedTasks;
     } catch (err) {
       console.error('Error loading all tasks:', err);

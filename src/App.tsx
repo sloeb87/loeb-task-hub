@@ -41,10 +41,8 @@ const LoadingSpinner = React.memo(() => (
 const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, loading, user } = useAuth();
 
-  console.log('ProtectedRoute check:', { isAuthenticated, loading, userId: user?.id });
-
+  // Remove excessive logging that causes performance issues
   if (loading) {
-    console.log('ProtectedRoute: Still loading auth state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -53,11 +51,9 @@ const ProtectedRoute = React.memo(({ children }: { children: React.ReactNode }) 
   }
 
   if (!isAuthenticated) {
-    console.log('ProtectedRoute: Not authenticated, redirecting to auth');
     return <Navigate to="/auth" replace />;
   }
 
-  console.log('ProtectedRoute: Authenticated, rendering protected content');
   return <>{children}</>;
 });
 

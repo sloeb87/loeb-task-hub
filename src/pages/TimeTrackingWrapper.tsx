@@ -15,7 +15,7 @@ const TimeTrackingWrapper = () => {
       try {
         const tasks = await loadAllTasks();
         setAllTasks(tasks);
-        console.log('🎯 TimeTrackingWrapper: Loaded', tasks.length, 'tasks for time tracking');
+        // Reduced logging for performance
       } catch (error) {
         console.error('Error loading all tasks for time tracking:', error);
       } finally {

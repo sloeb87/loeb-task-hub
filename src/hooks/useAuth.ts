@@ -8,18 +8,13 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let initialLoadComplete = false;
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', { event, hasSession: !!session, userId: session?.user?.id });
         setSession(session);
         setUser(session?.user ?? null);
-        // Only set loading to false if this is after the initial load
-        if (initialLoadComplete) {
-          setLoading(false);
-        }
+        setLoading(false); // Always set loading to false after auth state change
       }
     );
 
@@ -29,7 +24,6 @@ export function useAuth() {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
-      initialLoadComplete = true;
     });
 
     return () => subscription.unsubscribe();
