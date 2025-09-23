@@ -83,9 +83,14 @@ const ProjectsPage = ({
   };
 
   const handleSaveProject = (projectData: Project | Omit<Project, 'id'>) => {
+    console.log('handleSaveProject called with:', projectData);
+    console.log('Project has id?', 'id' in projectData);
+    
     if ('id' in projectData) {
+      console.log('Calling onUpdateProject with:', projectData);
       onUpdateProject(projectData);
     } else {
+      console.log('Calling onCreateProject with:', projectData);
       onCreateProject(projectData);
     }
     setIsProjectFormOpen(false);
