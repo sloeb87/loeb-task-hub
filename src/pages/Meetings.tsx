@@ -31,16 +31,6 @@ const Meetings = () => {
   const { startTimer } = useTimeTracking();
   const { setNavigationCallback } = useTaskNavigation();
 
-  // Set up navigation callback for meeting editing
-  useEffect(() => {
-    setNavigationCallback((projectName?: string, task?: Task) => {
-      if (task) {
-        console.log('Meetings - Navigating to meeting edit:', task.id);
-        navigate(`/tasks/${task.id}`);
-      }
-    });
-  }, [navigate, setNavigationCallback]);
-
   const {
     tasks: allTasks,
     allMeetings,
@@ -64,13 +54,47 @@ const Meetings = () => {
     refreshTasks
   } = useSupabaseStorage();
 
+  // IMPORTANT: All hooks must be called before any early returns
+  // Memoize filtered tasks for better performance
+  const filteredTasks = React.useMemo(() => {
+    if (!allMeetings) return [];
+    return allMeetings.filter(task => {
+      // Apply active filter locally
+      if (activeFilter === 'open') return task.status === 'Open';
+      if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
+      if (activeFilter === 'inprogress') return task.status === 'In Progress';
+      if (activeFilter === 'onhold') return task.status === 'On Hold';
+      if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
+      return true; // 'all' or any other filter
+    });
+  }, [allMeetings, activeFilter]);
+
+  // Memoize sorted and sliced tasks
+  const displayedTasks = React.useMemo(() => {
+    if (!filteredTasks.length) return [];
+    const sorted = filteredTasks.sort((a, b) => {
+      const aTime = new Date(a.dueDate).getTime();
+      const bTime = new Date(b.dueDate).getTime();
+      return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
+    });
+    return sorted.slice(0, displayLimit);
+  }, [filteredTasks, sortDirection, displayLimit]);
+
   // Use all meetings from the dedicated hook
-  const tasks = React.useMemo(() => {
-    return allMeetings || [];
-  }, [allMeetings]);
+  const tasks = allMeetings || [];
 
   // Use meeting counts directly from the hook
   const meetingTaskCounts = meetingCounts;
+
+  // Set up navigation callback for meeting editing
+  useEffect(() => {
+    setNavigationCallback((projectName?: string, task?: Task) => {
+      if (task) {
+        console.log('Meetings - Navigating to meeting edit:', task.id);
+        navigate(`/tasks/${task.id}`);
+      }
+    });
+  }, [navigate, setNavigationCallback]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {
@@ -217,29 +241,6 @@ const Meetings = () => {
       </div>
     );
   }
-
-  // Memoize filtered tasks for better performance
-  const filteredTasks = React.useMemo(() => {
-    return tasks.filter(task => {
-      // Apply active filter locally
-      if (activeFilter === 'open') return task.status === 'Open';
-      if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
-      if (activeFilter === 'inprogress') return task.status === 'In Progress';
-      if (activeFilter === 'onhold') return task.status === 'On Hold';
-      if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
-      return true; // 'all' or any other filter
-    });
-  }, [tasks, activeFilter]);
-
-  // Memoize sorted and sliced tasks
-  const displayedTasks = React.useMemo(() => {
-    const sorted = filteredTasks.sort((a, b) => {
-      const aTime = new Date(a.dueDate).getTime();
-      const bTime = new Date(b.dueDate).getTime();
-      return sortDirection === 'asc' ? aTime - bTime : bTime - aTime;
-    });
-    return sorted.slice(0, displayLimit);
-  }, [filteredTasks, sortDirection, displayLimit]);
 
   return (
     <div className="min-h-screen bg-background">
