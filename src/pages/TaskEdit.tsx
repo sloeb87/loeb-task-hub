@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { TaskFormOptimized } from "@/components/TaskFormOptimized";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -16,6 +17,8 @@ const TaskEdit = () => {
   const { taskNavigationState, updateSelectedTask } = useTaskNavigation();
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
   const { startTimer, stopTimer, getTaskTime } = useTimeTracking();
 
@@ -208,6 +211,62 @@ const TaskEdit = () => {
     }
   };
 
+  const handleOpenFollowUpDialog = useCallback((task: Task) => {
+    setSelectedTaskForFollowUp(task);
+    setFollowUpDialogOpen(true);
+  }, []);
+
+  const handleCloseFollowUpDialog = useCallback(() => {
+    setFollowUpDialogOpen(false);
+    setSelectedTaskForFollowUp(null);
+  }, []);
+
+  const handleAddFollowUpFromDialog = useCallback(async (followUpText: string) => {
+    if (!selectedTaskForFollowUp) return;
+    try {
+      await addFollowUp(selectedTaskForFollowUp.id, followUpText);
+      // Refresh the task data to show the new follow-up
+      if (selectedTaskForFollowUp.id === selectedTask?.id) {
+        const updatedTask = await loadTaskById(selectedTaskForFollowUp.id);
+        if (updatedTask) {
+          setSelectedTask(updatedTask);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to add follow-up:', error);
+    }
+  }, [selectedTaskForFollowUp, addFollowUp, selectedTask, loadTaskById]);
+
+  const handleUpdateFollowUpFromDialog = useCallback(async (taskId: string, followUpId: string, text: string, timestamp?: string) => {
+    try {
+      await updateFollowUp(followUpId, text, timestamp);
+      // Refresh the task data to show the updated follow-up
+      if (taskId === selectedTask?.id) {
+        const updatedTask = await loadTaskById(taskId);
+        if (updatedTask) {
+          setSelectedTask(updatedTask);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to update follow-up:', error);
+    }
+  }, [updateFollowUp, selectedTask, loadTaskById]);
+
+  const handleDeleteFollowUpFromDialog = useCallback(async (followUpId: string) => {
+    try {
+      await deleteFollowUp(followUpId);
+      // Refresh the task data to remove the deleted follow-up
+      if (selectedTask) {
+        const updatedTask = await loadTaskById(selectedTask.id);
+        if (updatedTask) {
+          setSelectedTask(updatedTask);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete follow-up:', error);
+    }
+  }, [deleteFollowUp, selectedTask, loadTaskById]);
+
   const handleTimerToggle = useCallback(() => {
     if (!selectedTask) return;
     
@@ -281,12 +340,25 @@ const TaskEdit = () => {
           onAddFollowUp={addFollowUp}
           onUpdateFollowUp={updateFollowUp}
           onDeleteFollowUp={deleteFollowUp}
+          onFollowUpTask={handleOpenFollowUpDialog}
           task={selectedTask}
           allTasks={tasks}
           allProjects={projects}
           projectName={selectedProject?.name}
           renderInline={true}
         />
+
+        {/* Follow-up Dialog */}
+        {selectedTaskForFollowUp && (
+          <FollowUpDialog
+            isOpen={followUpDialogOpen}
+            onClose={handleCloseFollowUpDialog}
+            onAddFollowUp={handleAddFollowUpFromDialog}
+            onUpdateFollowUp={handleUpdateFollowUpFromDialog}
+            onDeleteFollowUp={handleDeleteFollowUpFromDialog}
+            task={selectedTaskForFollowUp}
+          />
+        )}
       </main>
     </div>
   );
