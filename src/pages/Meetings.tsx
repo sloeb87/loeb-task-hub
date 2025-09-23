@@ -15,7 +15,7 @@ import { Users } from "lucide-react";
 const Meetings = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<FilterType>("open");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
@@ -228,6 +228,7 @@ const Meetings = () => {
             .filter(task => {
               // Apply active filter locally
               if (activeFilter === 'open') return task.status === 'Open';
+              if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
               if (activeFilter === 'inprogress') return task.status === 'In Progress';
               if (activeFilter === 'onhold') return task.status === 'On Hold';
               if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
@@ -253,6 +254,7 @@ const Meetings = () => {
         {displayLimit < tasks.filter(task => {
           // Apply same filter logic for the "Load More" button visibility
           if (activeFilter === 'open') return task.status === 'Open';
+          if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
           if (activeFilter === 'inprogress') return task.status === 'In Progress';
           if (activeFilter === 'onhold') return task.status === 'On Hold';
           if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
