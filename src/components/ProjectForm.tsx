@@ -104,8 +104,8 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     
     console.log('Form submitted with data:', formData);
     
@@ -137,17 +137,22 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     
     console.log('All validation passed, calling onSave...');
     
-    if (project) {
-      onSave({
-        ...project,
-        ...formData
-      });
-    } else {
-      onSave(formData);
+    try {
+      if (project) {
+        onSave({
+          ...project,
+          ...formData
+        });
+      } else {
+        onSave(formData);
+      }
+      
+      console.log('onSave called successfully');
+      onClose(); // Close the dialog after saving
+    } catch (error) {
+      console.error('Error in onSave:', error);
     }
-    
-    console.log('onSave called successfully');
-    onClose(); // Close the dialog after saving
+  };
   };
 
   const handleDelete = () => {
@@ -435,7 +440,7 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
                   <Button type="button" variant="outline" onClick={onClose}>
                     Cancel
                   </Button>
-                  <Button type="submit">
+                  <Button type="submit" onClick={handleSubmit}>
                     {project ? 'Update Project' : 'Create Project'}
                   </Button>
                 </div>
