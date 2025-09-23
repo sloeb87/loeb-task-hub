@@ -1693,6 +1693,38 @@ export function useSupabaseStorage() {
     }
   };
 
+  const loadAllMeetings = useCallback(async () => {
+    if (!isAuthenticated || !user) {
+      setTasks([]);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      // Load all meetings from the database (no filter restrictions)
+      const query = supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('task_type', 'Meeting')
+        .order('due_date', { ascending: true });
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      // Convert all meetings to Task objects
+      const convertedTasks = await Promise.all(
+        (data || []).map(task => convertSupabaseTaskToTask(task))
+      );
+
+      return convertedTasks;
+    } catch (err) {
+      console.error('Error loading all meetings:', err);
+      return [];
+    }
+  }, [isAuthenticated, user, convertSupabaseTaskToTask]);
   return {
     tasks,
     projects,
@@ -1704,6 +1736,7 @@ export function useSupabaseStorage() {
     currentSearchTerm, // Export current search term
     loadTasks,
     loadAllTasks, // Add the new function
+    loadAllMeetings, // Add meetings-specific loader
     searchTasks,
     loadAllTasksForProject,
     loadTaskById,

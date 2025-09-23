@@ -49,6 +49,7 @@ const Meetings = () => {
     meetingCounts,
     currentSearchTerm,
     loadTasks,
+    loadAllMeetings,
     searchTasks,
     updateTask,
     addFollowUp,
@@ -61,10 +62,29 @@ const Meetings = () => {
     refreshTasks
   } = useSupabaseStorage();
 
-  // Filter tasks to only include meetings
+  // Load all meetings separately for meetings page
+  const [allMeetings, setAllMeetings] = useState<Task[]>([]);
+
+  // Filter meetings to show based on current filter
   const tasks = React.useMemo(() => {
-    return allTasks.filter(task => task.taskType === 'Meeting');
-  }, [allTasks]);
+    if (!allMeetings.length) return [];
+    
+    switch (activeFilter) {
+      case 'active':
+        return allMeetings.filter(task => task.status === 'Open' || task.status === 'In Progress');
+      case 'open':
+        return allMeetings.filter(task => task.status === 'Open');
+      case 'inprogress':
+        return allMeetings.filter(task => task.status === 'In Progress');
+      case 'onhold':
+        return allMeetings.filter(task => task.status === 'On Hold');
+      case 'critical':
+        return allMeetings.filter(task => task.priority === 'Critical' || task.priority === 'High');
+      case 'all':
+      default:
+        return allMeetings;
+    }
+  }, [allMeetings, activeFilter]);
 
   // Stable counts from DB (meetings only)
   const meetingTaskCounts = meetingCounts;
@@ -78,6 +98,17 @@ const Meetings = () => {
       }
     }
   }, [location.state]);
+
+  // Load all meetings when component mounts
+  useEffect(() => {
+    const loadMeetings = async () => {
+      if (loadAllMeetings) {
+        const meetings = await loadAllMeetings();
+        setAllMeetings(meetings);
+      }
+    };
+    loadMeetings();
+  }, [loadAllMeetings]);
 
   // Load initial data with correct page size for default filter
   useEffect(() => {
