@@ -49,7 +49,6 @@ const Meetings = () => {
     meetingCounts,
     currentSearchTerm,
     loadTasks,
-    loadAllMeetings,
     searchTasks,
     updateTask,
     addFollowUp,
@@ -62,32 +61,10 @@ const Meetings = () => {
     refreshTasks
   } = useSupabaseStorage();
 
-  // Load all meetings separately for meetings page
-  const [allMeetings, setAllMeetings] = useState<Task[]>([]);
-
-  // Filter meetings to show based on current filter
+  // Filter tasks to only include meetings
   const tasks = React.useMemo(() => {
-    // Safety check: ensure allMeetings is always an array
-    const meetings = Array.isArray(allMeetings) ? allMeetings : [];
-    
-    if (!meetings.length) return [];
-    
-    switch (activeFilter) {
-      case 'active':
-        return meetings.filter(task => task.status === 'Open' || task.status === 'In Progress');
-      case 'open':
-        return meetings.filter(task => task.status === 'Open');
-      case 'inprogress':
-        return meetings.filter(task => task.status === 'In Progress');
-      case 'onhold':
-        return meetings.filter(task => task.status === 'On Hold');
-      case 'critical':
-        return meetings.filter(task => task.priority === 'Critical' || task.priority === 'High');
-      case 'all':
-      default:
-        return meetings;
-    }
-  }, [allMeetings, activeFilter]);
+    return allTasks.filter(task => task.taskType === 'Meeting');
+  }, [allTasks]);
 
   // Stable counts from DB (meetings only)
   const meetingTaskCounts = meetingCounts;
@@ -101,23 +78,6 @@ const Meetings = () => {
       }
     }
   }, [location.state]);
-
-  // Load all meetings when component mounts
-  useEffect(() => {
-    const loadMeetings = async () => {
-      if (loadAllMeetings) {
-        try {
-          const meetings = await loadAllMeetings();
-          // Ensure we always set an array, never undefined
-          setAllMeetings(Array.isArray(meetings) ? meetings : []);
-        } catch (error) {
-          console.error('Error loading meetings:', error);
-          setAllMeetings([]); // Fallback to empty array
-        }
-      }
-    };
-    loadMeetings();
-  }, [loadAllMeetings]);
 
   // Load initial data with correct page size for default filter
   useEffect(() => {
