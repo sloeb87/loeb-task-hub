@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, Edit, Trash2, Users, Calendar, CheckCircle, FolderOpen, FileText, Clock, AlertTriangle, Filter, Search, ListTodo } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Project, Task } from "@/types/task";
@@ -52,38 +52,26 @@ export const ProjectTable = ({
   const [searchTerm, setSearchTerm] = useState("");
   const getProjectStats = (project: Project) => {
     const projectTasks = tasks.filter(task => task.project === project.name);
-    const totalTasks = projectTasks.length;
-    const completedTasks = projectTasks.filter(task => task.status === 'Completed').length;
-    const inProgressTasks = projectTasks.filter(task => task.status === 'In Progress').length;
-    const overdueTasks = projectTasks.filter(task => new Date(task.dueDate) < new Date() && task.status !== 'Completed').length;
     
-    // Calculate meeting statistics
-    const allMeetings = projectTasks.filter(task => task.taskType === 'Meeting');
-    const recurrentMeetings = allMeetings.filter(task => task.isRecurring);
-    const nonRecurrentMeetings = allMeetings.filter(task => !task.isRecurring);
-    
-    // Count unique recurrent meetings (group by parent task or original task)
-    const uniqueRecurrentMeetings = new Set();
-    recurrentMeetings.forEach(meeting => {
-      // Use parent task ID if it exists, otherwise use the task ID itself
-      const uniqueId = meeting.parentTaskId || meeting.id;
-      uniqueRecurrentMeetings.add(uniqueId);
-    });
-    
-    // Filter out meetings from regular task count
+    // Separate tasks and meetings
     const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
-    const regularTotalTasks = regularTasks.length;
-    const regularCompletedTasks = regularTasks.filter(task => task.status === 'Completed').length;
+    const meetings = projectTasks.filter(task => task.taskType === 'Meeting');
+    
+    // Calculate active (non-completed) counts
+    const activeTasks = regularTasks.filter(task => task.status !== 'Completed').length;
+    const activeMeetings = meetings.filter(task => task.status !== 'Completed').length;
+    
+    // Keep existing completion rate calculation for progress bar
+    const totalTasks = regularTasks.length;
+    const completedTasks = regularTasks.filter(task => task.status === 'Completed').length;
+    const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
     
     return {
-      totalTasks: regularTotalTasks, // Only regular tasks, not meetings
-      completedTasks: regularCompletedTasks,
-      inProgressTasks,
-      overdueTasks,
-      completionRate: regularTotalTasks > 0 ? Math.round(regularCompletedTasks / regularTotalTasks * 100) : 0,
-      projectTasks,
-      uniqueRecurrentMeetings: uniqueRecurrentMeetings.size,
-      nonRecurrentMeetings: nonRecurrentMeetings.length
+      activeTasks,
+      activeMeetings,
+      completionRate,
+      totalTasks,
+      completedTasks
     };
   };
   const getStatusColor = (status: string) => {
@@ -480,17 +468,13 @@ export const ProjectTable = ({
                         </div>
                         <Progress value={stats.completionRate} className="h-2" />
                         <div className="space-y-1 text-sm text-muted-foreground">
-                          <div>
-                            {stats.completedTasks}/{stats.totalTasks} tasks
-                            {stats.overdueTasks > 0 && <span className="text-destructive ml-1">({stats.overdueTasks} overdue)</span>}
+                          <div className="flex items-center gap-1">
+                            <ListTodo className="w-3 h-3" />
+                            <span>{stats.activeTasks} active tasks</span>
                           </div>
                           <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            <span>{stats.uniqueRecurrentMeetings} recurring meetings</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{stats.nonRecurrentMeetings} one-time meetings</span>
+                            <Users className="w-3 h-3" />
+                            <span>{stats.activeMeetings} active meetings</span>
                           </div>
                         </div>
                       </div>
