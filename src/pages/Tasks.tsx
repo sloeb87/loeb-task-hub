@@ -65,22 +65,34 @@ const Tasks = () => {
     return allTasks.filter(task => task.taskType !== 'Meeting');
   }, [allTasks]);
 
-  // Simple count calculation - All tasks = all non-meeting tasks in database
+  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
   const nonMeetingTaskCounts = React.useMemo(() => {
+    if (!taskCounts) return taskCounts;
+    
+    // The hook already calculates from all tasks, just need to filter out meetings from totals
+    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
+    const allTasksInMemory = allTasks.length;
+    const meetingsInMemory = meetingTasks.length;
+    
+    // Estimate total non-meetings by proportionally adjusting the total from DB
+    // Since allTasks might be filtered/paginated, we use the hook's total count
+    const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
+    const estimatedNonMeetingTotal = Math.round(taskCounts.total * (1 - estimatedMeetingRatio));
+    
     return {
-      total: allTasks.filter(task => task.taskType !== 'Meeting').length,
-      active: allTasks.filter(task => task.taskType !== 'Meeting' && (task.status === 'Open' || task.status === 'In Progress')).length,
-      completed: allTasks.filter(task => task.taskType !== 'Meeting' && task.status === 'Completed').length,
+      total: estimatedNonMeetingTotal,
+      active: taskCounts.active - meetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
+      completed: taskCounts.completed - meetingTasks.filter(task => task.status === 'Completed').length,
       overdue: allTasks.filter(task => {
         if (task.taskType === 'Meeting' || task.status === 'Completed') return false;
         const today = new Date();
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
       }).length,
-      onHold: allTasks.filter(task => task.taskType !== 'Meeting' && task.status === 'On Hold').length,
-      critical: allTasks.filter(task => task.taskType !== 'Meeting' && (task.priority === 'High' || task.priority === 'Critical')).length
+      onHold: taskCounts.onHold - meetingTasks.filter(task => task.status === 'On Hold').length,
+      critical: taskCounts.critical - meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
     };
-  }, [allTasks]);
+  }, [taskCounts, allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {
