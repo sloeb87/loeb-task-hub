@@ -166,6 +166,7 @@ export const AppHeaderWrapper = React.memo(() => {
   // Memoized function to map routes to activeView
   const getActiveViewFromPath = useCallback((pathname: string) => {
     if (pathname === '/tasks') return 'tasks';
+    if (pathname === '/meetings') return 'meetings';
     if (pathname === '/dashboard') return 'dashboard';
     if (pathname === '/projects') return 'projects';
     if (pathname.startsWith('/projects/')) return 'project-details';
@@ -282,10 +283,13 @@ export const AppHeaderWrapper = React.memo(() => {
     }
   }, [location.pathname, taskNavigationState, getProjectDetails, getTaskDetails, lastViewed.project, lastViewed.task, projects]);
 
-  const handleViewChange = (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => {
+  const handleViewChange = (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit") => {
     switch (view) {
       case 'tasks':
         navigate('/tasks');
+        break;
+      case 'meetings':
+        navigate('/meetings');
         break;
       case 'dashboard':
         navigate('/dashboard');
@@ -313,6 +317,14 @@ export const AppHeaderWrapper = React.memo(() => {
           navigate(`/tasks/${lastViewed.task.id}`);
         } else {
           navigate('/tasks/new');
+        }
+        break;
+      case 'meeting-edit':
+        // Navigate to the last viewed meeting if available
+        if (lastViewed.task?.id) {
+          navigate(`/tasks/${lastViewed.task.id}`);
+        } else {
+          navigate('/meetings');
         }
         break;
       default:

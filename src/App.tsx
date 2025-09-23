@@ -23,6 +23,7 @@ const queryClient = new QueryClient({
 
 // Lazy load heavy components
 const Tasks = lazy(() => import("./pages/Tasks"));
+const Meetings = lazy(() => import("./pages/Meetings"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ProjectsWrapper = lazy(() => import("./pages/ProjectsWrapper"));
 const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
@@ -83,6 +84,11 @@ const App = React.memo(() => {
                   <Route path="tasks" element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <Tasks />
+                    </Suspense>
+                  } />
+                  <Route path="meetings" element={
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <Meetings />
                     </Suspense>
                   } />
                   <Route path="dashboard" element={

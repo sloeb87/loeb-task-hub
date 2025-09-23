@@ -2,15 +2,15 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task } from "@/types/task";
 interface AppHeaderProps {
-  activeView: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit";
-  onViewChange: (view: "tasks" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit") => void;
+  activeView: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit";
+  onViewChange: (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
@@ -71,6 +71,10 @@ export const AppHeader = React.memo(({
     label: 'Tasks',
     icon: ListTodo
   }, {
+    key: 'meetings',
+    label: 'Meetings',
+    icon: Users
+  }, {
     key: 'followups',
     label: 'Follow-Ups',
     icon: MessageSquare
@@ -98,10 +102,19 @@ export const AppHeader = React.memo(({
     label: 'Tasks',
     icon: ListTodo
   }, {
+    key: 'meetings',
+    label: 'Meetings',
+    icon: Users
+  }, {
     key: 'task-edit',
-    label: editingTaskTitle && editingTaskId ? `Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details',
+    label: editingTaskTitle && editingTaskId && tasks?.find(t => t.id === editingTaskId)?.taskType !== 'Meeting' ? `Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details',
     icon: ListTodo,
-    disabled: !editingTaskTitle
+    disabled: !editingTaskTitle || tasks?.find(t => t.id === editingTaskId)?.taskType === 'Meeting'
+  }, {
+    key: 'meeting-edit',
+    label: editingTaskTitle && editingTaskId && tasks?.find(t => t.id === editingTaskId)?.taskType === 'Meeting' ? `Meeting: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Meeting Details',
+    icon: Users,
+    disabled: !editingTaskTitle || tasks?.find(t => t.id === editingTaskId)?.taskType !== 'Meeting'
   }, {
     key: 'followups',
     label: 'Follow-Ups',
@@ -114,7 +127,7 @@ export const AppHeader = React.memo(({
     key: 'dashboard',
     label: 'KPIs',
     icon: BarChart3
-  }], [selectedProjectName, editingTaskTitle, editingTaskId]);
+  }], [selectedProjectName, editingTaskTitle, editingTaskId, tasks]);
   // Memoized components to prevent recreation
   const DesktopNavigation = useMemo(() => {
     return () => (
@@ -254,18 +267,33 @@ export const AppHeader = React.memo(({
                 </span>
               </Button>
               
-              <Button 
-                variant={activeView === 'task-edit' ? "default" : "outline"} 
-                onClick={() => onViewChange('task-edit')} 
-                size="sm"
-                disabled={!editingTaskTitle}
-                className={`text-xs md:text-sm px-1 md:px-2 lg:px-3 ${!editingTaskTitle ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
-                <ListTodo className="w-4 h-4 md:mr-1 lg:mr-2" />
-                <span className="hidden lg:inline">
-                  {editingTaskTitle ? `Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}` : 'Task Details'}
-                </span>
-              </Button>
+              {editingTaskTitle && editingTaskId && tasks?.find(t => t.id === editingTaskId)?.taskType !== 'Meeting' && (
+                <Button 
+                  variant={activeView === 'task-edit' ? "default" : "outline"} 
+                  onClick={() => onViewChange('task-edit')} 
+                  size="sm"
+                  className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
+                >
+                  <ListTodo className="w-4 h-4 md:mr-1 lg:mr-2" />
+                  <span className="hidden lg:inline">
+                    {`Task: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`}
+                  </span>
+                </Button>
+              )}
+              
+              {editingTaskTitle && editingTaskId && tasks?.find(t => t.id === editingTaskId)?.taskType === 'Meeting' && (
+                <Button 
+                  variant={activeView === 'meeting-edit' ? "default" : "outline"} 
+                  onClick={() => onViewChange('meeting-edit')} 
+                  size="sm"
+                  className="text-xs md:text-sm px-1 md:px-2 lg:px-3"
+                >
+                  <Users className="w-4 h-4 md:mr-1 lg:mr-2" />
+                  <span className="hidden lg:inline">
+                    {`Meeting: ${editingTaskTitle.length > 20 ? editingTaskTitle.substring(0, 20) + '...' : editingTaskTitle}`}
+                  </span>
+                </Button>
+              )}
             </div>
           </div>
           

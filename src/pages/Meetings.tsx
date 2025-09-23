@@ -9,9 +9,9 @@ import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { toast } from "@/hooks/use-toast";
-import { ListTodo } from "lucide-react";
+import { Users } from "lucide-react";
 
-const Tasks = () => {
+const Meetings = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
@@ -28,11 +28,11 @@ const Tasks = () => {
   const { startTimer } = useTimeTracking();
   const { setNavigationCallback } = useTaskNavigation();
 
-  // Set up navigation callback for task editing
+  // Set up navigation callback for meeting editing
   useEffect(() => {
     setNavigationCallback((projectName?: string, task?: Task) => {
       if (task) {
-        console.log('Tasks - Navigating to task edit:', task.id);
+        console.log('Meetings - Navigating to meeting edit:', task.id);
         navigate(`/tasks/${task.id}`);
       }
     });
@@ -58,29 +58,29 @@ const Tasks = () => {
     refreshTasks
   } = useSupabaseStorage();
 
-  // Filter tasks to exclude meetings
+  // Filter tasks to only include meetings
   const tasks = React.useMemo(() => {
-    return allTasks.filter(task => task.taskType !== 'Meeting');
+    return allTasks.filter(task => task.taskType === 'Meeting');
   }, [allTasks]);
 
-  // Filter task counts to exclude meetings
-  const nonMeetingTaskCounts = React.useMemo(() => {
+  // Filter task counts to only include meetings
+  const meetingTaskCounts = React.useMemo(() => {
     if (!taskCounts) return taskCounts;
     
-    // We need to recalculate counts based on filtered non-meeting tasks
-    const nonMeetingTasks = allTasks.filter(task => task.taskType !== 'Meeting');
+    // We need to recalculate counts based on filtered meeting tasks
+    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
     
     return {
       ...taskCounts,
-      active: nonMeetingTasks.filter(task => task.status !== 'Completed').length,
-      completed: nonMeetingTasks.filter(task => task.status === 'Completed').length,
-      overdue: nonMeetingTasks.filter(task => {
+      active: meetingTasks.filter(task => task.status !== 'Completed').length,
+      completed: meetingTasks.filter(task => task.status === 'Completed').length,
+      overdue: meetingTasks.filter(task => {
         if (task.status === 'Completed') return false;
         const today = new Date();
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
       }).length,
-      total: nonMeetingTasks.length
+      total: meetingTasks.length
     };
   }, [taskCounts, allTasks]);
 
@@ -89,7 +89,7 @@ const Tasks = () => {
     if (location.state) {
       const state = location.state as any;
       if (state.dateFilter) {
-        console.log('Tasks page - received date filter:', state.dateFilter);
+        console.log('Meetings page - received date filter:', state.dateFilter);
       }
     }
   }, [location.state]);
@@ -97,23 +97,20 @@ const Tasks = () => {
   // Load initial data with correct page size for default filter
   useEffect(() => {
     const pageSize = getPageSize();
-    console.log('Tasks: Loading with activeFilter:', activeFilter);
+    console.log('Meetings: Loading with activeFilter:', activeFilter);
     loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
   }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
 
   // SEO
   useEffect(() => {
-    document.title = "Task Management | Task Tracker";
+    document.title = "Meeting Management | Task Tracker";
     const meta = document.querySelector('meta[name="description"]') || document.createElement('meta');
     meta.setAttribute('name', 'description');
-    meta.setAttribute('content', 'Manage your tasks effectively with our comprehensive task management system.');
+    meta.setAttribute('content', 'Manage your meetings effectively with our comprehensive meeting management system.');
     if (!document.querySelector('meta[name="description"]')) {
       document.head.appendChild(meta);
     }
   }, []);
-
-  // Since filtering is now done at database level, no need for frontend filtering
-  // const { filteredTasks } = useTaskFilters(tasks, activeFilter, location.state?.dateFilter);
 
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     try {
@@ -121,13 +118,13 @@ const Tasks = () => {
       await refreshTasks();
       toast({
         title: "Success",
-        description: "Task updated successfully",
+        description: "Meeting updated successfully",
       });
     } catch (error) {
-      console.error('Failed to update task:', error);
+      console.error('Failed to update meeting:', error);
       toast({
         title: "Update Failed",
-        description: "Failed to update the task. Please try again.",
+        description: "Failed to update the meeting. Please try again.",
         variant: "destructive",
       });
     }
@@ -197,7 +194,7 @@ const Tasks = () => {
     const pageSize = getPageSize();
     if (currentSearchTerm.trim()) {
       // If we're in search mode, use searchTasks with the current search term
-            searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
+      searchTasks(currentSearchTerm, page, pageSize, sortField, sortDirection);
     } else {
       // If not searching, use loadTasks with filter
       loadTasks(page, pageSize, sortField, sortDirection, activeFilter);
@@ -208,7 +205,7 @@ const Tasks = () => {
     return (
       <div className="p-6">
         <div className="text-center text-red-600">
-          Error loading tasks: {error}
+          Error loading meetings: {error}
         </div>
       </div>
     );
@@ -219,27 +216,27 @@ const Tasks = () => {
       <main className="w-full p-6 space-y-6">
         <header>
           <div className="flex items-center gap-3 mb-2">
-            <ListTodo className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold tracking-tight">Task Management</h1>
+            <Users className="w-8 h-8 text-blue-600" />
+            <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
           </div>
           <p className="text-muted-foreground">
-            Organize and track your tasks efficiently
+            Organize and track your meetings efficiently
           </p>
         </header>
 
         <TaskSummaryCardsOptimized
           tasks={tasks}
-          taskCounts={nonMeetingTaskCounts}
+          taskCounts={meetingTaskCounts}
           activeFilter={activeFilter}
           onFilterChange={(filter) => {
-            console.log('Tasks: Filter changed to:', filter);
+            console.log('Meetings: Filter changed to:', filter);
             setActiveFilter(filter);
             // Reload with new page size and filter when filter changes
             const pageSize = getPageSize();
             if (currentSearchTerm.trim()) {
               searchTasks(currentSearchTerm, 1, pageSize, sortField, sortDirection);
             } else {
-              console.log('Tasks: Loading tasks with filter:', filter);
+              console.log('Meetings: Loading meetings with filter:', filter);
               loadTasks(1, pageSize, sortField, sortDirection, filter);
             }
           }}
@@ -252,8 +249,8 @@ const Tasks = () => {
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
-          onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected task
-          onCompleteTask={handleUpdateTask} // Handle task completion
+          onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected meeting
+          onCompleteTask={handleUpdateTask} // Handle meeting completion
           pagination={pagination}
           onPageChange={handlePageChange}
           onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
@@ -280,4 +277,4 @@ const Tasks = () => {
   );
 };
 
-export default Tasks;
+export default Meetings;
