@@ -1625,6 +1625,8 @@ export function useSupabaseStorage() {
   const updateProject = async (updatedProject: Project): Promise<void> => {
     if (!user) throw new Error('User not authenticated');
 
+    console.log('updateProject called with:', updatedProject);
+
     // Serialize NamedLink arrays to JSON for database storage
     const serializeLinks = (links: any) => {
       if (!links) return null;
@@ -1642,6 +1644,8 @@ export function useSupabaseStorage() {
       }
       return serialized;
     };
+
+    console.log('About to update project in database...');
 
     const { error } = await supabase
       .from('projects')
@@ -1661,10 +1665,12 @@ export function useSupabaseStorage() {
       .eq('user_id', user.id);
 
     if (error) {
+      console.error('Database update error:', error);
       toast({ title: 'Failed to update project', variant: 'destructive' });
       throw error;
     }
 
+    console.log('Project updated successfully in database');
     setProjects(prev => prev.map(project => project.id === updatedProject.id ? updatedProject : project));
     toast({ title: 'Project updated', description: updatedProject.name });
   };

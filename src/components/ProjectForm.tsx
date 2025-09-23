@@ -107,6 +107,36 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('Form submitted with data:', formData);
+    
+    // Check for required fields
+    if (!formData.name.trim()) {
+      console.error('Project name is required');
+      return;
+    }
+    
+    if (!formData.description.trim()) {
+      console.error('Project description is required');
+      return;
+    }
+    
+    if (!formData.owner.trim()) {
+      console.error('Project owner is required');
+      return;
+    }
+    
+    if (!formData.startDate) {
+      console.error('Start date is required');
+      return;
+    }
+    
+    if (!formData.endDate) {
+      console.error('End date is required');
+      return;
+    }
+    
+    console.log('All validation passed, calling onSave...');
+    
     if (project) {
       onSave({
         ...project,
@@ -115,6 +145,9 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     } else {
       onSave(formData);
     }
+    
+    console.log('onSave called successfully');
+    onClose(); // Close the dialog after saving
   };
 
   const handleDelete = () => {
