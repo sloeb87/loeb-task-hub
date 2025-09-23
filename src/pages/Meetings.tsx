@@ -81,7 +81,7 @@ const Meetings = () => {
     
     return {
       total: estimatedMeetingTotal,
-      active: meetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
+      active: estimatedMeetingTotal - meetingTasks.filter(task => task.status === 'Completed').length,
       completed: meetingTasks.filter(task => task.status === 'Completed').length,
       overdue: meetingTasks.filter(task => {
         if (task.status === 'Completed') return false;

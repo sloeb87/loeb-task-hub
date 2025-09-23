@@ -81,7 +81,7 @@ const Tasks = () => {
     
     return {
       total: estimatedNonMeetingTotal,
-      active: taskCounts.active - meetingTasks.filter(task => task.status === 'Open' || task.status === 'In Progress').length,
+      active: taskCounts.total - taskCounts.completed - meetingTasks.filter(task => task.status === 'Completed').length - meetingsInMemory,
       completed: taskCounts.completed - meetingTasks.filter(task => task.status === 'Completed').length,
       overdue: allTasks.filter(task => {
         if (task.taskType === 'Meeting' || task.status === 'Completed') return false;
