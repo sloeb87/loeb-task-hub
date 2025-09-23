@@ -57,20 +57,24 @@ export const ProjectTable = ({
     const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
     const meetings = projectTasks.filter(task => task.taskType === 'Meeting');
     
+    // Calculate totals
+    const totalTasks = regularTasks.length;
+    const totalMeetings = meetings.length;
+    
     // Calculate active (non-completed) counts
     const activeTasks = regularTasks.filter(task => task.status !== 'Completed').length;
     const activeMeetings = meetings.filter(task => task.status !== 'Completed').length;
     
-    // Keep existing completion rate calculation for progress bar
-    const totalTasks = regularTasks.length;
+    // Calculate completion rate for progress bar
     const completedTasks = regularTasks.filter(task => task.status === 'Completed').length;
     const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
     
     return {
       activeTasks,
-      activeMeetings,
-      completionRate,
       totalTasks,
+      activeMeetings,
+      totalMeetings,
+      completionRate,
       completedTasks
     };
   };
@@ -470,11 +474,11 @@ export const ProjectTable = ({
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <ListTodo className="w-3 h-3" />
-                            <span>{stats.activeTasks} active tasks</span>
+                            <span>{stats.activeTasks}/{stats.totalTasks} tasks</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
-                            <span>{stats.activeMeetings} active meetings</span>
+                            <span>{stats.activeMeetings}/{stats.totalMeetings} meetings</span>
                           </div>
                         </div>
                       </div>
