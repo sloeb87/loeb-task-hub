@@ -382,33 +382,47 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
         .delete()
         .eq('user_id', user.id);
 
-      // Prepare new parameters data
+      // Sort all parameters alphabetically before saving
+      const sortedScopes = [...scopes].sort((a, b) => a.name.localeCompare(b.name));
+      const sortedEnvironments = [...environments].sort((a, b) => a.name.localeCompare(b.name));
+      const sortedTaskTypes = [...taskTypes].sort((a, b) => a.name.localeCompare(b.name));
+      const sortedStatuses = [...statuses].sort((a, b) => a.name.localeCompare(b.name));
+      const sortedPriorities = [...priorities].sort((a, b) => a.name.localeCompare(b.name));
+
+      // Update local state with sorted data
+      setScopes(sortedScopes);
+      setEnvironments(sortedEnvironments);
+      setTaskTypes(sortedTaskTypes);
+      setStatuses(sortedStatuses);
+      setPriorities(sortedPriorities);
+
+      // Prepare new parameters data (now sorted)
       const allParameters = [
-        ...scopes.map(scope => ({
+        ...sortedScopes.map(scope => ({
           user_id: user.id,
           name: scope.name,
           color: scope.color,
           category: 'scopes'
         })),
-        ...environments.map(env => ({
+        ...sortedEnvironments.map(env => ({
           user_id: user.id,
           name: env.name,
           color: env.color,
           category: 'environments'
         })),
-        ...taskTypes.map(type => ({
+        ...sortedTaskTypes.map(type => ({
           user_id: user.id,
           name: type.name,
           color: type.color,
           category: 'taskTypes'
         })),
-        ...statuses.map(status => ({
+        ...sortedStatuses.map(status => ({
           user_id: user.id,
           name: status.name,
           color: status.color,
           category: 'statuses'
         })),
-        ...priorities.map(priority => ({
+        ...sortedPriorities.map(priority => ({
           user_id: user.id,
           name: priority.name,
           color: priority.color,
@@ -433,7 +447,7 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
 
       toast({
         title: "Parameters Saved",
-        description: "All parameters have been saved successfully.",
+        description: "All parameters have been saved and sorted alphabetically.",
       });
       
       onClose();
