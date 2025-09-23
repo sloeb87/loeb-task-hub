@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
+import { Parameters } from './Parameters';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
@@ -356,19 +357,25 @@ export const AppHeaderWrapper = React.memo(() => {
   const editingTaskId = displayTask?.id || null;
 
   return (
-    <AppHeader
-      activeView={activeView}
-      onViewChange={handleViewChange}
-      isDarkMode={isDarkMode}
-      onToggleDarkMode={toggleDarkMode}
-      onOpenParameters={handleOpenParameters}
-      onRefresh={handleRefresh}
-      onBack={handleBack}
-      selectedProjectName={selectedProjectName}
-      selectedProjectId={null} // Remove ID display for cleaner look
-      editingTaskTitle={editingTaskTitle}
-      editingTaskId={editingTaskId}
-      tasks={allTasks}
-    />
+    <>
+      <AppHeader
+        activeView={activeView}
+        onViewChange={handleViewChange}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
+        onOpenParameters={handleOpenParameters}
+        onRefresh={handleRefresh}
+        onBack={handleBack}
+        selectedProjectName={selectedProjectName}
+        selectedProjectId={null} // Remove ID display for cleaner look
+        editingTaskTitle={editingTaskTitle}
+        editingTaskId={editingTaskId}
+        tasks={allTasks}
+      />
+      <Parameters 
+        isOpen={isParametersOpen} 
+        onClose={() => setIsParametersOpen(false)} 
+      />
+    </>
   );
 });
