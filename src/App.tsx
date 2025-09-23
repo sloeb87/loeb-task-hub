@@ -8,7 +8,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import { Loader2 } from "lucide-react";
-import { useAuth } from "./hooks/useAuth";
+import { useAuth, AuthProvider } from "./contexts/AuthContext";
 import { TaskFormProvider } from "./contexts/TaskFormContext";
 
 // Create QueryClient outside component to prevent recreation
@@ -63,8 +63,9 @@ const App = React.memo(() => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <TooltipProvider>
-          <TaskFormProvider>
-            <BrowserRouter>
+          <AuthProvider>
+            <TaskFormProvider>
+              <BrowserRouter>
               <Routes>
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/" element={
@@ -124,8 +125,9 @@ const App = React.memo(() => {
                   </Suspense>
                 } />
               </Routes>
-            </BrowserRouter>
-          </TaskFormProvider>
+              </BrowserRouter>
+            </TaskFormProvider>
+          </AuthProvider>
           <Toaster />
           <Sonner />
         </TooltipProvider>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Task, Project, FollowUp, NamedLink } from '@/types/task';
-import { useAuth } from './useAuth';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 interface SupabaseTask {
   id: string;

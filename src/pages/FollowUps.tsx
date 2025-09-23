@@ -19,7 +19,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, e
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart, BarChart, Bar } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
 interface FollowUpsPageProps {
   tasks: Task[];
