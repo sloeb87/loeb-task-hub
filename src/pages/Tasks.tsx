@@ -69,20 +69,26 @@ const Tasks = () => {
   const nonMeetingTaskCounts = React.useMemo(() => {
     if (!taskCounts) return taskCounts;
     
-    // The hook already calculates from all tasks, just need to filter out meetings from totals
+    // Get meeting counts from current filtered data (this is just for proportional estimation)
     const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
     const allTasksInMemory = allTasks.length;
     const meetingsInMemory = meetingTasks.length;
+    const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
     
-    // Estimate total non-meetings by proportionally adjusting the total from DB
-    // Since allTasks might be filtered/paginated, we use the hook's total count
+    // Estimate meeting proportions from total database counts
     const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
-    const estimatedNonMeetingTotal = Math.round(taskCounts.total * (1 - estimatedMeetingRatio));
+    const estimatedTotalMeetings = Math.round(taskCounts.total * estimatedMeetingRatio);
+    const estimatedCompletedMeetings = Math.round(taskCounts.completed * estimatedMeetingRatio);
+    
+    // Calculate non-meeting counts by subtracting estimated meetings from total DB counts
+    const nonMeetingTotal = taskCounts.total - estimatedTotalMeetings;
+    const nonMeetingCompleted = taskCounts.completed - estimatedCompletedMeetings;
+    const nonMeetingActive = nonMeetingTotal - nonMeetingCompleted; // All non-meetings minus completed = active
     
     return {
-      total: estimatedNonMeetingTotal,
-      active: taskCounts.total - taskCounts.completed - meetingTasks.filter(task => task.status === 'Completed').length - meetingsInMemory,
-      completed: taskCounts.completed - meetingTasks.filter(task => task.status === 'Completed').length,
+      total: nonMeetingTotal,
+      active: nonMeetingActive,
+      completed: nonMeetingCompleted,
       overdue: allTasks.filter(task => {
         if (task.taskType === 'Meeting' || task.status === 'Completed') return false;
         const today = new Date();

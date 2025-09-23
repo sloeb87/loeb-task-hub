@@ -65,24 +65,30 @@ const Meetings = () => {
     return allTasks.filter(task => task.taskType === 'Meeting');
   }, [allTasks]);
 
-  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
+  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB) 
   const meetingTaskCounts = React.useMemo(() => {
     if (!taskCounts) return taskCounts;
     
-    // The hook already calculates from all tasks, just need to filter meetings from totals
+    // Get meeting counts from current filtered data (this is just for proportional estimation)
     const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
     const allTasksInMemory = allTasks.length;
     const meetingsInMemory = meetingTasks.length;
+    const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
     
-    // Estimate total meetings by proportionally adjusting the total from DB
-    // Since allTasks might be filtered/paginated, we use the hook's total count
+    // Estimate meeting proportions from total database counts
     const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
-    const estimatedMeetingTotal = Math.round(taskCounts.total * estimatedMeetingRatio);
+    const estimatedTotalMeetings = Math.round(taskCounts.total * estimatedMeetingRatio);
+    const estimatedCompletedMeetings = Math.round(taskCounts.completed * estimatedMeetingRatio);
+    
+    // Calculate meeting counts
+    const meetingTotal = estimatedTotalMeetings;
+    const meetingCompleted = estimatedCompletedMeetings;
+    const meetingActive = meetingTotal - meetingCompleted; // All meetings minus completed = active
     
     return {
-      total: estimatedMeetingTotal,
-      active: estimatedMeetingTotal - meetingTasks.filter(task => task.status === 'Completed').length,
-      completed: meetingTasks.filter(task => task.status === 'Completed').length,
+      total: meetingTotal,
+      active: meetingActive,
+      completed: meetingCompleted,
       overdue: meetingTasks.filter(task => {
         if (task.status === 'Completed') return false;
         const today = new Date();
