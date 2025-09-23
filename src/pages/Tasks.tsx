@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Task, Project } from "@/types/task";
 import { TaskTableMemo } from "@/components/TaskTableMemo";
 import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
+import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -16,6 +17,8 @@ const Tasks = () => {
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
+  const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
   // Dynamic page size - 25 for all filters
   const getPageSize = useCallback(() => {
@@ -128,6 +131,37 @@ const Tasks = () => {
     }
   }, [deleteFollowUp]);
 
+  const handleOpenFollowUpDialog = useCallback((task: Task) => {
+    setSelectedTaskForFollowUp(task);
+    setFollowUpDialogOpen(true);
+  }, []);
+
+  const handleCloseFollowUpDialog = useCallback(() => {
+    setFollowUpDialogOpen(false);
+    setSelectedTaskForFollowUp(null);
+  }, []);
+
+  const handleAddFollowUpFromDialog = useCallback(async (text: string) => {
+    if (selectedTaskForFollowUp) {
+      try {
+        await addFollowUp(selectedTaskForFollowUp.id, text);
+        await refreshTasks();
+        handleCloseFollowUpDialog();
+        toast({
+          title: "Success",
+          description: "Follow-up added successfully",
+        });
+      } catch (error) {
+        console.error('Failed to add follow-up:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add follow-up. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [selectedTaskForFollowUp, addFollowUp, refreshTasks, handleCloseFollowUpDialog]);
+
   const handleSortChange = (field: string, direction: 'asc' | 'desc') => {
     setSortField(field);
     setSortDirection(direction);
@@ -192,7 +226,7 @@ const Tasks = () => {
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
-          onFollowUp={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
+          onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected task
           onCompleteTask={handleUpdateTask} // Handle task completion
           pagination={pagination}
           onPageChange={handlePageChange}
@@ -203,6 +237,18 @@ const Tasks = () => {
           currentSearchTerm={currentSearchTerm}
           isLoading={isLoading}
         />
+
+        {/* Follow-up Dialog */}
+        {selectedTaskForFollowUp && (
+          <FollowUpDialog
+            isOpen={followUpDialogOpen}
+            onClose={handleCloseFollowUpDialog}
+            onAddFollowUp={handleAddFollowUpFromDialog}
+            onUpdateFollowUp={handleUpdateFollowUpWrapper}
+            onDeleteFollowUp={handleDeleteFollowUpWrapper}
+            task={selectedTaskForFollowUp}
+          />
+        )}
       </main>
     </div>
   );
