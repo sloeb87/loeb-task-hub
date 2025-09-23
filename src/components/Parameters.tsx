@@ -302,8 +302,6 @@ export const Parameters = ({ isOpen, onClose }: ParametersProps) => {
     }
   }, [isOpen, user]);
 
-  if (!isOpen) return null;
-
   const handleAddItem = (type: string, value: string, setter: React.Dispatch<React.SetStateAction<any[]>>, resetInput: () => void, color?: string) => {
     if (value.trim()) {
       const newItem = color ? { id: generateId(), name: value.trim(), color } : value.trim();
