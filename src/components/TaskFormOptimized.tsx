@@ -972,7 +972,7 @@ export const TaskFormOptimized = React.memo(({
                     onClick={() => onFollowUpTask(task)}
                   >
                     <MessageSquarePlus className="w-4 h-4 mr-2" />
-                    Add Follow-up
+                    Edit Follow-up
                   </Button>
                 )}
               </div>
