@@ -9,6 +9,7 @@ import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { toast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 
 const Meetings = () => {
@@ -20,10 +21,11 @@ const Meetings = () => {
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
-  // Dynamic page size - 25 for all filters
+  // Progressive loading - start with 5, load 5 more each time
+  const [displayLimit, setDisplayLimit] = useState(5);
   const getPageSize = useCallback(() => {
-    return 25;
-  }, []);
+    return Math.max(displayLimit, 25); // Always load at least what we're displaying
+  }, [displayLimit]);
 
   const { startTimer } = useTimeTracking();
   const { setNavigationCallback } = useTaskNavigation();
@@ -244,15 +246,13 @@ const Meetings = () => {
         />
 
         <TaskTableMemo
-          tasks={tasks}
+          tasks={tasks.slice(0, displayLimit)}
           sortField={sortField}
           sortDirection={sortDirection}
           onSortChange={handleSortChange}
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected meeting
           onCompleteTask={handleUpdateTask} // Handle meeting completion
-          pagination={pagination}
-          onPageChange={handlePageChange}
           onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
             const pageSize = getPageSize();
             searchTasks(searchTerm, page, pageSize, sortField, sortDirection);
@@ -260,6 +260,20 @@ const Meetings = () => {
           currentSearchTerm={currentSearchTerm}
           isLoading={isLoading}
         />
+
+        {/* Load More Button */}
+        {displayLimit < tasks.length && (
+          <div className="flex justify-center p-6">
+            <Button 
+              onClick={() => setDisplayLimit(prev => prev + 5)}
+              variant="outline"
+              size="lg"
+              className="min-w-40"
+            >
+              Load More Meetings
+            </Button>
+          </div>
+        )}
 
         {/* Follow-up Dialog */}
         {selectedTaskForFollowUp && (
