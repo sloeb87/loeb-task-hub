@@ -107,7 +107,9 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     
-    console.log('Form submitted with data:', formData);
+    console.log('ProjectForm - Form submitted with data:', formData);
+    console.log('ProjectForm - Original project:', project);
+    console.log('ProjectForm - Status being submitted:', formData.status);
     
     // Check for required fields
     if (!formData.name.trim()) {
@@ -135,22 +137,23 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
       return;
     }
     
-    console.log('All validation passed, calling onSave...');
+    console.log('ProjectForm - All validation passed, calling onSave...');
     
     try {
-      if (project) {
-        onSave({
-          ...project,
-          ...formData
-        });
-      } else {
-        onSave(formData);
-      }
+      const projectToSave = project ? {
+        ...project,
+        ...formData
+      } : formData;
       
-      console.log('onSave called successfully');
+      console.log('ProjectForm - Project being saved:', projectToSave);
+      console.log('ProjectForm - Status in saved project:', projectToSave.status);
+      
+      onSave(projectToSave);
+      
+      console.log('ProjectForm - onSave called successfully');
       onClose(); // Close the dialog after saving
     } catch (error) {
-      console.error('Error in onSave:', error);
+      console.error('ProjectForm - Error in onSave:', error);
     }
   };
 

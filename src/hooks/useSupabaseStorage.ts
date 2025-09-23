@@ -1604,6 +1604,8 @@ export function useSupabaseStorage() {
     if (!user) throw new Error('User not authenticated');
 
     console.log('updateProject called with:', updatedProject);
+    console.log('updateProject - Project ID:', updatedProject.id);
+    console.log('updateProject - Status being updated to:', updatedProject.status);
 
     // Serialize NamedLink arrays to JSON for database storage
     const serializeLinks = (links: any) => {
@@ -1623,32 +1625,37 @@ export function useSupabaseStorage() {
       return serialized;
     };
 
-    console.log('About to update project in database...');
+    console.log('updateProject - About to update project in database...');
+    
+    const updateData = {
+      name: updatedProject.name,
+      description: updatedProject.description,
+      owner: updatedProject.owner,
+      scope: updatedProject.scope || [], // Handle array scope
+      start_date: updatedProject.startDate,
+      end_date: updatedProject.endDate,
+      status: updatedProject.status,
+      cost_center: updatedProject.cost_center,
+      team: updatedProject.team || [],
+      links: serializeLinks(updatedProject.links)
+    };
+    
+    console.log('updateProject - Update data being sent:', updateData);
 
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from('projects')
-      .update({
-        name: updatedProject.name,
-        description: updatedProject.description,
-        owner: updatedProject.owner,
-        scope: updatedProject.scope || [], // Handle array scope
-        start_date: updatedProject.startDate,
-        end_date: updatedProject.endDate,
-        status: updatedProject.status,
-        cost_center: updatedProject.cost_center,
-        team: updatedProject.team || [],
-        links: serializeLinks(updatedProject.links)
-      })
+      .update(updateData)
       .eq('id', updatedProject.id)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .select();
 
     if (error) {
-      console.error('Database update error:', error);
+      console.error('updateProject - Database update error:', error);
       toast({ title: 'Failed to update project', variant: 'destructive' });
       throw error;
     }
 
-    console.log('Project updated successfully in database');
+    console.log('updateProject - Project updated successfully in database. Returned data:', data);
     setProjects(prev => prev.map(project => project.id === updatedProject.id ? updatedProject : project));
     toast({ title: 'Project updated', description: updatedProject.name });
   };
