@@ -117,8 +117,8 @@ export function useSupabaseStorage() {
   // Add project cache for performance
   const [projectCache, setProjectCache] = useState<Map<string, string>>(new Map());
 
-  const convertSupabaseTaskToTask = useCallback(async (supabaseTask: SupabaseTask, followUpsMap?: Map<string, any[]>, projectNamesMap?: Map<string, string>): Promise<Task> => {
-    // Use cached follow-ups if provided, otherwise fetch
+  const convertSupabaseTaskToTask = useCallback((supabaseTask: SupabaseTask, followUpsMap?: Map<string, any[]>, projectNamesMap?: Map<string, string>): Task => {
+    // PERFORMANCE: Use cached follow-ups (always required now to prevent N+1 queries)
     let followUps: any[] = [];
     if (followUpsMap?.has(supabaseTask.id)) {
       followUps = followUpsMap.get(supabaseTask.id)!.map(followUp => ({
@@ -127,41 +127,18 @@ export function useSupabaseStorage() {
         timestamp: followUp.created_at,
         taskStatus: followUp.task_status || 'Unknown'
       }));
-    } else {
-      // Fallback: fetch individual follow-ups (only if not batch processed)
-      const { data: followUpsData, error: followUpsError } = await supabase
-        .from('follow_ups')
-        .select('id, text, created_at, task_status')
-        .eq('task_id', supabaseTask.id)
-        .order('created_at', { ascending: false });
-
-      if (!followUpsError && followUpsData) {
-        followUps = followUpsData.map(followUp => ({
-          id: followUp.id,
-          text: followUp.text,
-          timestamp: followUp.created_at,
-          taskStatus: followUp.task_status || 'Unknown'
-        }));
-      }
     }
+    // REMOVED: Individual follow-up fetching fallback to eliminate N+1 queries
 
-    // Use cached project name if provided, otherwise fetch/cache
+    // PERFORMANCE: Use cached project name (always required now)
     let projectName = '';
     if (supabaseTask.project_id) {
       if (projectNamesMap?.has(supabaseTask.project_id)) {
         projectName = projectNamesMap.get(supabaseTask.project_id)!;
       } else if (projectCache.has(supabaseTask.project_id)) {
         projectName = projectCache.get(supabaseTask.project_id)!;
-      } else {
-        const { data: projectData } = await supabase
-          .from('projects')
-          .select('name')
-          .eq('id', supabaseTask.project_id)
-          .maybeSingle();
-        
-        projectName = projectData?.name || '';
-        setProjectCache(prev => new Map(prev).set(supabaseTask.project_id!, projectName));
       }
+      // REMOVED: Individual project fetching to eliminate additional queries
     }
 
     if (supabaseTask.task_number === 'T34') {
@@ -345,9 +322,16 @@ export function useSupabaseStorage() {
         }
       })();
 
+      // OPTIMIZED: Select only essential fields to reduce payload size
       let query = supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          id, task_number, scope, project_id, environment, task_type, title, description,
+          status, priority, responsible, creation_date, start_date, due_date, 
+          completion_date, duration, planned_time_hours, dependencies, details, 
+          links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
+          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
+        `)
         .eq('user_id', user.id);
       
       // Apply the same filter to the data query - always exclude completed unless specifically requested
@@ -424,9 +408,7 @@ export function useSupabaseStorage() {
         projectNamesMap.set(project.id, project.name);
       });
 
-      const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
-      );
+      const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
       // Apply client-side priority sorting if needed (since SQL CASE statements cause parsing issues)
       let sortedTasks = convertedTasks;
@@ -540,9 +522,7 @@ export function useSupabaseStorage() {
       const projectNamesMap = new Map<string, string>();
       projectNamesMap.set(projectId, projectName);
 
-      const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
-      );
+      const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
       console.log('Converted tasks with meetings:', convertedTasks.filter(t => t.taskType === 'Meeting').length, 'meetings');
       return convertedTasks;
@@ -575,8 +555,10 @@ export function useSupabaseStorage() {
         return null;
       }
 
-      // Convert the task
-      const convertedTask = await convertSupabaseTaskToTask(taskData);
+      // Convert the task - need to provide empty maps since we don't batch load for single task
+      const emptyFollowUpsMap = new Map<string, any[]>();
+      const emptyProjectMap = new Map<string, string>();
+      const convertedTask = convertSupabaseTaskToTask(taskData, emptyFollowUpsMap, emptyProjectMap);
       return convertedTask;
     } catch (err) {
       console.error('Error loading task by ID:', err);
@@ -635,9 +617,7 @@ export function useSupabaseStorage() {
         projectNamesMap.set(project.id, project.name);
       });
 
-      const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
-      );
+      const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
       console.log('loadAllTasks: Successfully loaded all tasks, found T50:', convertedTasks.find(t => t.id === 'T50')?.title);
       return convertedTasks;
@@ -657,10 +637,16 @@ export function useSupabaseStorage() {
     try {
       console.log('loadAllMeetings: Loading all meetings...');
       
-      // Get ALL meeting tasks without filters or pagination
+      // OPTIMIZED: Get ALL meeting tasks with specific fields only - faster loading
       const { data, error } = await supabase
         .from('tasks')
-        .select('*')
+        .select(`
+          id, task_number, scope, project_id, environment, task_type, title, description,
+          status, priority, responsible, creation_date, start_date, due_date, 
+          completion_date, duration, planned_time_hours, dependencies, details, 
+          links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
+          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
+        `)
         .eq('user_id', user.id)
         .eq('task_type', 'Meeting')
         .order('due_date', { ascending: false });
@@ -706,9 +692,7 @@ export function useSupabaseStorage() {
         }
       }
 
-      const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
-      );
+      const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
       // Calculate meeting counts
       const counts = {
@@ -857,9 +841,7 @@ export function useSupabaseStorage() {
         projectNamesMap.set(project.id, project.name);
       });
 
-      const convertedTasks = await Promise.all(
-        (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap))
-      );
+      const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
       // Apply client-side priority sorting if needed
       let sortedTasks = convertedTasks;
@@ -1025,7 +1007,10 @@ export function useSupabaseStorage() {
       console.log('Task created successfully:', data);
       console.log('DB returned fields:', { task_number: data?.task_number, environment: data?.environment, status: data?.status });
 
-      const newTask = await convertSupabaseTaskToTask(data);
+      // Create new task with empty maps since we're creating, not loading
+      const emptyFollowUpsMap = new Map<string, any[]>();
+      const emptyProjectMap = new Map<string, string>();
+      const newTask = convertSupabaseTaskToTask(data, emptyFollowUpsMap, emptyProjectMap);
       setTasks(prev => [newTask, ...prev]);
       toast({ title: 'Task created', description: newTask.title });
       return newTask;
@@ -1755,7 +1740,10 @@ export function useSupabaseStorage() {
       // Filter by Open status after getting all tasks
       const openTasks = relatedTasks?.filter(t => t.status === 'Open') || [];
 
-      return await Promise.all(openTasks.map(task => convertSupabaseTaskToTask(task)));
+      // Use empty maps for this simple case - could be optimized further
+      const emptyFollowUpsMap = new Map<string, any[]>();
+      const emptyProjectMap = new Map<string, string>();
+      return openTasks.map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
     } catch (error) {
       console.error('Error in getRelatedRecurringTasks:', error);
       return [];
