@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Task, Project } from "@/types/task";
 import { TaskTableMemo } from "@/components/TaskTableMemo";
-import { TaskSummaryCardsOptimized } from "@/components/TaskSummaryCardsOptimized";
+import { MeetingSummaryCardsOptimized } from "@/components/MeetingSummaryCardsOptimized";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
@@ -224,7 +224,7 @@ const Meetings = () => {
           </p>
         </header>
 
-        <TaskSummaryCardsOptimized
+        <MeetingSummaryCardsOptimized
           tasks={tasks}
           taskCounts={meetingTaskCounts}
           activeFilter={activeFilter}
