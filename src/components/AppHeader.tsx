@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw, Users, StickyNote } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, Users, StickyNote } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,6 @@ interface AppHeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
-  onRefresh: () => void;
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
   selectedProjectId?: string; // Optional project ID for project details tab
@@ -28,7 +27,6 @@ export const AppHeader = React.memo(({
   isDarkMode,
   onToggleDarkMode,
   onOpenParameters,
-  onRefresh,
   onBack,
   selectedProjectName,
   selectedProjectId,
@@ -152,9 +150,6 @@ export const AppHeader = React.memo(({
         <Button variant="outline" onClick={() => onViewChange('notes')} size="sm" className="flex items-center p-2" aria-label="Quick Notes">
           <StickyNote className="w-4 h-4" />
         </Button>
-        <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
-          <RotateCw className="w-4 h-4" />
-        </Button>
         <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center p-2" aria-label="Parameters">
           <Settings className="w-4 h-4" />
         </Button>
@@ -166,7 +161,7 @@ export const AppHeader = React.memo(({
         </Button>
       </div>
     );
-  }, [onRefresh, onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut, onViewChange]);
+  }, [onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut, onViewChange]);
   const MobileNavigation = useMemo(() => {
     return () => (
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

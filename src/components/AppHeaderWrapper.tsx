@@ -370,7 +370,6 @@ export const AppHeaderWrapper = React.memo(() => {
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         onOpenParameters={handleOpenParameters}
-        onRefresh={handleRefresh}
         onBack={handleBack}
         selectedProjectName={selectedProjectName}
         selectedProjectId={null} // Remove ID display for cleaner look
