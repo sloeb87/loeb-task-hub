@@ -320,6 +320,12 @@ export const TaskTable = ({
           if (!filters.timeTracking.includes(timeStatus)) return false;
         }
         
+        // Task type filter
+        if (filters.taskType.length > 0 && !filters.taskType.includes(task.taskType)) return false;
+        
+        // Environment filter
+        if (filters.environment.length > 0 && !filters.environment.includes(task.environment)) return false;
+        
         return true;
       });
       // Removed sorting logic - now handled at database level
