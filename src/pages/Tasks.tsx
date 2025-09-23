@@ -15,7 +15,7 @@ import { ListTodo } from "lucide-react";
 const Tasks = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
