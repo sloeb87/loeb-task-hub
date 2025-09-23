@@ -51,7 +51,7 @@ export const ProjectTable = ({
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const getProjectStats = (project: Project) => {
-    const projectTasks = tasks.filter(task => task.project === project.id);
+    const projectTasks = tasks.filter(task => task.project === project.name);
     
     // Separate tasks and meetings
     const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
@@ -474,7 +474,7 @@ export const ProjectTable = ({
                         <div className="space-y-1 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <ListTodo className="w-3 h-3" />
-                            <span>{stats.activeTasks}/{stats.totalTasks} tasks</span>
+                            <span>{stats.completedTasks}/{stats.totalTasks} tasks</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Users className="w-3 h-3" />
