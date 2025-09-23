@@ -2,15 +2,15 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw, Users } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, RotateCw, Users, StickyNote } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task } from "@/types/task";
 interface AppHeaderProps {
-  activeView: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit";
-  onViewChange: (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit") => void;
+  activeView: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes";
+  onViewChange: (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
@@ -149,6 +149,9 @@ export const AppHeader = React.memo(({
   const DesktopRightActions = useMemo(() => {
     return () => (
       <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+        <Button variant="outline" onClick={() => onViewChange('notes')} size="sm" className="flex items-center p-2" aria-label="Quick Notes">
+          <StickyNote className="w-4 h-4" />
+        </Button>
         <Button variant="outline" onClick={onRefresh} size="sm" className="flex items-center p-2" aria-label="Refresh">
           <RotateCw className="w-4 h-4" />
         </Button>
@@ -163,7 +166,7 @@ export const AppHeader = React.memo(({
         </Button>
       </div>
     );
-  }, [onRefresh, onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut]);
+  }, [onRefresh, onOpenParameters, onToggleDarkMode, isDarkMode, handleSignOut, onViewChange]);
   const MobileNavigation = useMemo(() => {
     return () => (
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

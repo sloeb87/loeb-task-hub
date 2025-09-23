@@ -30,6 +30,7 @@ const ProjectDetails = lazy(() => import("./pages/ProjectDetails"));
 const TimeTrackingWrapper = lazy(() => import("./pages/TimeTrackingWrapper"));
 const FollowUpsWrapper = lazy(() => import("./pages/FollowUpsWrapper"));
 const TaskEdit = lazy(() => import("./pages/TaskEdit"));
+const Notes = lazy(() => import("./pages/Notes"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const LoadingSpinner = React.memo(() => (
@@ -116,6 +117,11 @@ const App = React.memo(() => {
                   <Route path="tasks/:id" element={
                     <Suspense fallback={<LoadingSpinner />}>
                       <TaskEdit />
+                    </Suspense>
+                  } />
+                  <Route path="notes" element={
+                    <Suspense fallback={<LoadingSpinner />}>
+                      <Notes />
                     </Suspense>
                   } />
                 </Route>

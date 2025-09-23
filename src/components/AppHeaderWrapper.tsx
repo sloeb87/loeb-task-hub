@@ -175,6 +175,7 @@ export const AppHeaderWrapper = React.memo(() => {
     if (pathname.startsWith('/projects/')) return 'project-details';
     if (pathname === '/time-tracking') return 'timetracking';
     if (pathname === '/follow-ups') return 'followups';
+    if (pathname === '/notes') return 'notes';
     if (pathname.startsWith('/tasks/')) return 'task-edit';
     return 'tasks';
   }, []);
@@ -286,7 +287,7 @@ export const AppHeaderWrapper = React.memo(() => {
     }
   }, [location.pathname, taskNavigationState, getProjectDetails, getTaskDetails, lastViewed.project, lastViewed.task, projects]);
 
-  const handleViewChange = (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit") => {
+  const handleViewChange = (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => {
     switch (view) {
       case 'tasks':
         navigate('/tasks');
@@ -313,6 +314,9 @@ export const AppHeaderWrapper = React.memo(() => {
         break;
       case 'followups':
         navigate('/follow-ups');
+        break;
+      case 'notes':
+        navigate('/notes');
         break;
       case 'task-edit':
         // Navigate to the last viewed task if available
