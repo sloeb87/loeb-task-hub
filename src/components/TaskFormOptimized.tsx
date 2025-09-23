@@ -250,6 +250,9 @@ export const TaskFormOptimized = React.memo(({
   const [editingFollowUpText, setEditingFollowUpText] = useState('');
   const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
   const [relatedRecurringTasks, setRelatedRecurringTasks] = useState<Task[]>([]);
+  const [newLinkType, setNewLinkType] = useState<keyof FormData['links']>('oneNote');
+  const [newLinkName, setNewLinkName] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
   const { startTimer } = useTimeTracking();
 
   // Dropdown options - now coming from the database
@@ -568,6 +571,24 @@ export const TaskFormOptimized = React.memo(({
       checklist: prev.checklist.filter(item => item.id !== id)
     }));
   }, []);
+
+  const addNewLink = useCallback(() => {
+    if (!newLinkType || !newLinkName.trim() || !newLinkUrl.trim()) return;
+    
+    const newLink = {
+      id: Math.random().toString(36).substr(2, 9),
+      name: newLinkName.trim(),
+      url: newLinkUrl.trim()
+    };
+    
+    const updatedLinks = [...formData.links[newLinkType], newLink];
+    updateLinkField(newLinkType, updatedLinks);
+    
+    // Reset form
+    setNewLinkName('');
+    setNewLinkUrl('');
+    setNewLinkType('oneNote');
+  }, [newLinkType, newLinkName, newLinkUrl, formData.links, updateLinkField]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -911,52 +932,114 @@ export const TaskFormOptimized = React.memo(({
               {/* Links Section */}
               <div className="space-y-3">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <NamedLinkInput
-                  label="OneNote"
-                  icon={<FileText className="w-4 h-4" />}
-                  links={formData.links.oneNote}
-                  placeholder="OneNote link..."
-                  type="url"
-                  onChange={(links) => updateLinkField('oneNote', links)}
-                />
                 
-                <NamedLinkInput
-                  label="Teams"
-                  icon={<Users className="w-4 h-4" />}
-                  links={formData.links.teams}
-                  placeholder="Teams link..."
-                  type="url"
-                  onChange={(links) => updateLinkField('teams', links)}
-                />
-                
-                <NamedLinkInput
-                  label="Email"
-                  icon={<Mail className="w-4 h-4" />}
-                  links={formData.links.email}
-                  placeholder="Email link or address..."
-                  type="email"
-                  onChange={(links) => updateLinkField('email', links)}
-                />
-                
-                <NamedLinkInput
-                  label="File"
-                  icon={<File className="w-4 h-4" />}
-                  links={formData.links.file}
-                  placeholder="File link..."
-                  type="url"
-                  onChange={(links) => updateLinkField('file', links)}
-                />
-              </div>
-              
-              <NamedLinkInput
-                label="Folder"
-                icon={<Folder className="w-4 h-4" />}
-                links={formData.links.folder}
-                placeholder="Folder/SharePoint link..."
-                type="url"
-                onChange={(links) => updateLinkField('folder', links)}
-              />
+                {/* All Links Display */}
+                <div className="space-y-2">
+                  {Object.entries(formData.links).map(([linkType, links]) => 
+                    links.map((link) => (
+                      <div key={link.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded border">
+                        <div className="flex items-center gap-2 flex-1">
+                          {linkType === 'oneNote' && <FileText className="w-4 h-4" />}
+                          {linkType === 'teams' && <Users className="w-4 h-4" />}
+                          {linkType === 'email' && <Mail className="w-4 h-4" />}
+                          {linkType === 'file' && <File className="w-4 h-4" />}
+                          {linkType === 'folder' && <Folder className="w-4 h-4" />}
+                          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize min-w-[60px]">
+                            {linkType}
+                          </span>
+                          <a 
+                            href={link.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
+                          >
+                            {link.name}
+                          </a>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            const updatedLinks = formData.links[linkType as keyof typeof formData.links]
+                              .filter(l => l.id !== link.id);
+                            updateLinkField(linkType as keyof typeof formData.links, updatedLinks);
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Add New Link */}
+                <div className="flex gap-2">
+                  <Select 
+                    value={newLinkType} 
+                    onValueChange={(value) => setNewLinkType(value as keyof FormData['links'])}
+                  >
+                    <SelectTrigger className="w-32 dark:bg-gray-800 dark:border-gray-600">
+                      <SelectValue placeholder="Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="oneNote">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4" />
+                          OneNote
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="teams">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Teams
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="email">
+                        <div className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          Email
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="file">
+                        <div className="flex items-center gap-2">
+                          <File className="w-4 h-4" />
+                          File
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="folder">
+                        <div className="flex items-center gap-2">
+                          <Folder className="w-4 h-4" />
+                          Folder
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  
+                  <Input
+                    value={newLinkName}
+                    onChange={(e) => setNewLinkName(e.target.value)}
+                    placeholder="Link name..."
+                    className="dark:bg-gray-800 dark:border-gray-600"
+                  />
+                  
+                  <Input
+                    value={newLinkUrl}
+                    onChange={(e) => setNewLinkUrl(e.target.value)}
+                    placeholder="URL..."
+                    className="flex-1 dark:bg-gray-800 dark:border-gray-600"
+                  />
+                  
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addNewLink}
+                    disabled={!newLinkType || !newLinkName.trim() || !newLinkUrl.trim()}
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </div>
 
