@@ -34,16 +34,18 @@ export const AppHeaderWrapper = React.memo(() => {
   useEffect(() => {
     const loadAllTasksForTimer = async () => {
       try {
-        const tasks = await loadAllTasks();
-        setAllTasks(tasks);
-        console.log('AppHeaderWrapper: Loaded', tasks.length, 'tasks for timer display');
+        // Only load tasks if not on project detail page to avoid duplicate calls
+        if (!location.pathname.startsWith('/projects/')) {
+          const tasks = await loadAllTasks();
+          setAllTasks(tasks);
+        }
       } catch (error) {
         console.error('Error loading all tasks for timer display:', error);
       }
     };
 
     loadAllTasksForTimer();
-  }, [loadAllTasks]);
+  }, [loadAllTasks, location.pathname]);
 
   // Persistent state for last viewed project and task with caching
   const [lastViewed, setLastViewed] = useState<LastViewedState>(() => {

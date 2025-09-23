@@ -81,7 +81,6 @@ export const ProjectDetailView = ({
   useEffect(() => {
     const loadProjectTasksProgressively = async () => {
       if (!loadAllTasksForProject) {
-        console.log('loadAllTasksForProject function not provided, using fallback tasks');
         const fallbackTasks = tasks.filter(task => task.project === project.name);
         setAllProjectTasks(fallbackTasks);
         setOpenTasksLoaded(true);
@@ -99,42 +98,16 @@ export const ProjectDetailView = ({
         setOpenMeetingsLoaded(false);
         setCompletedMeetingsLoaded(false);
         
-        // Load all tasks at once but process them progressively
+        // Load all tasks at once
         const projectTasks = await loadAllTasksForProject(project.id);
+        console.log(`Loaded ${projectTasks.length} total tasks for project ${project.id}`);
         
-        // First: Show opened tasks immediately (highest priority)
-        const openTasks = projectTasks.filter(task => 
-          task.taskType !== 'Meeting' && task.status !== 'Completed'
-        );
-        setAllProjectTasks(openTasks);
+        // Set all tasks at once instead of progressive loading to reduce complexity
+        setAllProjectTasks(projectTasks);
         setOpenTasksLoaded(true);
-        
-        // Background loading: Load completed tasks after a short delay
-        setTimeout(() => {
-          const completedTasks = projectTasks.filter(task => 
-            task.taskType !== 'Meeting' && task.status === 'Completed'
-          );
-          setAllProjectTasks(prev => [...prev, ...completedTasks]);
-          setCompletedTasksLoaded(true);
-        }, 100);
-        
-        // Background loading: Load opened meetings
-        setTimeout(() => {
-          const openMeetings = projectTasks.filter(task => 
-            task.taskType === 'Meeting' && task.status !== 'Completed'
-          );
-          setAllProjectTasks(prev => [...prev, ...openMeetings]);
-          setOpenMeetingsLoaded(true);
-        }, 200);
-        
-        // Background loading: Load completed meetings last
-        setTimeout(() => {
-          const completedMeetings = projectTasks.filter(task => 
-            task.taskType === 'Meeting' && task.status === 'Completed'
-          );
-          setAllProjectTasks(prev => [...prev, ...completedMeetings]);
-          setCompletedMeetingsLoaded(true);
-        }, 300);
+        setCompletedTasksLoaded(true);
+        setOpenMeetingsLoaded(true);
+        setCompletedMeetingsLoaded(true);
         
       } catch (error) {
         console.error('Error loading project tasks:', error);
@@ -153,7 +126,7 @@ export const ProjectDetailView = ({
     if (allProjectTasks.length === 0 || refreshKey > 0) {
       loadProjectTasksProgressively();
     }
-  }, [project.id, loadAllTasksForProject, refreshKey]);
+  }, [project.id, loadAllTasksForProject, refreshKey, tasks, project.name]);
 
   // Listen for task updates to refresh the view only when necessary
   useEffect(() => {

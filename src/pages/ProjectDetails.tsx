@@ -13,7 +13,6 @@ const ProjectDetails = () => {
   const { setNavigationCallback } = useTaskNavigation();
 
   const {
-    tasks,
     projects,
     updateTask,
     deleteTask,
@@ -145,15 +144,13 @@ const ProjectDetails = () => {
     );
   }
 
-  const projectTasks = tasks.filter(task => task.project === project.name);
-
   return (
     <div className="min-h-screen bg-background">
       <main className="w-full p-6">
         <ProjectDetailView
           project={project}
-          tasks={projectTasks}
-          allTasks={tasks}
+          tasks={[]} // Let ProjectDetailView load its own tasks
+          allTasks={[]} // Let ProjectDetailView load its own tasks
           loadAllTasksForProject={loadAllTasksForProject}
           onBack={handleBack}
           onEditProject={handleEditProject}
