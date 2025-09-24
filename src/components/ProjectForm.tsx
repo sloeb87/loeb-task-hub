@@ -13,6 +13,7 @@ import { Project, Task, NamedLink } from "@/types/task";
 import { useParameters } from "@/hooks/useParameters";
 import { NamedLinkInput } from "@/components/ui/named-link-input";
 import { FileText, Users, Mail, File, Folder } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProjectFormProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface ProjectFormProps {
 
 export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTasks = [], onUpdateTask }: ProjectFormProps) => {
   const { parameters } = useParameters();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: project?.name || '',
     description: project?.description || '',
@@ -113,27 +115,47 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
     
     // Check for required fields
     if (!formData.name.trim()) {
-      console.error('Project name is required');
+      toast({
+        title: "Validation Error",
+        description: "Project name is required",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.description.trim()) {
-      console.error('Project description is required');
+      toast({
+        title: "Validation Error",
+        description: "Project description is required",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.owner.trim()) {
-      console.error('Project owner is required');
+      toast({
+        title: "Validation Error",
+        description: "Project owner is required",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.startDate) {
-      console.error('Start date is required');
+      toast({
+        title: "Validation Error",
+        description: "Start date is required",
+        variant: "destructive",
+      });
       return;
     }
     
     if (!formData.endDate) {
-      console.error('End date is required');
+      toast({
+        title: "Validation Error",
+        description: "End date is required",
+        variant: "destructive",
+      });
       return;
     }
     
