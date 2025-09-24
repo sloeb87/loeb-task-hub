@@ -35,10 +35,16 @@ const ProjectDetails = () => {
   // Find the project by ID
   useEffect(() => {
     if (projectId && projects.length > 0) {
+      console.log('ProjectDetails - Looking for project ID:', projectId);
+      console.log('ProjectDetails - Available projects:', projects.map(p => ({ id: p.id, name: p.name })));
+      
       const foundProject = projects.find(p => p.id === projectId);
+      console.log('ProjectDetails - Found project:', foundProject);
+      
       if (foundProject) {
         setProject(foundProject);
       } else {
+        console.log('ProjectDetails - Project not found, redirecting to /projects');
         // Project not found, redirect to projects list
         navigate('/projects');
       }
