@@ -1417,24 +1417,28 @@ export function useSupabaseStorage() {
       return;
     }
 
-    // Find all tasks in the recurring series
-    const { data: allRecurringTasks, error: fetchError } = await supabase
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+
+    // Find only future tasks in the recurring series (due_date >= today)
+    const { data: futureRecurringTasks, error: fetchError } = await supabase
       .from('tasks')
-      .select('id, task_number')
+      .select('id, task_number, due_date')
       .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
+      .gte('due_date', today)
       .eq('user_id', user.id);
 
     if (fetchError) throw fetchError;
 
-    if (!allRecurringTasks || allRecurringTasks.length === 0) {
-      toast({ title: 'No recurring tasks found', variant: 'destructive' });
+    if (!futureRecurringTasks || futureRecurringTasks.length === 0) {
+      toast({ title: 'No future recurring tasks found to delete', variant: 'destructive' });
       return;
     }
 
-    const taskIds = allRecurringTasks.map(task => task.id);
-    const taskNumbers = allRecurringTasks.map(task => task.task_number);
+    const taskIds = futureRecurringTasks.map(task => task.id);
+    const taskNumbers = futureRecurringTasks.map(task => task.task_number);
 
-    // Delete all follow-ups for all recurring tasks (using task_numbers)
+    // Delete follow-ups for future recurring tasks only (using task_numbers)
     const { error: followUpsError } = await supabase
       .from('follow_ups')
       .delete()
@@ -1442,7 +1446,7 @@ export function useSupabaseStorage() {
 
     if (followUpsError) throw followUpsError;
 
-    // Delete all recurring tasks
+    // Delete only future recurring tasks
     const { error } = await supabase
       .from('tasks')
       .delete()
@@ -1454,8 +1458,8 @@ export function useSupabaseStorage() {
     // Update local state
     setTasks(prev => prev.filter(task => !taskIds.includes(task.id)));
     toast({ 
-      title: 'Recurring tasks deleted', 
-      description: `Deleted ${allRecurringTasks.length} task(s) from the recurring series`
+      title: 'Future recurring tasks deleted', 
+      description: `Deleted ${futureRecurringTasks.length} future task(s) from the recurring series`
     });
   };
 
