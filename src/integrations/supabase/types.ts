@@ -530,7 +530,6 @@ export type Database = {
           start_time: string
           task_id: string
           task_title: string
-          task_type: string | null
           updated_at: string
           user_id: string
         }
@@ -546,7 +545,6 @@ export type Database = {
           start_time: string
           task_id: string
           task_title: string
-          task_type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -562,7 +560,6 @@ export type Database = {
           start_time?: string
           task_id?: string
           task_title?: string
-          task_type?: string | null
           updated_at?: string
           user_id?: string
         }

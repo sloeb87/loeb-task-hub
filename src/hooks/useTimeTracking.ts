@@ -121,8 +121,7 @@ export function useTimeTracking() {
         duration: entry.duration,
         description: entry.description,
         isRunning: entry.is_running,
-        createdAt: entry.created_at,
-        taskType: entry.task_type
+        createdAt: entry.created_at
       }));
 
       setTimeEntries(entries);
@@ -160,7 +159,7 @@ export function useTimeTracking() {
     }
   };
 
-  const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string, taskType?: string) => {
+  const startTimer = useCallback(async (taskId: string, taskTitle?: string, projectName?: string, responsible?: string) => {
     if (!user) {
       toast({ title: 'Authentication required', description: 'Please log in to start timer', variant: 'destructive' });
       return;
@@ -239,8 +238,7 @@ export function useTimeTracking() {
           responsible: responsible || 'Unknown',
           start_time: startTime,
           description: 'Timer session',
-          is_running: true,
-          task_type: taskType
+          is_running: true
         })
         .select()
         .single();
@@ -280,8 +278,7 @@ export function useTimeTracking() {
         startTime: newEntry.start_time,
         description: newEntry.description,
         isRunning: newEntry.is_running,
-        createdAt: newEntry.created_at,
-        taskType: newEntry.task_type
+        createdAt: newEntry.created_at
       }, ...prev]);
 
       // Refresh the page after successfully starting the timer
