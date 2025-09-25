@@ -45,6 +45,69 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Checkbox } from "@/components/ui/checkbox";
 
+// Sortable Link Item Component
+interface SortableLinkProps {
+  linkType: string;
+  link: NamedLink;
+  onDelete: () => void;
+}
+
+const SortableLink: React.FC<SortableLinkProps> = ({ linkType, link, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: link.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded border"
+    >
+      <div {...attributes} {...listeners} className="cursor-grab hover:cursor-grabbing">
+        <GripVertical className="w-4 h-4 text-gray-400" />
+      </div>
+      <div className="flex items-center gap-2 flex-1">
+        {linkType === 'oneNote' && <FileText className="w-4 h-4" />}
+        {linkType === 'teams' && <Users className="w-4 h-4" />}
+        {linkType === 'email' && <Mail className="w-4 h-4" />}
+        {linkType === 'file' && <File className="w-4 h-4" />}
+        {linkType === 'folder' && <Folder className="w-4 h-4" />}
+        <span className="text-xs text-gray-500 dark:text-gray-400 capitalize min-w-[60px]">
+          {linkType}
+        </span>
+        <a 
+          href={link.url} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
+        >
+          {link.name}
+        </a>
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={onDelete}
+        className="text-red-500 hover:text-red-700 p-1"
+      >
+        <X className="w-3 h-3" />
+      </Button>
+    </div>
+  );
+};
+
 // Sortable Checklist Item Component
 interface SortableChecklistItemProps {
   item: ChecklistItem;
@@ -934,45 +997,67 @@ export const TaskFormOptimized = React.memo(({
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Links</h3>
                 
                 {/* All Links Display */}
-                <div className="space-y-2">
-                  {Object.entries(formData.links).map(([linkType, links]) => 
-                    links.map((link) => (
-                      <div key={link.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded border">
-                        <div className="flex items-center gap-2 flex-1">
-                          {linkType === 'oneNote' && <FileText className="w-4 h-4" />}
-                          {linkType === 'teams' && <Users className="w-4 h-4" />}
-                          {linkType === 'email' && <Mail className="w-4 h-4" />}
-                          {linkType === 'file' && <File className="w-4 h-4" />}
-                          {linkType === 'folder' && <Folder className="w-4 h-4" />}
-                          <span className="text-xs text-gray-500 dark:text-gray-400 capitalize min-w-[60px]">
-                            {linkType}
-                          </span>
-                          <a 
-                            href={link.url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
-                          >
-                            {link.name}
-                          </a>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            const updatedLinks = formData.links[linkType as keyof typeof formData.links]
-                              .filter(l => l.id !== link.id);
-                            updateLinkField(linkType as keyof typeof formData.links, updatedLinks);
-                          }}
-                          className="text-red-500 hover:text-red-700 p-1"
-                        >
-                          <X className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={(event: DragEndEvent) => {
+                    const { active, over } = event;
+                    
+                    if (active.id !== over?.id) {
+                      // Get all links as a flat array with their types
+                      const allLinks = Object.entries(formData.links).flatMap(([linkType, links]) =>
+                        links.map(link => ({ ...link, linkType }))
+                      );
+                      
+                      const oldIndex = allLinks.findIndex(link => link.id === active.id);
+                      const newIndex = allLinks.findIndex(link => link.id === over?.id);
+                      
+                      if (oldIndex !== -1 && newIndex !== -1) {
+                        const reorderedLinks = arrayMove(allLinks, oldIndex, newIndex);
+                        
+                        // Rebuild the links object
+                        const newLinks = {
+                          oneNote: [],
+                          teams: [],
+                          email: [],
+                          file: [],
+                          folder: []
+                        } as any;
+                        
+                        reorderedLinks.forEach(link => {
+                          const { linkType, ...linkData } = link;
+                          newLinks[linkType].push(linkData);
+                        });
+                        
+                        updateField('links', newLinks);
+                      }
+                    }
+                  }}
+                >
+                  <SortableContext
+                    items={Object.entries(formData.links).flatMap(([linkType, links]) =>
+                      links.map(link => link.id)
+                    )}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {Object.entries(formData.links).map(([linkType, links]) =>
+                        links.map((link) => (
+                          <SortableLink
+                            key={link.id}
+                            linkType={linkType}
+                            link={link}
+                            onDelete={() => {
+                              const updatedLinks = formData.links[linkType as keyof typeof formData.links]
+                                .filter(l => l.id !== link.id);
+                              updateLinkField(linkType as keyof typeof formData.links, updatedLinks);
+                            }}
+                          />
+                        ))
+                      )}
+                    </div>
+                  </SortableContext>
+                </DndContext>
 
                 {/* Add New Link */}
                 <div className="flex gap-2">
@@ -1021,14 +1106,14 @@ export const TaskFormOptimized = React.memo(({
                     value={newLinkName}
                     onChange={(e) => setNewLinkName(e.target.value)}
                     placeholder="Link name..."
-                    className="w-2/3 dark:bg-gray-800 dark:border-gray-600"
+                    className="w-40 text-sm dark:bg-gray-800 dark:border-gray-600"
                   />
                   
                   <Input
                     value={newLinkUrl}
                     onChange={(e) => setNewLinkUrl(e.target.value)}
                     placeholder="URL..."
-                    className="w-1/3 dark:bg-gray-800 dark:border-gray-600"
+                    className="w-32 text-sm dark:bg-gray-800 dark:border-gray-600"
                   />
                   
                   <Button
