@@ -1,17 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Task, Project } from "@/types/task";
+import { Task, Project, TaskType } from "@/types/task";
 import { TaskTableMemo } from "@/components/TaskTableMemo";
 import { MeetingSummaryCardsOptimized } from "@/components/MeetingSummaryCardsOptimized";
 import { FollowUpDialog } from "@/components/FollowUpDialog";
+import { TaskFormOptimized } from "@/components/TaskFormOptimized";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskFilters, FilterType } from "@/hooks/useTaskFilters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
+import { useTaskModal } from "@/hooks/useTaskModal";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { OptimizedLoading } from "@/components/OptimizedLoading";
-import { Users } from "lucide-react";
+import { Users, Plus } from "lucide-react";
 
 const Meetings = () => {
   const location = useLocation();
@@ -21,6 +23,46 @@ const Meetings = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
+  
+  const {
+    isTaskFormOpen,
+    selectedTask,
+    openNewTaskForm,
+    closeTaskForm,
+    handleTaskSave
+  } = useTaskModal();
+
+  // Create a preset task for new meetings
+  const meetingPreset = {
+    taskType: 'Meeting' as TaskType,
+    title: '',
+    project: '',
+    scope: [],
+    environment: '',
+    status: '',
+    priority: '',
+    responsible: '',
+    description: '',
+    details: '',
+    dependencies: [],
+    startDate: new Date().toISOString().split('T')[0],
+    dueDate: new Date(),
+    plannedTimeHours: undefined,
+    links: {
+      oneNote: [],
+      teams: [],
+      email: [],
+      file: [],
+      folder: []
+    },
+    checklist: [],
+    followUps: [],
+    isRecurring: false,
+    recurrenceType: undefined,
+    recurrenceInterval: 1,
+    recurrenceEndDate: undefined,
+    recurrenceDaysOfWeek: []
+  };
   
   // Progressive loading - start with 5, load 5 more each time
   const [displayLimit, setDisplayLimit] = useState(5);
@@ -44,6 +86,7 @@ const Meetings = () => {
     loadAllMeetings,
     searchTasks,
     updateTask,
+    createTask,
     addFollowUp,
     updateFollowUp,
     deleteFollowUp,
@@ -212,6 +255,30 @@ const Meetings = () => {
     }
   }, [currentSearchTerm, searchTasks, loadTasks, activeFilter, getPageSize, sortField, sortDirection]);
 
+  const handleSaveTask = handleTaskSave(async (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
+    try {
+      // Ensure the task type is set to Meeting
+      const meetingTaskData = {
+        ...taskData,
+        taskType: 'Meeting' as TaskType
+      };
+      
+      await createTask(meetingTaskData);
+      await refreshTasks();
+      toast({
+        title: "Success",
+        description: "Meeting created successfully",
+      });
+    } catch (error) {
+      console.error('Failed to create meeting:', error);
+      toast({
+        title: "Creation Failed",
+        description: "Failed to create the meeting. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
   if (error) {
     return (
       <div className="p-6">
@@ -246,13 +313,21 @@ const Meetings = () => {
     <div className="min-h-screen bg-background">
       <main className="w-full p-6 space-y-6">
         <header>
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-blue-600" />
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
+                <p className="text-muted-foreground">
+                  Organize and track your meetings efficiently
+                </p>
+              </div>
+            </div>
+            <Button onClick={openNewTaskForm} className="flex items-center gap-2">
+              <Plus className="w-4 h-4" />
+              New Meeting
+            </Button>
           </div>
-          <p className="text-muted-foreground">
-            Organize and track your meetings efficiently
-          </p>
         </header>
 
         <MeetingSummaryCardsOptimized
@@ -297,6 +372,16 @@ const Meetings = () => {
             </Button>
           </div>
         )}
+
+        {/* Meeting Creation Form */}
+        <TaskFormOptimized
+          isOpen={isTaskFormOpen}
+          onClose={closeTaskForm}
+          onSave={handleSaveTask}
+          task={selectedTask}
+          allTasks={allMeetings || []}
+          allProjects={[]}
+        />
 
         {/* Follow-up Dialog */}
         {selectedTaskForFollowUp && (
