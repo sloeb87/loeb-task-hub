@@ -161,7 +161,7 @@ const ProjectsPage = ({
         <div className="flex items-center space-x-3">
           <FolderKanban className="w-8 h-8 text-blue-600 dark:text-blue-400" />
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Project Management</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
             <p className="text-gray-600 dark:text-gray-300 mt-1">Manage projects, assign tasks, and track progress</p>
           </div>
         </div>
