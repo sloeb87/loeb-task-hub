@@ -477,6 +477,35 @@ export const TaskFormOptimized = React.memo(({
     }));
   }, []);
 
+  // Auto-save function for immediate updates
+  const autoSave = useCallback(() => {
+    if (!task || !formData.title.trim()) return; // Only auto-save for existing tasks with valid title
+    
+    const taskData = {
+      ...formData,
+      dueDate: date ? date.toISOString().split('T')[0] : task.dueDate,
+      taskType: formData.taskType as TaskType,
+      status: formData.status as TaskStatus,
+      priority: formData.priority as TaskPriority,
+      // Include recurrence fields
+      isRecurring: formData.isRecurring,
+      recurrenceType: formData.recurrenceType,
+      recurrenceInterval: formData.recurrenceInterval,
+      recurrenceEndDate: formData.recurrenceEndDate,
+      recurrenceDaysOfWeek: formData.recurrenceDaysOfWeek,
+      id: task.id, 
+      creationDate: task.creationDate, 
+      followUps: task.followUps,
+      checklist: formData.checklist
+    };
+
+    try {
+      onSave(taskData);
+    } catch (error) {
+      console.error('ERROR in auto-save:', error);
+    }
+  }, [formData, date, task, onSave]);
+
   // Form submission
   const handleSubmit = useCallback((e: React.FormEvent) => {
     console.log('=== Form Submit Started ===');
@@ -588,6 +617,9 @@ export const TaskFormOptimized = React.memo(({
       };
       setDisplayedFollowUps(prev => [...prev, optimistic]);
       await onAddFollowUp(task.id, text);
+      
+      // Auto-save the task after adding follow-up
+      autoSave();
     } catch (error) {
       console.error('Failed to add follow-up:', error);
       toast({ title: 'Error', description: 'Failed to add follow-up', variant: 'destructive' });
@@ -617,7 +649,10 @@ export const TaskFormOptimized = React.memo(({
       checklist: [...prev.checklist, newItem]
     }));
     setNewChecklistItem('');
-  }, [newChecklistItem]);
+    
+    // Auto-save the task after adding checklist item
+    setTimeout(() => autoSave(), 100); // Small delay to ensure state is updated
+  }, [newChecklistItem, autoSave]);
 
   const toggleChecklistItem = useCallback((id: string) => {
     setFormData(prev => ({
@@ -626,14 +661,20 @@ export const TaskFormOptimized = React.memo(({
         item.id === id ? { ...item, completed: !item.completed } : item
       )
     }));
-  }, []);
+    
+    // Auto-save the task after toggling checklist item
+    setTimeout(() => autoSave(), 100); // Small delay to ensure state is updated
+  }, [autoSave]);
 
   const deleteChecklistItem = useCallback((id: string) => {
     setFormData(prev => ({
       ...prev,
       checklist: prev.checklist.filter(item => item.id !== id)
     }));
-  }, []);
+    
+    // Auto-save the task after deleting checklist item
+    setTimeout(() => autoSave(), 100); // Small delay to ensure state is updated
+  }, [autoSave]);
 
   const addNewLink = useCallback(() => {
     if (!newLinkType || !newLinkName.trim() || !newLinkUrl.trim()) return;
@@ -651,7 +692,10 @@ export const TaskFormOptimized = React.memo(({
     setNewLinkName('');
     setNewLinkUrl('');
     setNewLinkType('oneNote');
-  }, [newLinkType, newLinkName, newLinkUrl, formData.links, updateLinkField]);
+    
+    // Auto-save the task after adding link
+    setTimeout(() => autoSave(), 100); // Small delay to ensure state is updated
+  }, [newLinkType, newLinkName, newLinkUrl, formData.links, updateLinkField, autoSave]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -1051,6 +1095,9 @@ export const TaskFormOptimized = React.memo(({
                               const updatedLinks = formData.links[linkType as keyof typeof formData.links]
                                 .filter(l => l.id !== link.id);
                               updateLinkField(linkType as keyof typeof formData.links, updatedLinks);
+                              
+                              // Auto-save the task after deleting link
+                              setTimeout(() => autoSave(), 100); // Small delay to ensure state is updated
                             }}
                           />
                         ))
