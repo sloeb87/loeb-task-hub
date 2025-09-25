@@ -11,6 +11,7 @@ export interface TimeEntry {
   description?: string;
   createdAt: string;
   isRunning: boolean;
+  taskType?: string;
 }
 
 export interface TimeEntryFilters {
