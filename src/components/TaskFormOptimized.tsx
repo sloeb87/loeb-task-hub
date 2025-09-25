@@ -381,7 +381,8 @@ export const TaskFormOptimized = React.memo(({
           description: task.description || "",
           details: task.details || "",
           dependencies: task.dependencies || [],
-          checklist: task.checklist || [],
+          // Preserve existing checklist if it has content, otherwise use task data
+          checklist: formData.checklist && formData.checklist.length > 0 ? formData.checklist : (task.checklist || []),
           // Preserve existing links if they have content, otherwise convert from task data
           links: formData.links && (
             formData.links.oneNote.length > 0 || 
