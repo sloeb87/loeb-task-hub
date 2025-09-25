@@ -72,7 +72,7 @@ const SortableLink: React.FC<SortableLinkProps> = ({ linkType, link, onDelete })
     <div 
       ref={setNodeRef} 
       style={style} 
-      className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded border"
+      className="flex items-center gap-2 p-1 bg-gray-50 dark:bg-gray-800 rounded border"
     >
       <div {...attributes} {...listeners} className="cursor-grab hover:cursor-grabbing">
         <GripVertical className="w-4 h-4 text-gray-400" />
@@ -90,7 +90,7 @@ const SortableLink: React.FC<SortableLinkProps> = ({ linkType, link, onDelete })
           href={link.url} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
+          className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
         >
           {link.name}
         </a>
