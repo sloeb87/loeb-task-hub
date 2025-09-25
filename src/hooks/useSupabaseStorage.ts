@@ -226,7 +226,8 @@ export function useSupabaseStorage() {
       let countQuery = supabase
         .from('tasks')
         .select('id', { count: 'exact', head: true })
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('task_type', 'Meeting Recurring');
       
       // Apply filter to count query - always exclude completed unless specifically requested
       if (filterType === 'active') {
@@ -255,7 +256,8 @@ export function useSupabaseStorage() {
       const { data: allTasksData, error: allTasksError } = await supabase
         .from('tasks')
         .select('status, priority')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('task_type', 'Meeting Recurring');
 
       console.log('loadTasks: Query result:', { 
         dataCount: allTasksData?.length, 
@@ -316,7 +318,8 @@ export function useSupabaseStorage() {
           links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
           recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('task_type', 'Meeting Recurring');
       
       // Apply the same filter to the data query - always exclude completed unless specifically requested
       if (filterType === 'active') {
@@ -466,6 +469,7 @@ export function useSupabaseStorage() {
         .select('*')
         .eq('user_id', user.id)
         .eq('project_id', projectId)
+        .neq('task_type', 'Meeting Recurring')
         .order('due_date', { ascending: true });
 
       if (error) throw error;
@@ -559,6 +563,7 @@ export function useSupabaseStorage() {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
+        .neq('task_type', 'Meeting Recurring')
         .order('due_date', { ascending: true });
 
       if (error) throw error;
@@ -742,7 +747,8 @@ export function useSupabaseStorage() {
       let query = supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .neq('task_type', 'Meeting Recurring');
 
       // Apply filter to exclude completed tasks unless specifically requested
       if (filterType === 'active') {
