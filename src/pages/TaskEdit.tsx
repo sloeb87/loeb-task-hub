@@ -130,17 +130,17 @@ const TaskEdit = () => {
     try {
       await updateTask(updatedTask);
       await refreshTasks();
+      
+      // Update the selected task with the new data
+      setSelectedTask(updatedTask);
+      updateSelectedTask(updatedTask);
+      
       toast({
         title: "Success",
         description: "Task updated successfully",
       });
       
-      // Navigate to project details if we have a project, otherwise tasks
-      if (selectedProject) {
-        navigate(`/projects/${selectedProject.id}`);
-      } else {
-        navigate('/tasks');
-      }
+      // Stay on the current task edit page instead of navigating away
     } catch (error) {
       console.error('Failed to update task:', error);
       toast({
@@ -149,7 +149,7 @@ const TaskEdit = () => {
         variant: "destructive",
       });
     }
-  }, [updateTask, refreshTasks, navigate, selectedProject]);
+  }, [updateTask, refreshTasks, updateSelectedTask]);
 
   const handleDeleteTask = useCallback(async (taskId: string) => {
     try {
