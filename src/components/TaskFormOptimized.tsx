@@ -362,46 +362,58 @@ export const TaskFormOptimized = React.memo(({
       console.log('TaskForm - Available environments:', parameters.environments.map(e => e.name));
       console.log('TaskForm - Available taskTypes:', parameters.taskTypes.map(t => t.name));
       
-      const newFormData: FormData = {
-        title: task.title || "",
-        project: task.project || "",
-        scope: task.scope || [],
-        environment: task.environment || "",
-        taskType: task.taskType || "",
-        status: task.status || "",
-        priority: task.priority || "",
-        responsible: task.responsible || "",
-        startDate: task.startDate || new Date().toISOString().split('T')[0],
-        dueDate: new Date(task.dueDate),
-        plannedTimeHours: task.plannedTimeHours || undefined,
-        description: task.description || "",
-        details: task.details || "",
-        dependencies: task.dependencies || [],
-        checklist: task.checklist || [],
-        links: {
-          oneNote: Array.isArray(task.links?.oneNote) ? task.links.oneNote : (task.links?.oneNote ? [{id: Math.random().toString(36).substr(2, 9), name: 'OneNote', url: task.links.oneNote}] : []),
-          teams: Array.isArray(task.links?.teams) ? task.links.teams : (task.links?.teams ? [{id: Math.random().toString(36).substr(2, 9), name: 'Teams', url: task.links.teams}] : []),
-          email: Array.isArray(task.links?.email) ? task.links.email : (task.links?.email ? [{id: Math.random().toString(36).substr(2, 9), name: 'Email', url: task.links.email}] : []),
-          file: Array.isArray(task.links?.file) ? task.links.file : (task.links?.file ? [{id: Math.random().toString(36).substr(2, 9), name: 'File', url: task.links.file}] : []),
-          folder: Array.isArray(task.links?.folder) ? task.links.folder : (task.links?.folder ? [{id: Math.random().toString(36).substr(2, 9), name: 'Folder', url: task.links.folder}] : [])
-        },
-        stakeholders: task.stakeholders || [],
-        // Recurrence fields
-        isRecurring: task.isRecurring || false,
-        recurrenceType: task.recurrenceType,
-        recurrenceInterval: task.recurrenceInterval || 1,
-        recurrenceEndDate: task.recurrenceEndDate,
-        recurrenceDaysOfWeek: task.recurrenceDaysOfWeek || [],
-        occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
-      };
+      // Only update form data if it's a different task or if formData is still at default
+      const isNewTask = !formData.title || formData.title === DEFAULT_FORM_DATA.title || task.id !== formDataRef.current.title;
       
-      console.log('TaskForm - Setting form data:', newFormData);
-      console.log('TaskForm - newFormData.environment:', newFormData.environment);
-      console.log('TaskForm - newFormData.taskType:', newFormData.taskType);
-      
-      setFormData(newFormData);
-      setDate(new Date(task.dueDate));
-      setProjectScope(task.scope[0] || '');
+      if (isNewTask || formData.title !== task.title) {
+        const newFormData: FormData = {
+          title: task.title || "",
+          project: task.project || "",
+          scope: task.scope || [],
+          environment: task.environment || "",
+          taskType: task.taskType || "",
+          status: task.status || "",
+          priority: task.priority || "",
+          responsible: task.responsible || "",
+          startDate: task.startDate || new Date().toISOString().split('T')[0],
+          dueDate: new Date(task.dueDate),
+          plannedTimeHours: task.plannedTimeHours || undefined,
+          description: task.description || "",
+          details: task.details || "",
+          dependencies: task.dependencies || [],
+          checklist: task.checklist || [],
+          // Preserve existing links if they have content, otherwise convert from task data
+          links: formData.links && (
+            formData.links.oneNote.length > 0 || 
+            formData.links.teams.length > 0 || 
+            formData.links.email.length > 0 || 
+            formData.links.file.length > 0 || 
+            formData.links.folder.length > 0
+          ) ? formData.links : {
+            oneNote: Array.isArray(task.links?.oneNote) ? task.links.oneNote : (task.links?.oneNote ? [{id: Math.random().toString(36).substr(2, 9), name: 'OneNote', url: task.links.oneNote}] : []),
+            teams: Array.isArray(task.links?.teams) ? task.links.teams : (task.links?.teams ? [{id: Math.random().toString(36).substr(2, 9), name: 'Teams', url: task.links.teams}] : []),
+            email: Array.isArray(task.links?.email) ? task.links.email : (task.links?.email ? [{id: Math.random().toString(36).substr(2, 9), name: 'Email', url: task.links.email}] : []),
+            file: Array.isArray(task.links?.file) ? task.links.file : (task.links?.file ? [{id: Math.random().toString(36).substr(2, 9), name: 'File', url: task.links.file}] : []),
+            folder: Array.isArray(task.links?.folder) ? task.links.folder : (task.links?.folder ? [{id: Math.random().toString(36).substr(2, 9), name: 'Folder', url: task.links.folder}] : [])
+          },
+          stakeholders: task.stakeholders || [],
+          // Recurrence fields
+          isRecurring: task.isRecurring || false,
+          recurrenceType: task.recurrenceType,
+          recurrenceInterval: task.recurrenceInterval || 1,
+          recurrenceEndDate: task.recurrenceEndDate,
+          recurrenceDaysOfWeek: task.recurrenceDaysOfWeek || [],
+          occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
+        };
+        
+        console.log('TaskForm - Setting form data:', newFormData);
+        console.log('TaskForm - newFormData.environment:', newFormData.environment);
+        console.log('TaskForm - newFormData.taskType:', newFormData.taskType);
+        
+        setFormData(newFormData);
+        setDate(new Date(task.dueDate));
+        setProjectScope(task.scope[0] || '');
+      }
     } else {
       const newFormData = {
         ...DEFAULT_FORM_DATA,
