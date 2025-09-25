@@ -1021,14 +1021,14 @@ export const TaskFormOptimized = React.memo(({
                     value={newLinkName}
                     onChange={(e) => setNewLinkName(e.target.value)}
                     placeholder="Link name..."
-                    className="w-32 dark:bg-gray-800 dark:border-gray-600"
+                    className="w-2/3 dark:bg-gray-800 dark:border-gray-600"
                   />
                   
                   <Input
                     value={newLinkUrl}
                     onChange={(e) => setNewLinkUrl(e.target.value)}
                     placeholder="URL..."
-                    className="flex-1 min-w-0 dark:bg-gray-800 dark:border-gray-600"
+                    className="w-1/3 dark:bg-gray-800 dark:border-gray-600"
                   />
                   
                   <Button
