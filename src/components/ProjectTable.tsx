@@ -414,7 +414,7 @@ export const ProjectTable = ({
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2">
                           <span className="text-base font-medium text-green-700 dark:text-green-400">{project.id}</span>
-                          <h3 className="text-base font-medium text-foreground">{project.name}</h3>
+                          <h3 className="text-lg font-medium text-foreground">{project.name}</h3>
                         </div>
                         {project.description && (
                           <p className="text-sm text-muted-foreground">{project.description}</p>
