@@ -1228,7 +1228,7 @@ export const TaskFormOptimized = React.memo(({
               )}
 
               {/* Follow-ups List */}
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-3">
                 {displayedFollowUps.length > 0 ? (
                   displayedFollowUps.map((followUp) => (
                     <div key={followUp.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
