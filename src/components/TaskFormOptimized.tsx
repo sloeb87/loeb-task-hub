@@ -90,7 +90,7 @@ const SortableLink: React.FC<SortableLinkProps> = ({ linkType, link, onDelete })
           href={link.url} 
           target="_blank" 
           rel="noopener noreferrer"
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
+          className="text-xs text-blue-600 dark:text-blue-400 hover:underline truncate flex-1"
         >
           {link.name}
         </a>
