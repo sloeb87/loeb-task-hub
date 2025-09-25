@@ -626,7 +626,7 @@ export function useSupabaseStorage() {
           recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
         `)
         .eq('user_id', user.id)
-        .eq('task_type', 'Meeting')
+        .in('task_type', ['Meeting', 'Meeting Recurring'])
         .order('due_date', { ascending: false });
 
       if (error) throw error;
