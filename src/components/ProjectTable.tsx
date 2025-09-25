@@ -307,7 +307,7 @@ export const ProjectTable = ({
                 minWidth: '120px'
               }}>
                   <div className="flex items-center gap-1">
-                    Scope
+                    <span className="text-xl font-medium">Scope</span>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className={`h-6 w-6 p-0 ${selectedScopes.length > 0 ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''}`}>
