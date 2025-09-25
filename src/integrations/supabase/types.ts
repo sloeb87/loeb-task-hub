@@ -523,13 +523,16 @@ export type Database = {
           description: string | null
           duration: number | null
           end_time: string | null
+          environment: string | null
           id: string
           is_running: boolean
           project_name: string
           responsible: string
+          scope: string[] | null
           start_time: string
           task_id: string
           task_title: string
+          task_type: string | null
           updated_at: string
           user_id: string
         }
@@ -538,13 +541,16 @@ export type Database = {
           description?: string | null
           duration?: number | null
           end_time?: string | null
+          environment?: string | null
           id?: string
           is_running?: boolean
           project_name: string
           responsible: string
+          scope?: string[] | null
           start_time: string
           task_id: string
           task_title: string
+          task_type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -553,13 +559,16 @@ export type Database = {
           description?: string | null
           duration?: number | null
           end_time?: string | null
+          environment?: string | null
           id?: string
           is_running?: boolean
           project_name?: string
           responsible?: string
+          scope?: string[] | null
           start_time?: string
           task_id?: string
           task_title?: string
+          task_type?: string | null
           updated_at?: string
           user_id?: string
         }
