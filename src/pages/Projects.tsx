@@ -155,27 +155,28 @@ const ProjectsPage = ({
   // Remove all conditional rendering and debug functions - now using proper routing
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-        <div className="flex items-center space-x-3">
-          <FolderKanban className="w-8 h-8 text-blue-600 dark:text-blue-400" />
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
-            <p className="text-gray-600 dark:text-gray-300 mt-1">Manage projects, assign tasks, and track progress</p>
+    <div className="min-h-screen bg-background">
+      <main className="w-full p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+          <div className="flex items-center space-x-3">
+            <FolderKanban className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Project Management</h1>
+              <p className="text-gray-600 dark:text-gray-300 mt-1">Manage projects, assign tasks, and track progress</p>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Button 
+              onClick={() => setIsProjectFormOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Project
+            </Button>
           </div>
         </div>
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <Button 
-            onClick={() => setIsProjectFormOpen(true)}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            New Project
-          </Button>
-        </div>
-      </div>
 
       {/* Project Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -338,6 +339,7 @@ const ProjectsPage = ({
           tasks={tasks}
         />
       )}
+      </main>
     </div>
   );
 };
