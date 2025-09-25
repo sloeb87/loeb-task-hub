@@ -1289,7 +1289,7 @@ export const TaskFormOptimized = React.memo(({
                     items={formData.checklist.map(item => item.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                    <div className="space-y-2">
                       {formData.checklist.length > 0 ? (
                         formData.checklist.map((item) => (
                           <SortableChecklistItem
