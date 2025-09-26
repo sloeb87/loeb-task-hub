@@ -762,7 +762,6 @@ export const TaskFormOptimized = React.memo(({
                     // Read-only display when task is already linked to a project
                     <div className="flex items-center h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm">
                       <span className="text-muted-foreground">{task.project}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">(linked)</span>
                     </div>
                   ) : (
                     <Select value={formData.project} onValueChange={(value) => updateField('project', value)}>
