@@ -758,18 +758,26 @@ export const TaskFormOptimized = React.memo(({
                 
                 <div>
                   <Label htmlFor="project">Project</Label>
-                  <Select value={formData.project} onValueChange={(value) => updateField('project', value)}>
-                    <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-                      <SelectValue placeholder="Select project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allProjects.map((project) => (
-                        <SelectItem key={project.name} value={project.name}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {task && task.project ? (
+                    // Read-only display when task is already linked to a project
+                    <div className="flex items-center h-10 px-3 py-2 border border-input bg-muted rounded-md text-sm">
+                      <span className="text-muted-foreground">{task.project}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">(linked)</span>
+                    </div>
+                  ) : (
+                    <Select value={formData.project} onValueChange={(value) => updateField('project', value)}>
+                      <SelectTrigger className="dark:bg-gray-800 dark:border-gray-600 dark:text-white">
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allProjects.map((project) => (
+                          <SelectItem key={project.name} value={project.name}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
 
