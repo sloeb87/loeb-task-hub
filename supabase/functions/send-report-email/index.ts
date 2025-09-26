@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -83,7 +83,13 @@ const generateReportHTML = (data: ReportEmailRequest) => {
 
   // Get all follow-ups across all tasks
   const getAllFollowUps = () => {
-    const allFollowUps = [];
+    const allFollowUps: Array<{
+      text: string;
+      timestamp: string;
+      taskStatus?: string;
+      taskTitle: string;
+      taskId: string;
+    }> = [];
     tasks.forEach(task => {
       if (task.followUps && task.followUps.length > 0) {
         task.followUps.forEach(followUp => {
