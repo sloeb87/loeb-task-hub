@@ -1,7 +1,7 @@
 
 export type TaskStatus = "Open" | "In Progress" | "Completed" | "On Hold";
 export type TaskPriority = "Low" | "Medium" | "High" | "Critical";
-export type TaskType = "Development" | "Testing" | "Documentation" | "Review" | "Meeting" | "Research";
+export type TaskType = "Development" | "Testing" | "Documentation" | "Review" | "Meeting" | "Meeting Recurring" | "Research";
 
 export interface FollowUp {
   id: string;

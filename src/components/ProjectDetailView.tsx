@@ -160,8 +160,8 @@ export const ProjectDetailView = ({
     };
 
     // Only include actual Meeting tasks, not other types
-    const allTasks = allProjectTasks.filter(task => task.taskType !== 'Meeting');
-    const allMeetings = allProjectTasks.filter(task => task.taskType === 'Meeting');
+    const allTasks = allProjectTasks.filter(task => task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring');
+    const allMeetings = allProjectTasks.filter(task => task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring');
 
     return {
       allProjectTasksForStats: allTasks,
