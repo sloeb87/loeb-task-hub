@@ -304,7 +304,7 @@ const TaskEdit = () => {
             <div className="flex items-center gap-4">
               <Clock className="h-5 w-5 text-muted-foreground" />
               <div>
-                <h3 className="font-medium">{selectedTask.title}</h3>
+                <h3 className="font-medium">{selectedTask.id} - {selectedTask.title}</h3>
                 <p className="text-sm text-muted-foreground">
                   Total time: {formatTime(getTaskTime(selectedTask.id).totalTime)}
                 </p>
