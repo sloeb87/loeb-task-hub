@@ -69,36 +69,36 @@ const Tasks = () => {
   const nonMeetingTaskCounts = React.useMemo(() => {
     if (!taskCounts) return taskCounts;
     
-    // Get meeting counts from current filtered data (this is just for proportional estimation)
-    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring');
-    const allTasksInMemory = allTasks.length;
-    const meetingsInMemory = meetingTasks.length;
-    const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
+    // Calculate counts directly from the actual filtered tasks (non-meetings)
+    const nonMeetingTasks = allTasks.filter(task => 
+      task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring'
+    );
     
-    // Estimate meeting proportions from total database counts
-    const estimatedMeetingRatio = allTasksInMemory > 0 ? meetingsInMemory / allTasksInMemory : 0;
-    const estimatedTotalMeetings = Math.round(taskCounts.total * estimatedMeetingRatio);
-    const estimatedCompletedMeetings = Math.round(taskCounts.completed * estimatedMeetingRatio);
+    const activeTasks = nonMeetingTasks.filter(task => 
+      task.status === 'Open' || task.status === 'In Progress'
+    );
+    const completedTasks = nonMeetingTasks.filter(task => task.status === 'Completed');
+    const onHoldTasks = nonMeetingTasks.filter(task => task.status === 'On Hold');
+    const criticalTasks = nonMeetingTasks.filter(task => 
+      task.priority === 'High' || task.priority === 'Critical'
+    );
     
-    // Calculate non-meeting counts by subtracting estimated meetings from total DB counts
-    const nonMeetingTotal = taskCounts.total - estimatedTotalMeetings;
-    const nonMeetingCompleted = taskCounts.completed - estimatedCompletedMeetings;
-    const nonMeetingActive = nonMeetingTotal - nonMeetingCompleted; // All non-meetings minus completed = active
+    const today = new Date();
+    const overdueTasks = nonMeetingTasks.filter(task => {
+      if (task.status === 'Completed') return false;
+      const dueDate = new Date(task.dueDate);
+      return dueDate < today;
+    });
     
     return {
-      total: nonMeetingTotal,
-      active: nonMeetingActive,
-      completed: nonMeetingCompleted,
-      overdue: allTasks.filter(task => {
-        if (task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring' || task.status === 'Completed') return false;
-        const today = new Date();
-        const dueDate = new Date(task.dueDate);
-        return dueDate < today;
-      }).length,
-      onHold: taskCounts.onHold - meetingTasks.filter(task => task.status === 'On Hold').length,
-      critical: taskCounts.critical - meetingTasks.filter(task => task.priority === 'High' || task.priority === 'Critical').length
+      total: nonMeetingTasks.length,
+      active: activeTasks.length,
+      completed: completedTasks.length,
+      overdue: overdueTasks.length,
+      onHold: onHoldTasks.length,
+      critical: criticalTasks.length
     };
-  }, [taskCounts, allTasks]);
+  }, [allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {
