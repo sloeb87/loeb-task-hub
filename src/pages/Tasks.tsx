@@ -71,8 +71,8 @@ const Tasks = () => {
       return { total: 0, active: 0, completed: 0, overdue: 0, onHold: 0, critical: 0 };
     }
 
-    // Use database counts directly, but adjust for meetings using sample data
-    // Get meeting ratio from loaded sample to estimate total meetings in DB
+    // Since taskCounts includes all task types, we need to calculate proper non-meeting counts
+    // We'll use the loaded sample to get accurate ratios, but only when we have enough data
     const loadedMeetingTasks = allTasks.filter(task => 
       task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring'
     );
@@ -80,31 +80,47 @@ const Tasks = () => {
       task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring'
     );
     
-    // If we have loaded data, estimate meeting proportions
-    if (allTasks.length > 0) {
+    // If we have a good sample, calculate ratios and apply to database totals
+    if (allTasks.length >= 20) { // Ensure we have enough data for reliable estimation
       const meetingRatio = loadedMeetingTasks.length / allTasks.length;
-      const completedMeetingRatio = loadedMeetingTasks.filter(t => t.status === 'Completed').length / allTasks.length;
+      const nonMeetingRatio = loadedNonMeetingTasks.length / allTasks.length;
       
-      // Estimate total meetings in database and subtract from total counts
-      const estimatedTotalMeetings = Math.round(taskCounts.total * meetingRatio);
-      const estimatedCompletedMeetings = Math.round(taskCounts.completed * completedMeetingRatio);
+      // Calculate active ratio from non-meeting tasks only
+      const activeNonMeetingTasks = loadedNonMeetingTasks.filter(task => task.status !== 'Completed');
+      const activeRatioInNonMeeting = loadedNonMeetingTasks.length > 0 
+        ? activeNonMeetingTasks.length / loadedNonMeetingTasks.length 
+        : 0;
+      
+      // Apply ratios to database totals
+      const estimatedNonMeetingTotal = Math.round(taskCounts.total * nonMeetingRatio);
+      const estimatedNonMeetingActive = Math.round(estimatedNonMeetingTotal * activeRatioInNonMeeting);
+      
+      console.log('Non-meeting task calculation:', {
+        totalDB: taskCounts.total,
+        meetingRatio,
+        nonMeetingRatio,
+        activeRatioInNonMeeting,
+        estimatedNonMeetingTotal,
+        estimatedNonMeetingActive
+      });
       
       return {
-        total: Math.max(0, taskCounts.total - estimatedTotalMeetings),
-        active: Math.max(0, taskCounts.active - (estimatedTotalMeetings - estimatedCompletedMeetings)),
-        completed: Math.max(0, taskCounts.completed - estimatedCompletedMeetings),
+        total: estimatedNonMeetingTotal, // All non-meeting tasks
+        active: estimatedNonMeetingActive, // Active non-meeting tasks  
+        completed: taskCounts.completed - Math.round(taskCounts.completed * meetingRatio),
         overdue: loadedNonMeetingTasks.filter(task => {
           if (task.status === 'Completed') return false;
           const today = new Date();
           const dueDate = new Date(task.dueDate);
           return dueDate < today;
         }).length,
-        onHold: taskCounts.onHold, // Assume meetings don't significantly affect this
-        critical: taskCounts.critical // Assume meetings don't significantly affect this
+        onHold: Math.round(taskCounts.onHold * nonMeetingRatio),
+        critical: Math.round(taskCounts.critical * nonMeetingRatio)
       };
     }
     
-    // Fallback: return original counts if no sample data
+    // Fallback: if we don't have enough sample data, return original counts
+    // This shouldn't happen normally, but provides a safety net
     return taskCounts;
   }, [taskCounts, allTasks]);
 
