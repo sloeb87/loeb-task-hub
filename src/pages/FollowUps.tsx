@@ -527,18 +527,12 @@ export const FollowUpsPage = ({
   const plannedVsLoggedChartData = useMemo(() => {
     if (allTasks.length === 0) return [];
     
-    // Find date range from both tasks and time entries
-    const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
-    const timeEntryDates = timeEntries.map(entry => new Date(entry.start_time));
-    const allDates = [...taskDates, ...timeEntryDates];
-    
     const currentDate = new Date();
-    const maxDate = allDates.length > 0 ? new Date(Math.max(...allDates.map(d => d.getTime()))) : endOfMonth(addMonths(currentDate, 12));
     
-    // Generate monthly data points starting from current month
+    // Generate monthly data points from 6 months before to 1 year from current month
     const months: { week: string; plannedHours: number; loggedHours: number; date: Date }[] = [];
-    let currentMonth = startOfMonth(currentDate);
-    const endMonth = endOfMonth(maxDate);
+    let currentMonth = startOfMonth(addMonths(currentDate, -6)); // Start 6 months before
+    const endMonth = endOfMonth(addMonths(currentDate, 12)); // End 1 year from now
     
     while (currentMonth <= endMonth) {
       const monthEnd = endOfMonth(currentMonth);
