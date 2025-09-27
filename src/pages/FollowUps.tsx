@@ -890,7 +890,7 @@ export const FollowUpsPage = ({
                    config={{
                      openTasks: {
                        label: "Open Tasks",
-                       color: "hsl(var(--chart-2))",
+                       color: "hsl(var(--chart-3))",
                      },
                    }}
                    className="h-[300px]"
@@ -906,8 +906,8 @@ export const FollowUpsPage = ({
                     }}>
                      <defs>
                        <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                         <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                         <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
+                         <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0}/>
                        </linearGradient>
                      </defs>
                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -930,7 +930,7 @@ export const FollowUpsPage = ({
                      <Area 
                        type="monotone" 
                        dataKey="count" 
-                       stroke="hsl(var(--chart-2))" 
+                       stroke="hsl(var(--chart-3))" 
                        strokeWidth={3}
                        fill="url(#tasksGradient)"
                        dot={false}
