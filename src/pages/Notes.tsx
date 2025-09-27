@@ -19,6 +19,19 @@ const Notes = () => {
     }
   }, [note]);
 
+  // Handle Enter key press to save immediately
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      // Clear any pending auto-save timeout
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      // Save immediately
+      saveNote(content);
+      setLastSaved(new Date().toISOString());
+    }
+  };
+
   // Auto-save with debouncing
   useEffect(() => {
     if (note && content !== note.content) {
@@ -86,9 +99,9 @@ const Notes = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="w-full p-6">
-        <div className="max-w-4xl mx-auto">
-          <Card className="border-0 shadow-lg">
+      <main className="w-full p-4">
+        <div className="max-w-6xl mx-auto h-full">
+          <Card className="border-0 shadow-lg h-[calc(100vh-2rem)] flex flex-col">
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl font-bold text-foreground">
@@ -110,15 +123,16 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Everything is automatically saved as you type.
+                Write your thoughts, ideas, and quick notes here. Press Enter to save immediately, or notes auto-save as you type.
               </p>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent className="pt-0 flex-1 flex flex-col">
               <Textarea
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Start writing your notes here..."
-                className="min-h-[500px] text-base leading-relaxed resize-none border-0 p-6 focus-visible:ring-0 focus-visible:ring-offset-0"
+                className="min-h-[calc(100vh-12rem)] flex-1 text-base leading-relaxed resize-none border-0 p-6 focus-visible:ring-0 focus-visible:ring-offset-0"
                 style={{ 
                   fontSize: '16px',
                   lineHeight: '1.6',
