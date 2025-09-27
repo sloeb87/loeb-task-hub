@@ -1190,7 +1190,21 @@ export function useSupabaseStorage() {
       }
     }
 
-    // Removed automatic completion follow-up to prevent RLS issues
+    // Add follow-up comment if task was just completed (except for Meeting tasks and recurring meetings)
+    if (isBeingCompleted && updatedTask.taskType !== 'Meeting' && !updatedTask.isRecurring) {
+      const { error: followUpError } = await supabase
+        .from('follow_ups')
+        .insert({
+          task_id: updatedTask.id,
+          text: "Task marked completed",
+          task_status: 'Completed',
+          created_at: new Date().toISOString()
+        });
+
+      if (followUpError) {
+        console.error('Error adding completion follow-up:', followUpError);
+      }
+    }
 
     // Create follow-ups for tracked field changes
     const followUpsToCreate = [];
@@ -1198,7 +1212,7 @@ export function useSupabaseStorage() {
     // Check for Status change (excluding completion as it's handled above)
     if (existingTask.status !== updatedTask.status && !isBeingCompleted) {
       followUpsToCreate.push({
-        task_id: existingTask.id,
+        task_id: updatedTask.id,
         text: `Status changed from "${existingTask.status}" to "${updatedTask.status}"`,
         task_status: updatedTask.status,
         created_at: new Date().toISOString()
@@ -1208,7 +1222,7 @@ export function useSupabaseStorage() {
     // Check for Priority change
     if (existingTask.priority !== updatedTask.priority) {
       followUpsToCreate.push({
-        task_id: existingTask.id,
+        task_id: updatedTask.id,
         text: `Priority changed from "${existingTask.priority}" to "${updatedTask.priority}"`,
         task_status: updatedTask.status,
         created_at: new Date().toISOString()
