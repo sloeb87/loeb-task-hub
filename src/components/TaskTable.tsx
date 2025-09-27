@@ -1122,16 +1122,16 @@ export const TaskTable = ({
                                <div className="text-xs text-gray-400 mb-1">
                                  Today ({todaysFollowUps.length} follow-up{todaysFollowUps.length > 1 ? 's' : ''})
                                </div>
-                               {todaysFollowUps.map((followUp, index) => (
-                                 <div key={followUp.id} className="text-xs">
-                                   <div className="text-gray-500 dark:text-gray-400">
-                                     {new Date(followUp.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                   </div>
+                                {todaysFollowUps.map((followUp, index) => (
+                                  <div key={followUp.id} className="text-xs">
                                     <div className={`whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'}`}>
+                                      <span className="text-gray-500 dark:text-gray-400 mr-2">
+                                        {new Date(followUp.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                      </span>
                                       {followUp.text}
                                     </div>
-                                 </div>
-                               ))}
+                                  </div>
+                                ))}
                                {hasMoreToday && (
                                  <div className="text-xs text-blue-600 dark:text-blue-400 italic">
                                    +{task.followUps.filter(f => new Date(f.timestamp).toDateString() === today).length - 3} more today...
