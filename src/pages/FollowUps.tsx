@@ -750,7 +750,7 @@ export const FollowUpsPage = ({
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Total Follow-Ups</CardTitle>
@@ -783,6 +783,32 @@ export const FollowUpsPage = ({
             </div>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base font-medium text-gray-600 dark:text-gray-400">Avg. Hours per Task</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              {stats.totalFollowUps > 0 ? (stats.totalFollowUps / stats.tasksWithFollowUps).toFixed(1) : '0'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filters */}
+      <div className="space-y-4">
+        <TimeEntryFiltersComponent
+          filters={dateFilters}
+          onFiltersChange={handleDateFiltersChange}
+          onClearFilters={handleDateClear}
+        />
+        <FollowUpFiltersComponent 
+          filters={filters} 
+          onFiltersChange={setFilters} 
+          onClearFilters={clearFilters} 
+          hideDateRange
+        />
       </div>
 
       {/* Time-based Charts */}
@@ -1045,24 +1071,6 @@ export const FollowUpsPage = ({
        </CardContent>
       </Card>
 
-      {/* Unified Filters Section */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <TimeEntryFiltersComponent
-              filters={dateFilters}
-              onFiltersChange={handleDateFiltersChange}
-              onClearFilters={handleDateClear}
-            />
-            <FollowUpFiltersComponent 
-              filters={filters} 
-              onFiltersChange={setFilters} 
-              onClearFilters={clearFilters} 
-              hideDateRange
-            />
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Export */}
       <FollowUpExport followUps={filteredFollowUps} filters={filters} />
