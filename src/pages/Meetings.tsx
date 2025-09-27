@@ -22,8 +22,8 @@ const Meetings = () => {
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
   
-  // Progressive loading - start with 5, load 5 more each time
-  const [displayLimit, setDisplayLimit] = useState(5);
+  // Progressive loading - start with 10, load 10 more each time
+  const [displayLimit, setDisplayLimit] = useState(10);
   const getPageSize = useCallback(() => {
     return Math.max(displayLimit, 25); // Always load at least what we're displaying
   }, [displayLimit]);
@@ -270,7 +270,7 @@ const Meetings = () => {
             console.log('Meetings: Filter changed to:', filter);
             setActiveFilter(filter);
             // Reset display limit when filter changes
-            setDisplayLimit(5);
+            setDisplayLimit(10);
           }}
           onSortChange={handleSortChange}
         />
@@ -295,7 +295,7 @@ const Meetings = () => {
         {displayLimit < filteredTasks.length && (
           <div className="flex justify-center p-6">
             <Button 
-              onClick={() => setDisplayLimit(prev => prev + 5)}
+              onClick={() => setDisplayLimit(prev => prev + 10)}
               variant="outline"
               size="lg"
               className="min-w-40"
