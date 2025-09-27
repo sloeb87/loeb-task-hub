@@ -87,13 +87,20 @@ const Tasks = () => {
       
       // Calculate active ratio from non-meeting tasks only
       const activeNonMeetingTasks = loadedNonMeetingTasks.filter(task => task.status !== 'Completed');
+      const completedNonMeetingTasks = loadedNonMeetingTasks.filter(task => task.status === 'Completed');
+      
+      // Calculate ratios
       const activeRatioInNonMeeting = loadedNonMeetingTasks.length > 0 
         ? activeNonMeetingTasks.length / loadedNonMeetingTasks.length 
+        : 0;
+      const completedRatioInNonMeeting = loadedNonMeetingTasks.length > 0 
+        ? completedNonMeetingTasks.length / loadedNonMeetingTasks.length 
         : 0;
       
       // Apply ratios to database totals
       const estimatedNonMeetingTotal = Math.round(taskCounts.total * nonMeetingRatio);
-      const estimatedNonMeetingActive = Math.round(estimatedNonMeetingTotal * activeRatioInNonMeeting);
+      const estimatedNonMeetingCompleted = Math.round(estimatedNonMeetingTotal * completedRatioInNonMeeting);
+      const estimatedNonMeetingActive = estimatedNonMeetingTotal - estimatedNonMeetingCompleted; // Active = Total - Completed
       
       console.log('Non-meeting task calculation:', {
         totalDB: taskCounts.total,
