@@ -57,6 +57,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     type: 'project' | 'taskType' | 'scope';
   } | null>(null);
 
+  // Modal state for time entries table
+  const [timeEntriesModalOpen, setTimeEntriesModalOpen] = useState(false);
+  const [timeEntriesModalData, setTimeEntriesModalData] = useState<{
+    title: string;
+    entries: TimeEntry[];
+    category: string;
+    type: 'project' | 'taskType' | 'scope';
+  } | null>(null);
+
   // Multi-select filters
   const [multiSelectFilters, setMultiSelectFilters] = useState<MultiSelectFilters>({
     task: [],
@@ -714,6 +723,51 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     setDetailModalOpen(true);
   }, [scopeRawData, scopeTotal]);
 
+  // Click handlers for pie chart segments to show time entries
+  const handlePieSegmentClick = useCallback((data: any, type: 'project' | 'taskType' | 'scope') => {
+    if (!data || !data.payload) return;
+    
+    const categoryName = data.payload.name;
+    let entriesForCategory: TimeEntry[] = [];
+    
+    // Filter entries based on the clicked category
+    switch (type) {
+      case 'project':
+        entriesForCategory = filteredEntries.filter(entry => 
+          (entry.projectName || 'Unassigned') === categoryName
+        );
+        break;
+      case 'taskType':
+        entriesForCategory = filteredEntries.filter(entry => {
+          const task = taskLookup[entry.taskId] || 
+                       tasks.find(t => t.id === entry.taskId) ||
+                       tasks.find(t => t.uuid === entry.taskId) ||
+                       tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
+                       tasks.find(t => t.title === entry.taskTitle);
+          return (task?.taskType || 'Unassigned') === categoryName;
+        });
+        break;
+      case 'scope':
+        entriesForCategory = filteredEntries.filter(entry => {
+          const task = taskLookup[entry.taskId] || 
+                       tasks.find(t => t.id === entry.taskId) ||
+                       tasks.find(t => t.uuid === entry.taskId) ||
+                       tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
+                       tasks.find(t => t.title === entry.taskTitle);
+          return task && task.scope && task.scope.includes(categoryName);
+        });
+        break;
+    }
+    
+    setTimeEntriesModalData({
+      title: `Time Entries: ${categoryName}`,
+      entries: entriesForCategory,
+      category: categoryName,
+      type: type
+    });
+    setTimeEntriesModalOpen(true);
+  }, [filteredEntries, taskLookup, tasks]);
+
   // Historical daily totals (last 30 days, ending today)
   const dailyHistoryData = useMemo(() => {
     const now = new Date();
@@ -989,7 +1043,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       {/* Project Distribution Pie Chart */}
       {projectPieData.length > 0 ? (
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleProjectChartClick}>
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle>Project</CardTitle>
           </CardHeader>
@@ -1037,6 +1091,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                          stroke="hsl(var(--background))"
                          label={makePieLabelOutside(projectTotal)}
                          labelLine={true}
+                         onClick={(data) => handlePieSegmentClick(data, 'project')}
                        >
                          {projectPieData.map((entry, index) => {
                            // Find the project and use its scope color for stroke
@@ -1072,7 +1127,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       {/* Additional Charts: Task Type and Scope */}
       <div className="contents">
         {/* Task Type Pie Chart */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleTaskTypeChartClick}>
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle>Task Type</CardTitle>
           </CardHeader>
@@ -1116,6 +1171,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         stroke="hsl(var(--background))"
                         label={makePieLabelOutside(taskTypeTotal)}
                         labelLine={true}
+                        onClick={(data) => handlePieSegmentClick(data, 'taskType')}
                       >
                         {taskTypePieData.map((entry, index) => {
                           const color = getTaskTypeColor(entry.name);
@@ -1140,7 +1196,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </Card>
 
         {/* Scope Pie Chart */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleScopeChartClick}>
+        <Card>
           <CardHeader className="pb-2">
             <CardTitle>Scope</CardTitle>
           </CardHeader>
@@ -1184,6 +1240,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                         stroke="hsl(var(--background))"
                         label={makePieLabelOutside(scopeTotal)}
                         labelLine={true}
+                        onClick={(data) => handlePieSegmentClick(data, 'scope')}
                       >
                         {scopePieData.map((entry, index) => {
                           const color = getScopeColor(entry.name);
@@ -1405,6 +1462,99 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                   </Table>
                 </div>
               </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Time Entries Modal */}
+      <Dialog open={timeEntriesModalOpen} onOpenChange={setTimeEntriesModalOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              {timeEntriesModalData?.title}
+            </DialogTitle>
+            <DialogDescription>
+              Showing {timeEntriesModalData?.entries.length || 0} time entries for "{timeEntriesModalData?.category}"
+            </DialogDescription>
+          </DialogHeader>
+          
+          {timeEntriesModalData && (
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Task</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Start Time</TableHead>
+                      <TableHead>End Time</TableHead>
+                      <TableHead>Duration</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {timeEntriesModalData.entries.map((entry) => {
+                      const startDate = new Date(entry.startTime);
+                      const endDate = entry.endTime ? new Date(entry.endTime) : null;
+                      const task = taskLookup[entry.taskId] || 
+                                   tasks.find(t => t.id === entry.taskId) ||
+                                   tasks.find(t => t.uuid === entry.taskId) ||
+                                   tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
+                                   tasks.find(t => t.title === entry.taskTitle);
+                      
+                      return (
+                        <TableRow key={entry.id}>
+                          <TableCell>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {entry.taskId === 'non_project_time' ? 'Non_Project_Task' : `${task?.id || entry.taskId}_${entry.taskTitle}`}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-gray-900 dark:text-white">
+                              {normalizeProjectName(entry.projectName)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-gray-900 dark:text-white">
+                              {startDate.toLocaleDateString()}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-gray-900 dark:text-white">
+                              {startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-gray-900 dark:text-white">
+                              {entry.isRunning ? (
+                                <span className="text-green-600 dark:text-green-400">In Progress</span>
+                              ) : (
+                                endDate ? endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '-'
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                              {entry.duration ? formatDetailedTime(entry.duration) : '-'}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {timeEntriesModalData.entries.length === 0 && (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400">
+                    No time entries found for this category.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
