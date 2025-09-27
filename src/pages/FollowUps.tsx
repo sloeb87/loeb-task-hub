@@ -377,12 +377,12 @@ export const FollowUpsPage = ({
     
     // Find date range from projects
     const projectDates = projects.map(p => [new Date(p.startDate), new Date(p.endDate)]).flat();
-    const minDate = new Date(Math.min(...projectDates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...projectDates.map(d => d.getTime())));
+    const currentDate = new Date();
+    const maxDate = projectDates.length > 0 ? new Date(Math.max(...projectDates.map(d => d.getTime()))) : endOfMonth(addMonths(currentDate, 12));
     
-    // Generate ALL monthly data points (including months with 0 projects)
+    // Generate ALL monthly data points starting from current month (including months with 0 projects)
     const months: { week: string; count: number; date: Date }[] = [];
-    let currentMonth = startOfMonth(minDate);
+    let currentMonth = startOfMonth(currentDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
@@ -411,12 +411,12 @@ export const FollowUpsPage = ({
     
     // Find date range from tasks
     const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
-    const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
+    const currentDate = new Date();
+    const maxDate = taskDates.length > 0 ? new Date(Math.max(...taskDates.map(d => d.getTime()))) : endOfMonth(addMonths(currentDate, 12));
     
-    // Generate ALL monthly data points (including months with 0 tasks)
+    // Generate ALL monthly data points starting from current month (including months with 0 tasks)
     const months: { week: string; count: number; date: Date }[] = [];
-    let currentMonth = startOfMonth(minDate);
+    let currentMonth = startOfMonth(currentDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
@@ -450,12 +450,12 @@ export const FollowUpsPage = ({
     const taskDates = allTasks.map(t => [new Date(t.startDate), new Date(t.dueDate)]).flat();
     if (taskDates.length === 0) return [];
     
-    const minDate = new Date(Math.min(...taskDates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...taskDates.map(d => d.getTime())));
+    const currentDate = new Date();
+    const maxDate = taskDates.length > 0 ? new Date(Math.max(...taskDates.map(d => d.getTime()))) : endOfMonth(addMonths(currentDate, 12));
     
-    // Generate monthly data points - use simpler calculation for performance
+    // Generate monthly data points starting from current month - use simpler calculation for performance
     const months: { week: string; cumulativeHours: number; date: Date }[] = [];
-    let currentMonth = startOfMonth(minDate);
+    let currentMonth = startOfMonth(currentDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
@@ -518,14 +518,12 @@ export const FollowUpsPage = ({
     const timeEntryDates = timeEntries.map(entry => new Date(entry.start_time));
     const allDates = [...taskDates, ...timeEntryDates];
     
-    if (allDates.length === 0) return [];
+    const currentDate = new Date();
+    const maxDate = allDates.length > 0 ? new Date(Math.max(...allDates.map(d => d.getTime()))) : endOfMonth(addMonths(currentDate, 12));
     
-    const minDate = new Date(Math.min(...allDates.map(d => d.getTime())));
-    const maxDate = new Date(Math.max(...allDates.map(d => d.getTime())));
-    
-    // Generate monthly data points
+    // Generate monthly data points starting from current month
     const months: { week: string; plannedHours: number; loggedHours: number; date: Date }[] = [];
-    let currentMonth = startOfMonth(minDate);
+    let currentMonth = startOfMonth(currentDate);
     const endMonth = endOfMonth(maxDate);
     
     while (currentMonth <= endMonth) {
