@@ -976,7 +976,7 @@ export const FollowUpsPage = ({
       </div>
 
       {/* Planned vs Logged Hours Chart - Full Width */}
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned vs Logged Hours</CardTitle>
           <CardDescription>Monthly comparison of planned hours vs actual logged hours</CardDescription>
