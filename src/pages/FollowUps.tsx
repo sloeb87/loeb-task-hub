@@ -994,7 +994,7 @@ export const FollowUpsPage = ({
                  color: "hsl(200, 80%, 60%)",
                },
              }}
-             className="h-[400px]"
+             className="h-[600px]"
            >
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={plannedVsLoggedChartData}>
