@@ -1028,13 +1028,13 @@ export const FollowUpsPage = ({
                  />
                  <Bar 
                    dataKey="plannedHours" 
-                   fill="hsl(var(--chart-4))" 
+                   fill="hsl(var(--chart-4) / 0.7)" 
                    radius={[2, 2, 0, 0]}
                    name="Planned Hours"
                  />
                  <Bar 
                    dataKey="loggedHours" 
-                   fill="hsl(var(--chart-2))" 
+                   fill="hsl(var(--chart-2) / 0.7)" 
                    radius={[2, 2, 0, 0]}
                    name="Logged Hours"
                  />
