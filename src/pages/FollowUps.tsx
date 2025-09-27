@@ -904,12 +904,12 @@ export const FollowUpsPage = ({
                        }
                      }
                    }}>
-                    <defs>
-                      <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                     <defs>
+                       <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                       </linearGradient>
+                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                      <XAxis 
                        dataKey="week" 
@@ -952,22 +952,22 @@ export const FollowUpsPage = ({
            <CardContent>
                <div className="relative group">
                  <ChartContainer
-                  config={{
-                    cumulativeHours: {
-                      label: "Cumulative PT Hours",
-                      color: "hsl(var(--chart-2))",
-                    },
-                  }}
+                   config={{
+                     cumulativeHours: {
+                       label: "Cumulative PT Hours",
+                       color: "hsl(var(--chart-1))",
+                     },
+                   }}
                   className="h-[300px]"
                 >
                  <ResponsiveContainer width="100%" height="100%">
                    <AreaChart data={hoursChartData}>
-                    <defs>
-                      <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
+                     <defs>
+                       <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
+                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                       </linearGradient>
+                     </defs>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                      <XAxis 
                        dataKey="week" 
@@ -985,14 +985,14 @@ export const FollowUpsPage = ({
                       className="text-xs"
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="cumulativeHours" 
-                      stroke="hsl(var(--chart-2))" 
-                      strokeWidth={3}
-                      fill="url(#hoursGradient)"
-                      dot={false}
-                    />
+                     <Area 
+                       type="monotone" 
+                       dataKey="cumulativeHours" 
+                       stroke="hsl(var(--chart-1))" 
+                       strokeWidth={3}
+                       fill="url(#hoursGradient)"
+                       dot={false}
+                     />
                   </AreaChart>
                  </ResponsiveContainer>
               </ChartContainer>
