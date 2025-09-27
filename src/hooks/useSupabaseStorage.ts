@@ -792,7 +792,7 @@ export function useSupabaseStorage() {
 
       // Search in task fields OR in follow-ups
       if (followUpTaskIds.length > 0) {
-        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%,id.in.(${followUpTaskIds.join(',')})`);
+        query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%,task_number.in.(${followUpTaskIds.join(',')})`);
       } else {
         query = query.or(`title.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%,responsible.ilike.%${searchTerm}%`);
       }
