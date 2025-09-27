@@ -1127,7 +1127,7 @@ export const TaskTable = ({
                                    <div className="text-gray-500 dark:text-gray-400">
                                      {new Date(followUp.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                    </div>
-                                    <div className={`text-gray-600 dark:text-gray-300 whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                                    <div className={`whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'}`}>
                                       {followUp.text}
                                     </div>
                                  </div>
