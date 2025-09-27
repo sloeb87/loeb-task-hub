@@ -541,10 +541,25 @@ export function useSupabaseStorage() {
         return null;
       }
 
-      // Convert the task - need to provide empty maps since we don't batch load for single task
-      const emptyFollowUpsMap = new Map<string, any[]>();
+      // Load follow-ups for this specific task
+      const { data: followUpsData, error: followUpsError } = await supabase
+        .from('follow_ups')
+        .select('*')
+        .eq('task_id', taskData.task_number)
+        .order('created_at', { ascending: true });
+
+      if (followUpsError) {
+        console.error('Error loading follow-ups for task:', followUpsError);
+      }
+
+      // Create follow-ups map for this task
+      const followUpsMap = new Map<string, any[]>();
+      if (followUpsData) {
+        followUpsMap.set(taskData.task_number, followUpsData);
+      }
+
       const emptyProjectMap = new Map<string, string>();
-      const convertedTask = convertSupabaseTaskToTask(taskData, emptyFollowUpsMap, emptyProjectMap);
+      const convertedTask = convertSupabaseTaskToTask(taskData, followUpsMap, emptyProjectMap);
       return convertedTask;
     } catch (err) {
       console.error('Error loading task by ID:', err);
