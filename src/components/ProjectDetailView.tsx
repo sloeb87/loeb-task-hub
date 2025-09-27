@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, Users, Edit, Plus, FileBarChart, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
+import { ArrowLeft, Calendar, Users, Edit, Plus, ExternalLink, FolderOpen, Mail, FileText } from "lucide-react";
 import { Project, Task } from "@/types/task";
 import { TaskTable } from "@/components/TaskTable";
 import { ProjectForm } from "@/components/ProjectForm";
@@ -29,7 +29,6 @@ interface ProjectDetailViewProps {
   onDeleteProject?: (projectId: string) => void;
   onCreateTask: () => void;
   onEditTask: (task: Task) => void;
-  onGenerateReport: () => void;
   onUpdateTask?: (task: Task) => void;
   onDeleteTask?: (taskId: string) => void;
   onSaveTask?: (task: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => void;
@@ -47,7 +46,6 @@ export const ProjectDetailView = ({
   onDeleteProject,
   onCreateTask, 
   onEditTask,
-  onGenerateReport,
   onUpdateTask,
   onDeleteTask,
   onSaveTask 
@@ -363,10 +361,6 @@ export const ProjectDetailView = ({
           <Button variant="outline" onClick={handleEditProjectLocal}>
             <Edit className="w-4 h-4 mr-2" />
             Edit Project
-          </Button>
-          <Button variant="outline" onClick={onGenerateReport}>
-            <FileBarChart className="w-4 h-4 mr-2" />
-            Generate Report
           </Button>
           <Button onClick={handleCreateTaskForProject}>
             <Plus className="w-4 h-4 mr-2" />

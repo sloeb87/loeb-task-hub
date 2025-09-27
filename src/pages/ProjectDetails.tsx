@@ -161,10 +161,6 @@ const ProjectDetails = () => {
     }
   };
 
-  const handleGenerateReport = () => {
-    console.log('Generate report for project:', project?.name);
-  };
-
   const handleSaveTask = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     if ('id' in taskData) {
       handleUpdateTask(taskData as Task);
@@ -205,7 +201,6 @@ const ProjectDetails = () => {
           onUpdateTask={handleUpdateTask}
           onDeleteTask={handleDeleteTask}
           onSaveTask={handleSaveTask}
-          onGenerateReport={handleGenerateReport}
         />
       </main>
     </div>
