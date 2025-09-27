@@ -999,16 +999,18 @@ export const FollowUpsPage = ({
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={plannedVsLoggedChartData}>
                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                <XAxis 
-                  dataKey="week" 
-                  axisLine={false}
-                  tickLine={false}
-                  className="text-xs"
-                  interval={0}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                />
+                 <XAxis 
+                   dataKey="week" 
+                   axisLine={false}
+                   tickLine={false}
+                   className="text-xs"
+                   interval={0}
+                   angle={-45}
+                   textAnchor="end"
+                   height={60}
+                   scale="point"
+                   padding={{ left: 10, right: 10 }}
+                 />
                <YAxis 
                  axisLine={false}
                  tickLine={false}
