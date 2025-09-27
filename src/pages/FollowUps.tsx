@@ -1008,8 +1008,8 @@ export const FollowUpsPage = ({
                    angle={-45}
                    textAnchor="end"
                    height={60}
-                   scale="point"
-                   padding={{ left: 10, right: 10 }}
+                   scale="band"
+                   padding={{ left: 0, right: 0 }}
                  />
                <YAxis 
                  axisLine={false}
