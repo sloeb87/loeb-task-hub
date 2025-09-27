@@ -45,6 +45,19 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Checkbox } from "@/components/ui/checkbox";
 
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 // Sortable Link Item Component
 interface SortableLinkProps {
   linkType: string;
@@ -1239,7 +1252,7 @@ export const TaskFormOptimized = React.memo(({
                 {displayedFollowUps.length > 0 ? (
                   displayedFollowUps.map((followUp) => (
                     <div key={followUp.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                      <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
+                      <p className={`text-sm whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
                         {followUp.text}
                       </p>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
