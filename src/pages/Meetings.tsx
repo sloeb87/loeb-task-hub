@@ -55,19 +55,33 @@ const Meetings = () => {
   } = useSupabaseStorage();
 
   // IMPORTANT: All hooks must be called before any early returns
-  // Memoize filtered tasks for better performance
+  // Memoize filtered tasks for better performance with search support
   const filteredTasks = React.useMemo(() => {
     if (!allMeetings) return [];
-    return allMeetings.filter(task => {
-      // Apply active filter locally
+    
+    let filtered = allMeetings;
+    
+    // Apply search filter if there's a search term
+    if (currentSearchTerm.trim()) {
+      const searchLower = currentSearchTerm.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.title.toLowerCase().includes(searchLower) ||
+        task.description.toLowerCase().includes(searchLower) ||
+        task.responsible.toLowerCase().includes(searchLower) ||
+        task.followUps.some(fu => fu.text.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply active filter
+    return filtered.filter(task => {
       if (activeFilter === 'open') return task.status === 'Open';
-      if (activeFilter === 'active') return task.status === 'Open' || task.status === 'In Progress';
+      if (activeFilter === 'active') return task.status !== 'Completed'; // Active = not completed
       if (activeFilter === 'inprogress') return task.status === 'In Progress';
       if (activeFilter === 'onhold') return task.status === 'On Hold';
-      if (activeFilter === 'critical') return task.priority === 'High' || task.priority === 'Critical';
+      if (activeFilter === 'critical') return task.priority === 'Critical' && task.status !== 'Completed'; // Match hook logic
       return true; // 'all' or any other filter
     });
-  }, [allMeetings, activeFilter]);
+  }, [allMeetings, activeFilter, currentSearchTerm]);
 
   // Memoize sorted and sliced tasks
   const displayedTasks = React.useMemo(() => {
@@ -283,9 +297,9 @@ const Meetings = () => {
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected meeting
           onCompleteTask={handleUpdateTask} // Handle meeting completion
-          onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
-            const pageSize = getPageSize();
-            searchTasks(searchTerm, page, pageSize, sortField, sortDirection);
+          onSearch={() => {
+            // For meetings, search is handled locally in the filteredTasks memo
+            // No need for external search since we load all meetings
           }}
           currentSearchTerm={currentSearchTerm}
           isLoading={isLoading}

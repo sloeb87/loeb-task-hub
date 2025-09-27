@@ -65,71 +65,8 @@ const Tasks = () => {
     return allTasks.filter(task => task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring');
   }, [allTasks]);
 
-  // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
-  const nonMeetingTaskCounts = React.useMemo(() => {
-    if (!taskCounts) {
-      return { total: 0, active: 0, completed: 0, overdue: 0, onHold: 0, critical: 0 };
-    }
-
-    // Since taskCounts includes all task types, we need to calculate proper non-meeting counts
-    // We'll use the loaded sample to get accurate ratios, but only when we have enough data
-    const loadedMeetingTasks = allTasks.filter(task => 
-      task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring'
-    );
-    const loadedNonMeetingTasks = allTasks.filter(task => 
-      task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring'
-    );
-    
-    // If we have a good sample, calculate ratios and apply to database totals
-    if (allTasks.length >= 20) { // Ensure we have enough data for reliable estimation
-      const meetingRatio = loadedMeetingTasks.length / allTasks.length;
-      const nonMeetingRatio = loadedNonMeetingTasks.length / allTasks.length;
-      
-      // Calculate active ratio from non-meeting tasks only
-      const activeNonMeetingTasks = loadedNonMeetingTasks.filter(task => task.status !== 'Completed');
-      const completedNonMeetingTasks = loadedNonMeetingTasks.filter(task => task.status === 'Completed');
-      
-      // Calculate ratios
-      const activeRatioInNonMeeting = loadedNonMeetingTasks.length > 0 
-        ? activeNonMeetingTasks.length / loadedNonMeetingTasks.length 
-        : 0;
-      const completedRatioInNonMeeting = loadedNonMeetingTasks.length > 0 
-        ? completedNonMeetingTasks.length / loadedNonMeetingTasks.length 
-        : 0;
-      
-      // Apply ratios to database totals
-      const estimatedNonMeetingTotal = Math.round(taskCounts.total * nonMeetingRatio);
-      const estimatedNonMeetingCompleted = Math.round(estimatedNonMeetingTotal * completedRatioInNonMeeting);
-      const estimatedNonMeetingActive = estimatedNonMeetingTotal - estimatedNonMeetingCompleted; // Active = Total - Completed
-      
-      console.log('Non-meeting task calculation:', {
-        totalDB: taskCounts.total,
-        meetingRatio,
-        nonMeetingRatio,
-        activeRatioInNonMeeting,
-        estimatedNonMeetingTotal,
-        estimatedNonMeetingActive
-      });
-      
-      return {
-        total: estimatedNonMeetingTotal, // All non-meeting tasks
-        active: estimatedNonMeetingActive, // Active non-meeting tasks  
-        completed: taskCounts.completed - Math.round(taskCounts.completed * meetingRatio),
-        overdue: loadedNonMeetingTasks.filter(task => {
-          if (task.status === 'Completed') return false;
-          const today = new Date();
-          const dueDate = new Date(task.dueDate);
-          return dueDate < today;
-        }).length,
-        onHold: Math.round(taskCounts.onHold * nonMeetingRatio),
-        critical: Math.round(taskCounts.critical * nonMeetingRatio)
-      };
-    }
-    
-    // Fallback: if we don't have enough sample data, return original counts
-    // This shouldn't happen normally, but provides a safety net
-    return taskCounts;
-  }, [taskCounts, allTasks]);
+  // taskCounts now comes from useSupabaseStorage and already excludes meetings
+  // No need for complex estimation logic since the database query handles the filtering
 
   // Handle navigation state from chart clicks
   useEffect(() => {
@@ -284,7 +221,7 @@ const Tasks = () => {
 
         <TaskSummaryCardsOptimized
           tasks={tasks}
-          taskCounts={nonMeetingTaskCounts}
+          taskCounts={taskCounts}
           activeFilter={activeFilter}
           onFilterChange={(filter) => {
             console.log('Tasks: Filter changed to:', filter);

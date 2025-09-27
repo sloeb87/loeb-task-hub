@@ -229,6 +229,9 @@ export function useSupabaseStorage() {
         .eq('user_id', user.id);
       
       // Apply filter to count query - always exclude completed unless specifically requested
+      // Also exclude meetings from tasks page count
+      countQuery = countQuery.not('task_type', 'in', '("Meeting","Meeting Recurring")');
+      
       if (filterType === 'active') {
         console.log('Applying ACTIVE filter to count query');
         countQuery = countQuery.in('status', ['Open', 'In Progress']);
@@ -251,11 +254,12 @@ export function useSupabaseStorage() {
       const { count: filteredCount, error: countError } = await countQuery;
       if (countError) throw countError;
       
-      // Then get the total count and stats for all tasks (for the summary cards)
+      // Then get the total count and stats for NON-MEETING tasks only (for the summary cards)
       const { data: allTasksData, error: allTasksError } = await supabase
         .from('tasks')
-        .select('status, priority')
-        .eq('user_id', user.id);
+        .select('status, priority, task_type')
+        .eq('user_id', user.id)
+        .not('task_type', 'in', '("Meeting","Meeting Recurring")');
 
       console.log('loadTasks: Query result:', { 
         dataCount: allTasksData?.length, 
@@ -266,7 +270,7 @@ export function useSupabaseStorage() {
 
       if (allTasksError) throw allTasksError;
 
-      // Calculate total counts across all tasks
+      // Calculate total counts across non-meeting tasks only
       const totalTasks = allTasksData?.length || 0;
       const openTasks = allTasksData?.filter(t => t.status === "Open").length || 0;
       const inProgressTasks = allTasksData?.filter(t => t.status === "In Progress").length || 0;
@@ -316,7 +320,8 @@ export function useSupabaseStorage() {
           links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
           recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .not('task_type', 'in', '("Meeting","Meeting Recurring")'); // Exclude meetings from tasks page
       
       // Apply the same filter to the data query - always exclude completed unless specifically requested
       if (filterType === 'active') {
@@ -672,13 +677,13 @@ export function useSupabaseStorage() {
 
       const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
-      // Calculate meeting counts
+      // Calculate meeting counts correctly
       const counts = {
         total: convertedTasks.length,
-        active: convertedTasks.filter(t => t.status === 'Open').length,
+        active: convertedTasks.filter(t => t.status !== 'Completed').length, // Active = not completed
         completed: convertedTasks.filter(t => t.status === 'Completed').length,
         onHold: convertedTasks.filter(t => t.status === 'On Hold').length,
-        critical: convertedTasks.filter(t => t.priority === 'High' || t.priority === 'Critical').length
+        critical: convertedTasks.filter(t => t.priority === 'Critical' && t.status !== 'Completed').length
       };
 
       setMeetingCounts(counts);
@@ -739,10 +744,12 @@ export function useSupabaseStorage() {
       })();
 
       // Search with filtering to avoid loading completed tasks by default
+      // Also exclude meetings from general task search
       let query = supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .not('task_type', 'in', '("Meeting","Meeting Recurring")'); // Exclude meetings from search
 
       // Apply filter to exclude completed tasks unless specifically requested
       if (filterType === 'active') {
