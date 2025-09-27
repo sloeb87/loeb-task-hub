@@ -345,27 +345,53 @@ export const FollowUpsPage = ({
     });
   }, [allFollowUps, searchTerm, multiSelectFilters, filters]);
 
-  // Group filtered follow-ups by project then by task
+  // Group filtered follow-ups by week, then project scope, then project name, then task
   const groupedFollowUps = useMemo(() => {
-    const grouped: Record<string, Record<string, FollowUpWithTask[]>> = {};
+    const grouped: Record<string, Record<string, Record<string, Record<string, FollowUpWithTask[]>>>> = {};
+    
     filteredFollowUps.forEach(followUp => {
+      // Group by week first
+      const followUpDate = new Date(followUp.timestamp);
+      const weekKey = format(followUpDate, "'Week of' MMM dd, yyyy");
+      
+      if (!grouped[weekKey]) {
+        grouped[weekKey] = {};
+      }
+      
+      // Then by project scope
+      const scopeKey = followUp.taskScope || 'No Scope';
+      if (!grouped[weekKey][scopeKey]) {
+        grouped[weekKey][scopeKey] = {};
+      }
+      
+      // Then by project name
       const projectKey = followUp.projectName || 'No Project';
-      if (!grouped[projectKey]) {
-        grouped[projectKey] = {};
+      if (!grouped[weekKey][scopeKey][projectKey]) {
+        grouped[weekKey][scopeKey][projectKey] = {};
       }
+      
+      // Finally by task name
       const taskKey = followUp.taskTitle;
-      if (!grouped[projectKey][taskKey]) {
-        grouped[projectKey][taskKey] = [];
+      if (!grouped[weekKey][scopeKey][projectKey][taskKey]) {
+        grouped[weekKey][scopeKey][projectKey][taskKey] = [];
       }
-      grouped[projectKey][taskKey].push(followUp);
+      
+      grouped[weekKey][scopeKey][projectKey][taskKey].push(followUp);
     });
 
     // Sort follow-ups within each task by date (newest first)
-    Object.keys(grouped).forEach(project => {
-      Object.keys(grouped[project]).forEach(task => {
-        grouped[project][task].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    Object.keys(grouped).forEach(week => {
+      Object.keys(grouped[week]).forEach(scope => {
+        Object.keys(grouped[week][scope]).forEach(project => {
+          Object.keys(grouped[week][scope][project]).forEach(task => {
+            grouped[week][scope][project][task].sort((a, b) => 
+              new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+            );
+          });
+        });
       });
     });
+    
     return grouped;
   }, [filteredFollowUps]);
 
@@ -746,13 +772,20 @@ export const FollowUpsPage = ({
       setExpandedProjects(new Set());
       setExpandedTasks(new Set());
     } else {
-      // Expand all
-      const allProjects = new Set<string>(Object.keys(groupedFollowUps));
+      // Expand all - now with 4-level hierarchy
+      const allProjects = new Set<string>();
       const allTasks = new Set<string>();
       
-      Object.entries(groupedFollowUps).forEach(([projectName, tasks]) => {
-        Object.keys(tasks).forEach(taskTitle => {
-          allTasks.add(`${projectName}-${taskTitle}`);
+      Object.entries(groupedFollowUps).forEach(([weekName, scopes]) => {
+        Object.entries(scopes).forEach(([scopeName, projects]) => {
+          Object.entries(projects).forEach(([projectName, tasks]) => {
+            const projectKey = `${weekName}-${scopeName}-${projectName}`;
+            allProjects.add(projectKey);
+            
+            Object.keys(tasks).forEach(taskTitle => {
+              allTasks.add(`${projectKey}-${taskTitle}`);
+            });
+          });
         });
       });
       

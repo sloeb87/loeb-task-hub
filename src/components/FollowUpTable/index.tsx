@@ -1,11 +1,11 @@
 import React from 'react';
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
 import { ProjectRow } from './ProjectRow';
 import { TaskRow } from './TaskRow';
 import { FollowUpRow } from './FollowUpRow';
 
 interface FollowUpTableProps {
-  groupedFollowUps: Record<string, Record<string, any[]>>;
+  groupedFollowUps: Record<string, Record<string, Record<string, Record<string, any[]>>>>;
   expandedProjects: Set<string>;
   expandedTasks: Set<string>;
   editingFollowUp: string | null;
@@ -61,55 +61,80 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {Object.entries(groupedFollowUps).map(([projectName, tasks]) => (
-            <React.Fragment key={projectName}>
-              {/* Project Header Row */}
-              <ProjectRow
-                projectName={projectName}
-                isExpanded={expandedProjects.has(projectName)}
-                firstFollowUpScope={Object.values(tasks)[0][0].taskScope}
-                onToggle={onToggleProjectExpansion}
-                getScopeStyle={getScopeStyle}
-              />
+          {Object.entries(groupedFollowUps).map(([weekName, scopes]) => (
+            <React.Fragment key={weekName}>
+              {/* Week Header Row */}
+              <TableRow className="bg-gray-50 dark:bg-gray-800 font-semibold">
+                <TableCell colSpan={4} className="py-3 px-4 text-lg">
+                  📅 {weekName}
+                </TableCell>
+              </TableRow>
               
-              {/* Task and Follow-up Rows - only show if project is expanded */}
-              {expandedProjects.has(projectName) && 
-                Object.entries(tasks).map(([taskTitle, followUps]) => (
-                  <React.Fragment key={`${projectName}-${taskTitle}`}>
-                    {/* Task Header Row */}
-                    <TaskRow
-                      projectName={projectName}
-                      taskTitle={taskTitle}
-                      isExpanded={expandedTasks.has(`${projectName}-${taskTitle}`)}
-                      taskType={followUps[0].taskType}
-                      taskEnvironment={followUps[0].taskEnvironment}
-                      onToggle={onToggleTaskExpansion}
-                      getTaskTypeStyle={getTaskTypeStyle}
-                      getEnvironmentStyle={getEnvironmentStyle}
-                    />
-                    
-                    {/* Follow-up Rows - only show if task is expanded */}
-                    {expandedTasks.has(`${projectName}-${taskTitle}`) && 
-                      followUps.map(followUp => (
-                        <FollowUpRow
-                          key={`${followUp.taskId}-${followUp.id}`}
-                          followUp={followUp}
-                          isEditing={editingFollowUp === followUp.id}
-                          editingText={editingText}
-                          editingTimestamp={editingTimestamp}
-                          onRowClick={onRowClick}
-                          onEditClick={onEditClick}
-                          onSaveEdit={onSaveEdit}
-                          onCancelEdit={onCancelEdit}
-                          onEditingTextChange={onEditingTextChange}
-                          onEditingTimestampChange={onEditingTimestampChange}
-                          getStatusStyle={getStatusStyle}
-                        />
-                      ))
-                    }
-                  </React.Fragment>
-                ))
-              }
+              {Object.entries(scopes).map(([scopeName, projects]) => (
+                <React.Fragment key={`${weekName}-${scopeName}`}>
+                  {/* Scope Header Row */}
+                  <TableRow className="bg-gray-100 dark:bg-gray-700">
+                    <TableCell colSpan={4} className="py-2 px-6">
+                      <span className="flex items-center gap-2">
+                        <span className="inline-block w-3 h-3 rounded-full" style={getScopeStyle(scopeName)}></span>
+                        <span className="font-medium">{scopeName}</span>
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                  
+                  {Object.entries(projects).map(([projectName, tasks]) => (
+                    <React.Fragment key={`${weekName}-${scopeName}-${projectName}`}>
+                      {/* Project Header Row */}
+                      <ProjectRow
+                        projectName={projectName}
+                        isExpanded={expandedProjects.has(`${weekName}-${scopeName}-${projectName}`)}
+                        firstFollowUpScope={scopeName}
+                        onToggle={() => onToggleProjectExpansion(`${weekName}-${scopeName}-${projectName}`)}
+                        getScopeStyle={getScopeStyle}
+                      />
+                      
+                      {/* Task and Follow-up Rows - only show if project is expanded */}
+                      {expandedProjects.has(`${weekName}-${scopeName}-${projectName}`) && 
+                        Object.entries(tasks).map(([taskTitle, followUps]) => (
+                          <React.Fragment key={`${weekName}-${scopeName}-${projectName}-${taskTitle}`}>
+                            {/* Task Header Row */}
+                            <TaskRow
+                              projectName={`${weekName}-${scopeName}-${projectName}`}
+                              taskTitle={taskTitle}
+                              isExpanded={expandedTasks.has(`${weekName}-${scopeName}-${projectName}-${taskTitle}`)}
+                              taskType={followUps[0].taskType}
+                              taskEnvironment={followUps[0].taskEnvironment}
+                              onToggle={() => onToggleTaskExpansion(`${weekName}-${scopeName}-${projectName}`, taskTitle)}
+                              getTaskTypeStyle={getTaskTypeStyle}
+                              getEnvironmentStyle={getEnvironmentStyle}
+                            />
+                            
+                            {/* Follow-up Rows - only show if task is expanded */}
+                            {expandedTasks.has(`${weekName}-${scopeName}-${projectName}-${taskTitle}`) && 
+                              followUps.map(followUp => (
+                                <FollowUpRow
+                                  key={`${followUp.taskId}-${followUp.id}`}
+                                  followUp={followUp}
+                                  isEditing={editingFollowUp === followUp.id}
+                                  editingText={editingText}
+                                  editingTimestamp={editingTimestamp}
+                                  onRowClick={onRowClick}
+                                  onEditClick={onEditClick}
+                                  onSaveEdit={onSaveEdit}
+                                  onCancelEdit={onCancelEdit}
+                                  onEditingTextChange={onEditingTextChange}
+                                  onEditingTimestampChange={onEditingTimestampChange}
+                                  getStatusStyle={getStatusStyle}
+                                />
+                              ))
+                            }
+                          </React.Fragment>
+                        ))
+                      }
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              ))}
             </React.Fragment>
           ))}
         </TableBody>
