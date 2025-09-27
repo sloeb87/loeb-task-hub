@@ -67,44 +67,46 @@ const Tasks = () => {
 
   // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
   const nonMeetingTaskCounts = React.useMemo(() => {
-    // Calculate counts directly from the actual filtered tasks (non-meetings)
-    const nonMeetingTasks = allTasks.filter(task => 
+    if (!taskCounts) {
+      return { total: 0, active: 0, completed: 0, overdue: 0, onHold: 0, critical: 0 };
+    }
+
+    // Use database counts directly, but adjust for meetings using sample data
+    // Get meeting ratio from loaded sample to estimate total meetings in DB
+    const loadedMeetingTasks = allTasks.filter(task => 
+      task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring'
+    );
+    const loadedNonMeetingTasks = allTasks.filter(task => 
       task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring'
     );
     
-    // Active = all non-completed tasks (excluding meetings)
-    const activeTasks = nonMeetingTasks.filter(task => task.status !== 'Completed');
-    const completedTasks = nonMeetingTasks.filter(task => task.status === 'Completed');
-    const onHoldTasks = nonMeetingTasks.filter(task => task.status === 'On Hold');
-    const criticalTasks = nonMeetingTasks.filter(task => 
-      task.priority === 'High' || task.priority === 'Critical'
-    );
+    // If we have loaded data, estimate meeting proportions
+    if (allTasks.length > 0) {
+      const meetingRatio = loadedMeetingTasks.length / allTasks.length;
+      const completedMeetingRatio = loadedMeetingTasks.filter(t => t.status === 'Completed').length / allTasks.length;
+      
+      // Estimate total meetings in database and subtract from total counts
+      const estimatedTotalMeetings = Math.round(taskCounts.total * meetingRatio);
+      const estimatedCompletedMeetings = Math.round(taskCounts.completed * completedMeetingRatio);
+      
+      return {
+        total: Math.max(0, taskCounts.total - estimatedTotalMeetings),
+        active: Math.max(0, taskCounts.active - (estimatedTotalMeetings - estimatedCompletedMeetings)),
+        completed: Math.max(0, taskCounts.completed - estimatedCompletedMeetings),
+        overdue: loadedNonMeetingTasks.filter(task => {
+          if (task.status === 'Completed') return false;
+          const today = new Date();
+          const dueDate = new Date(task.dueDate);
+          return dueDate < today;
+        }).length,
+        onHold: taskCounts.onHold, // Assume meetings don't significantly affect this
+        critical: taskCounts.critical // Assume meetings don't significantly affect this
+      };
+    }
     
-    const today = new Date();
-    const overdueTasks = nonMeetingTasks.filter(task => {
-      if (task.status === 'Completed') return false;
-      const dueDate = new Date(task.dueDate);
-      return dueDate < today;
-    });
-    
-    // Debug logging
-    console.log('Task count debug:', {
-      allTasksLength: allTasks.length,
-      nonMeetingTasksLength: nonMeetingTasks.length,
-      activeTasksLength: activeTasks.length,
-      completedTasksLength: completedTasks.length,
-      nonMeetingTasks: nonMeetingTasks.map(t => ({ id: t.id, status: t.status, taskType: t.taskType }))
-    });
-    
-    return {
-      total: nonMeetingTasks.length, // All tasks (excluding meetings)
-      active: activeTasks.length, // All non-completed tasks (excluding meetings)
-      completed: completedTasks.length,
-      overdue: overdueTasks.length,
-      onHold: onHoldTasks.length,
-      critical: criticalTasks.length
-    };
-  }, [allTasks]);
+    // Fallback: return original counts if no sample data
+    return taskCounts;
+  }, [taskCounts, allTasks]);
 
   // Handle navigation state from chart clicks
   useEffect(() => {
