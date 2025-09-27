@@ -62,7 +62,7 @@ const Tasks = () => {
 
   // Filter tasks to exclude meetings
   const tasks = React.useMemo(() => {
-    return allTasks.filter(task => task.taskType !== 'Meeting');
+    return allTasks.filter(task => task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring');
   }, [allTasks]);
 
   // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
@@ -70,7 +70,7 @@ const Tasks = () => {
     if (!taskCounts) return taskCounts;
     
     // Get meeting counts from current filtered data (this is just for proportional estimation)
-    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting');
+    const meetingTasks = allTasks.filter(task => task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring');
     const allTasksInMemory = allTasks.length;
     const meetingsInMemory = meetingTasks.length;
     const completedMeetingsInMemory = meetingTasks.filter(task => task.status === 'Completed').length;
@@ -90,7 +90,7 @@ const Tasks = () => {
       active: nonMeetingActive,
       completed: nonMeetingCompleted,
       overdue: allTasks.filter(task => {
-        if (task.taskType === 'Meeting' || task.status === 'Completed') return false;
+        if (task.taskType === 'Meeting' || task.taskType === 'Meeting Recurring' || task.status === 'Completed') return false;
         const today = new Date();
         const dueDate = new Date(task.dueDate);
         return dueDate < today;
