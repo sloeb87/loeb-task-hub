@@ -21,12 +21,12 @@ import { useTaskNavigation } from "@/contexts/TaskFormContext";
 // Helper function to identify automatic follow-ups
 const isAutomaticFollowUp = (text: string): boolean => {
   const automaticPatterns = [
-    /^Task marked completed$/,
-    /^Status changed from .+ to .+$/,
-    /^Priority changed from .+ to .+$/,
-    /^Task type changed from .+ to .+$/,
-    /^Due date changed from .+ to .+$/,
-    /^Task updated:/
+    /^Task marked completed$/i,
+    /^Status changed from .+ to .+$/i,
+    /^Priority changed from .+ to .+$/i,
+    /^Task type changed from .+ to .+$/i,
+    /^Due date changed from .+ to .+$/i,
+    /^(?:[-*•]\s*)?Task updated\b[:\-]?/i
   ];
   
   // Trim whitespace and check patterns
