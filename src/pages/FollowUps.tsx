@@ -982,60 +982,66 @@ export const FollowUpsPage = ({
           <CardDescription>Monthly comparison of planned hours vs actual logged hours</CardDescription>
         </CardHeader>
         <CardContent className="px-0">
-          <div className="relative group">
-            <ChartContainer
-             config={{
-               plannedHours: {
-                 label: "Planned Hours",
-                 color: "hsl(220, 70%, 50%)",
-               },
-               loggedHours: {
-                 label: "Logged Hours",
-                 color: "hsl(200, 80%, 60%)",
-               },
-             }}
-             className="h-[600px]"
-           >
-            <ResponsiveContainer width="100%" height="100%">
-               <BarChart 
-                 data={plannedVsLoggedChartData}
-                 margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
-                 barCategoryGap={0}
-                 barGap={0}
-               >
-               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                 <XAxis 
-                   dataKey="week" 
+           <div className="relative group w-full">
+             <div className="w-full h-[600px]">
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart 
+                   data={plannedVsLoggedChartData}
+                   margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
+                   barCategoryGap={0}
+                   barGap={0}
+                 >
+                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                   <XAxis 
+                     dataKey="week" 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                     interval={0}
+                     angle={-45}
+                     textAnchor="end"
+                     height={60}
+                     type="category"
+                     domain={['dataMin', 'dataMax']}
+                   />
+                 <YAxis 
                    axisLine={false}
                    tickLine={false}
                    className="text-xs"
-                   interval={0}
-                   angle={-45}
-                   textAnchor="end"
-                   height={60}
-                   scale="band"
-                   padding={{ left: 0, right: 0 }}
                  />
-               <YAxis 
-                 axisLine={false}
-                 tickLine={false}
-                 className="text-xs"
-               />
-               <ChartTooltip content={<ChartTooltipContent />} />
-               <Bar 
-                 dataKey="plannedHours" 
-                 fill="hsl(220, 70%, 50%)" 
-                 radius={[2, 2, 0, 0]}
-               />
-               <Bar 
-                 dataKey="loggedHours" 
-                 fill="hsl(200, 80%, 60%)" 
-                 radius={[2, 2, 0, 0]}
-               />
-             </BarChart>
-            </ResponsiveContainer>
-         </ChartContainer>
-       </div>
+                 <ChartTooltip 
+                   content={({ active, payload, label }) => {
+                     if (active && payload && payload.length) {
+                       return (
+                         <div className="bg-white dark:bg-gray-800 border rounded-lg p-2 shadow-lg">
+                           <p className="text-sm font-medium">{label}</p>
+                           {payload.map((entry, index) => (
+                             <p key={index} className="text-sm" style={{ color: entry.color }}>
+                               {entry.name}: {entry.value} hours
+                             </p>
+                           ))}
+                         </div>
+                       );
+                     }
+                     return null;
+                   }} 
+                 />
+                 <Bar 
+                   dataKey="plannedHours" 
+                   fill="hsl(220, 70%, 50%)" 
+                   radius={[2, 2, 0, 0]}
+                   name="Planned Hours"
+                 />
+                 <Bar 
+                   dataKey="loggedHours" 
+                   fill="hsl(200, 80%, 60%)" 
+                   radius={[2, 2, 0, 0]}
+                   name="Logged Hours"
+                 />
+                </BarChart>
+               </ResponsiveContainer>
+             </div>
+           </div>
        </CardContent>
       </Card>
 
