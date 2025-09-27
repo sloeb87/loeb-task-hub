@@ -997,7 +997,11 @@ export const FollowUpsPage = ({
              className="h-[600px]"
            >
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={plannedVsLoggedChartData}>
+               <BarChart 
+                 data={plannedVsLoggedChartData}
+                 margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                 barCategoryGap={2}
+               >
                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                  <XAxis 
                    dataKey="week" 
