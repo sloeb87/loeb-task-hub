@@ -87,6 +87,15 @@ const Tasks = () => {
       return dueDate < today;
     });
     
+    // Debug logging
+    console.log('Task count debug:', {
+      allTasksLength: allTasks.length,
+      nonMeetingTasksLength: nonMeetingTasks.length,
+      activeTasksLength: activeTasks.length,
+      completedTasksLength: completedTasks.length,
+      nonMeetingTasks: nonMeetingTasks.map(t => ({ id: t.id, status: t.status, taskType: t.taskType }))
+    });
+    
     return {
       total: nonMeetingTasks.length, // All tasks (excluding meetings)
       active: activeTasks.length, // All non-completed tasks (excluding meetings)
