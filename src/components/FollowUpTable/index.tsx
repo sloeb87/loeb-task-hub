@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React from 'react';
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProjectRow } from './ProjectRow';
 import { TaskRow } from './TaskRow';
@@ -62,7 +62,7 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
         </TableHeader>
         <TableBody>
           {Object.entries(groupedFollowUps).map(([projectName, tasks]) => (
-            <Fragment key={projectName}>
+            <React.Fragment key={projectName}>
               {/* Project Header Row */}
               <ProjectRow
                 projectName={projectName}
@@ -75,7 +75,7 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
               {/* Task and Follow-up Rows - only show if project is expanded */}
               {expandedProjects.has(projectName) && 
                 Object.entries(tasks).map(([taskTitle, followUps]) => (
-                  <Fragment key={`${projectName}-${taskTitle}`}>
+                  <React.Fragment key={`${projectName}-${taskTitle}`}>
                     {/* Task Header Row */}
                     <TaskRow
                       projectName={projectName}
@@ -107,10 +107,10 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
                         />
                       ))
                     }
-                  </Fragment>
+                  </React.Fragment>
                 ))
               }
-            </Fragment>
+            </React.Fragment>
           ))}
         </TableBody>
       </Table>
