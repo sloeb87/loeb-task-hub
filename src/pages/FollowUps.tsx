@@ -620,21 +620,29 @@ export const FollowUpsPage = ({
   };
 
   // Handle planned vs logged chart clicks - filter follow-ups by month
-  const handlePlannedVsLoggedChartClick = (data: any, index: number) => {
-    console.log('Planned vs Logged chart clicked:', data, index);
-    if (data && plannedVsLoggedChartData[index]) {
-      const clickedData = plannedVsLoggedChartData[index];
-      const monthStart = startOfMonth(clickedData.date);
-      const monthEnd = endOfMonth(clickedData.date);
+  const handlePlannedVsLoggedChartClick = (data: any) => {
+    console.log('Planned vs Logged chart clicked:', data);
+    
+    // Extract the clicked data from the recharts event structure
+    if (data && data.activePayload && data.activePayload.length > 0) {
+      const clickedData = data.activePayload[0].payload;
+      console.log('Extracted clicked data:', clickedData);
       
-      // Update the filters to show only follow-ups from the clicked month
-      setFilters(prev => ({
-        ...prev,
-        dateRange: {
-          from: monthStart,
-          to: monthEnd
-        }
-      }));
+      if (clickedData && clickedData.date) {
+        const monthStart = startOfMonth(clickedData.date);
+        const monthEnd = endOfMonth(clickedData.date);
+        
+        console.log('Setting date filter:', { from: monthStart, to: monthEnd });
+        
+        // Update the filters to show only follow-ups from the clicked month
+        setFilters(prev => ({
+          ...prev,
+          dateRange: {
+            from: monthStart,
+            to: monthEnd
+          }
+        }));
+      }
     }
   };
 
