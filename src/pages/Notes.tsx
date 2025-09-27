@@ -20,20 +20,6 @@ const Notes = () => {
     }
   }, [note]);
 
-  // Handle Enter key press to save immediately
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter') {
-      // Clear any pending auto-save timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-      // Save immediately
-      saveNote(content, true);
-      setLastSaved(new Date().toISOString());
-      setHasUnsavedChanges(false);
-    }
-  };
-
   // Handle content changes
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
@@ -48,7 +34,7 @@ const Notes = () => {
         clearTimeout(saveTimeoutRef.current);
       }
 
-      // Set new timeout for auto-save (reduced to 200ms for more responsive saving)
+      // Set new timeout for auto-save (200ms delay)
       saveTimeoutRef.current = setTimeout(() => {
         saveNote(content);
         setLastSaved(new Date().toISOString());
@@ -178,14 +164,13 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Auto-saves every 200ms, instantly on Enter, and when switching apps.
+                Write your thoughts, ideas, and quick notes here. Auto-saves every 200ms and when switching apps.
               </p>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
               <Textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
-                onKeyDown={handleKeyDown}
                 placeholder="Start writing your notes here..."
                 className="min-h-[calc(100vh-12rem)] flex-1 text-base leading-relaxed resize-none border-0 p-6 focus-visible:ring-0 focus-visible:ring-offset-0"
                 style={{ 
