@@ -52,7 +52,8 @@ const isAutomaticFollowUp = (text: string): boolean => {
     /^Status changed from .+ to .+$/,
     /^Priority changed from .+ to .+$/,
     /^Task type changed from .+ to .+$/,
-    /^Due date changed from .+ to .+$/
+    /^Due date changed from .+ to .+$/,
+    /^Task updated: Due date: .+ → .+$/
   ];
   
   return automaticPatterns.some(pattern => pattern.test(text));
