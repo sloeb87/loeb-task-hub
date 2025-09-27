@@ -1014,8 +1014,8 @@ export const FollowUpsPage = ({
                   <BarChart 
                     data={plannedVsLoggedChartData}
                     margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
-                    barCategoryGap={0}
-                    barGap={0}
+                    barCategoryGap={10}
+                    barGap={2}
                   >
                   <defs>
                     <linearGradient id="plannedHoursGradient" x1="0" y1="0" x2="0" y2="1">
