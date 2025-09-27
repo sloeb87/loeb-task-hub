@@ -29,7 +29,9 @@ const isAutomaticFollowUp = (text: string): boolean => {
     /^Task updated:/
   ];
   
-  return automaticPatterns.some(pattern => pattern.test(text));
+  // Trim whitespace and check patterns
+  const trimmedText = text.trim();
+  return automaticPatterns.some(pattern => pattern.test(trimmedText));
 };
 
 interface TaskTableProps {
