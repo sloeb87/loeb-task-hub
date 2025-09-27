@@ -6,9 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Clock } from 'lucide-react';
 
 const Notes = () => {
-  const { note, isLoading, isSaving, saveNote } = useNotes();
+  const { note, isLoading, isSaving, saveNote, emergencySave } = useNotes();
   const [content, setContent] = useState('');
   const [lastSaved, setLastSaved] = useState<string>('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Update content when note is loaded
@@ -27,12 +28,19 @@ const Notes = () => {
         clearTimeout(saveTimeoutRef.current);
       }
       // Save immediately
-      saveNote(content);
+      saveNote(content, true);
       setLastSaved(new Date().toISOString());
+      setHasUnsavedChanges(false);
     }
   };
 
-  // Auto-save with debouncing
+  // Handle content changes
+  const handleContentChange = (newContent: string) => {
+    setContent(newContent);
+    setHasUnsavedChanges(note ? newContent !== note.content : false);
+  };
+
+  // Auto-save with reduced timeout for better reliability
   useEffect(() => {
     if (note && content !== note.content) {
       // Clear existing timeout
@@ -40,11 +48,12 @@ const Notes = () => {
         clearTimeout(saveTimeoutRef.current);
       }
 
-      // Set new timeout for auto-save (500ms delay)
+      // Set new timeout for auto-save (reduced to 200ms for more responsive saving)
       saveTimeoutRef.current = setTimeout(() => {
         saveNote(content);
         setLastSaved(new Date().toISOString());
-      }, 500);
+        setHasUnsavedChanges(false);
+      }, 200);
     }
 
     // Cleanup timeout on unmount
@@ -54,6 +63,46 @@ const Notes = () => {
       }
     };
   }, [content, note, saveNote]);
+
+  // Save on page visibility change (when user switches apps/tabs)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasUnsavedChanges && content && note) {
+        // Save immediately when page becomes hidden
+        emergencySave(content);
+        setHasUnsavedChanges(false);
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges && content && note) {
+        // Emergency save before page unload
+        emergencySave(content);
+        // Show warning to user
+        e.preventDefault();
+        e.returnValue = '';
+        return '';
+      }
+    };
+
+    const handleWindowBlur = () => {
+      if (hasUnsavedChanges && content && note) {
+        // Save when window loses focus
+        emergencySave(content);
+        setHasUnsavedChanges(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [hasUnsavedChanges, content, note, emergencySave]);
 
   // SEO
   useEffect(() => {
@@ -108,13 +157,19 @@ const Notes = () => {
                   Quick Notes
                 </CardTitle>
                 <div className="flex items-center space-x-3">
+                  {hasUnsavedChanges && !isSaving && (
+                    <Badge variant="outline" className="flex items-center space-x-1 text-amber-600 border-amber-600">
+                      <span className="w-2 h-2 bg-amber-600 rounded-full animate-pulse"></span>
+                      <span>Unsaved changes</span>
+                    </Badge>
+                  )}
                   {isSaving && (
                     <Badge variant="secondary" className="flex items-center space-x-1">
                       <Save className="w-3 h-3 animate-pulse" />
                       <span>Saving...</span>
                     </Badge>
                   )}
-                  {lastSaved && !isSaving && (
+                  {lastSaved && !isSaving && !hasUnsavedChanges && (
                     <Badge variant="outline" className="flex items-center space-x-1">
                       <Clock className="w-3 h-3" />
                       <span>Saved {formatLastSaved(lastSaved)}</span>
@@ -123,13 +178,13 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Press Enter to save immediately, or notes auto-save as you type.
+                Write your thoughts, ideas, and quick notes here. Auto-saves every 200ms, instantly on Enter, and when switching apps.
               </p>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
               <Textarea
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={(e) => handleContentChange(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Start writing your notes here..."
                 className="min-h-[calc(100vh-12rem)] flex-1 text-base leading-relaxed resize-none border-0 p-6 focus-visible:ring-0 focus-visible:ring-offset-0"
