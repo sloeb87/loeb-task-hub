@@ -17,6 +17,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 import { TimeTrackingCell } from "./TimeTrackingCell";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
+import { GlobalSearchDialog } from "@/components/GlobalSearchDialog";
+import { SearchResult } from "@/hooks/useGlobalSearch";
 
 // Helper function to identify automatic follow-ups
 const isAutomaticFollowUp = (text: string): boolean => {
@@ -89,6 +91,7 @@ export const TaskTable = ({
   const isMobile = useIsMobile();
   const [searchTerm, setSearchTerm] = useState("");
   const [activeSearchTerm, setActiveSearchTerm] = useState(""); // Track the currently active search
+  const [globalSearchOpen, setGlobalSearchOpen] = useState(false); // Global search dialog state
   const [filters, setFilters] = useState<Filters>({
     scope: [],
     status: [],
@@ -268,9 +271,10 @@ export const TaskTable = ({
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearchSubmit();
+      // Open global search dialog for comprehensive search across all database tables
+      setGlobalSearchOpen(true);
     }
-  }, [handleSearchSubmit]);
+  }, []);
 
   const handleClearSearch = useCallback(() => {
     setSearchTerm("");
@@ -505,7 +509,7 @@ export const TaskTable = ({
               <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
-                  placeholder="Search tasks... (Press Enter to search)"
+                  placeholder="Search everything... (Press Enter for global search)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -655,7 +659,7 @@ export const TaskTable = ({
               <div className="relative max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search tasks... (Press Enter to search)"
+                  placeholder="Search everything... (Press Enter for global search)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -1223,6 +1227,44 @@ export const TaskTable = ({
           </div>
         </div>
       )}
+
+      {/* Global Search Dialog */}
+      <GlobalSearchDialog
+        open={globalSearchOpen}
+        onOpenChange={setGlobalSearchOpen}
+        onResultSelect={(result: SearchResult) => {
+          // Handle different result types
+          switch (result.type) {
+            case 'task':
+              // Find the task and edit it
+              const task = tasks.find(t => t.uuid === result.id || t.id === result.metadata.taskNumber);
+              if (task) {
+                onEditTask(task);
+              }
+              break;
+            case 'project':
+              // Navigate to projects page or show project details
+              // This could be implemented based on your project structure
+              console.log('Navigate to project:', result.metadata.projectId);
+              break;
+            case 'time_entry':
+              // Navigate to time tracking page
+              console.log('Navigate to time entry:', result.id);
+              break;
+            case 'follow_up':
+              // Find and highlight the related task
+              const followUpTask = tasks.find(t => t.id === result.metadata.taskId);
+              if (followUpTask) {
+                onEditTask(followUpTask);
+              }
+              break;
+            case 'note':
+              // Navigate to notes page
+              console.log('Navigate to note:', result.id);
+              break;
+          }
+        }}
+      />
 
     </>
   );
