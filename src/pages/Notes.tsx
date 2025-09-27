@@ -26,29 +26,17 @@ const Notes = () => {
     setHasUnsavedChanges(note ? newContent !== note.content : false);
   };
 
-  // Auto-save with reduced timeout for better reliability
-  useEffect(() => {
-    if (note && content !== note.content) {
-      // Clear existing timeout
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-
-      // Set new timeout for auto-save (200ms delay)
-      saveTimeoutRef.current = setTimeout(() => {
-        saveNote(content);
+  // Handle keyboard shortcuts
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      if (hasUnsavedChanges && content && note) {
+        saveNote(content, true);
         setLastSaved(new Date().toISOString());
         setHasUnsavedChanges(false);
-      }, 200);
-    }
-
-    // Cleanup timeout on unmount
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
       }
-    };
-  }, [content, note, saveNote]);
+    }
+  };
 
   // Save on page visibility change (when user switches apps/tabs)
   useEffect(() => {
@@ -164,13 +152,14 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Auto-saves every 200ms and when switching apps.
+                Write your thoughts, ideas, and quick notes here. Press Ctrl+S (or Cmd+S) to save manually, or notes save automatically when switching apps.
               </p>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
               <Textarea
                 value={content}
                 onChange={(e) => handleContentChange(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="Start writing your notes here..."
                 className="min-h-[calc(100vh-12rem)] flex-1 text-base leading-relaxed resize-none border-0 p-6 focus-visible:ring-0 focus-visible:ring-offset-0"
                 style={{ 
