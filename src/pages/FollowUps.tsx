@@ -5,9 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter, Edit, Save, X, ChevronDown, ChevronRight, Minimize2, Maximize2 } from "lucide-react";
+import { MessageSquare, Search, Filter, Minimize2, Maximize2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Task, FollowUp, Project } from "@/types/task";
 import { formatDate } from "@/utils/taskOperations";
 import { useScopeColor, useTaskTypeColor, useEnvironmentColor, useStatusColor } from '@/hooks/useParameterColors';
@@ -21,6 +20,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
+import { FollowUpTable } from "@/components/FollowUpTable";
 // Helper function to identify automatic follow-ups
 const isAutomaticFollowUp = (text: string): boolean => {
   const automaticPatterns = [
@@ -1097,124 +1097,27 @@ export const FollowUpsPage = ({
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    <FilterableHeader filterType="date">Date</FilterableHeader>
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Follow-Up</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Object.entries(groupedFollowUps).map(([projectName, tasks]) => <Group key={projectName}>
-                    {/* Project Header Row */}
-                    <TableRow className="bg-muted/50 hover:bg-muted/50 cursor-pointer" onClick={() => toggleProjectExpansion(projectName)}>
-                      <TableCell colSpan={4} className="font-semibold text-lg py-3">
-                        <div className="flex items-center gap-3">
-                          {expandedProjects.has(projectName) ? (
-                            <ChevronDown className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                          ) : (
-                            <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                          )}
-                          <span>📁 {projectName}</span>
-                          <Badge style={getScopeStyle(Object.values(tasks)[0][0].taskScope)} className="text-sm border">
-                            {Object.values(tasks)[0][0].taskScope}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    {/* Only show tasks if project is expanded */}
-                    {expandedProjects.has(projectName) && Object.entries(tasks).map(([taskTitle, followUps]) => <Group key={`${projectName}-${taskTitle}`}>
-                        {/* Task Header Row with Scope, Type, Environment */}
-                        <TableRow className="bg-muted/30 hover:bg-muted/30 cursor-pointer" onClick={() => toggleTaskExpansion(projectName, taskTitle)}>
-                          <TableCell colSpan={4} className="font-medium text-base py-2 pl-8">
-                            <div className="flex items-center gap-3">
-                              {expandedTasks.has(`${projectName}-${taskTitle}`) ? (
-                                <ChevronDown className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                              ) : (
-                                <ChevronRight className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                              )}
-                              <span>📋 {taskTitle}</span>
-                              <Badge style={getTaskTypeStyle(followUps[0].taskType)} className="text-xs border">
-                                {followUps[0].taskType}
-                              </Badge>
-                              <Badge style={getEnvironmentStyle(followUps[0].taskEnvironment)} className="text-xs border">
-                                {followUps[0].taskEnvironment}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                        
-                        {/* Follow-up Rows - only show if task is expanded */}
-                        {expandedTasks.has(`${projectName}-${taskTitle}`) && followUps.map(followUp => <TableRow key={`${followUp.taskId}-${followUp.id}`} className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800" onClick={e => handleRowClick(followUp, e)}>
-                            {/* Date Column */}
-                            <TableCell className="pl-12">
-                              {editingFollowUp === followUp.id ? <div className="edit-controls">
-                                  <Input type="datetime-local" value={editingTimestamp} onChange={e => setEditingTimestamp(e.target.value)} className="text-xs w-40" onClick={e => e.stopPropagation()} />
-                                </div> : <span className="text-sm">{formatDate(followUp.timestamp)}</span>}
-                            </TableCell>
-                            
-                            {/* Status Column */}
-                            <TableCell>
-                              <div className="flex items-center">
-                                <Badge style={getStatusStyle(followUp.taskStatus)} className="text-sm border">
-                                  {followUp.taskStatus}
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            
-                            {/* Follow-Up Text Column */}
-                            <TableCell>
-                              {editingFollowUp === followUp.id ? <div className="edit-controls">
-                                  <Textarea value={editingText} onChange={e => setEditingText(e.target.value)} className="text-sm min-h-[60px] w-full" onClick={e => e.stopPropagation()} rows={2} />
-                                </div> : <div className="max-w-md">
-                                  <p className={`text-sm whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : ''}`}>{followUp.text}</p>
-                                </div>}
-                            </TableCell>
-                            
-                            {/* Actions Column */}
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                {editingFollowUp === followUp.id ? <>
-                                    <Button 
-                                      size="sm" 
-                                      onClick={handleSaveEdit} 
-                                      className="h-8 w-8 p-0"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                    >
-                                      <Save className="h-4 w-4" />
-                                    </Button>
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline" 
-                                      onClick={handleCancelEdit} 
-                                      className="h-8 w-8 p-0"
-                                      onMouseDown={(e) => e.stopPropagation()}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </> : <Button 
-                                    size="sm" 
-                                    variant="outline" 
-                                    onClick={(e) => handleEditClick(followUp, e)} 
-                                    className="h-8 w-8 p-0"
-                                    onMouseDown={(e) => e.stopPropagation()}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Button>}
-                              </div>
-                            </TableCell>
-                          </TableRow>)}
-                      </Group>)}
-                  </Group>)}
-              </TableBody>
-            </Table>
-          </div>
+          <FollowUpTable
+            groupedFollowUps={groupedFollowUps}
+            expandedProjects={expandedProjects}
+            expandedTasks={expandedTasks}
+            editingFollowUp={editingFollowUp}
+            editingText={editingText}
+            editingTimestamp={editingTimestamp}
+            FilterableHeader={FilterableHeader}
+            onToggleProjectExpansion={toggleProjectExpansion}
+            onToggleTaskExpansion={toggleTaskExpansion}
+            onRowClick={handleRowClick}
+            onEditClick={handleEditClick}
+            onSaveEdit={handleSaveEdit}
+            onCancelEdit={handleCancelEdit}
+            onEditingTextChange={setEditingText}
+            onEditingTimestampChange={setEditingTimestamp}
+            getScopeStyle={getScopeStyle}
+            getTaskTypeStyle={getTaskTypeStyle}
+            getEnvironmentStyle={getEnvironmentStyle}
+            getStatusStyle={getStatusStyle}
+          />
 
           {filteredFollowUps.length === 0 && <div className="text-center py-12">
               <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
