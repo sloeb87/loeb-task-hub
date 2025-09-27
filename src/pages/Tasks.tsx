@@ -67,16 +67,13 @@ const Tasks = () => {
 
   // Use task counts from useSupabaseStorage hook (calculated from all tasks in DB)
   const nonMeetingTaskCounts = React.useMemo(() => {
-    if (!taskCounts) return taskCounts;
-    
     // Calculate counts directly from the actual filtered tasks (non-meetings)
     const nonMeetingTasks = allTasks.filter(task => 
       task.taskType !== 'Meeting' && task.taskType !== 'Meeting Recurring'
     );
     
-    const activeTasks = nonMeetingTasks.filter(task => 
-      task.status === 'Open' || task.status === 'In Progress'
-    );
+    // Active = all non-completed tasks (excluding meetings)
+    const activeTasks = nonMeetingTasks.filter(task => task.status !== 'Completed');
     const completedTasks = nonMeetingTasks.filter(task => task.status === 'Completed');
     const onHoldTasks = nonMeetingTasks.filter(task => task.status === 'On Hold');
     const criticalTasks = nonMeetingTasks.filter(task => 
@@ -91,8 +88,8 @@ const Tasks = () => {
     });
     
     return {
-      total: nonMeetingTasks.length,
-      active: activeTasks.length,
+      total: nonMeetingTasks.length, // All tasks (excluding meetings)
+      active: activeTasks.length, // All non-completed tasks (excluding meetings)
       completed: completedTasks.length,
       overdue: overdueTasks.length,
       onHold: onHoldTasks.length,
