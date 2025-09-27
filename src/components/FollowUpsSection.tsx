@@ -4,6 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageSquare } from "lucide-react";
 
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 interface FollowUp {
   id: string;
   text: string;
@@ -86,7 +99,7 @@ export const FollowUpsSection = ({ followUps, selectedProject }: FollowUpsSectio
                             {new Date(followUp.timestamp).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-foreground leading-relaxed">{followUp.text}</p>
+                        <p className={`leading-relaxed ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-foreground'}`}>{followUp.text}</p>
                       </div>
                     ))}
                 </div>

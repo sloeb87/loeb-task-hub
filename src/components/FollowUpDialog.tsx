@@ -7,6 +7,19 @@ import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types/task";
 import { Calendar, User, Edit, Save, X, Trash2 } from "lucide-react";
 
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 interface FollowUpDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -231,7 +244,7 @@ export const FollowUpDialog = ({ isOpen, onClose, onAddFollowUp, onUpdateFollowU
                             </Button>
                           </div>
                         </div>
-                        <p className="text-sm text-foreground whitespace-pre-wrap">{followUp.text}</p>
+                        <p className={`text-sm whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-foreground'}`}>{followUp.text}</p>
                       </div>
                     )}
                   </div>
