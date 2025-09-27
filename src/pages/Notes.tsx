@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNotes } from '@/hooks/useNotes';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,12 +9,13 @@ import { Save, Clock } from 'lucide-react';
 
 const Notes = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { note, isLoading, isSaving, saveNote, emergencySave } = useNotes();
   const [content, setContent] = useState('');
   const [lastSaved, setLastSaved] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const previousLocationRef = useRef(location.pathname);
 
   // Update content when note is loaded
   useEffect(() => {
@@ -41,60 +43,106 @@ const Notes = () => {
     }
   };
 
-  // Save on navigation within the app
+  // Periodic safety save every 10 seconds if there are unsaved changes
   useEffect(() => {
-    const currentPath = location.pathname;
-    const previousPath = previousLocationRef.current;
-    
-    // If the route changed and we're leaving the notes page, save
-    if (previousPath === '/notes' && currentPath !== '/notes' && hasUnsavedChanges && content && note) {
-      emergencySave(content);
-      setHasUnsavedChanges(false);
-    }
-    
-    // Update the previous location reference
-    previousLocationRef.current = currentPath;
-  }, [location.pathname, hasUnsavedChanges, content, note, emergencySave]);
+    if (!hasUnsavedChanges || !content || !note) return;
 
-  // Save on page visibility change (when user switches apps/tabs)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden && hasUnsavedChanges && content && note) {
-        // Save immediately when page becomes hidden
+    const interval = setInterval(() => {
+      if (hasUnsavedChanges && content && note) {
+        console.log('Periodic safety save triggered');
         emergencySave(content);
         setHasUnsavedChanges(false);
+        setLastSaved(new Date().toISOString());
       }
-    };
+    }, 10000); // Save every 10 seconds
 
+    return () => clearInterval(interval);
+  }, [hasUnsavedChanges, content, note, emergencySave]);
+
+  // Intercept navigation and save before leaving
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges && content && note) {
-        // Emergency save before page unload
-        emergencySave(content);
-        // Show warning to user
+        console.log('Saving before page unload');
+        // Use sendBeacon for reliability during page unload
+        const data = JSON.stringify({ content });
+        const url = `https://emjtsxfjrprcrssuvbat.supabase.co/rest/v1/notes?id=eq.${note.id}&user_id=eq.${user.id}`;
+        
+        if (navigator.sendBeacon) {
+          const headers = {
+            type: 'application/json'
+          };
+          navigator.sendBeacon(url, new Blob([data], headers));
+        }
+        
         e.preventDefault();
         e.returnValue = '';
         return '';
       }
     };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasUnsavedChanges, content, note]);
+
+  // Save on page visibility change (when user switches apps/tabs)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && hasUnsavedChanges && content && note) {
+        console.log('Saving due to visibility change');
+        emergencySave(content);
+        setHasUnsavedChanges(false);
+      }
+    };
 
     const handleWindowBlur = () => {
       if (hasUnsavedChanges && content && note) {
-        // Save when window loses focus
+        console.log('Saving due to window blur');
         emergencySave(content);
         setHasUnsavedChanges(false);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
     window.addEventListener('blur', handleWindowBlur);
 
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
       window.removeEventListener('blur', handleWindowBlur);
     };
   }, [hasUnsavedChanges, content, note, emergencySave]);
+
+  // Save when component unmounts (navigation away from notes)
+  useEffect(() => {
+    return () => {
+      if (hasUnsavedChanges && content && note) {
+        console.log('Saving due to component unmount');
+        // Use synchronous approach for unmount
+        const data = JSON.stringify({ content });
+        const url = `https://emjtsxfjrprcrssuvbat.supabase.co/rest/v1/notes?id=eq.${note.id}&user_id=eq.${user.id}`;
+        
+        // Try sendBeacon first
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+        } else {
+          // Fallback to synchronous fetch
+          fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtanRzeGZqcnByY3Jzc3V2YmF0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2MDM4MTAsImV4cCI6MjA2ODE3OTgxMH0.uOZTnz5FyObUEzH6w6m3j2faA-RspxqwDopIypUWAzQ',
+              'content-type': 'application/json',
+              'content-profile': 'public'
+            },
+            body: data,
+            keepalive: true
+          }).catch(console.error);
+        }
+      }
+    };
+  }, [hasUnsavedChanges, content, note]);
 
   // SEO
   useEffect(() => {
@@ -170,7 +218,7 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Press Ctrl+S (or Cmd+S) to save manually, or notes save automatically when switching pages/apps.
+                Write your thoughts, ideas, and quick notes here. Press Ctrl+S (or Cmd+S) to save manually. Auto-saves every 10 seconds and when switching pages/apps.
               </p>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
