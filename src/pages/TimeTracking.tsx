@@ -16,7 +16,7 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine } from "recharts";
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/hooks/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
@@ -1269,35 +1269,60 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       </div>
 
       {/* Daily Hours History */}
-      <Card>
+      <Card className="w-full">
         <CardHeader className="pb-2">
-          <CardTitle>Daily Hours (Last 30 Days)</CardTitle>
+          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Daily Hours (Last 30 Days)</CardTitle>
           <CardDescription>Total hours per day. Ends today.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={{}} className="h-80 w-full">
-            <BarChart data={dailyHistoryData} onClick={handleBarClick}>
-              <defs>
-                <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
-                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="dateLabel" tickMargin={8} />
-              <YAxis tickFormatter={(v) => `${(Number(v) / 60).toFixed(1)}h`} />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value: number) => [`${(Number(value) / 60).toFixed(2)}h`, 'Total']}
-                  />
-                }
-              />
-              
-              <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
-              <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
-            </BarChart>
-          </ChartContainer>
+        <CardContent className="px-0">
+           <div className="relative group w-full">
+             <div className="w-full h-[600px]">
+               <ResponsiveContainer width="100%" height="100%">
+                 <BarChart 
+                   data={dailyHistoryData} 
+                   onClick={handleBarClick}
+                   margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
+                   barCategoryGap={0}
+                   barGap={0}
+                 >
+                   <defs>
+                     <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
+                       <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
+                       <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.05}/>
+                     </linearGradient>
+                   </defs>
+                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                   <XAxis 
+                     dataKey="dateLabel" 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                     interval={0}
+                     angle={-45}
+                     textAnchor="end"
+                     height={60}
+                     tickMargin={8} 
+                   />
+                   <YAxis 
+                     axisLine={false}
+                     tickLine={false}
+                     className="text-xs"
+                     tickFormatter={(v) => `${(Number(v) / 60).toFixed(1)}h`} 
+                   />
+                   <ChartTooltip
+                     content={
+                       <ChartTooltipContent
+                         formatter={(value: number) => [`${(Number(value) / 60).toFixed(2)}h`, 'Total']}
+                       />
+                     }
+                   />
+                   
+                   <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
+                   <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
+                 </BarChart>
+               </ResponsiveContainer>
+             </div>
+           </div>
         </CardContent>
       </Card>
 
