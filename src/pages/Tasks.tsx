@@ -134,7 +134,15 @@ const Tasks = () => {
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     try {
       await updateTask(updatedTask);
-      await refreshTasks();
+      
+      // Force immediate reload if task was completed to refresh the display
+      if (updatedTask.status === 'Completed') {
+        const pageSize = getPageSize();
+        await loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
+      } else {
+        await refreshTasks();
+      }
+      
       toast({
         title: "Success",
         description: "Task updated successfully",
@@ -147,7 +155,7 @@ const Tasks = () => {
         variant: "destructive",
       });
     }
-  }, [updateTask, refreshTasks]);
+  }, [updateTask, refreshTasks, loadTasks, getPageSize, sortField, sortDirection, activeFilter]);
 
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {

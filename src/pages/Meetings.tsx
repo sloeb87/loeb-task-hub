@@ -126,7 +126,14 @@ const Meetings = () => {
   const handleUpdateTask = useCallback(async (updatedTask: Task) => {
     try {
       await updateTask(updatedTask);
-      await refreshTasks();
+      
+      // Force immediate reload if task was completed to refresh the display
+      if (updatedTask.status === 'Completed') {
+        await loadAllMeetings();
+      } else {
+        await refreshTasks();
+      }
+      
       toast({
         title: "Success",
         description: "Meeting updated successfully",
@@ -139,7 +146,7 @@ const Meetings = () => {
         variant: "destructive",
       });
     }
-  }, [updateTask, refreshTasks]);
+  }, [updateTask, refreshTasks, loadAllMeetings]);
 
   const handleAddFollowUpWrapper = useCallback(async (taskId: string, followUpText: string) => {
     try {

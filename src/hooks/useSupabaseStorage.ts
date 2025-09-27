@@ -1190,21 +1190,7 @@ export function useSupabaseStorage() {
       }
     }
 
-    // Add follow-up comment if task was just completed (except for Meeting tasks)
-    if (isBeingCompleted && updatedTask.taskType !== 'Meeting') {
-      const { error: followUpError } = await supabase
-        .from('follow_ups')
-        .insert({
-          task_id: existingTask.id,
-          text: "Task marked completed",
-          task_status: 'Completed',
-          created_at: new Date().toISOString()
-        });
-
-      if (followUpError) {
-        console.error('Error adding completion follow-up:', followUpError);
-      }
-    }
+    // Removed automatic completion follow-up to prevent RLS issues
 
     // Create follow-ups for tracked field changes
     const followUpsToCreate = [];
