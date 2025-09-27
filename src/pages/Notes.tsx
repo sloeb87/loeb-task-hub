@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useNotes } from '@/hooks/useNotes';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Save, Clock } from 'lucide-react';
 
 const Notes = () => {
+  const location = useLocation();
   const { note, isLoading, isSaving, saveNote, emergencySave } = useNotes();
   const [content, setContent] = useState('');
   const [lastSaved, setLastSaved] = useState<string>('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const previousLocationRef = useRef(location.pathname);
 
   // Update content when note is loaded
   useEffect(() => {
@@ -37,6 +40,21 @@ const Notes = () => {
       }
     }
   };
+
+  // Save on navigation within the app
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const previousPath = previousLocationRef.current;
+    
+    // If the route changed and we're leaving the notes page, save
+    if (previousPath === '/notes' && currentPath !== '/notes' && hasUnsavedChanges && content && note) {
+      emergencySave(content);
+      setHasUnsavedChanges(false);
+    }
+    
+    // Update the previous location reference
+    previousLocationRef.current = currentPath;
+  }, [location.pathname, hasUnsavedChanges, content, note, emergencySave]);
 
   // Save on page visibility change (when user switches apps/tabs)
   useEffect(() => {
@@ -152,7 +170,7 @@ const Notes = () => {
                 </div>
               </div>
               <p className="text-muted-foreground">
-                Write your thoughts, ideas, and quick notes here. Press Ctrl+S (or Cmd+S) to save manually, or notes save automatically when switching apps.
+                Write your thoughts, ideas, and quick notes here. Press Ctrl+S (or Cmd+S) to save manually, or notes save automatically when switching pages/apps.
               </p>
             </CardHeader>
             <CardContent className="pt-0 flex-1 flex flex-col">
