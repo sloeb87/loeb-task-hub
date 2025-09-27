@@ -1277,7 +1277,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <CardContent className="px-0">
            <div className="relative group w-full">
              <div className="w-full h-[600px]">
-               <ResponsiveContainer width="100%" height="100%">
+               <ChartContainer 
+                 config={{
+                   minutes: {
+                     label: "Daily Hours",
+                     color: "hsl(var(--chart-1))",
+                   },
+                 }} 
+                 className="w-full h-full"
+               >
                  <BarChart 
                    data={dailyHistoryData} 
                    onClick={handleBarClick}
@@ -1320,7 +1328,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                    <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
                    <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
                  </BarChart>
-               </ResponsiveContainer>
+               </ChartContainer>
              </div>
            </div>
         </CardContent>
