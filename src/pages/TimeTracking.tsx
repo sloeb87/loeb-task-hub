@@ -1269,13 +1269,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       </div>
 
       {/* Daily Hours History */}
-      <Card>
+      <Card className="w-full">
         <CardHeader className="pb-2">
           <CardTitle>Daily Hours (Last 30 Days)</CardTitle>
           <CardDescription>Total hours per day. Ends today.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <ChartContainer config={{}} className="h-80 w-full">
+        <CardContent className="px-0">
+          <div className="relative group w-full">
+            <div className="w-full h-[600px]">
+              <ChartContainer config={{}} className="w-full h-full">
             <BarChart data={dailyHistoryData} onClick={handleBarClick}>
               <defs>
                 <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
@@ -1298,6 +1300,8 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
             </BarChart>
           </ChartContainer>
+          </div>
+          </div>
         </CardContent>
       </Card>
 
