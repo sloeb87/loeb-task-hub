@@ -587,7 +587,7 @@ export const FollowUpsPage = ({
   };
 
   // Handle chart clicks - navigate to tasks page with date filter  
-  const handleTaskChartClick = (data: any, index: number) => {
+    const handleTaskChartClick = (data: any, index: number) => {
     console.log('Task chart clicked:', data, index);
     if (data && tasksChartData[index]) {
       const clickedData = tasksChartData[index];
@@ -616,6 +616,25 @@ export const FollowUpsPage = ({
           }
         }
       });
+    }
+  };
+
+  // Handle planned vs logged chart clicks - filter follow-ups by month
+  const handlePlannedVsLoggedChartClick = (data: any, index: number) => {
+    console.log('Planned vs Logged chart clicked:', data, index);
+    if (data && plannedVsLoggedChartData[index]) {
+      const clickedData = plannedVsLoggedChartData[index];
+      const monthStart = startOfMonth(clickedData.date);
+      const monthEnd = endOfMonth(clickedData.date);
+      
+      // Update the filters to show only follow-ups from the clicked month
+      setFilters(prev => ({
+        ...prev,
+        dateRange: {
+          from: monthStart,
+          to: monthEnd
+        }
+      }));
     }
   };
 
@@ -1010,13 +1029,14 @@ export const FollowUpsPage = ({
         <CardContent className="px-0">
            <div className="relative group w-full">
              <div className="w-full h-[600px]">
-               <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={plannedVsLoggedChartData}
-                    margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
-                    barCategoryGap={10}
-                    barGap={2}
-                  >
+                <ResponsiveContainer width="100%" height="100%">
+                   <BarChart 
+                     data={plannedVsLoggedChartData}
+                     margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
+                     barCategoryGap={10}
+                     barGap={2}
+                     onClick={handlePlannedVsLoggedChartClick}
+                   >
                   <defs>
                     <linearGradient id="plannedHoursGradient" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35}/>
@@ -1062,20 +1082,22 @@ export const FollowUpsPage = ({
                      return null;
                    }} 
                  />
-                  <Bar 
-                    dataKey="plannedHours" 
-                    fill="url(#plannedHoursGradient)"
-                    stroke="hsl(var(--chart-4))"
-                    radius={[2, 2, 0, 0]}
-                    name="Planned Hours"
-                  />
-                  <Bar 
-                    dataKey="loggedHours" 
-                    fill="url(#loggedHoursGradient)"
-                    stroke="hsl(var(--chart-2))"
-                    radius={[2, 2, 0, 0]}
-                    name="Logged Hours"
-                  />
+                   <Bar 
+                     dataKey="plannedHours" 
+                     fill="url(#plannedHoursGradient)"
+                     stroke="hsl(var(--chart-4))"
+                     radius={[2, 2, 0, 0]}
+                     name="Planned Hours"
+                     style={{ cursor: 'pointer' }}
+                   />
+                   <Bar 
+                     dataKey="loggedHours" 
+                     fill="url(#loggedHoursGradient)"
+                     stroke="hsl(var(--chart-2))"
+                     radius={[2, 2, 0, 0]}
+                     name="Logged Hours"
+                     style={{ cursor: 'pointer' }}
+                   />
                 </BarChart>
                </ResponsiveContainer>
              </div>
