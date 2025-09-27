@@ -28,7 +28,6 @@ export const TASK_PRIORITIES = {
 // View types
 export const VIEW_TYPES = {
   TASKS: 'tasks',
-  DASHBOARD: 'dashboard',
   PROJECTS: 'projects',
   TIME_TRACKING: 'timetracking',
   FOLLOW_UPS: 'followups'

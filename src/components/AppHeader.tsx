@@ -9,8 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { RunningTimerDisplay } from "@/components/RunningTimerDisplay";
 import { Task } from "@/types/task";
 interface AppHeaderProps {
-  activeView: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes";
-  onViewChange: (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => void;
+  activeView: "tasks" | "meetings" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes";
+  onViewChange: (view: "tasks" | "meetings" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => void;
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
@@ -80,10 +80,6 @@ export const AppHeader = React.memo(({
     key: 'timetracking',
     label: 'Time Tracking',
     icon: Clock
-  }, {
-    key: 'dashboard',
-    label: 'KPIs',
-    icon: BarChart3
   }], []);
 
   const allNavigationItems = useMemo(() => [{
@@ -121,10 +117,6 @@ export const AppHeader = React.memo(({
     key: 'timetracking',
     label: 'Time Tracking',
     icon: Clock
-  }, {
-    key: 'dashboard',
-    label: 'KPIs',
-    icon: BarChart3
   }], [selectedProjectName, editingTaskTitle, editingTaskId, tasks]);
   // Memoized components to prevent recreation
   const DesktopNavigation = useMemo(() => {

@@ -170,7 +170,6 @@ export const AppHeaderWrapper = React.memo(() => {
   const getActiveViewFromPath = useCallback((pathname: string) => {
     if (pathname === '/tasks') return 'tasks';
     if (pathname === '/meetings') return 'meetings';
-    if (pathname === '/dashboard') return 'dashboard';
     if (pathname === '/projects') return 'projects';
     if (pathname.startsWith('/projects/')) return 'project-details';
     if (pathname === '/time-tracking') return 'timetracking';
@@ -287,16 +286,13 @@ export const AppHeaderWrapper = React.memo(() => {
     }
   }, [location.pathname, taskNavigationState, getProjectDetails, getTaskDetails, lastViewed.project, lastViewed.task, projects]);
 
-  const handleViewChange = (view: "tasks" | "meetings" | "dashboard" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => {
+  const handleViewChange = (view: "tasks" | "meetings" | "projects" | "project-details" | "timetracking" | "followups" | "task-edit" | "meeting-edit" | "notes") => {
     switch (view) {
       case 'tasks':
         navigate('/tasks');
         break;
       case 'meetings':
         navigate('/meetings');
-        break;
-      case 'dashboard':
-        navigate('/dashboard');
         break;
       case 'projects':
         navigate('/projects');

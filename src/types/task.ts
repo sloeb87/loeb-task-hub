@@ -83,14 +83,3 @@ export interface Project {
     folder?: NamedLink[];
   };
 }
-
-export interface KPIMetrics {
-  totalTasks: number;
-  completedTasks: number;
-  overdueTasks: number;
-  completionRate: number;
-  averageTaskDuration: number;
-  tasksByStatus: Record<TaskStatus, number>;
-  tasksByPriority: Record<TaskPriority, number>;
-  tasksByUser: Record<string, number>;
-}
