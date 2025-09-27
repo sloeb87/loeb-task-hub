@@ -41,7 +41,8 @@ export const getDueDateColor = (dueDate: string, status: string): string => {
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
-  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+  return dayName + ', ' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
 // Task filtering utilities
