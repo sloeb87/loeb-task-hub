@@ -159,7 +159,11 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
                                                 {followUp.taskStatus}
                                               </span>
                                               <span className="text-gray-400">›</span>
-                                              <span className="flex-1 text-gray-700 dark:text-gray-300 min-w-0 truncate">
+                                              <span className={`flex-1 min-w-0 truncate ${
+                                                followUp.text.startsWith('Task updated:') 
+                                                  ? 'text-blue-600 dark:text-blue-400' 
+                                                  : 'text-gray-700 dark:text-gray-300'
+                                              }`}>
                                                 {followUp.text}
                                               </span>
                                               <button
