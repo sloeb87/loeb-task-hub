@@ -98,7 +98,7 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
                         Object.entries(tasks).map(([taskTitle, followUps]) => (
                           <React.Fragment key={`${weekName}-${scopeName}-${projectName}-${taskTitle}`}>
                             {/* Task Row with Condensed Follow-ups */}
-                            <TableRow className="border-l-4 border-l-blue-300 bg-blue-50 dark:bg-blue-950 hover:bg-blue-100 dark:hover:bg-blue-900">
+                            <TableRow className="border-l-4 border-l-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800">
                               <TableCell colSpan={4} className="py-4 px-8">
                                 <div className="space-y-3">
                                   {/* Task Header */}
@@ -106,7 +106,7 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
                                     <div className="flex items-center gap-3">
                                       <button 
                                         onClick={() => onToggleTaskExpansion(`${weekName}-${scopeName}-${projectName}`, taskTitle)}
-                                        className="text-blue-600 hover:text-blue-800"
+                                        className="text-gray-600 hover:text-gray-800"
                                       >
                                         {expandedTasks.has(`${weekName}-${scopeName}-${projectName}-${taskTitle}`) ? '▼' : '▶'}
                                       </button>
@@ -123,54 +123,52 @@ export const FollowUpTable: React.FC<FollowUpTableProps> = ({
                                   
                                   {/* Condensed Follow-ups - only show if task is expanded */}
                                   {expandedTasks.has(`${weekName}-${scopeName}-${projectName}-${taskTitle}`) && (
-                                    <div className="ml-8 space-y-2 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
+                                    <div className="ml-8 space-y-1 border-l-2 border-gray-200 dark:border-gray-600 pl-4">
                                       {followUps.map(followUp => (
                                         <div 
                                           key={`${followUp.taskId}-${followUp.id}`}
-                                          className="flex items-start justify-between gap-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 cursor-pointer"
+                                          className="flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded cursor-pointer text-sm"
                                           onClick={(e) => onRowClick(followUp, e)}
                                         >
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-1">
-                                              <span className="text-xs text-gray-500">
+                                          {editingFollowUp === followUp.id ? (
+                                            <div className="flex-1 space-y-2">
+                                              <textarea
+                                                value={editingText}
+                                                onChange={(e) => onEditingTextChange(e.target.value)}
+                                                className="w-full p-2 text-sm border rounded resize-none"
+                                                rows={2}
+                                              />
+                                              <input
+                                                type="datetime-local"
+                                                value={editingTimestamp}
+                                                onChange={(e) => onEditingTimestampChange(e.target.value)}
+                                                className="text-xs border rounded px-2 py-1"
+                                              />
+                                              <div className="flex gap-2">
+                                                <button onClick={onSaveEdit} className="text-xs bg-green-500 text-white px-2 py-1 rounded">Save</button>
+                                                <button onClick={onCancelEdit} className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Cancel</button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <>
+                                              <span className="text-xs text-gray-500 whitespace-nowrap">
                                                 {new Date(followUp.timestamp).toLocaleDateString()} {new Date(followUp.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                               </span>
-                                              <span className="px-1.5 py-0.5 text-xs rounded-full" style={getStatusStyle(followUp.taskStatus)}>
+                                              <span className="text-gray-400">›</span>
+                                              <span className="px-1.5 py-0.5 text-xs rounded-full whitespace-nowrap" style={getStatusStyle(followUp.taskStatus)}>
                                                 {followUp.taskStatus}
                                               </span>
-                                            </div>
-                                            {editingFollowUp === followUp.id ? (
-                                              <div className="space-y-2">
-                                                <textarea
-                                                  value={editingText}
-                                                  onChange={(e) => onEditingTextChange(e.target.value)}
-                                                  className="w-full p-2 text-sm border rounded resize-none"
-                                                  rows={3}
-                                                />
-                                                <input
-                                                  type="datetime-local"
-                                                  value={editingTimestamp}
-                                                  onChange={(e) => onEditingTimestampChange(e.target.value)}
-                                                  className="text-xs border rounded px-2 py-1"
-                                                />
-                                                <div className="flex gap-2">
-                                                  <button onClick={onSaveEdit} className="text-xs bg-green-500 text-white px-2 py-1 rounded">Save</button>
-                                                  <button onClick={onCancelEdit} className="text-xs bg-gray-500 text-white px-2 py-1 rounded">Cancel</button>
-                                                </div>
-                                              </div>
-                                            ) : (
-                                              <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                                              <span className="text-gray-400">›</span>
+                                              <span className="flex-1 text-gray-700 dark:text-gray-300 min-w-0 truncate">
                                                 {followUp.text}
-                                              </p>
-                                            )}
-                                          </div>
-                                          {editingFollowUp !== followUp.id && (
-                                            <button
-                                              onClick={(e) => onEditClick(followUp, e)}
-                                              className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                              Edit
-                                            </button>
+                                              </span>
+                                              <button
+                                                onClick={(e) => onEditClick(followUp, e)}
+                                                className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                              >
+                                                Edit
+                                              </button>
+                                            </>
                                           )}
                                         </div>
                                       ))}
