@@ -767,6 +767,27 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     if (!name) return "";
     return name.toUpperCase() === "SAP4GENESIS" ? "SAP4Genesis" : name;
   };
+
+  // Handle bar chart click to filter by day
+  const handleBarClick = useCallback((data: any) => {
+    if (data && data.activePayload && data.activePayload[0]) {
+      const clickedDate = data.activePayload[0].payload.dateISO;
+      const selectedDate = new Date(clickedDate);
+      
+      // Set filters to show only that specific day
+      setFilters({
+        dateRange: {
+          from: startOfDay(selectedDate),
+          to: endOfDay(selectedDate)
+        }
+      });
+      
+      toast({
+        title: "Filtered by day",
+        description: `Showing entries for ${selectedDate.toLocaleDateString()}`
+      });
+    }
+  }, [setFilters, toast]);
   const handleTimerToggle = (taskId: string) => {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -1198,7 +1219,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </CardHeader>
         <CardContent>
           <ChartContainer config={{}} className="h-80 w-full">
-            <BarChart data={dailyHistoryData}>
+            <BarChart data={dailyHistoryData} onClick={handleBarClick}>
               <defs>
                 <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
