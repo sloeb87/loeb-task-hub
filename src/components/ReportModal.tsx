@@ -11,6 +11,19 @@ import { useTheme } from "next-themes";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -447,7 +460,7 @@ export const ReportModal = ({ isOpen, onClose, project, tasks }: ReportModalProp
                                     <span className="font-medium text-blue-600">
                                       {new Date(followUp.timestamp).toLocaleDateString()}
                                     </span>
-                                    : {followUp.text}
+                                    : <span className={isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : ''}>{followUp.text}</span>
                                   </p>
                                 </div>
                               ))}

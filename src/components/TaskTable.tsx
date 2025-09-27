@@ -18,6 +18,19 @@ import { ResponsiveTaskCard } from "./ResponsiveTaskCard";
 import { TimeTrackingCell } from "./TimeTrackingCell";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 interface TaskTableProps {
   tasks: Task[];
   onEditTask: (task: Task) => void;
@@ -1111,9 +1124,9 @@ export const TaskTable = ({
                                    <div className="text-gray-500 dark:text-gray-400">
                                      {new Date(followUp.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                                    </div>
-                                   <div className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">
-                                     {followUp.text}
-                                   </div>
+                                    <div className={`text-gray-600 dark:text-gray-300 whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : ''}`}>
+                                      {followUp.text}
+                                    </div>
                                  </div>
                                ))}
                                {hasMoreToday && (

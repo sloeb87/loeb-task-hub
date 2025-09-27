@@ -21,6 +21,19 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } f
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { TaskMetricsDetail } from "@/components/TaskMetricsDetail";
+// Helper function to identify automatic follow-ups
+const isAutomaticFollowUp = (text: string): boolean => {
+  const automaticPatterns = [
+    /^Task marked completed$/,
+    /^Status changed from .+ to .+$/,
+    /^Priority changed from .+ to .+$/,
+    /^Task type changed from .+ to .+$/,
+    /^Due date changed from .+ to .+$/
+  ];
+  
+  return automaticPatterns.some(pattern => pattern.test(text));
+};
+
 interface FollowUpsPageProps {
   tasks: Task[];
   projects: Project[];
@@ -1160,7 +1173,7 @@ export const FollowUpsPage = ({
                               {editingFollowUp === followUp.id ? <div className="edit-controls">
                                   <Textarea value={editingText} onChange={e => setEditingText(e.target.value)} className="text-sm min-h-[60px] w-full" onClick={e => e.stopPropagation()} rows={2} />
                                 </div> : <div className="max-w-md">
-                                  <p className="text-sm whitespace-pre-wrap">{followUp.text}</p>
+                                  <p className={`text-sm whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : ''}`}>{followUp.text}</p>
                                 </div>}
                             </TableCell>
                             
