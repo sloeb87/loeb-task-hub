@@ -1011,13 +1011,23 @@ export const FollowUpsPage = ({
            <div className="relative group w-full">
              <div className="w-full h-[600px]">
                <ResponsiveContainer width="100%" height="100%">
-                 <BarChart 
-                   data={plannedVsLoggedChartData}
-                   margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
-                   barCategoryGap={0}
-                   barGap={0}
-                 >
-                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <BarChart 
+                    data={plannedVsLoggedChartData}
+                    margin={{ top: 10, right: 0, left: 0, bottom: 60 }}
+                    barCategoryGap={0}
+                    barGap={0}
+                  >
+                  <defs>
+                    <linearGradient id="plannedHoursGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.05}/>
+                    </linearGradient>
+                    <linearGradient id="loggedHoursGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.05}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                    <XAxis 
                      dataKey="week" 
                      axisLine={false}
@@ -1052,18 +1062,20 @@ export const FollowUpsPage = ({
                      return null;
                    }} 
                  />
-                 <Bar 
-                   dataKey="plannedHours" 
-                   fill="hsl(var(--chart-4) / 0.7)" 
-                   radius={[2, 2, 0, 0]}
-                   name="Planned Hours"
-                 />
-                 <Bar 
-                   dataKey="loggedHours" 
-                   fill="hsl(var(--chart-2) / 0.7)" 
-                   radius={[2, 2, 0, 0]}
-                   name="Logged Hours"
-                 />
+                  <Bar 
+                    dataKey="plannedHours" 
+                    fill="url(#plannedHoursGradient)"
+                    stroke="hsl(var(--chart-4))"
+                    radius={[2, 2, 0, 0]}
+                    name="Planned Hours"
+                  />
+                  <Bar 
+                    dataKey="loggedHours" 
+                    fill="url(#loggedHoursGradient)"
+                    stroke="hsl(var(--chart-2))"
+                    radius={[2, 2, 0, 0]}
+                    name="Logged Hours"
+                  />
                 </BarChart>
                </ResponsiveContainer>
              </div>
