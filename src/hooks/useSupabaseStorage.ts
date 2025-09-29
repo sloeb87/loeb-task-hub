@@ -558,8 +558,21 @@ export function useSupabaseStorage() {
         followUpsMap.set(taskData.task_number, followUpsData);
       }
 
-      const emptyProjectMap = new Map<string, string>();
-      const convertedTask = convertSupabaseTaskToTask(taskData, followUpsMap, emptyProjectMap);
+      // Get project name if task has a project_id
+      const projectNamesMap = new Map<string, string>();
+      if (taskData.project_id) {
+        const { data: projectData } = await supabase
+          .from('projects')
+          .select('id, name')
+          .eq('id', taskData.project_id)
+          .single();
+        
+        if (projectData) {
+          projectNamesMap.set(projectData.id, projectData.name);
+        }
+      }
+      
+      const convertedTask = convertSupabaseTaskToTask(taskData, followUpsMap, projectNamesMap);
       return convertedTask;
     } catch (err) {
       console.error('Error loading task by ID:', err);
