@@ -4,7 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2, X, CheckCircle2 } from "lucide-react";
+import { MessageSquarePlus, Calendar, User, FolderOpen, Mail, FileText, Users, ChevronUp, ChevronDown, ExternalLink, Filter, Search, Play, Pause, Clock, Repeat, Link2, X, CheckCircle2, Star } from "lucide-react";
 import { Task } from "@/types/task";
 import { isOverdue, getDueDateColor, formatTime } from "@/utils/taskOperations";
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
@@ -39,6 +39,7 @@ interface TaskTableProps {
   onEditTask: (task: Task) => void;
   onFollowUp: (task: Task) => void;
   onCompleteTask?: (task: Task) => void; // New prop for completing tasks
+  onToggleFavorite?: (task: Task) => void; // New prop for toggling favorite
   hideProjectColumn?: boolean; // New prop to hide project name
   pagination?: {
     currentPage: number;
@@ -76,6 +77,7 @@ export const TaskTable = ({
   onEditTask,
   onFollowUp,
   onCompleteTask,
+  onToggleFavorite,
   hideProjectColumn = false, // Default to false for backward compatibility
   pagination,
   onPageChange,
@@ -940,9 +942,32 @@ export const TaskTable = ({
                                  <Play className="w-3 h-3" />
                                );
                              })()}
-                           </Button>
-                           
-                           {/* Complete Button */}
+                            </Button>
+                            
+                            {/* Favorite Button */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onToggleFavorite) {
+                                  onToggleFavorite({
+                                    ...task,
+                                    isFavorite: !task.isFavorite
+                                  });
+                                }
+                              }}
+                              className={`h-7 w-7 p-0 ${
+                                task.isFavorite 
+                                  ? 'text-yellow-500 hover:text-yellow-600' 
+                                  : 'text-gray-400 hover:text-yellow-500'
+                              }`}
+                              title={task.isFavorite ? "Remove from favorites" : "Add to favorites"}
+                            >
+                              <Star className={`w-4 h-4 ${task.isFavorite ? 'fill-yellow-500' : ''}`} />
+                            </Button>
+                            
+                            {/* Complete Button */}
                            {task.status !== 'Completed' && (
                              <Button
                                variant="ghost"
