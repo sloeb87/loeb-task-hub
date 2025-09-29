@@ -61,6 +61,7 @@ export interface Task {
   parentTaskId?: string;
   nextRecurrenceDate?: string;
   recurrenceEndDate?: string;
+  isFavorite?: boolean; // Add favorite flag
 }
 
 export interface Project {

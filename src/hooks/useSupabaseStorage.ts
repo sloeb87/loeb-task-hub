@@ -173,7 +173,8 @@ export function useSupabaseStorage() {
       recurrenceInterval: (supabaseTask as any).recurrence_interval || 1,
       parentTaskId: (supabaseTask as any).parent_task_id,
       nextRecurrenceDate: (supabaseTask as any).next_recurrence_date,
-      recurrenceEndDate: (supabaseTask as any).recurrence_end_date
+      recurrenceEndDate: (supabaseTask as any).recurrence_end_date,
+      isFavorite: (supabaseTask as any).is_favorite || false
     };
   }, []);
 
@@ -1007,6 +1008,7 @@ export function useSupabaseStorage() {
           parent_task_id: taskData.parentTaskId || null,
           next_recurrence_date: taskData.nextRecurrenceDate || null,
           recurrence_end_date: taskData.recurrenceEndDate || null,
+          is_favorite: taskData.isFavorite || false,
           user_id: user.id
         })
         .select()

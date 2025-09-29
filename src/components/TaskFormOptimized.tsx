@@ -16,7 +16,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Task, TaskType, TaskStatus, TaskPriority, FollowUp, ChecklistItem, NamedLink } from "@/types/task";
 import { Project } from "@/types/task";
-import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat, Folder } from "lucide-react";
+import { MessageSquarePlus, User, Calendar as CalendarLucide, Play, ChevronRight, ChevronLeft, ExternalLink, FileText, Users, Mail, File, X, Plus, Check, Trash2, GripVertical, Pencil, Repeat, Folder, Star } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useParameters } from "@/hooks/useParameters";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
@@ -258,6 +258,7 @@ interface FormData {
   recurrenceEndDate?: string;
   recurrenceDaysOfWeek: number[];
   occurrenceDate?: Date; // For showing/editing current occurrence of recurring tasks
+  isFavorite: boolean; // Add favorite flag
 }
 
 const DEFAULT_FORM_DATA: FormData = {
@@ -290,7 +291,8 @@ const DEFAULT_FORM_DATA: FormData = {
   recurrenceInterval: 1,
   recurrenceEndDate: undefined,
   recurrenceDaysOfWeek: [],
-  occurrenceDate: undefined
+  occurrenceDate: undefined,
+  isFavorite: false
 };
 
 export const TaskFormOptimized = React.memo(({ 
@@ -418,7 +420,8 @@ export const TaskFormOptimized = React.memo(({
           recurrenceInterval: task.recurrenceInterval || 1,
           recurrenceEndDate: task.recurrenceEndDate,
           recurrenceDaysOfWeek: task.recurrenceDaysOfWeek || [],
-          occurrenceDate: new Date(task.dueDate) // Current occurrence date for recurring tasks
+          occurrenceDate: new Date(task.dueDate), // Current occurrence date for recurring tasks
+          isFavorite: task.isFavorite || false
         };
         
         console.log('TaskForm - Setting form data:', newFormData);
@@ -603,6 +606,7 @@ export const TaskFormOptimized = React.memo(({
       recurrenceInterval: formData.recurrenceInterval,
       recurrenceEndDate: formData.recurrenceEndDate,
       recurrenceDaysOfWeek: formData.recurrenceDaysOfWeek,
+      isFavorite: formData.isFavorite, // Add favorite field
       ...(task && { 
         id: task.id, 
         creationDate: task.creationDate, 
@@ -757,17 +761,29 @@ export const TaskFormOptimized = React.memo(({
             <div className="bg-gray-50 dark:bg-black/50 rounded-lg p-4 space-y-4 border border-gray-200 dark:border-gray-800">
               {/* Basic Info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+                <div className="relative">
                   <Label htmlFor="title">Task Title *</Label>
-                  <Input
-                    id="title"
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => updateField('title', e.target.value)}
-                    placeholder="Enter task title"
-                    required
-                    className="dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                  />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="title"
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => updateField('title', e.target.value)}
+                      placeholder="Enter task title"
+                      required
+                      className="dark:bg-gray-800 dark:border-gray-600 dark:text-white flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => updateField('isFavorite', !formData.isFavorite)}
+                      className={`p-2 ${formData.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
+                      title="Mark as favorite"
+                    >
+                      <Star className={`w-4 h-4 ${formData.isFavorite ? 'fill-yellow-500' : ''}`} />
+                    </Button>
+                  </div>
                 </div>
                 
                 <div>

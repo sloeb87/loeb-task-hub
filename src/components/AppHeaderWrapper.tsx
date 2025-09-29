@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppHeader } from './AppHeader';
 import { Parameters } from './Parameters';
+import { FavoritesDialog } from './FavoritesDialog';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { useTaskNavigation } from "@/contexts/TaskFormContext";
 import { Task } from "@/types/task";
@@ -26,6 +27,7 @@ export const AppHeaderWrapper = React.memo(() => {
   const navigate = useNavigate();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isParametersOpen, setIsParametersOpen] = useState(false);
+  const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const { taskNavigationState } = useTaskNavigation();
   const { tasks: currentTasks, projects, refreshTasks, loadTaskById, loadAllTasks } = useSupabaseStorage();
   const [allTasks, setAllTasks] = useState<Task[]>([]);
@@ -347,6 +349,18 @@ export const AppHeaderWrapper = React.memo(() => {
     setIsParametersOpen(true);
   };
 
+  const handleOpenFavorites = useCallback(() => {
+    setIsFavoritesOpen(true);
+  }, []);
+
+  const handleTaskClick = useCallback((task: Task) => {
+    navigate(`/tasks/${task.id}`);
+    setIsFavoritesOpen(false);
+  }, [navigate]);
+
+  // Get favorite tasks
+  const favoriteTasks = allTasks.filter(task => task.isFavorite);
+
   // Use cached last viewed items for immediate display
   const displayProject = lastViewed.project;
   const displayTask = lastViewed.task;
@@ -366,6 +380,7 @@ export const AppHeaderWrapper = React.memo(() => {
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
         onOpenParameters={handleOpenParameters}
+        onOpenFavorites={handleOpenFavorites}
         onBack={handleBack}
         selectedProjectName={selectedProjectName}
         selectedProjectId={null} // Remove ID display for cleaner look
@@ -376,6 +391,12 @@ export const AppHeaderWrapper = React.memo(() => {
       <Parameters 
         isOpen={isParametersOpen} 
         onClose={() => setIsParametersOpen(false)} 
+      />
+      <FavoritesDialog
+        isOpen={isFavoritesOpen}
+        onClose={() => setIsFavoritesOpen(false)}
+        favoriteTasks={favoriteTasks}
+        onTaskClick={handleTaskClick}
       />
     </>
   );

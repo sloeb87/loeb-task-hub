@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, Users, StickyNote } from "lucide-react";
+import { BarChart3, FolderKanban, ListTodo, Moon, Sun, Settings, LogOut, Menu, X, Clock, MessageSquare, Users, StickyNote, Star } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ interface AppHeaderProps {
   isDarkMode: boolean;
   onToggleDarkMode: () => void;
   onOpenParameters: () => void;
+  onOpenFavorites: () => void;
   onBack?: () => void; // Optional back function for project detail view
   selectedProjectName?: string; // Optional project name for project details tab
   selectedProjectId?: string; // Optional project ID for project details tab
@@ -27,6 +28,7 @@ export const AppHeader = React.memo(({
   isDarkMode,
   onToggleDarkMode,
   onOpenParameters,
+  onOpenFavorites,
   onBack,
   selectedProjectName,
   selectedProjectId,
@@ -141,6 +143,9 @@ export const AppHeader = React.memo(({
       <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
         <Button variant="outline" onClick={() => onViewChange('notes')} size="sm" className="flex items-center p-2" aria-label="Quick Notes">
           <StickyNote className="w-4 h-4" />
+        </Button>
+        <Button variant="outline" onClick={onOpenFavorites} size="sm" className="flex items-center p-2" aria-label="Favorite Tasks">
+          <Star className="w-4 h-4" />
         </Button>
         <Button variant="outline" onClick={onOpenParameters} size="sm" className="flex items-center p-2" aria-label="Parameters">
           <Settings className="w-4 h-4" />
