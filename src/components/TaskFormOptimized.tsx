@@ -508,26 +508,27 @@ export const TaskFormOptimized = React.memo(({
   }, []);
 
   // Auto-save function for immediate updates
-  const autoSave = useCallback(() => {
+  const autoSave = useCallback((overrides?: Partial<FormData>) => {
     if (!task || !formData.title.trim()) return; // Only auto-save for existing tasks with valid title
     
+    const merged = { ...formData, ...(overrides || {}) };
     const taskData = {
-      ...formData,
+      ...merged,
       dueDate: date ? date.toISOString().split('T')[0] : task.dueDate,
-      taskType: formData.taskType as TaskType,
-      status: formData.status as TaskStatus,
-      priority: formData.priority as TaskPriority,
+      taskType: merged.taskType as TaskType,
+      status: merged.status as TaskStatus,
+      priority: merged.priority as TaskPriority,
       // Include recurrence fields
-      isRecurring: formData.isRecurring,
-      recurrenceType: formData.recurrenceType,
-      recurrenceInterval: formData.recurrenceInterval,
-      recurrenceEndDate: formData.recurrenceEndDate,
-      recurrenceDaysOfWeek: formData.recurrenceDaysOfWeek,
-      isFavorite: formData.isFavorite,
+      isRecurring: merged.isRecurring,
+      recurrenceType: merged.recurrenceType,
+      recurrenceInterval: merged.recurrenceInterval,
+      recurrenceEndDate: merged.recurrenceEndDate,
+      recurrenceDaysOfWeek: merged.recurrenceDaysOfWeek,
+      isFavorite: merged.isFavorite,
       id: task.id,
       creationDate: task.creationDate,
       followUps: task.followUps,
-      checklist: formData.checklist
+      checklist: merged.checklist
     };
 
     try {
@@ -780,11 +781,12 @@ export const TaskFormOptimized = React.memo(({
                       variant="ghost"
                       size="sm"
                       onClick={() => {
+                        const nextFav = !formData.isFavorite;
                         console.log('Star clicked! Current favorite status:', formData.isFavorite);
-                        updateField('isFavorite', !formData.isFavorite);
-                        console.log('Updated favorite status to:', !formData.isFavorite);
-                        // Auto-save to persist immediately
-                        setTimeout(() => autoSave(), 100);
+                        updateField('isFavorite', nextFav);
+                        console.log('Updated favorite status to:', nextFav);
+                        // Persist immediately with override to avoid stale state
+                        autoSave({ isFavorite: nextFav });
                       }}
                       className={`p-2 transition-colors ${formData.isFavorite ? 'text-star hover:text-star/80' : 'text-muted-foreground hover:text-star/60'}`}
                       title="Mark as favorite"
