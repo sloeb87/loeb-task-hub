@@ -82,8 +82,8 @@ const Tasks = () => {
   useEffect(() => {
     const pageSize = getPageSize();
     console.log('Tasks: Loading with activeFilter:', activeFilter);
-    loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
-  }, [loadTasks, getPageSize, activeFilter, sortField, sortDirection]);
+    loadTasks(1, pageSize, sortField, sortDirection, "active");
+  }, [loadTasks, getPageSize, sortField, sortDirection]);
 
   // SEO
   useEffect(() => {
