@@ -297,6 +297,7 @@ const Meetings = () => {
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected meeting
           onCompleteTask={handleUpdateTask} // Handle meeting completion
+          onToggleFavorite={handleUpdateTask} // Handle favorite toggle
           onSearch={() => {
             // For meetings, search is handled locally in the filteredTasks memo
             // No need for external search since we load all meetings

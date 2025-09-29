@@ -246,6 +246,7 @@ const Tasks = () => {
           onEditTask={() => {}} // Navigation handled in TaskTable via navigateToTaskEdit
           onFollowUp={handleOpenFollowUpDialog} // Open follow-up dialog for selected task
           onCompleteTask={handleUpdateTask} // Handle task completion
+          onToggleFavorite={handleUpdateTask} // Handle favorite toggle
           onSearch={(searchTerm, page = 1, _, sortField, sortDirection) => {
             const pageSize = getPageSize();
             searchTasks(searchTerm, page, pageSize, sortField, sortDirection);

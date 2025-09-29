@@ -7,6 +7,7 @@ interface TaskTableMemoProps {
   onEditTask: (task: Task) => void;
   onFollowUp: (task: Task) => void;
   onCompleteTask?: (task: Task) => void;
+  onToggleFavorite?: (task: Task) => void; // Add favorite toggle prop
   hideProjectColumn?: boolean;
   pagination?: {
     currentPage: number;
@@ -28,6 +29,7 @@ export const TaskTableMemo = React.memo<TaskTableMemoProps>(({
   onEditTask,
   onFollowUp,
   onCompleteTask,
+  onToggleFavorite,
   hideProjectColumn = false,
   pagination,
   onPageChange,
@@ -44,6 +46,7 @@ export const TaskTableMemo = React.memo<TaskTableMemoProps>(({
       onEditTask={onEditTask}
       onFollowUp={onFollowUp}
       onCompleteTask={onCompleteTask}
+      onToggleFavorite={onToggleFavorite}
       hideProjectColumn={hideProjectColumn}
       pagination={pagination}
       onPageChange={onPageChange}

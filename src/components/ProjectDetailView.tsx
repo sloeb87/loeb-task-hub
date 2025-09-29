@@ -297,6 +297,15 @@ export const ProjectDetailView = ({
     setRefreshKey(prev => prev + 1);
   }, [onUpdateTask]);
 
+  const handleToggleFavorite = useCallback((task: Task) => {
+    const updatedTask = {
+      ...task,
+      isFavorite: !task.isFavorite
+    };
+    onUpdateTask(updatedTask);
+    setRefreshKey(prev => prev + 1);
+  }, [onUpdateTask]);
+
   const handleSaveTaskLocal = (taskData: Task | Omit<Task, 'id' | 'creationDate' | 'followUps'>) => {
     if (onSaveTask) {
       onSaveTask(taskData);
@@ -611,6 +620,7 @@ export const ProjectDetailView = ({
                     onEditTask={handleEditTaskLocal}
                     onFollowUp={handleFollowUpLocal}
                     onCompleteTask={handleCompleteTask}
+                    onToggleFavorite={handleToggleFavorite}
                     hideProjectColumn={true}
                     pagination={paginatedData.openTasks.pagination}
                     onPageChange={setOpenTasksCurrentPage}
@@ -715,6 +725,7 @@ export const ProjectDetailView = ({
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       onCompleteTask={handleCompleteTask}
+                      onToggleFavorite={handleToggleFavorite}
                       hideProjectColumn={true}
                       pagination={paginatedData.completedTasks.pagination}
                       onPageChange={setCompletedTasksCurrentPage}
@@ -811,6 +822,7 @@ export const ProjectDetailView = ({
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       onCompleteTask={handleCompleteTask}
+                      onToggleFavorite={handleToggleFavorite}
                       hideProjectColumn={true}
                       pagination={paginatedData.openMeetings.pagination}
                       onPageChange={setOpenMeetingsCurrentPage}
@@ -907,6 +919,7 @@ export const ProjectDetailView = ({
                       onEditTask={handleEditTaskLocal}
                       onFollowUp={handleFollowUpLocal}
                       onCompleteTask={handleCompleteTask}
+                      onToggleFavorite={handleToggleFavorite}
                       hideProjectColumn={true}
                       pagination={paginatedData.completedMeetings.pagination}
                       onPageChange={setCompletedMeetingsCurrentPage}
