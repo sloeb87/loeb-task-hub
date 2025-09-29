@@ -24,7 +24,7 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+            <Star className="w-5 h-5 text-star fill-star" />
             Favorite Tasks ({favoriteTasks.length})
           </DialogTitle>
         </DialogHeader>
@@ -100,7 +100,7 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
                     </div>
                   </div>
                   
-                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500 flex-shrink-0 mt-1" />
+                  <Star className="w-5 h-5 text-star fill-star flex-shrink-0 mt-1" />
                 </div>
               </div>
             ))
