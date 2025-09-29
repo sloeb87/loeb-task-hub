@@ -1061,7 +1061,7 @@ export function useSupabaseStorage() {
     // Find the task by task_number and get current values to check for changes
     const { data: existingTask, error: findError } = await supabase
       .from('tasks')
-      .select('id, status, priority, task_type, due_date')
+      .select('id, status, priority, task_type, due_date, is_favorite')
       .eq('task_number', updatedTask.id)
       .eq('user_id', user.id)
       .maybeSingle();
@@ -1254,6 +1254,22 @@ export function useSupabaseStorage() {
 
       if (followUpError) {
         console.error('Error adding completion follow-up:', followUpError);
+      }
+    }
+
+    // Remove from favorites when task is completed
+    if (isBeingCompleted && existingTask.is_favorite) {
+      const { error: favoriteError } = await supabase
+        .from('tasks')
+        .update({ is_favorite: false })
+        .eq('id', updatedTask.id);
+
+      if (favoriteError) {
+        console.error('Error removing task from favorites:', favoriteError);
+      } else {
+        console.log('Task removed from favorites upon completion');
+        // Update local task data
+        updatedTask.isFavorite = false;
       }
     }
 
