@@ -1270,15 +1270,7 @@ export function useSupabaseStorage() {
       });
     }
     
-    // Check for Priority change
-    if (existingTask.priority !== updatedTask.priority) {
-      followUpsToCreate.push({
-        task_id: updatedTask.id,
-        text: `Priority changed from "${existingTask.priority}" to "${updatedTask.priority}"`,
-        task_status: updatedTask.status,
-        created_at: new Date().toISOString()
-      });
-    }
+    // Priority changes are now handled by the database trigger
     
     // Check for Task Type change
     if (existingTask.task_type !== updatedTask.taskType) {
