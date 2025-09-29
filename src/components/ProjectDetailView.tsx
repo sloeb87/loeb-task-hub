@@ -129,15 +129,20 @@ export const ProjectDetailView = ({
   // Listen for task updates to refresh the view only when necessary
   useEffect(() => {
     const handleTaskUpdate = (event: CustomEvent) => {
-      // Only refresh if the updated task belongs to this project
-      if (event.detail && event.detail.project === project.name) {
+      // Refresh if the updated task belongs to this project (check by project name or if task exists in current project tasks)
+      const updatedTask = event.detail;
+      if (updatedTask && (
+        updatedTask.project === project.name || 
+        allProjectTasks.some(task => task.id === updatedTask.id)
+      )) {
+        console.log('ProjectDetailView: Refreshing due to task update:', updatedTask.id);
         setRefreshKey(prev => prev + 1);
       }
     };
 
     window.addEventListener('taskUpdated', handleTaskUpdate as EventListener);
     return () => window.removeEventListener('taskUpdated', handleTaskUpdate as EventListener);
-  }, [project.name]);
+  }, [project.name, allProjectTasks]);
 
   // Add effect to refresh when tasks prop changes (fallback)
   useEffect(() => {
