@@ -153,7 +153,7 @@ export const ProjectDetailView = ({
   
   // Optimized task calculations with combined memoization
   const taskCategories = useMemo(() => {
-    const priorityOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+    const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
     const sortByDateAndPriority = (a: Task, b: Task) => {
       const dateA = new Date(a.dueDate).getTime();
       const dateB = new Date(b.dueDate).getTime();
