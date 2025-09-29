@@ -523,8 +523,9 @@ export const TaskFormOptimized = React.memo(({
       recurrenceInterval: formData.recurrenceInterval,
       recurrenceEndDate: formData.recurrenceEndDate,
       recurrenceDaysOfWeek: formData.recurrenceDaysOfWeek,
-      id: task.id, 
-      creationDate: task.creationDate, 
+      isFavorite: formData.isFavorite,
+      id: task.id,
+      creationDate: task.creationDate,
       followUps: task.followUps,
       checklist: formData.checklist
     };
@@ -782,6 +783,8 @@ export const TaskFormOptimized = React.memo(({
                         console.log('Star clicked! Current favorite status:', formData.isFavorite);
                         updateField('isFavorite', !formData.isFavorite);
                         console.log('Updated favorite status to:', !formData.isFavorite);
+                        // Auto-save to persist immediately
+                        setTimeout(() => autoSave(), 100);
                       }}
                       className={`p-2 ${formData.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
                       title="Mark as favorite"
