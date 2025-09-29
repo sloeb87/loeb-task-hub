@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { X } from "lucide-react";
+import { X, Pencil, Check } from "lucide-react";
 import { Project, Task, NamedLink } from "@/types/task";
 import { useParameters } from "@/hooks/useParameters";
 import { NamedLinkInput } from "@/components/ui/named-link-input";
@@ -49,6 +49,9 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
   });
 
   const [newTeamMember, setNewTeamMember] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingMember, setEditingMember] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const availableScopes = parameters.scopes.map(scope => scope.name);
   
   // Get project tasks
@@ -88,6 +91,37 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
       ...prev,
       team: prev.team.filter(m => m !== member)
     }));
+  };
+
+  const startEditingMember = (member: string) => {
+    setEditingMember(member);
+    setEditValue(member);
+  };
+
+  const saveEditedMember = () => {
+    if (editingMember && editValue.trim() && editValue.trim() !== editingMember) {
+      // Check if the new name already exists
+      if (formData.team.includes(editValue.trim())) {
+        toast({
+          title: "Duplicate Name",
+          description: "A team member with this name already exists.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        team: prev.team.map(m => m === editingMember ? editValue.trim() : m)
+      }));
+    }
+    setEditingMember(null);
+    setEditValue('');
+  };
+
+  const cancelEditingMember = () => {
+    setEditingMember(null);
+    setEditValue('');
   };
 
   const addScope = (scope: string) => {
@@ -382,20 +416,75 @@ export const ProjectForm = ({ isOpen, onClose, onSave, onDelete, project, allTas
               <Button type="button" onClick={addTeamMember} size="sm">
                 Add
               </Button>
+              <Button 
+                type="button" 
+                onClick={() => setIsEditMode(!isEditMode)} 
+                size="sm"
+                variant={isEditMode ? "default" : "outline"}
+                className="flex items-center gap-1"
+              >
+                <Pencil className="w-3 h-3" />
+                {isEditMode ? 'Done' : 'Edit'}
+              </Button>
             </div>
 
             {formData.team.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {formData.team.map((member, index) => (
                   <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                    {member}
-                    <button
-                      type="button"
-                      onClick={() => removeTeamMember(member)}
-                      className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
+                    {editingMember === member ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              saveEditedMember();
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault();
+                              cancelEditingMember();
+                            }
+                          }}
+                          className="h-6 px-2 py-0 text-xs w-20 min-w-0"
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={saveEditedMember}
+                          className="text-green-600 hover:text-green-700 transition-colors"
+                          title="Save"
+                        >
+                          <Check className="w-3 h-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={cancelEditingMember}
+                          className="text-muted-foreground hover:text-foreground transition-colors"
+                          title="Cancel"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span 
+                          className={isEditMode ? "cursor-pointer hover:text-primary transition-colors" : ""}
+                          onClick={() => isEditMode && startEditingMember(member)}
+                          title={isEditMode ? "Click to edit" : undefined}
+                        >
+                          {member}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => removeTeamMember(member)}
+                          className="ml-1 text-muted-foreground hover:text-foreground transition-colors"
+                          title="Remove"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </>
+                    )}
                   </Badge>
                 ))}
               </div>
