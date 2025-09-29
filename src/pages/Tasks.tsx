@@ -16,7 +16,7 @@ const Tasks = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
-  const [sortField, setSortField] = useState<string>('dueDate');
+  const [sortField, setSortField] = useState<string>('dueDatePriority');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false);
   const [selectedTaskForFollowUp, setSelectedTaskForFollowUp] = useState<Task | null>(null);
@@ -82,7 +82,7 @@ const Tasks = () => {
   useEffect(() => {
     const pageSize = getPageSize();
     console.log('Tasks: Loading with activeFilter:', activeFilter);
-    loadTasks(1, pageSize, sortField, sortDirection, "active");
+    loadTasks(1, pageSize, sortField, sortDirection, activeFilter);
   }, [loadTasks, getPageSize, sortField, sortDirection]);
 
   // SEO
