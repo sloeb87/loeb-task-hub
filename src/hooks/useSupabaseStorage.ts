@@ -345,13 +345,11 @@ export function useSupabaseStorage() {
       }
 
       // Handle special sorting cases
-      if (sortField === 'priority') {
-        // For priority sorting, order by due date first, then handle priority in client
+      if (sortField === 'dueDatePriority') {
+        // Combined sorting: order by due date first, then handle priority in client
         query = query.order('due_date', { ascending: true });
-      } else if (sortField === 'dueDatePriority') {
-        // For combined sorting, order by due date first, then handle priority in client
-        query = query.order('due_date', { ascending: true });
-      } else {
+      } else if (sortField !== 'priority') {
+        // Default DB-level sorting for non-priority fields
         query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }
 
@@ -400,23 +398,30 @@ export function useSupabaseStorage() {
 
       const convertedTasks = (data || []).map(task => convertSupabaseTaskToTask(task, followUpsMap, projectNamesMap));
 
-      // Apply client-side priority sorting if needed (since SQL CASE statements cause parsing issues)
+      // Apply client-side sorting for special cases
       let sortedTasks = convertedTasks;
-      if (sortField === 'priority' || sortField === 'dueDatePriority') {
-        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
-        
+      const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 } as const;
+      if (sortField === 'dueDatePriority') {
+        // First by due date (older first), then by priority (Critical > High > ...)
         sortedTasks = convertedTasks.sort((a, b) => {
-          // First sort by due date (older first)
           const dateA = new Date(a.dueDate).getTime();
           const dateB = new Date(b.dueDate).getTime();
-          if (dateA !== dateB) {
-            return dateA - dateB; // older dates first
-          }
-          
-          // Then sort by priority (Critical > High > Medium > Low)
+          if (dateA !== dateB) return dateA - dateB;
           const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
           const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
-          return priorityB - priorityA; // higher priority first
+          return priorityB - priorityA;
+        });
+      } else if (sortField === 'priority') {
+        // Strict priority sorting; respect sortDirection
+        sortedTasks = convertedTasks.sort((a, b) => {
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          const cmp = priorityA - priorityB; // asc: Low->Critical
+          if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+          // Tie-breaker by due date (older first)
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          return dateA - dateB;
         });
       }
 
@@ -812,9 +817,9 @@ export function useSupabaseStorage() {
       }
 
       // Apply sorting
-      if (sortField === 'priority' || sortField === 'dueDatePriority') {
+      if (sortField === 'dueDatePriority') {
         query = query.order('due_date', { ascending: true });
-      } else {
+      } else if (sortField !== 'priority') {
         query = query.order(dbSortField, { ascending: sortDirection === 'asc' });
       }
 
@@ -859,19 +864,25 @@ export function useSupabaseStorage() {
 
       // Apply client-side priority sorting if needed
       let sortedTasks = convertedTasks;
-      if (sortField === 'priority' || sortField === 'dueDatePriority') {
-        const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 };
-        
+      const priorityOrder = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1 } as const;
+      if (sortField === 'dueDatePriority') {
         sortedTasks = convertedTasks.sort((a, b) => {
           const dateA = new Date(a.dueDate).getTime();
           const dateB = new Date(b.dueDate).getTime();
-          if (dateA !== dateB) {
-            return dateA - dateB;
-          }
-          
+          if (dateA !== dateB) return dateA - dateB;
           const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
           const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
           return priorityB - priorityA;
+        });
+      } else if (sortField === 'priority') {
+        sortedTasks = convertedTasks.sort((a, b) => {
+          const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          const cmp = priorityA - priorityB;
+          if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+          const dateA = new Date(a.dueDate).getTime();
+          const dateB = new Date(b.dueDate).getTime();
+          return dateA - dateB;
         });
       }
 

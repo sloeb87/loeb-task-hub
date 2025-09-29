@@ -220,7 +220,9 @@ export const TaskTable = ({
       const newDirection = sortDirection === 'asc' ? 'desc' : 'asc';
       onSortChange(field, newDirection);
     } else {
-      onSortChange(field, 'asc');
+      // Default to 'desc' for priority so Critical appears before High on first click
+      const defaultDir: SortDirection = field === 'priority' ? 'desc' : 'asc';
+      onSortChange(field, defaultDir);
     }
   }, [sortField, sortDirection, onSortChange]);
 
