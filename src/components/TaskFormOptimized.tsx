@@ -615,7 +615,8 @@ export const TaskFormOptimized = React.memo(({
       })
     };
 
-    console.log('Task data created:', taskData);
+    console.log('Task data created with favorite status:', taskData.isFavorite);
+    console.log('Full task data:', taskData);
     console.log('DEBUG: About to call onSave...');
     
     try {
@@ -777,7 +778,11 @@ export const TaskFormOptimized = React.memo(({
                       type="button"
                       variant="ghost"
                       size="sm"
-                      onClick={() => updateField('isFavorite', !formData.isFavorite)}
+                      onClick={() => {
+                        console.log('Star clicked! Current favorite status:', formData.isFavorite);
+                        updateField('isFavorite', !formData.isFavorite);
+                        console.log('Updated favorite status to:', !formData.isFavorite);
+                      }}
                       className={`p-2 ${formData.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
                       title="Mark as favorite"
                     >

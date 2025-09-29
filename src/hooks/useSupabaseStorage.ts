@@ -1042,6 +1042,7 @@ export function useSupabaseStorage() {
     console.log('updateTask called with:', {
       taskId: updatedTask.id,
       taskType: updatedTask.taskType,
+      isFavorite: updatedTask.isFavorite,
       fullTask: updatedTask
     });
 
@@ -1156,7 +1157,8 @@ export function useSupabaseStorage() {
       recurrence_type: updatedTask.recurrenceType || null,
       recurrence_interval: updatedTask.recurrenceInterval || 1,
       recurrence_end_date: updatedTask.recurrenceEndDate || null,
-      recurrence_days_of_week: safeDaysOfWeek
+      recurrence_days_of_week: safeDaysOfWeek,
+      is_favorite: updatedTask.isFavorite || false
     };
 
     console.log('=== COMPREHENSIVE UPDATE DATA DEBUG ===');
