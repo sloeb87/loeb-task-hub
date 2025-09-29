@@ -319,7 +319,7 @@ export function useSupabaseStorage() {
           status, priority, responsible, creation_date, start_date, due_date, 
           completion_date, duration, planned_time_hours, dependencies, details, 
           links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
-          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
+          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
         `)
         .eq('user_id', user.id)
         .not('task_type', 'in', '("Meeting","Meeting Recurring")'); // Exclude meetings from tasks page
@@ -657,7 +657,7 @@ export function useSupabaseStorage() {
           status, priority, responsible, creation_date, start_date, due_date, 
           completion_date, duration, planned_time_hours, dependencies, details, 
           links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
-          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week
+          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
         `)
         .eq('user_id', user.id)
         .in('task_type', ['Meeting', 'Meeting Recurring'])
