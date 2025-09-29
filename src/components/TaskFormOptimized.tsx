@@ -786,10 +786,10 @@ export const TaskFormOptimized = React.memo(({
                         // Auto-save to persist immediately
                         setTimeout(() => autoSave(), 100);
                       }}
-                      className={`p-2 ${formData.isFavorite ? 'text-yellow-500' : 'text-gray-400'}`}
+                      className={`p-2 transition-colors ${formData.isFavorite ? 'text-star hover:text-star/80' : 'text-muted-foreground hover:text-star/60'}`}
                       title="Mark as favorite"
                     >
-                      <Star className={`w-4 h-4 ${formData.isFavorite ? 'fill-yellow-500' : ''}`} />
+                      <Star className={`w-4 h-4 transition-colors ${formData.isFavorite ? 'fill-star text-star' : 'fill-none'}`} />
                     </Button>
                   </div>
                 </div>

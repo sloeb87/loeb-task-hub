@@ -73,6 +73,10 @@ export default {
 					border: 'hsl(var(--timer-border))',
 					text: 'hsl(var(--timer-text))',
 					accent: 'hsl(var(--timer-accent))'
+				},
+				star: {
+					DEFAULT: 'hsl(var(--star))',
+					foreground: 'hsl(var(--star-foreground))'
 				}
 			},
 			borderRadius: {
