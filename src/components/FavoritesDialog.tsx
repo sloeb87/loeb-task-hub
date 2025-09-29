@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Task } from "@/types/task";
 import { Star, Calendar, User, FolderOpen } from "lucide-react";
 import { format } from "date-fns";
+import { useScopeColor } from '@/hooks/useParameterColors';
 
 interface FavoritesDialogProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
   favoriteTasks,
   onTaskClick
 }) => {
+  const { getScopeStyle } = useScopeColor();
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -45,10 +47,26 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="secondary" className="font-mono text-xs">
                         {task.id}
                       </Badge>
+                      
+                      {/* Scope badges with colors */}
+                      {task.scope && task.scope.length > 0 && (
+                        <div className="flex gap-1">
+                          {task.scope.map((scope, index) => (
+                            <Badge 
+                              key={index}
+                              className="text-xs font-medium"
+                              style={getScopeStyle(scope)}
+                            >
+                              {scope}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                      
                       <Badge
                         variant={
                           task.status === 'Completed' ? 'default' :
