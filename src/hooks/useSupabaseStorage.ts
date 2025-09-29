@@ -412,12 +412,13 @@ export function useSupabaseStorage() {
           return priorityB - priorityA;
         });
       } else if (sortField === 'priority') {
-        // Strict priority sorting; respect sortDirection
+        // Simplified priority sorting: Critical always first, then High, Medium, Low
         sortedTasks = convertedTasks.sort((a, b) => {
           const priorityA = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
           const priorityB = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
-          const cmp = priorityA - priorityB; // asc: Low->Critical
-          if (cmp !== 0) return sortDirection === 'asc' ? cmp : -cmp;
+          // Always prioritize higher numbers (Critical=4, High=3, Medium=2, Low=1)
+          const cmp = priorityB - priorityA; // Critical first, then High, Medium, Low
+          if (cmp !== 0) return cmp;
           // Tie-breaker by due date (older first)
           const dateA = new Date(a.dueDate).getTime();
           const dateB = new Date(b.dueDate).getTime();
