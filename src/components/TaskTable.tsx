@@ -957,14 +957,14 @@ export const TaskTable = ({
                                   });
                                 }
                               }}
-                              className={`h-7 w-7 p-0 ${
+                              className={`h-7 w-7 p-0 transition-colors ${
                                 task.isFavorite 
-                                  ? 'text-yellow-500 hover:text-yellow-600' 
-                                  : 'text-gray-400 hover:text-yellow-500'
+                                  ? 'text-star hover:text-star/80' 
+                                  : 'text-muted-foreground hover:text-star/60'
                               }`}
                               title={task.isFavorite ? "Remove from favorites" : "Add to favorites"}
                             >
-                              <Star className={`w-4 h-4 ${task.isFavorite ? 'fill-yellow-500' : ''}`} />
+                              <Star className={`w-4 h-4 transition-colors ${task.isFavorite ? 'fill-star text-star' : 'fill-none'}`} />
                             </Button>
                             
                             {/* Complete Button */}
