@@ -820,16 +820,26 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   const dailyDataWithWeeklyAverage = useMemo(() => {
     return dailyHistoryData.map(d => {
       const currentDate = new Date(d.dateISO);
+      const currentDay = currentDate.getDay();
+      
+      // Calculate Monday of current week (handle Sunday as day 0)
+      const daysFromMonday = currentDay === 0 ? 6 : currentDay - 1;
       const weekStart = new Date(currentDate);
-      weekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday of current week
+      weekStart.setDate(currentDate.getDate() - daysFromMonday);
+      weekStart.setHours(0, 0, 0, 0);
+      
       const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekStart.getDate() + 4); // Friday of current week
+      weekEnd.setDate(weekStart.getDate() + 4); // Friday
+      weekEnd.setHours(23, 59, 59, 999);
       
       // Get all weekday entries for this week
       const weekData = dailyHistoryData.filter(item => {
         const itemDate = new Date(item.dateISO);
         const dayOfWeek = itemDate.getDay();
-        return dayOfWeek >= 1 && dayOfWeek <= 5 && itemDate >= weekStart && itemDate <= weekEnd;
+        const itemTime = itemDate.getTime();
+        return dayOfWeek >= 1 && dayOfWeek <= 5 && 
+               itemTime >= weekStart.getTime() && 
+               itemTime <= weekEnd.getTime();
       });
       
       const weeklyAvg = weekData.length > 0 
