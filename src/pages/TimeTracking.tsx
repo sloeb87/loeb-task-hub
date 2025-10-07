@@ -816,6 +816,19 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     return Math.round(total / nonZero.length);
   }, [dailyHistoryData]);
 
+  // Weekly average (weekdays only)
+  const weeklyWeekdayAverage = useMemo(() => {
+    const weekdayData = dailyHistoryData.filter(d => {
+      const date = new Date(d.dateISO);
+      const dayOfWeek = date.getDay();
+      return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday = 1, Friday = 5
+    });
+    
+    if (weekdayData.length === 0) return 0;
+    const total = weekdayData.reduce((sum, d) => sum + d.minutes, 0);
+    return Math.round(total / weekdayData.length);
+  }, [dailyHistoryData]);
+
   // Map legacy project names to the updated display name (UI-only)
   const normalizeProjectName = (name?: string) => {
     if (!name) return "";
@@ -1297,6 +1310,16 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               />
               
               <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
+              <ReferenceLine 
+                y={weeklyWeekdayAverage} 
+                stroke="hsl(var(--chart-3))" 
+                strokeDasharray="5 5" 
+                label={{ 
+                  value: `Avg ${(weeklyWeekdayAverage / 60).toFixed(1)}h/day (weekdays)`, 
+                  position: "insideBottomRight",
+                  fill: "hsl(var(--chart-3))"
+                }} 
+              />
               <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
             </BarChart>
           </ChartContainer>
