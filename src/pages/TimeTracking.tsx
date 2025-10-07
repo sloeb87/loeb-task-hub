@@ -16,7 +16,7 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine } from "recharts";
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine, Line } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/hooks/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
@@ -816,17 +816,31 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     return Math.round(total / nonZero.length);
   }, [dailyHistoryData]);
 
-  // Weekly average (weekdays only)
-  const weeklyWeekdayAverage = useMemo(() => {
-    const weekdayData = dailyHistoryData.filter(d => {
-      const date = new Date(d.dateISO);
-      const dayOfWeek = date.getDay();
-      return dayOfWeek >= 1 && dayOfWeek <= 5; // Monday = 1, Friday = 5
+  // Weekly average (weekdays only) - moving average by week
+  const dailyDataWithWeeklyAverage = useMemo(() => {
+    return dailyHistoryData.map(d => {
+      const currentDate = new Date(d.dateISO);
+      const weekStart = new Date(currentDate);
+      weekStart.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Monday of current week
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 4); // Friday of current week
+      
+      // Get all weekday entries for this week
+      const weekData = dailyHistoryData.filter(item => {
+        const itemDate = new Date(item.dateISO);
+        const dayOfWeek = itemDate.getDay();
+        return dayOfWeek >= 1 && dayOfWeek <= 5 && itemDate >= weekStart && itemDate <= weekEnd;
+      });
+      
+      const weeklyAvg = weekData.length > 0 
+        ? Math.round(weekData.reduce((sum, item) => sum + item.minutes, 0) / weekData.length)
+        : 0;
+      
+      return {
+        ...d,
+        weeklyAverage: weeklyAvg
+      };
     });
-    
-    if (weekdayData.length === 0) return 0;
-    const total = weekdayData.reduce((sum, d) => sum + d.minutes, 0);
-    return Math.round(total / weekdayData.length);
   }, [dailyHistoryData]);
 
   // Map legacy project names to the updated display name (UI-only)
@@ -1291,7 +1305,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <div className="relative group w-full">
             <div className="w-full h-[600px]">
               <ChartContainer config={{}} className="w-full h-full">
-            <BarChart data={dailyHistoryData} onClick={handleBarClick}>
+            <BarChart data={dailyDataWithWeeklyAverage} onClick={handleBarClick}>
               <defs>
                 <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
@@ -1310,15 +1324,14 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               />
               
               <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
-              <ReferenceLine 
-                y={weeklyWeekdayAverage} 
+              <Line 
+                type="monotone" 
+                dataKey="weeklyAverage" 
                 stroke="hsl(var(--chart-3))" 
-                strokeDasharray="5 5" 
-                label={{ 
-                  value: `Avg ${(weeklyWeekdayAverage / 60).toFixed(1)}h/day (weekdays)`, 
-                  position: "insideBottomRight",
-                  fill: "hsl(var(--chart-3))"
-                }} 
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                name="Weekly Avg (weekdays)"
               />
               <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
             </BarChart>
