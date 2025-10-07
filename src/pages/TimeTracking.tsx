@@ -1340,7 +1340,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                 dataKey="weeklyAverage" 
                 stroke="hsl(var(--chart-3))" 
                 strokeWidth={2}
-                strokeDasharray="5 5"
+                strokeDasharray="2 2"
                 dot={false}
                 name="Weekly Avg (weekdays)"
               />
