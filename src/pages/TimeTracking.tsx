@@ -16,7 +16,7 @@ import { Task } from "@/types/task";
 import { Project } from "@/types/task";
 import { TimeEntry, TimeEntryFilters } from "@/types/timeEntry";
 import { supabase } from "@/integrations/supabase/client";
-import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine, Line } from "recharts";
+import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, ReferenceLine, Line, ComposedChart } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/hooks/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
@@ -1315,7 +1315,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           <div className="relative group w-full">
             <div className="w-full h-[600px]">
               <ChartContainer config={{}} className="w-full h-full">
-            <BarChart data={dailyDataWithWeeklyAverage} onClick={handleBarClick}>
+            <ComposedChart data={dailyDataWithWeeklyAverage} onClick={handleBarClick}>
               <defs>
                 <linearGradient id="dailyMinutesGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.35}/>
@@ -1334,6 +1334,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
               />
               
               <ReferenceLine y={480} stroke="hsl(var(--chart-2))" strokeDasharray="2 2" label={{ value: "8h target", position: "top" }} />
+              <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
               <Line 
                 type="monotone" 
                 dataKey="weeklyAverage" 
@@ -1343,8 +1344,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
                 dot={false}
                 name="Weekly Avg (weekdays)"
               />
-              <Bar dataKey="minutes" fill="url(#dailyMinutesGradient)" stroke="hsl(var(--chart-1))" />
-            </BarChart>
+            </ComposedChart>
           </ChartContainer>
           </div>
           </div>
