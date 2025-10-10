@@ -1061,7 +1061,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         filters={filters}
         onFiltersChange={setFilters}
         onClearFilters={() => {
-          setFilters({});
+          // Keep the date range, only clear multi-select filters
           setMultiSelectFilters({
             task: [],
             project: [],
