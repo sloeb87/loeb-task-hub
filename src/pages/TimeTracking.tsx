@@ -1060,7 +1060,17 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       <TimeEntryFiltersComponent
         filters={filters}
         onFiltersChange={setFilters}
-        onClearFilters={() => setFilters({})}
+        onClearFilters={() => {
+          setFilters({});
+          setMultiSelectFilters({
+            task: [],
+            project: [],
+            scope: [],
+            type: [],
+            environment: [],
+            date: []
+          });
+        }}
       />
 
       {/* Charts - 3-column responsive grid */}
