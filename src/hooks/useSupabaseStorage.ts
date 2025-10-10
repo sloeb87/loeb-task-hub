@@ -77,6 +77,38 @@ export function useSupabaseStorage() {
   });
   const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+
+  // Helper function to create base query for meetings
+  const getMeetingsQuery = useCallback(() => {
+    if (!user) return null;
+    return supabase
+      .from('tasks')
+      .select(`
+        id, task_number, scope, project_id, environment, task_type, title, description,
+        status, priority, responsible, creation_date, start_date, due_date, 
+        completion_date, duration, planned_time_hours, dependencies, details, 
+        links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
+        recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
+      `)
+      .eq('user_id', user.id)
+      .eq('is_meeting', true);
+  }, [user]);
+
+  // Helper function to create base query for non-meeting tasks
+  const getTasksQuery = useCallback(() => {
+    if (!user) return null;
+    return supabase
+      .from('tasks')
+      .select(`
+        id, task_number, scope, project_id, environment, task_type, title, description,
+        status, priority, responsible, creation_date, start_date, due_date, 
+        completion_date, duration, planned_time_hours, dependencies, details, 
+        links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
+        recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
+      `)
+      .eq('user_id', user.id)
+      .eq('is_meeting', false);
+  }, [user]);
   // Convert links from database format to NamedLink format
   const convertLinks = (links: any): { oneNote?: NamedLink[]; teams?: NamedLink[]; email?: NamedLink[]; file?: NamedLink[]; folder?: NamedLink[]; } => {
     if (!links) return {};
@@ -231,7 +263,7 @@ export function useSupabaseStorage() {
       
       // Apply filter to count query - always exclude completed unless specifically requested
       // Also exclude meetings from tasks page count
-      countQuery = countQuery.not('task_type', 'in', '("Meeting","Meeting Recurring")');
+      countQuery = countQuery.eq('is_meeting', false);
       
       if (filterType === 'active') {
         console.log('Applying ACTIVE filter to count query');
@@ -260,7 +292,7 @@ export function useSupabaseStorage() {
         .from('tasks')
         .select('status, priority, task_type')
         .eq('user_id', user.id)
-        .not('task_type', 'in', '("Meeting","Meeting Recurring")');
+        .eq('is_meeting', false);
 
       console.log('loadTasks: Query result:', { 
         dataCount: allTasksData?.length, 
@@ -312,17 +344,8 @@ export function useSupabaseStorage() {
       })();
 
       // OPTIMIZED: Select only essential fields to reduce payload size
-      let query = supabase
-        .from('tasks')
-        .select(`
-          id, task_number, scope, project_id, environment, task_type, title, description,
-          status, priority, responsible, creation_date, start_date, due_date, 
-          completion_date, duration, planned_time_hours, dependencies, details, 
-          links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
-          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
-        `)
-        .eq('user_id', user.id)
-        .not('task_type', 'in', '("Meeting","Meeting Recurring")'); // Exclude meetings from tasks page
+      let query = getTasksQuery();
+      if (!query) throw new Error('Failed to create query');
       
       // Apply the same filter to the data query - always exclude completed unless specifically requested
       if (filterType === 'active') {
@@ -656,18 +679,12 @@ export function useSupabaseStorage() {
       console.log('loadAllMeetings: Loading all meetings...');
       
       // OPTIMIZED: Get ALL meeting tasks with specific fields only - faster loading
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          id, task_number, scope, project_id, environment, task_type, title, description,
-          status, priority, responsible, creation_date, start_date, due_date, 
-          completion_date, duration, planned_time_hours, dependencies, details, 
-          links, stakeholders, checklist, user_id, created_at, updated_at, is_recurring, recurrence_type,
-          recurrence_interval, parent_task_id, recurrence_end_date, recurrence_days_of_week, is_favorite
-        `)
-        .eq('user_id', user.id)
-        .in('task_type', ['Meeting', 'Meeting Recurring'])
-        .order('due_date', { ascending: false });
+      let query = getMeetingsQuery();
+      if (!query) throw new Error('Failed to create meetings query');
+      
+      query = query.order('due_date', { ascending: false });
+      
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -784,7 +801,7 @@ export function useSupabaseStorage() {
         .from('tasks')
         .select('*')
         .eq('user_id', user.id)
-        .not('task_type', 'in', '("Meeting","Meeting Recurring")'); // Exclude meetings from search
+        .eq('is_meeting', false); // Exclude meetings from search
 
       // Apply filter to exclude completed tasks unless specifically requested
       if (filterType === 'active') {
