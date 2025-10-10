@@ -723,50 +723,37 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     setDetailModalOpen(true);
   }, [scopeRawData, scopeTotal]);
 
-  // Click handlers for pie chart segments to show time entries
+  // Click handlers for pie chart segments to filter the page
   const handlePieSegmentClick = useCallback((data: any, type: 'project' | 'taskType' | 'scope') => {
     if (!data || !data.payload) return;
     
     const categoryName = data.payload.name;
-    let entriesForCategory: TimeEntry[] = [];
     
-    // Filter entries based on the clicked category
-    switch (type) {
-      case 'project':
-        entriesForCategory = filteredEntries.filter(entry => 
-          (entry.projectName || 'Unassigned') === categoryName
-        );
-        break;
-      case 'taskType':
-        entriesForCategory = filteredEntries.filter(entry => {
-          const task = taskLookup[entry.taskId] || 
-                       tasks.find(t => t.id === entry.taskId) ||
-                       tasks.find(t => t.uuid === entry.taskId) ||
-                       tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
-                       tasks.find(t => t.title === entry.taskTitle);
-          return (task?.taskType || 'Unassigned') === categoryName;
-        });
-        break;
-      case 'scope':
-        entriesForCategory = filteredEntries.filter(entry => {
-          const task = taskLookup[entry.taskId] || 
-                       tasks.find(t => t.id === entry.taskId) ||
-                       tasks.find(t => t.uuid === entry.taskId) ||
-                       tasks.find(t => `${t.id}_${t.title}` === entry.taskId) ||
-                       tasks.find(t => t.title === entry.taskTitle);
-          return task && task.scope && task.scope.includes(categoryName);
-        });
-        break;
+    // Handle "Others" category - don't filter
+    if (categoryName.startsWith('Others (')) {
+      toast({
+        title: "Cannot filter by 'Others'",
+        description: "The 'Others' category contains multiple items. Please use the table filters to select specific items.",
+        variant: "destructive"
+      });
+      return;
     }
     
-    setTimeEntriesModalData({
-      title: `Time Entries: ${categoryName}`,
-      entries: entriesForCategory,
-      category: categoryName,
-      type: type
+    // Clear existing filters and set the new one
+    setMultiSelectFilters({
+      task: [],
+      project: type === 'project' ? [categoryName] : [],
+      scope: type === 'scope' ? [categoryName] : [],
+      type: type === 'taskType' ? [categoryName] : [],
+      environment: [],
+      date: []
     });
-    setTimeEntriesModalOpen(true);
-  }, [filteredEntries, taskLookup, tasks]);
+    
+    toast({
+      title: "Filter applied",
+      description: `Showing entries for ${categoryName}`
+    });
+  }, [toast]);
 
   // Historical daily totals (last 30 days, ending today)
   const dailyHistoryData = useMemo(() => {
