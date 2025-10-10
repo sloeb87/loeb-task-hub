@@ -399,6 +399,20 @@ export type Database = {
             foreignKeyName: "task_metrics_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
+            referencedRelation: "meeting_tasks_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_metrics_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "regular_tasks_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_metrics_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
             referencedRelation: "tasks"
             referencedColumns: ["id"]
           },
@@ -582,7 +596,98 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      meeting_tasks_view: {
+        Row: {
+          checklist: Json | null
+          completion_date: string | null
+          created_at: string | null
+          creation_date: string | null
+          dependencies: string[] | null
+          description: string | null
+          details: string | null
+          due_date: string | null
+          duration: number | null
+          environment: string | null
+          id: string | null
+          is_favorite: boolean | null
+          is_meeting: boolean | null
+          is_recurring: boolean | null
+          links: Json | null
+          parent_task_id: string | null
+          planned_time_hours: number | null
+          priority: string | null
+          project_id: string | null
+          recurrence_days_of_week: number[] | null
+          recurrence_end_date: string | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
+          responsible: string | null
+          scope: string[] | null
+          stakeholders: string[] | null
+          start_date: string | null
+          status: string | null
+          task_number: string | null
+          task_type: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regular_tasks_view: {
+        Row: {
+          checklist: Json | null
+          completion_date: string | null
+          created_at: string | null
+          creation_date: string | null
+          dependencies: string[] | null
+          description: string | null
+          details: string | null
+          due_date: string | null
+          duration: number | null
+          environment: string | null
+          id: string | null
+          is_favorite: boolean | null
+          is_meeting: boolean | null
+          is_recurring: boolean | null
+          links: Json | null
+          parent_task_id: string | null
+          planned_time_hours: number | null
+          priority: string | null
+          project_id: string | null
+          recurrence_days_of_week: number[] | null
+          recurrence_end_date: string | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
+          responsible: string | null
+          scope: string[] | null
+          stakeholders: string[] | null
+          start_date: string | null
+          status: string | null
+          task_number: string | null
+          task_type: string | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_task_metrics: {
@@ -610,6 +715,10 @@ export type Database = {
       recalculate_all_task_metrics: {
         Args: { p_user_id: string }
         Returns: number
+      }
+      refresh_task_views: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
