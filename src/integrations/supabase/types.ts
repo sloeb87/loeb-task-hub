@@ -418,6 +418,7 @@ export type Database = {
           environment: string
           id: string
           is_favorite: boolean | null
+          is_meeting: boolean
           is_recurring: boolean | null
           links: Json | null
           next_recurrence_date: string | null
@@ -453,6 +454,7 @@ export type Database = {
           environment: string
           id?: string
           is_favorite?: boolean | null
+          is_meeting?: boolean
           is_recurring?: boolean | null
           links?: Json | null
           next_recurrence_date?: string | null
@@ -488,6 +490,7 @@ export type Database = {
           environment?: string
           id?: string
           is_favorite?: boolean | null
+          is_meeting?: boolean
           is_recurring?: boolean | null
           links?: Json | null
           next_recurrence_date?: string | null
