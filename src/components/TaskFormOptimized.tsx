@@ -44,6 +44,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
 
 // Helper function to identify automatic follow-ups
 const isAutomaticFollowUp = (text: string): boolean => {
@@ -329,6 +330,7 @@ export const TaskFormOptimized = React.memo(({
   const [editingFollowUpText, setEditingFollowUpText] = useState('');
   const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
   const [relatedRecurringTasks, setRelatedRecurringTasks] = useState<Task[]>([]);
+  const [recurrenceCounts, setRecurrenceCounts] = useState<{ total: number; completed: number; remaining: number }>({ total: 0, completed: 0, remaining: 0 });
   const [newLinkType, setNewLinkType] = useState<keyof FormData['links']>('oneNote');
   const [newLinkName, setNewLinkName] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
@@ -497,6 +499,50 @@ export const TaskFormOptimized = React.memo(({
 
     fetchRelatedTasks();
   }, [task?.id, getRelatedRecurringTasks]);
+
+  // Load recurrence counts efficiently (no heavy data)
+  useEffect(() => {
+    if (!isOpen || !task) return;
+    const parentUuid = task.isRecurring ? (task as any).uuid : (task as any).parentTaskId;
+    if (!parentUuid) return;
+
+    const cutoff = typeof task.dueDate === 'string'
+      ? task.dueDate
+      : new Date(task.dueDate || new Date()).toISOString().slice(0, 10);
+
+    const baseFilter = `id.eq.${parentUuid},parent_task_id.eq.${parentUuid}`;
+
+    const totalQ = supabase
+      .from('tasks')
+      .select('id', { count: 'exact', head: true })
+      .or(baseFilter);
+
+    const completedQ = supabase
+      .from('tasks')
+      .select('id', { count: 'exact', head: true })
+      .or(baseFilter)
+      .eq('status', 'Completed');
+
+    const remainingQ = supabase
+      .from('tasks')
+      .select('id', { count: 'exact', head: true })
+      .or(baseFilter)
+      .eq('status', 'Open')
+      .gte('due_date', cutoff);
+
+    Promise.all([totalQ, completedQ, remainingQ])
+      .then(([t, c, r]) => {
+        setRecurrenceCounts({
+          total: t.count || 0,
+          completed: c.count || 0,
+          remaining: r.count || 0,
+        });
+      })
+      .catch((e) => {
+        console.error('Failed to load recurrence counts', e);
+        setRecurrenceCounts({ total: 0, completed: 0, remaining: 0 });
+      });
+  }, [isOpen, task?.id, (task as any)?.uuid, (task as any)?.parentTaskId, task?.dueDate]);
 
   // Form field update handlers
   const updateField = useCallback((field: keyof FormData, value: any) => {
@@ -1043,17 +1089,10 @@ export const TaskFormOptimized = React.memo(({
                         );
                       }
                       
-                      // Calculate statistics
-                      const today = new Date();
-                      const futureOccurrences = allRelatedTasks.filter(t => 
-                        t.status === 'Open' && new Date(t.dueDate) >= today
-                      ).length;
-                      
-                      const completedOccurrences = allRelatedTasks.filter(t => 
-                        t.status === 'Completed'
-                      ).length;
-                      
-                      const totalOccurrences = allRelatedTasks.length;
+                      // Use precomputed counts for performance
+                      const completedOccurrences = recurrenceCounts.completed;
+                      const futureOccurrences = recurrenceCounts.remaining;
+                      const totalOccurrences = recurrenceCounts.total;
                       
                       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                       

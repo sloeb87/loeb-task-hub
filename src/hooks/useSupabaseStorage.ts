@@ -1796,28 +1796,26 @@ export function useSupabaseStorage() {
       
       if (!parentTaskId) return [];
 
-      // Get all related recurring tasks (including parent and siblings)
-      const { data: relatedTasks, error: fetchError } = await supabase
+      // Get next 3 related recurring occurrences (future, open)
+      const cutoffDate = currentTask.due_date || new Date().toISOString().slice(0, 10);
+      const { data: nextTasks, error: nextError } = await supabase
         .from('tasks')
         .select('*')
-        .or(`id.eq.${parentTaskId},parent_task_id.eq.${parentTaskId}`)
         .eq('user_id', user.id)
-        .order('due_date', { ascending: true });
+        .eq('parent_task_id', parentTaskId)
+        .eq('status', 'Open')
+        .gt('due_date', cutoffDate)
+        .order('due_date', { ascending: true })
+        .limit(3);
 
-      if (fetchError) {
-        console.error('Error fetching related recurring tasks:', fetchError);
+      if (nextError) {
+        console.error('Error fetching next recurring occurrences:', nextError);
         return [];
       }
 
-      // Return ALL related tasks (not just Open) so we can:
-      // 1. Get parent task recurrence info regardless of status
-      // 2. Calculate accurate statistics (completed, remaining, total)
-      const allRelatedTasks = relatedTasks || [];
-
-      // Use empty maps for this simple case - could be optimized further
       const emptyFollowUpsMap = new Map<string, any[]>();
       const emptyProjectMap = new Map<string, string>();
-      return allRelatedTasks.map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
+      return (nextTasks || []).map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
     } catch (error) {
       console.error('Error in getRelatedRecurringTasks:', error);
       return [];
