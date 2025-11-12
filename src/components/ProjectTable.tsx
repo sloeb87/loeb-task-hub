@@ -50,34 +50,6 @@ export const ProjectTable = ({
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const getProjectStats = (project: Project) => {
-  const projectTasks = tasks.filter(task => task.project === project.id);
-    
-    // Separate tasks and meetings
-    const regularTasks = projectTasks.filter(task => task.taskType !== 'Meeting');
-    const meetings = projectTasks.filter(task => task.taskType === 'Meeting');
-    
-    // Calculate totals
-    const totalTasks = regularTasks.length;
-    const totalMeetings = meetings.length;
-    
-    // Calculate active (non-completed) counts
-    const activeTasks = regularTasks.filter(task => task.status !== 'Completed').length;
-    const activeMeetings = meetings.filter(task => task.status !== 'Completed').length;
-    
-    // Calculate completion rate for progress bar
-    const completedTasks = regularTasks.filter(task => task.status === 'Completed').length;
-    const completionRate = totalTasks > 0 ? Math.round(completedTasks / totalTasks * 100) : 0;
-    
-    return {
-      activeTasks,
-      totalTasks,
-      activeMeetings,
-      totalMeetings,
-      completionRate,
-      completedTasks
-    };
-  };
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'active':
@@ -378,17 +350,10 @@ export const ProjectTable = ({
               }}>
                   Owner & Team
                 </TableHead>
-                <TableHead style={{
-                minWidth: '220px'
-              }}>
-                  Tasks & Meetings
-                </TableHead>
-                
               </TableRow>
             </TableHeader>
             <TableBody>
               {sortedProjects.map(project => {
-              const stats = getProjectStats(project);
               return <TableRow key={`project-${project.id}`} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => handleRowClick(project)}>
                     {/* Scope Column */}
                     <TableCell>
@@ -461,28 +426,6 @@ export const ProjectTable = ({
                       </div>
                     </TableCell>
 
-                    {/* Tasks & Meetings Column */}
-                    <TableCell>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-foreground">Progress</span>
-                          <span className="text-sm text-muted-foreground">
-                            {stats.completionRate}%
-                          </span>
-                        </div>
-                        <Progress value={stats.completionRate} className="h-2" />
-                        <div className="space-y-1 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <ListTodo className="w-3 h-3" />
-                            <span>{stats.completedTasks}/{stats.totalTasks} tasks</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Users className="w-3 h-3" />
-                            <span>{stats.activeMeetings}/{stats.totalMeetings} meetings</span>
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
                   </TableRow>;
             })}
             </TableBody>
