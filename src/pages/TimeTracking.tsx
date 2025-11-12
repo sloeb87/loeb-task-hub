@@ -972,6 +972,137 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }
   };
 
+  // Auto-fill specific dates from a template date
+  const handleAutoFillFromTemplate = async (templateDate: string, targetDates: string[]) => {
+    if (!user) {
+      toast({ title: 'Authentication required', description: 'Please log in to auto-fill', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      // Get all time entries from database
+      const { data: allEntries, error: fetchError } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_time', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      // Find entries for the template date
+      const templateEntries = allEntries?.filter(entry => {
+        const entryDate = new Date(entry.start_time).toISOString().split('T')[0];
+        return entryDate === templateDate;
+      }) || [];
+
+      if (templateEntries.length === 0) {
+        toast({ 
+          title: 'No template entries found', 
+          description: `No time entries found for ${templateDate}`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Calculate total duration from template
+      const templateTotal = templateEntries.reduce((sum, entry) => sum + (entry.duration || 0), 0);
+
+      if (templateTotal === 0) {
+        toast({ 
+          title: 'Invalid template', 
+          description: `Template date ${templateDate} has 0 hours logged`,
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Calculate scale factor to reach 480 minutes (8 hours)
+      const scaleFactor = 480 / templateTotal;
+
+      const entriesToCreate: any[] = [];
+
+      // Create entries for each target date
+      for (const targetDate of targetDates) {
+        const targetDateObj = new Date(targetDate);
+        
+        // Check if target date is a weekday
+        const dayOfWeek = targetDateObj.getDay();
+        if (dayOfWeek < 1 || dayOfWeek > 5) {
+          toast({ 
+            title: 'Invalid date', 
+            description: `${targetDate} is not a weekday`,
+            variant: 'destructive'
+          });
+          continue;
+        }
+
+        // Copy each entry from template to target date
+        for (const templateEntry of templateEntries) {
+          const scaledDuration = Math.round((templateEntry.duration || 0) * scaleFactor);
+          
+          if (scaledDuration <= 0) continue;
+          
+          // Create new time entry for the target date
+          const newStartTime = new Date(targetDate);
+          const templateStartTime = new Date(templateEntry.start_time);
+          newStartTime.setHours(templateStartTime.getHours(), templateStartTime.getMinutes(), 0, 0);
+
+          const newEndTime = new Date(newStartTime);
+          newEndTime.setMinutes(newEndTime.getMinutes() + scaledDuration);
+
+          entriesToCreate.push({
+            user_id: user.id,
+            task_id: templateEntry.task_id,
+            task_title: templateEntry.task_title,
+            project_name: templateEntry.project_name,
+            responsible: templateEntry.responsible,
+            start_time: newStartTime.toISOString(),
+            end_time: newEndTime.toISOString(),
+            duration: scaledDuration,
+            description: `Auto-filled from ${templateDate}`,
+            is_running: false,
+            task_type: templateEntry.task_type,
+            environment: templateEntry.environment,
+            scope: templateEntry.scope
+          });
+        }
+      }
+
+      if (entriesToCreate.length === 0) {
+        toast({ 
+          title: 'No entries to create', 
+          description: 'No valid entries could be created',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Insert all new entries
+      const { error: insertError } = await supabase
+        .from('time_entries')
+        .insert(entriesToCreate);
+
+      if (insertError) throw insertError;
+
+      toast({ 
+        title: 'Auto-fill successful', 
+        description: `Copied entries from ${templateDate} to ${targetDates.length} date(s). Created ${entriesToCreate.length} time entries.`,
+        duration: 5000
+      });
+
+      // Reload data
+      await loadTimeData();
+      
+    } catch (error) {
+      console.error('Error auto-filling from template:', error);
+      toast({ 
+        title: 'Auto-fill failed', 
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Auto-fill weekdays with less than 8 hours or completely empty
   const handleAutoFillWeekdays = async (specificDate?: string) => {
     if (!user) {
@@ -1190,13 +1321,13 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         
         <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            onClick={() => handleAutoFillWeekdays('2024-10-28')}
-            aria-label="Auto-fill October 28th"
+            variant="default"
+            onClick={() => handleAutoFillFromTemplate('2024-10-21', ['2024-10-28', '2024-11-04'])}
+            aria-label="Auto-fill Oct 28 & Nov 4 from Oct 21"
             className="gap-2"
           >
             <Copy className="w-4 h-4" />
-            Auto-fill Oct 28
+            Fill Oct 28 & Nov 4
           </Button>
           <Button
             variant="outline"
