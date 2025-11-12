@@ -488,12 +488,6 @@ export const TaskFormOptimized = React.memo(({
 
       try {
         const related = await getRelatedRecurringTasks(task.id);
-        console.log('TaskForm - Related recurring tasks loaded:', {
-          taskId: task.id,
-          relatedCount: related.length,
-          parentTask: related.find(t => t.isRecurring),
-          hasParentId: !!task.parentTaskId
-        });
         setRelatedRecurringTasks(related);
       } catch (error) {
         console.error('Error fetching related recurring tasks:', error);
@@ -1021,18 +1015,6 @@ export const TaskFormOptimized = React.memo(({
                         ? relatedRecurringTasks.find(t => t.isRecurring)
                         : task?.isRecurring ? task : null;
                       
-                      console.log('TaskForm - Recurrence info debug:', {
-                        hasParentTaskId: !!task?.parentTaskId,
-                        relatedTasksCount: relatedRecurringTasks.length,
-                        parentTask: parentTask ? {
-                          id: parentTask.id,
-                          isRecurring: parentTask.isRecurring,
-                          recurrenceType: parentTask.recurrenceType,
-                          startDate: parentTask.startDate
-                        } : null,
-                        taskIsRecurring: task?.isRecurring
-                      });
-                      
                       // Get all related tasks for counting
                       const allRelatedTasks = relatedRecurringTasks.length > 0 
                         ? relatedRecurringTasks 
@@ -1052,8 +1034,6 @@ export const TaskFormOptimized = React.memo(({
                         endDate: formData.recurrenceEndDate,
                         startDate: formData.startDate
                       } : null;
-                      
-                      console.log('TaskForm - Final recurrence info:', recurrenceInfo);
                       
                       if (!recurrenceInfo) return null;
                       

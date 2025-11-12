@@ -1809,13 +1809,15 @@ export function useSupabaseStorage() {
         return [];
       }
 
-      // Filter by Open status after getting all tasks
-      const openTasks = relatedTasks?.filter(t => t.status === 'Open') || [];
+      // Return ALL related tasks (not just Open) so we can:
+      // 1. Get parent task recurrence info regardless of status
+      // 2. Calculate accurate statistics (completed, remaining, total)
+      const allRelatedTasks = relatedTasks || [];
 
       // Use empty maps for this simple case - could be optimized further
       const emptyFollowUpsMap = new Map<string, any[]>();
       const emptyProjectMap = new Map<string, string>();
-      return openTasks.map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
+      return allRelatedTasks.map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
     } catch (error) {
       console.error('Error in getRelatedRecurringTasks:', error);
       return [];
