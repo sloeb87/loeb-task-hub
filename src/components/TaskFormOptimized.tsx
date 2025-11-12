@@ -510,8 +510,15 @@ export const TaskFormOptimized = React.memo(({
   // Load recurrence counts efficiently (no heavy data)
   useEffect(() => {
     if (!isOpen || !task) return;
-    const parentUuid = task.isRecurring ? (task as any).uuid : (task as any).parentTaskId;
-    if (!parentUuid) return;
+    
+    // For child tasks, use parentTaskId; for parent recurring tasks, use their own uuid
+    const parentUuid = (task as any).parentTaskId || (task.isRecurring ? (task as any).uuid : null);
+    
+    if (!parentUuid) {
+      setRecurrenceMeta(null);
+      setRecurrenceCounts({ total: 0, completed: 0, remaining: 0 });
+      return;
+    }
 
     // Fetch precomputed recurrence stats for instant load
     const fetchStats = async () => {
@@ -541,6 +548,7 @@ export const TaskFormOptimized = React.memo(({
           });
         } else {
           setRecurrenceMeta(null);
+          setRecurrenceCounts({ total: 0, completed: 0, remaining: 0 });
         }
       } catch (e) {
         console.error('Failed to load recurrence stats', e);
