@@ -12,10 +12,13 @@ import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { OptimizedLoading } from "@/components/OptimizedLoading";
 import { Users } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { markMeetingsCompletedUntilDate } from "@/utils/markMeetingsCompleted";
 
 const Meetings = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [activeFilter, setActiveFilter] = useState<FilterType>("active");
   const [sortField, setSortField] = useState<string>('dueDate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
@@ -233,6 +236,44 @@ const Meetings = () => {
     }
   }, [currentSearchTerm, searchTasks, loadTasks, activeFilter, getPageSize, sortField, sortDirection]);
 
+  const handleMarkMeetingsCompleted = useCallback(async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to perform this action",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const result = await markMeetingsCompletedUntilDate('2025-11-10', user.id);
+      
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: result.message || `Marked ${result.count} meetings as completed`,
+        });
+        
+        // Reload meetings
+        await loadAllMeetings();
+      } else {
+        toast({
+          title: "Update Failed",
+          description: result.error || "Failed to update meetings",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to mark meetings completed:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    }
+  }, [user, loadAllMeetings]);
+
   if (error) {
     return (
       <div className="p-6">
@@ -267,9 +308,17 @@ const Meetings = () => {
     <div className="min-h-screen bg-background">
       <main className="w-full p-6 space-y-6">
         <header>
-          <div className="flex items-center gap-3 mb-2">
-            <Users className="w-8 h-8 text-blue-600" />
-            <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <Users className="w-8 h-8 text-blue-600" />
+              <h1 className="text-3xl font-bold tracking-tight">Meeting Management</h1>
+            </div>
+            <Button 
+              onClick={handleMarkMeetingsCompleted}
+              variant="outline"
+            >
+              Mark Meetings Complete (until Nov 10)
+            </Button>
           </div>
           <p className="text-muted-foreground">
             Organize and track your meetings efficiently
