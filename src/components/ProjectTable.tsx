@@ -423,9 +423,14 @@ export const ProjectTable = ({
                     {/* Progress Column */}
                     <TableCell>
                       {(() => {
-                        const projectTasks = tasks.filter(t => t.project === project.name);
-                        const totalTasks = projectTasks.length;
+                        // Filter out meetings, only count regular tasks
+                        const projectTasks = tasks.filter(t => 
+                          t.project === project.name && 
+                          t.taskType !== 'Meeting' && 
+                          t.taskType !== 'Meeting Recurring'
+                        );
                         const completedTasks = projectTasks.filter(t => t.status === 'Completed').length;
+                        const totalTasks = projectTasks.length;
                         const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
                         
                         return (
