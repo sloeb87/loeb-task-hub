@@ -1281,8 +1281,18 @@ export const TaskFormOptimized = React.memo(({
               <div className="space-y-3">
                 {displayedFollowUps.length > 0 ? (
                   displayedFollowUps.map((followUp) => (
-                    <div key={followUp.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
-                      <p className={`text-sm whitespace-pre-wrap ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
+                    <div key={followUp.id} className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg relative group">
+                      {onDeleteFollowUp && (
+                        <button
+                          type="button"
+                          onClick={() => onDeleteFollowUp(followUp.id)}
+                          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                          aria-label="Delete follow-up"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                      <p className={`text-sm whitespace-pre-wrap pr-6 ${isAutomaticFollowUp(followUp.text) ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'}`}>
                         {followUp.text}
                       </p>
                       <span className="text-xs text-gray-500 dark:text-gray-400">
