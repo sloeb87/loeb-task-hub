@@ -170,6 +170,54 @@ export type Database = {
         }
         Relationships: []
       }
+      recurrence_stats: {
+        Row: {
+          completed_count: number
+          id: string
+          next_occurrences: Json
+          parent_task_id: string
+          recurrence_days_of_week: number[] | null
+          recurrence_end_date: string | null
+          recurrence_interval: number | null
+          recurrence_type: string | null
+          remaining_count: number
+          start_date: string | null
+          total_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_count?: number
+          id?: string
+          next_occurrences?: Json
+          parent_task_id: string
+          recurrence_days_of_week?: number[] | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          remaining_count?: number
+          start_date?: string | null
+          total_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_count?: number
+          id?: string
+          next_occurrences?: Json
+          parent_task_id?: string
+          recurrence_days_of_week?: number[] | null
+          recurrence_end_date?: string | null
+          recurrence_interval?: number | null
+          recurrence_type?: string | null
+          remaining_count?: number
+          start_date?: string | null
+          total_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       simple_followups: {
         Row: {
           content: string
@@ -690,19 +738,26 @@ export type Database = {
       }
     }
     Functions: {
-      calculate_task_metrics: {
-        Args: { p_task_id: string } | { p_task_number: string }
-        Returns: undefined
-      }
-      generate_recurring_instances: {
-        Args: { task_number_param: string } | { task_uuid: string }
-        Returns: {
-          created_count: number
-          message: string
-        }[]
-      }
+      calculate_task_metrics:
+        | { Args: { p_task_number: string }; Returns: undefined }
+        | { Args: { p_task_id: string }; Returns: undefined }
+      generate_recurring_instances:
+        | {
+            Args: { task_number_param: string }
+            Returns: {
+              created_count: number
+              message: string
+            }[]
+          }
+        | {
+            Args: { task_uuid: string }
+            Returns: {
+              created_count: number
+              message: string
+            }[]
+          }
       get_current_user_profile: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avatar_url: string | null
           created_at: string
@@ -711,15 +766,22 @@ export type Database = {
           updated_at: string
           user_id: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       recalculate_all_task_metrics: {
         Args: { p_user_id: string }
         Returns: number
       }
-      refresh_task_views: {
-        Args: Record<PropertyKey, never>
+      refresh_recurrence_stats: {
+        Args: { p_parent: string; p_user: string }
         Returns: undefined
       }
+      refresh_task_views: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

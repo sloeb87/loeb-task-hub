@@ -507,12 +507,14 @@ export const TaskFormOptimized = React.memo(({
     if (!parentUuid) return;
 
     // Fetch precomputed recurrence stats for instant load
-    supabase
-      .from('recurrence_stats')
-      .select('total_count, completed_count, remaining_count, next_occurrences, recurrence_type, recurrence_interval, recurrence_end_date, recurrence_days_of_week, start_date')
-      .eq('parent_task_id', parentUuid)
-      .maybeSingle()
-      .then(({ data, error }) => {
+    const fetchStats = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('recurrence_stats')
+          .select('total_count, completed_count, remaining_count, next_occurrences, recurrence_type, recurrence_interval, recurrence_end_date, recurrence_days_of_week, start_date')
+          .eq('parent_task_id', parentUuid)
+          .maybeSingle();
+        
         if (error) {
           console.error('Failed to load recurrence stats', error);
           return;
@@ -523,18 +525,14 @@ export const TaskFormOptimized = React.memo(({
             completed: data.completed_count || 0,
             remaining: data.remaining_count || 0,
           });
-          // Optionally, we could store next_occurrences into local state if needed for display
         }
-      })
-      .catch((e) => {
+      } catch (e) {
         console.error('Failed to load recurrence stats', e);
-      });
+      }
+    };
+    
+    fetchStats();
   }, [isOpen, task?.id, (task as any)?.uuid, (task as any)?.parentTaskId]);
-      .catch((e) => {
-        console.error('Failed to load recurrence counts', e);
-        setRecurrenceCounts({ total: 0, completed: 0, remaining: 0 });
-      });
-  }, [isOpen, task?.id, (task as any)?.uuid, (task as any)?.parentTaskId, task?.dueDate]);
 
   // Form field update handlers
   const updateField = useCallback((field: keyof FormData, value: any) => {
