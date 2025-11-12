@@ -125,7 +125,6 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleFavorite(task);
-                      onTaskClick(task);
                     }}
                   />
                 </div>
