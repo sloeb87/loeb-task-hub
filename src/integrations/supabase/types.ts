@@ -738,6 +738,13 @@ export type Database = {
       }
     }
     Functions: {
+      backfill_all_recurrence_stats: {
+        Args: never
+        Returns: {
+          message: string
+          processed_count: number
+        }[]
+      }
       calculate_task_metrics:
         | { Args: { p_task_number: string }; Returns: undefined }
         | { Args: { p_task_id: string }; Returns: undefined }
