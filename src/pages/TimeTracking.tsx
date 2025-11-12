@@ -972,7 +972,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }
   };
 
-  // Auto-fill weekdays with less than 8 hours
+  // Auto-fill weekdays with less than 8 hours or completely empty
   const handleAutoFillWeekdays = async () => {
     if (!user) {
       toast({ title: 'Authentication required', description: 'Please log in to auto-fill', variant: 'destructive' });
@@ -1005,19 +1005,41 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         entriesByDate[dateKey].total += entry.duration || 0;
       });
 
-      // Find weekdays with less than 8 hours (480 minutes) - exclude weekends
-      const incompleteWeekdays = Object.entries(entriesByDate)
-        .filter(([date, data]) => {
-          const dayOfWeek = data.dayOfWeek;
-          // Only weekdays (Monday = 1 to Friday = 5)
-          return dayOfWeek >= 1 && dayOfWeek <= 5 && data.total < 480;
+      // Generate list of all weekdays in the last 90 days
+      const today = new Date();
+      const allWeekdays: Array<{ date: string; dayOfWeek: number }> = [];
+      
+      for (let i = 0; i < 90; i++) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dayOfWeek = date.getDay();
+        
+        // Only weekdays (Monday = 1 to Friday = 5)
+        if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+          const dateKey = date.toISOString().split('T')[0];
+          allWeekdays.push({ date: dateKey, dayOfWeek });
+        }
+      }
+
+      // Find weekdays that are empty or have less than 8 hours (480 minutes)
+      const incompleteWeekdays = allWeekdays
+        .filter(({ date, dayOfWeek }) => {
+          const data = entriesByDate[date];
+          // Include if no data exists OR if total < 480 minutes
+          return !data || data.total < 480;
         })
-        .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()); // Most recent first
+        .map(({ date, dayOfWeek }) => ({
+          date,
+          dayOfWeek,
+          existingTotal: entriesByDate[date]?.total || 0,
+          existingEntries: entriesByDate[date]?.entries || []
+        }))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
 
       if (incompleteWeekdays.length === 0) {
         toast({ 
           title: 'No incomplete weekdays', 
-          description: 'All weekdays already have 8+ hours logged' 
+          description: 'All weekdays in the last 90 days already have 8+ hours logged' 
         });
         return;
       }
@@ -1026,10 +1048,10 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
       const entriesToCreate: any[] = [];
       let filledCount = 0;
 
-      for (const [incompleteDate, incompleteData] of incompleteWeekdays) {
-        const targetDate = new Date(incompleteDate);
-        const targetDayOfWeek = incompleteData.dayOfWeek;
-        const missingMinutes = 480 - incompleteData.total;
+      for (const incomplete of incompleteWeekdays) {
+        const targetDate = new Date(incomplete.date);
+        const targetDayOfWeek = incomplete.dayOfWeek;
+        const missingMinutes = 480 - incomplete.existingTotal;
 
         // Find previous weeks with same day of week that have 8+ hours
         const templateDays = Object.entries(entriesByDate)
@@ -1045,12 +1067,14 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
           // Use the most recent template day
           const [templateDate, templateData] = templateDays[0];
           
-          // Calculate scale factor to reach 480 minutes (might need to scale up or down)
+          // Calculate scale factor to reach exactly 480 minutes total
           const scaleFactor = missingMinutes / templateData.total;
 
           // Copy entries from template day, scaling their durations
           for (const templateEntry of templateData.entries) {
             const scaledDuration = Math.round((templateEntry.duration || 0) * scaleFactor);
+            
+            if (scaledDuration <= 0) continue; // Skip if duration becomes 0
             
             // Create new time entry for the target date
             const newStartTime = new Date(targetDate);
