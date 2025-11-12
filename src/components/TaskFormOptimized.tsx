@@ -979,16 +979,16 @@ export const TaskFormOptimized = React.memo(({
                 </div>
               </div>
 
-              {/* Current Occurrence Section for Recurring Tasks */}
+              {/* Current Occurrence Section for Recurring Tasks - Always Visible */}
               {(formData.isRecurring || task?.isRecurring || task?.parentTaskId) && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Repeat className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                     <Label className="text-blue-800 dark:text-blue-200 font-medium">
-                      Recurring Task
+                      Recurring Task Information
                     </Label>
                   </div>
-                  <div className="mb-4">
+                  <div className="space-y-3">
                     <div className="text-sm text-blue-700 dark:text-blue-300">
                       {task?.parentTaskId ? (
                         <span className="flex items-center gap-1">
@@ -1052,13 +1052,13 @@ export const TaskFormOptimized = React.memo(({
                       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
                       
                       return (
-                        <div className="mt-3 space-y-2 text-xs border-t border-blue-200 dark:border-blue-700 pt-3">
+                        <div className="space-y-2 text-xs border-t border-blue-200 dark:border-blue-700 pt-3">
                           {/* Recurrence Pattern */}
                           {recurrenceInfo.type && (
                             <div className="flex items-start gap-2">
                               <Repeat className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
                               <div>
-                                <span className="text-blue-700 dark:text-blue-300">
+                                <span className="text-blue-700 dark:text-blue-300 font-medium">
                                   {(() => {
                                     const { type, interval, daysOfWeek } = recurrenceInfo;
                                     if (type === 'daily') {
