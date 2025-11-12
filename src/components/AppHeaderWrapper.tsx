@@ -29,7 +29,7 @@ export const AppHeaderWrapper = React.memo(() => {
   const [isParametersOpen, setIsParametersOpen] = useState(false);
   const [isFavoritesOpen, setIsFavoritesOpen] = useState(false);
   const { taskNavigationState } = useTaskNavigation();
-  const { tasks: currentTasks, projects, refreshTasks, loadTaskById, loadAllTasks } = useSupabaseStorage();
+  const { tasks: currentTasks, projects, refreshTasks, loadTaskById, loadAllTasks, updateTask } = useSupabaseStorage();
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   
   // Load ALL tasks for timer display (not just current page/project)
@@ -358,6 +358,17 @@ export const AppHeaderWrapper = React.memo(() => {
     setIsFavoritesOpen(false);
   }, [navigate]);
 
+  const handleToggleFavorite = useCallback(async (task: Task) => {
+    if (updateTask) {
+      await updateTask({
+        ...task,
+        isFavorite: false
+      });
+      // Refresh the task list to update favorites
+      await refreshTasks();
+    }
+  }, [updateTask, refreshTasks]);
+
   // Get favorite tasks
   const favoriteTasks = allTasks.filter(task => task.isFavorite);
 
@@ -397,6 +408,7 @@ export const AppHeaderWrapper = React.memo(() => {
         onClose={() => setIsFavoritesOpen(false)}
         favoriteTasks={favoriteTasks}
         onTaskClick={handleTaskClick}
+        onToggleFavorite={handleToggleFavorite}
       />
     </>
   );

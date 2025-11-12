@@ -12,13 +12,15 @@ interface FavoritesDialogProps {
   onClose: () => void;
   favoriteTasks: Task[];
   onTaskClick: (task: Task) => void;
+  onToggleFavorite: (task: Task) => void;
 }
 
 export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
   isOpen,
   onClose,
   favoriteTasks,
-  onTaskClick
+  onTaskClick,
+  onToggleFavorite
 }) => {
   const { getScopeStyle } = useScopeColor();
   return (
@@ -118,7 +120,14 @@ export const FavoritesDialog: React.FC<FavoritesDialogProps> = ({
                     </div>
                   </div>
                   
-                  <Star className="w-5 h-5 text-star fill-star flex-shrink-0 mt-1" />
+                  <Star 
+                    className="w-5 h-5 text-star fill-star flex-shrink-0 mt-1 cursor-pointer hover:scale-110 transition-transform" 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleFavorite(task);
+                      onTaskClick(task);
+                    }}
+                  />
                 </div>
               </div>
             ))
