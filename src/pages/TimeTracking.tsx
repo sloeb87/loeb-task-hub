@@ -973,7 +973,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
   };
 
   // Auto-fill weekdays with less than 8 hours or completely empty
-  const handleAutoFillWeekdays = async () => {
+  const handleAutoFillWeekdays = async (specificDate?: string) => {
     if (!user) {
       toast({ title: 'Authentication required', description: 'Please log in to auto-fill', variant: 'destructive' });
       return;
@@ -1005,19 +1005,39 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         entriesByDate[dateKey].total += entry.duration || 0;
       });
 
-      // Generate list of all weekdays in the last 90 days
-      const today = new Date();
-      const allWeekdays: Array<{ date: string; dayOfWeek: number }> = [];
+      // Generate list of weekdays to check
+      let allWeekdays: Array<{ date: string; dayOfWeek: number }> = [];
       
-      for (let i = 0; i < 90; i++) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-        const dayOfWeek = date.getDay();
+      if (specificDate) {
+        // Auto-fill only the specific date
+        const targetDate = new Date(specificDate);
+        const dayOfWeek = targetDate.getDay();
         
-        // Only weekdays (Monday = 1 to Friday = 5)
+        // Check if it's a weekday
         if (dayOfWeek >= 1 && dayOfWeek <= 5) {
-          const dateKey = date.toISOString().split('T')[0];
-          allWeekdays.push({ date: dateKey, dayOfWeek });
+          allWeekdays.push({ date: specificDate, dayOfWeek });
+        } else {
+          toast({ 
+            title: 'Invalid date', 
+            description: 'The selected date is not a weekday (Monday-Friday)',
+            variant: 'destructive'
+          });
+          return;
+        }
+      } else {
+        // Generate list of all weekdays in the last 90 days
+        const today = new Date();
+        
+        for (let i = 0; i < 90; i++) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          const dayOfWeek = date.getDay();
+          
+          // Only weekdays (Monday = 1 to Friday = 5)
+          if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+            const dateKey = date.toISOString().split('T')[0];
+            allWeekdays.push({ date: dateKey, dayOfWeek });
+          }
         }
       }
 
@@ -1037,9 +1057,12 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Most recent first
 
       if (incompleteWeekdays.length === 0) {
+        const message = specificDate 
+          ? `${specificDate} already has 8+ hours logged` 
+          : 'All weekdays in the last 90 days already have 8+ hours logged';
         toast({ 
           title: 'No incomplete weekdays', 
-          description: 'All weekdays in the last 90 days already have 8+ hours logged' 
+          description: message
         });
         return;
       }
@@ -1168,12 +1191,21 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={handleAutoFillWeekdays}
-            aria-label="Auto-fill weekdays"
+            onClick={() => handleAutoFillWeekdays('2024-10-28')}
+            aria-label="Auto-fill October 28th"
             className="gap-2"
           >
             <Copy className="w-4 h-4" />
-            Auto-fill Weekdays
+            Auto-fill Oct 28
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => handleAutoFillWeekdays()}
+            aria-label="Auto-fill all weekdays"
+            className="gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            Auto-fill All
           </Button>
           {!isNonProjectRunning && (
             <Button
