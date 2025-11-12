@@ -34,7 +34,8 @@ const TaskEdit = () => {
     loadTaskById,
     addFollowUp,
     updateFollowUp,
-    deleteFollowUp
+    deleteFollowUp,
+    getRelatedRecurringTasks
   } = useSupabaseStorage();
 
   // Load task data
@@ -345,6 +346,7 @@ const TaskEdit = () => {
           allTasks={tasks}
           allProjects={projects}
           projectName={selectedProject?.name}
+          getRelatedRecurringTasks={getRelatedRecurringTasks}
           renderInline={true}
         />
 

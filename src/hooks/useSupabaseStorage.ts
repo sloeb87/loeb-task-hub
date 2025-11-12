@@ -1796,6 +1796,18 @@ export function useSupabaseStorage() {
       
       if (!parentTaskId) return [];
 
+      // Fetch parent task (for recurrence settings)
+      const { data: parentTask, error: parentError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('id', parentTaskId)
+        .single();
+
+      if (parentError) {
+        console.error('Error fetching parent recurring task:', parentError);
+      }
+
       // Get next 3 related recurring occurrences (future, open)
       const cutoffDate = currentTask.due_date || new Date().toISOString().slice(0, 10);
       const { data: nextTasks, error: nextError } = await supabase
@@ -1815,7 +1827,17 @@ export function useSupabaseStorage() {
 
       const emptyFollowUpsMap = new Map<string, any[]>();
       const emptyProjectMap = new Map<string, string>();
-      return (nextTasks || []).map(task => convertSupabaseTaskToTask(task, emptyFollowUpsMap, emptyProjectMap));
+      const result: Task[] = [];
+
+      if (parentTask) {
+        result.push(convertSupabaseTaskToTask(parentTask, emptyFollowUpsMap, emptyProjectMap));
+      }
+
+      (nextTasks || []).forEach(t => {
+        result.push(convertSupabaseTaskToTask(t, emptyFollowUpsMap, emptyProjectMap));
+      });
+
+      return result;
     } catch (error) {
       console.error('Error in getRelatedRecurringTasks:', error);
       return [];
