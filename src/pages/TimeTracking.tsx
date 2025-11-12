@@ -1322,7 +1322,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         <div className="flex items-center gap-2">
           <Button
             variant="default"
-            onClick={() => handleAutoFillFromTemplate('2024-10-21', ['2024-10-28', '2024-11-04'])}
+            onClick={() => handleAutoFillFromTemplate('2025-10-21', ['2025-10-28', '2025-11-04'])}
             aria-label="Auto-fill Oct 28 & Nov 4 from Oct 21"
             className="gap-2"
           >
