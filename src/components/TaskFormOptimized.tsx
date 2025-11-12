@@ -1010,65 +1010,105 @@ export const TaskFormOptimized = React.memo(({
                     
                     {/* Recurrence Pattern Info */}
                     {(() => {
-                      // Get recurrence info from either current task or parent task
-                      const recurrenceInfo = task?.isRecurring 
-                        ? {
-                            type: task.recurrenceType,
-                            interval: task.recurrenceInterval,
-                            daysOfWeek: task.recurrenceDaysOfWeek,
-                            endDate: task.recurrenceEndDate
-                          }
-                        : task?.parentTaskId && relatedRecurringTasks.length > 0
-                        ? (() => {
-                            // Find parent task from related tasks
-                            const parentTask = relatedRecurringTasks.find(t => t.isRecurring);
-                            return parentTask ? {
-                              type: parentTask.recurrenceType,
-                              interval: parentTask.recurrenceInterval,
-                              daysOfWeek: parentTask.recurrenceDaysOfWeek,
-                              endDate: parentTask.recurrenceEndDate
-                            } : null;
-                          })()
-                        : formData.isRecurring
-                        ? {
-                            type: formData.recurrenceType,
-                            interval: formData.recurrenceInterval,
-                            daysOfWeek: formData.recurrenceDaysOfWeek,
-                            endDate: formData.recurrenceEndDate
-                          }
-                        : null;
+                      // Find parent task if this is a recurring instance
+                      const parentTask = task?.parentTaskId && relatedRecurringTasks.length > 0
+                        ? relatedRecurringTasks.find(t => t.isRecurring)
+                        : task?.isRecurring ? task : null;
                       
-                      if (!recurrenceInfo?.type) return null;
+                      // Get all related tasks for counting
+                      const allRelatedTasks = relatedRecurringTasks.length > 0 
+                        ? relatedRecurringTasks 
+                        : task ? [task] : [];
+                      
+                      // Get recurrence info from parent task or current task
+                      const recurrenceInfo = parentTask ? {
+                        type: parentTask.recurrenceType,
+                        interval: parentTask.recurrenceInterval,
+                        daysOfWeek: parentTask.recurrenceDaysOfWeek,
+                        endDate: parentTask.recurrenceEndDate,
+                        startDate: parentTask.startDate
+                      } : formData.isRecurring ? {
+                        type: formData.recurrenceType,
+                        interval: formData.recurrenceInterval,
+                        daysOfWeek: formData.recurrenceDaysOfWeek,
+                        endDate: formData.recurrenceEndDate,
+                        startDate: formData.startDate
+                      } : null;
+                      
+                      if (!recurrenceInfo) return null;
+                      
+                      // Calculate statistics
+                      const today = new Date();
+                      const futureOccurrences = allRelatedTasks.filter(t => 
+                        t.status === 'Open' && new Date(t.dueDate) >= today
+                      ).length;
+                      
+                      const completedOccurrences = allRelatedTasks.filter(t => 
+                        t.status === 'Completed'
+                      ).length;
+                      
+                      const totalOccurrences = allRelatedTasks.length;
                       
                       const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                      const formatRecurrence = () => {
-                        const { type, interval, daysOfWeek, endDate } = recurrenceInfo;
-                        
-                        let pattern = '';
-                        if (type === 'daily') {
-                          pattern = interval === 1 ? 'Every day' : `Every ${interval} days`;
-                        } else if (type === 'weekly') {
-                          const days = daysOfWeek && daysOfWeek.length > 0
-                            ? daysOfWeek.sort().map(d => dayNames[d]).join(', ')
-                            : 'week';
-                          pattern = interval === 1 
-                            ? `Every week${daysOfWeek?.length ? ` on ${days}` : ''}`
-                            : `Every ${interval} weeks${daysOfWeek?.length ? ` on ${days}` : ''}`;
-                        } else if (type === 'monthly') {
-                          pattern = interval === 1 ? 'Every month' : `Every ${interval} months`;
-                        }
-                        
-                        if (endDate) {
-                          pattern += ` • Until ${format(new Date(endDate), 'MMM d, yyyy')}`;
-                        }
-                        
-                        return pattern;
-                      };
                       
                       return (
-                        <div className="mt-2 text-xs text-blue-600 dark:text-blue-300 flex items-center gap-1">
-                          <CalendarLucide className="w-3 h-3" />
-                          {formatRecurrence()}
+                        <div className="mt-3 space-y-2 text-xs border-t border-blue-200 dark:border-blue-700 pt-3">
+                          {/* Recurrence Pattern */}
+                          {recurrenceInfo.type && (
+                            <div className="flex items-start gap-2">
+                              <Repeat className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                              <div>
+                                <span className="text-blue-700 dark:text-blue-300">
+                                  {(() => {
+                                    const { type, interval, daysOfWeek } = recurrenceInfo;
+                                    if (type === 'daily') {
+                                      return interval === 1 ? 'Every day' : `Every ${interval} days`;
+                                    } else if (type === 'weekly') {
+                                      const days = daysOfWeek && daysOfWeek.length > 0
+                                        ? daysOfWeek.sort().map(d => dayNames[d]).join(', ')
+                                        : '';
+                                      return interval === 1 
+                                        ? `Every week${days ? ` on ${days}` : ''}`
+                                        : `Every ${interval} weeks${days ? ` on ${days}` : ''}`;
+                                    } else if (type === 'monthly') {
+                                      return interval === 1 ? 'Every month' : `Every ${interval} months`;
+                                    }
+                                    return '';
+                                  })()}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Date Range */}
+                          <div className="flex items-start gap-2">
+                            <CalendarLucide className="w-3 h-3 text-blue-500 mt-0.5 flex-shrink-0" />
+                            <div className="text-blue-700 dark:text-blue-300">
+                              <span className="font-medium">Period: </span>
+                              {recurrenceInfo.startDate && format(new Date(recurrenceInfo.startDate), 'MMM d, yyyy')}
+                              {recurrenceInfo.endDate && (
+                                <> → {format(new Date(recurrenceInfo.endDate), 'MMM d, yyyy')}</>
+                              )}
+                              {!recurrenceInfo.endDate && ' → Ongoing'}
+                            </div>
+                          </div>
+                          
+                          {/* Statistics */}
+                          {allRelatedTasks.length > 0 && (
+                            <div className="flex items-start gap-2">
+                              <div className="w-3 h-3 mt-0.5 flex-shrink-0 flex items-center justify-center">
+                                <span className="text-blue-500 font-bold">#</span>
+                              </div>
+                              <div className="text-blue-700 dark:text-blue-300">
+                                <span className="font-medium">Occurrences: </span>
+                                <span className="text-green-600 dark:text-green-400">{completedOccurrences} completed</span>
+                                <span className="mx-1">•</span>
+                                <span className="text-orange-600 dark:text-orange-400">{futureOccurrences} remaining</span>
+                                <span className="mx-1">•</span>
+                                <span>{totalOccurrences} total</span>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}
