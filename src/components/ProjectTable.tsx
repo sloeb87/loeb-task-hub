@@ -346,6 +346,11 @@ export const ProjectTable = ({
                   Status
                 </TableHead>
                 <TableHead style={{
+                minWidth: '200px'
+              }}>
+                  Progress
+                </TableHead>
+                <TableHead style={{
                 minWidth: '180px'
               }}>
                   Owner & Team
@@ -413,6 +418,28 @@ export const ProjectTable = ({
                       <Badge className={`${getStatusColor(project.status)} text-sm px-2 py-1`}>
                         {project.status}
                       </Badge>
+                    </TableCell>
+
+                    {/* Progress Column */}
+                    <TableCell>
+                      {(() => {
+                        const projectTasks = tasks.filter(t => t.project === project.name);
+                        const totalTasks = projectTasks.length;
+                        const completedTasks = projectTasks.filter(t => t.status === 'Completed').length;
+                        const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                        
+                        return (
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                {completedTasks}/{totalTasks} tasks
+                              </span>
+                              <span className="font-medium">{progressPercentage}%</span>
+                            </div>
+                            <Progress value={progressPercentage} className="h-2" />
+                          </div>
+                        );
+                      })()}
                     </TableCell>
 
                     {/* Owner & Team Column */}
