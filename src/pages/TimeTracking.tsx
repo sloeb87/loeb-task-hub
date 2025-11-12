@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Clock, Play, Pause, Search, Edit3, Trash2, Filter, Building2 } from "lucide-react";
+import { Clock, Play, Pause, Search, Edit3, Trash2, Filter, Building2, Copy } from "lucide-react";
 import { useTimeTracking } from "@/hooks/useTimeTracking";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryExport } from "@/components/TimeEntryExport";
@@ -20,6 +20,7 @@ import { PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, BarChart, Bar, Refere
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { toast } from "@/hooks/use-toast";
 import { startOfDay, endOfDay } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MultiSelectFilters {
   task: string[];
@@ -37,7 +38,8 @@ interface TimeTrackingPageProps {
 }
 
 export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPageProps) => {
-  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry, taskTimers } = useTimeTracking();
+  const { user } = useAuth();
+  const { timeEntries, startTimer, stopTimer, getTaskTime, getFilteredTimeEntries, getTimeEntryStats, deleteTimeEntry, taskTimers, loadTimeData } = useTimeTracking();
   const { getScopeStyle, getScopeColor } = useScopeColor();
   const { getTaskTypeStyle, getTaskTypeColor } = useTaskTypeColor();
   const { getEnvironmentStyle } = useEnvironmentColor();
@@ -970,6 +972,150 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
     }
   };
 
+  // Auto-fill weekdays with less than 8 hours
+  const handleAutoFillWeekdays = async () => {
+    if (!user) {
+      toast({ title: 'Authentication required', description: 'Please log in to auto-fill', variant: 'destructive' });
+      return;
+    }
+
+    try {
+      // Get all time entries from database
+      const { data: allEntries, error: fetchError } = await supabase
+        .from('time_entries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('start_time', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      // Group entries by date (weekday)
+      const entriesByDate: Record<string, { entries: any[]; total: number; dayOfWeek: number }> = {};
+      
+      allEntries?.forEach(entry => {
+        const date = new Date(entry.start_time);
+        const dateKey = date.toISOString().split('T')[0];
+        const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
+        
+        if (!entriesByDate[dateKey]) {
+          entriesByDate[dateKey] = { entries: [], total: 0, dayOfWeek };
+        }
+        
+        entriesByDate[dateKey].entries.push(entry);
+        entriesByDate[dateKey].total += entry.duration || 0;
+      });
+
+      // Find weekdays with less than 8 hours (480 minutes) - exclude weekends
+      const incompleteWeekdays = Object.entries(entriesByDate)
+        .filter(([date, data]) => {
+          const dayOfWeek = data.dayOfWeek;
+          // Only weekdays (Monday = 1 to Friday = 5)
+          return dayOfWeek >= 1 && dayOfWeek <= 5 && data.total < 480;
+        })
+        .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()); // Most recent first
+
+      if (incompleteWeekdays.length === 0) {
+        toast({ 
+          title: 'No incomplete weekdays', 
+          description: 'All weekdays already have 8+ hours logged' 
+        });
+        return;
+      }
+
+      // Find template weekdays (same day of week) with 8+ hours from previous weeks
+      const entriesToCreate: any[] = [];
+      let filledCount = 0;
+
+      for (const [incompleteDate, incompleteData] of incompleteWeekdays) {
+        const targetDate = new Date(incompleteDate);
+        const targetDayOfWeek = incompleteData.dayOfWeek;
+        const missingMinutes = 480 - incompleteData.total;
+
+        // Find previous weeks with same day of week that have 8+ hours
+        const templateDays = Object.entries(entriesByDate)
+          .filter(([date, data]) => {
+            const d = new Date(date);
+            return d < targetDate && 
+                   data.dayOfWeek === targetDayOfWeek && 
+                   data.total >= 480;
+          })
+          .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime()); // Most recent first
+
+        if (templateDays.length > 0) {
+          // Use the most recent template day
+          const [templateDate, templateData] = templateDays[0];
+          
+          // Calculate scale factor to reach 480 minutes (might need to scale up or down)
+          const scaleFactor = missingMinutes / templateData.total;
+
+          // Copy entries from template day, scaling their durations
+          for (const templateEntry of templateData.entries) {
+            const scaledDuration = Math.round((templateEntry.duration || 0) * scaleFactor);
+            
+            // Create new time entry for the target date
+            const newStartTime = new Date(targetDate);
+            const templateStartTime = new Date(templateEntry.start_time);
+            newStartTime.setHours(templateStartTime.getHours(), templateStartTime.getMinutes(), 0, 0);
+
+            const newEndTime = new Date(newStartTime);
+            newEndTime.setMinutes(newEndTime.getMinutes() + scaledDuration);
+
+            entriesToCreate.push({
+              user_id: user.id,
+              task_id: templateEntry.task_id,
+              task_title: templateEntry.task_title,
+              project_name: templateEntry.project_name,
+              responsible: templateEntry.responsible,
+              start_time: newStartTime.toISOString(),
+              end_time: newEndTime.toISOString(),
+              duration: scaledDuration,
+              description: `Auto-filled from ${templateDate}`,
+              is_running: false,
+              task_type: templateEntry.task_type,
+              environment: templateEntry.environment,
+              scope: templateEntry.scope
+            });
+          }
+
+          filledCount++;
+        }
+      }
+
+      if (entriesToCreate.length === 0) {
+        toast({ 
+          title: 'No templates found', 
+          description: 'Could not find previous weekdays with 8+ hours to copy from',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Insert all new entries
+      const { error: insertError } = await supabase
+        .from('time_entries')
+        .insert(entriesToCreate);
+
+      if (insertError) throw insertError;
+
+      toast({ 
+        title: 'Auto-fill successful', 
+        description: `Filled ${filledCount} weekday(s) with ${entriesToCreate.length} time entries`,
+        duration: 5000
+      });
+
+      // Reload data
+      await loadTimeData();
+      
+    } catch (error) {
+      console.error('Error auto-filling weekdays:', error);
+      toast({ 
+        title: 'Auto-fill failed', 
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Non-Project timer constants and handlers
   const NON_PROJECT_TASK_ID = 'non_project_time';
   const NON_PROJECT_TASK_TITLE = 'Non-Project-Task';
@@ -996,6 +1142,15 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </div>
         
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleAutoFillWeekdays}
+            aria-label="Auto-fill weekdays"
+            className="gap-2"
+          >
+            <Copy className="w-4 h-4" />
+            Auto-fill Weekdays
+          </Button>
           {!isNonProjectRunning && (
             <Button
               variant="secondary"
