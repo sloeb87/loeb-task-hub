@@ -331,6 +331,13 @@ export const TaskFormOptimized = React.memo(({
   const [displayedFollowUps, setDisplayedFollowUps] = useState<FollowUp[]>([]);
   const [relatedRecurringTasks, setRelatedRecurringTasks] = useState<Task[]>([]);
   const [recurrenceCounts, setRecurrenceCounts] = useState<{ total: number; completed: number; remaining: number }>({ total: 0, completed: 0, remaining: 0 });
+  const [recurrenceMeta, setRecurrenceMeta] = useState<{
+    type: 'daily' | 'weekly' | 'monthly' | null;
+    interval: number | null;
+    daysOfWeek: number[];
+    endDate: string | null;
+    startDate: string | null;
+  } | null>(null);
   const [newLinkType, setNewLinkType] = useState<keyof FormData['links']>('oneNote');
   const [newLinkName, setNewLinkName] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
@@ -525,6 +532,15 @@ export const TaskFormOptimized = React.memo(({
             completed: data.completed_count || 0,
             remaining: data.remaining_count || 0,
           });
+          setRecurrenceMeta({
+            type: (data.recurrence_type as 'daily' | 'weekly' | 'monthly' | null) || null,
+            interval: data.recurrence_interval ?? null,
+            daysOfWeek: (data.recurrence_days_of_week as number[]) || [],
+            endDate: data.recurrence_end_date || null,
+            startDate: data.start_date || null,
+          });
+        } else {
+          setRecurrenceMeta(null);
         }
       } catch (e) {
         console.error('Failed to load recurrence stats', e);
@@ -1056,7 +1072,7 @@ export const TaskFormOptimized = React.memo(({
                         ? relatedRecurringTasks 
                         : task ? [task] : [];
                       
-                      // Get recurrence info from parent task or current task
+                      // Build recurrence info from available sources (parent -> form -> cached stats)
                       const recurrenceInfo = parentTask ? {
                         type: parentTask.recurrenceType,
                         interval: parentTask.recurrenceInterval,
@@ -1069,6 +1085,12 @@ export const TaskFormOptimized = React.memo(({
                         daysOfWeek: formData.recurrenceDaysOfWeek,
                         endDate: formData.recurrenceEndDate,
                         startDate: formData.startDate
+                      } : recurrenceMeta ? {
+                        type: recurrenceMeta.type,
+                        interval: recurrenceMeta.interval || 1,
+                        daysOfWeek: recurrenceMeta.daysOfWeek || [],
+                        endDate: recurrenceMeta.endDate || undefined,
+                        startDate: recurrenceMeta.startDate || undefined,
                       } : null;
                       
                       if (!recurrenceInfo) {
