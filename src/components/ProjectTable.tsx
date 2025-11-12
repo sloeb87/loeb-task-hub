@@ -462,12 +462,23 @@ export const ProjectTable = ({
                         let totalTasks = 0;
                         let remaining = 0;
                         let progressPercentage = 0;
+                        let overdueTasks = 0;
 
                         if (data) {
                           completedTasks = data.completed;
                           totalTasks = data.total;
                           remaining = data.remaining;
                           progressPercentage = data.percentage;
+                          
+                          // Calculate overdue from tasks
+                          const allProjectTasks = tasks.filter(t => 
+                            t.project === project.name && 
+                            t.taskType !== 'Meeting' && 
+                            t.taskType !== 'Meeting Recurring' &&
+                            t.status !== 'Completed' &&
+                            new Date(t.dueDate) < new Date()
+                          );
+                          overdueTasks = allProjectTasks.length;
                         } else {
                           // Fallback to in-memory tasks if detailed data hasn't loaded yet
                           const allProjectTasks = tasks.filter(t => 
@@ -480,6 +491,10 @@ export const ProjectTable = ({
                           totalTasks = openTasks + completedTasks;
                           remaining = openTasks;
                           progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                          overdueTasks = allProjectTasks.filter(t => 
+                            t.status !== 'Completed' && 
+                            new Date(t.dueDate) < new Date()
+                          ).length;
                         }
                         
                         return (
@@ -491,8 +506,18 @@ export const ProjectTable = ({
                               <span className="font-medium">{progressPercentage}%</span>
                             </div>
                             <Progress value={progressPercentage} className="h-2" />
-                            <div className="text-xs text-muted-foreground">
-                              Total: {totalTasks} • Completed: {completedTasks} • Remaining: {remaining}
+                            <div className="text-xs flex gap-2 flex-wrap">
+                              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                                Total: {totalTasks}
+                              </span>
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                Completed: {completedTasks}
+                              </span>
+                              {overdueTasks > 0 && (
+                                <span className="text-red-600 dark:text-red-400 font-medium">
+                                  Late: {overdueTasks}
+                                </span>
+                              )}
                             </div>
                           </div>
                         );
