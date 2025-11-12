@@ -36,6 +36,17 @@ export const RecurrenceSelector = ({
 }: RecurrenceSelectorProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [originalEndDate, setOriginalEndDate] = useState(recurrenceEndDate);
+  const [hasEndDateChanged, setHasEndDateChanged] = useState(false);
+
+  // Track changes to end date
+  React.useEffect(() => {
+    if (taskId && recurrenceEndDate !== originalEndDate) {
+      setHasEndDateChanged(true);
+    } else {
+      setHasEndDateChanged(false);
+    }
+  }, [recurrenceEndDate, originalEndDate, taskId]);
 
   const daysOfWeek = [
     { value: 1, label: 'Mon', fullLabel: 'Monday' },
@@ -143,6 +154,9 @@ export const RecurrenceSelector = ({
         const result = data[0];
         if (result.created_count > 0) {
           toast.success(result.message);
+          // Update original end date after successful generation
+          setOriginalEndDate(recurrenceEndDate);
+          setHasEndDateChanged(false);
         } else {
           toast.warning(result.message);
         }
@@ -286,13 +300,14 @@ export const RecurrenceSelector = ({
             required
           />
 
-          {/* Generate Button - now inline */}
+          {/* Generate/Update Button - now inline */}
           {taskId && recurrenceType && recurrenceEndDate && (
             <Button
               type="button"
               onClick={handleShowConfirmDialog}
               disabled={isGenerating}
               size="sm"
+              variant={hasEndDateChanged ? "default" : "outline"}
               className="h-8 px-3"
             >
               {isGenerating ? (
@@ -300,7 +315,7 @@ export const RecurrenceSelector = ({
               ) : (
                 <Calendar className="w-3 h-3 mr-1" />
               )}
-              Generate ({calculateInstanceCount()})
+              {hasEndDateChanged ? 'Update' : 'Generate'} ({calculateInstanceCount()})
             </Button>
           )}
         </>
@@ -310,25 +325,36 @@ export const RecurrenceSelector = ({
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Generate Recurring Task Instances</AlertDialogTitle>
+            <AlertDialogTitle>
+              {hasEndDateChanged ? 'Update Recurring Task Instances' : 'Generate Recurring Task Instances'}
+            </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>You are about to generate recurring task instances with the following settings:</p>
+              <p>
+                {hasEndDateChanged 
+                  ? 'You are about to update the recurrence end date. This will regenerate all future task instances.'
+                  : 'You are about to generate recurring task instances with the following settings:'}
+              </p>
               
               <div className="bg-muted p-3 rounded-md space-y-1">
                 <p><strong>Frequency:</strong> {getRecurrenceLabel()}</p>
                 <p><strong>End Date:</strong> {recurrenceEndDate}</p>
+                {originalEndDate && hasEndDateChanged && (
+                  <p><strong>Previous End Date:</strong> {originalEndDate}</p>
+                )}
                 <p><strong>Estimated Tasks to Create:</strong> <span className="font-bold text-primary">{calculateInstanceCount()}</span></p>
               </div>
               
               <p className="text-sm text-muted-foreground">
-                This will create individual tasks for each occurrence. This action cannot be undone.
+                {hasEndDateChanged 
+                  ? 'Existing future instances will be deleted and regenerated based on the new end date.'
+                  : 'This will create individual tasks for each occurrence.'}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleGenerateInstances}>
-              Generate Tasks
+              {hasEndDateChanged ? 'Update Tasks' : 'Generate Tasks'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
