@@ -506,38 +506,30 @@ export const TaskFormOptimized = React.memo(({
     const parentUuid = task.isRecurring ? (task as any).uuid : (task as any).parentTaskId;
     if (!parentUuid) return;
 
-    const cutoff = typeof task.dueDate === 'string'
-      ? task.dueDate
-      : new Date(task.dueDate || new Date()).toISOString().slice(0, 10);
-
-    const baseFilter = `id.eq.${parentUuid},parent_task_id.eq.${parentUuid}`;
-
-    const totalQ = supabase
-      .from('tasks')
-      .select('id', { count: 'exact', head: true })
-      .or(baseFilter);
-
-    const completedQ = supabase
-      .from('tasks')
-      .select('id', { count: 'exact', head: true })
-      .or(baseFilter)
-      .eq('status', 'Completed');
-
-    const remainingQ = supabase
-      .from('tasks')
-      .select('id', { count: 'exact', head: true })
-      .or(baseFilter)
-      .eq('status', 'Open')
-      .gte('due_date', cutoff);
-
-    Promise.all([totalQ, completedQ, remainingQ])
-      .then(([t, c, r]) => {
-        setRecurrenceCounts({
-          total: t.count || 0,
-          completed: c.count || 0,
-          remaining: r.count || 0,
-        });
+    // Fetch precomputed recurrence stats for instant load
+    supabase
+      .from('recurrence_stats')
+      .select('total_count, completed_count, remaining_count, next_occurrences, recurrence_type, recurrence_interval, recurrence_end_date, recurrence_days_of_week, start_date')
+      .eq('parent_task_id', parentUuid)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('Failed to load recurrence stats', error);
+          return;
+        }
+        if (data) {
+          setRecurrenceCounts({
+            total: data.total_count || 0,
+            completed: data.completed_count || 0,
+            remaining: data.remaining_count || 0,
+          });
+          // Optionally, we could store next_occurrences into local state if needed for display
+        }
       })
+      .catch((e) => {
+        console.error('Failed to load recurrence stats', e);
+      });
+  }, [isOpen, task?.id, (task as any)?.uuid, (task as any)?.parentTaskId]);
       .catch((e) => {
         console.error('Failed to load recurrence counts', e);
         setRecurrenceCounts({ total: 0, completed: 0, remaining: 0 });
