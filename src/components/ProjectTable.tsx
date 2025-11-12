@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Project, Task } from "@/types/task";
 import { useScopeColor } from '@/hooks/useParameterColors';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { MobileProjectCard } from './MobileProjectCard';
+import { useSupabaseStorage } from '@/hooks/useSupabaseStorage';
 interface ProjectTableProps {
   projects: Project[];
   tasks: Task[];
@@ -45,6 +46,39 @@ export const ProjectTable = ({
   
   // Wait for parameter colors to load to prevent the grey-to-color flash
   const parametersLoading = scopeLoading;
+ 
+  // Project progress loaded from DB to match details view
+  const { loadAllTasksForProject } = useSupabaseStorage();
+  const [progressMap, setProgressMap] = useState<Record<string, { total: number; completed: number; remaining: number; percentage: number }>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchProgress = async () => {
+      if (!loadAllTasksForProject || projects.length === 0) return;
+      const entries = await Promise.all(projects.map(async (p) => {
+        try {
+          const allTasks = await loadAllTasksForProject(p.id);
+          const filtered = (allTasks || []).filter(t => t.taskType !== 'Meeting' && t.taskType !== 'Meeting Recurring');
+          const completed = filtered.filter(t => t.status === 'Completed').length;
+          const open = filtered.filter(t => t.status !== 'Completed').length;
+          const total = open + completed;
+          const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+          return [p.id, { total, completed, remaining: open, percentage }] as const;
+        } catch (e) {
+          return [p.id, { total: 0, completed: 0, remaining: 0, percentage: 0 }] as const;
+        }
+      }));
+
+      if (!cancelled) {
+        const map: Record<string, { total: number; completed: number; remaining: number; percentage: number }> = {};
+        entries.forEach(([id, data]) => { map[id] = data; });
+        setProgressMap(map);
+      }
+    };
+
+    fetchProgress();
+    return () => { cancelled = true; };
+  }, [projects, loadAllTasksForProject]);
 
   // Filter states
   const [selectedScopes, setSelectedScopes] = useState<string[]>([]);
@@ -423,16 +457,30 @@ export const ProjectTable = ({
                     {/* Progress Column */}
                     <TableCell>
                       {(() => {
-                        // Match ProjectDetailView logic: exclude meetings, count open + completed
-                        const allProjectTasks = tasks.filter(t => 
-                          t.project === project.name && 
-                          t.taskType !== 'Meeting' && 
-                          t.taskType !== 'Meeting Recurring'
-                        );
-                        const openTasks = allProjectTasks.filter(t => t.status !== 'Completed').length;
-                        const completedTasks = allProjectTasks.filter(t => t.status === 'Completed').length;
-                        const totalTasks = openTasks + completedTasks;
-                        const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                        const data = progressMap[project.id];
+                        let completedTasks = 0;
+                        let totalTasks = 0;
+                        let remaining = 0;
+                        let progressPercentage = 0;
+
+                        if (data) {
+                          completedTasks = data.completed;
+                          totalTasks = data.total;
+                          remaining = data.remaining;
+                          progressPercentage = data.percentage;
+                        } else {
+                          // Fallback to in-memory tasks if detailed data hasn't loaded yet
+                          const allProjectTasks = tasks.filter(t => 
+                            t.project === project.name && 
+                            t.taskType !== 'Meeting' && 
+                            t.taskType !== 'Meeting Recurring'
+                          );
+                          const openTasks = allProjectTasks.filter(t => t.status !== 'Completed').length;
+                          completedTasks = allProjectTasks.filter(t => t.status === 'Completed').length;
+                          totalTasks = openTasks + completedTasks;
+                          remaining = openTasks;
+                          progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+                        }
                         
                         return (
                           <div className="space-y-2">
@@ -443,6 +491,9 @@ export const ProjectTable = ({
                               <span className="font-medium">{progressPercentage}%</span>
                             </div>
                             <Progress value={progressPercentage} className="h-2" />
+                            <div className="text-xs text-muted-foreground">
+                              Total: {totalTasks} • Completed: {completedTasks} • Remaining: {remaining}
+                            </div>
                           </div>
                         );
                       })()}
