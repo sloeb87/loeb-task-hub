@@ -1007,6 +1007,71 @@ export const TaskFormOptimized = React.memo(({
                         </span>
                       )}
                     </div>
+                    
+                    {/* Recurrence Pattern Info */}
+                    {(() => {
+                      // Get recurrence info from either current task or parent task
+                      const recurrenceInfo = task?.isRecurring 
+                        ? {
+                            type: task.recurrenceType,
+                            interval: task.recurrenceInterval,
+                            daysOfWeek: task.recurrenceDaysOfWeek,
+                            endDate: task.recurrenceEndDate
+                          }
+                        : task?.parentTaskId && relatedRecurringTasks.length > 0
+                        ? (() => {
+                            // Find parent task from related tasks
+                            const parentTask = relatedRecurringTasks.find(t => t.isRecurring);
+                            return parentTask ? {
+                              type: parentTask.recurrenceType,
+                              interval: parentTask.recurrenceInterval,
+                              daysOfWeek: parentTask.recurrenceDaysOfWeek,
+                              endDate: parentTask.recurrenceEndDate
+                            } : null;
+                          })()
+                        : formData.isRecurring
+                        ? {
+                            type: formData.recurrenceType,
+                            interval: formData.recurrenceInterval,
+                            daysOfWeek: formData.recurrenceDaysOfWeek,
+                            endDate: formData.recurrenceEndDate
+                          }
+                        : null;
+                      
+                      if (!recurrenceInfo?.type) return null;
+                      
+                      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                      const formatRecurrence = () => {
+                        const { type, interval, daysOfWeek, endDate } = recurrenceInfo;
+                        
+                        let pattern = '';
+                        if (type === 'daily') {
+                          pattern = interval === 1 ? 'Every day' : `Every ${interval} days`;
+                        } else if (type === 'weekly') {
+                          const days = daysOfWeek && daysOfWeek.length > 0
+                            ? daysOfWeek.sort().map(d => dayNames[d]).join(', ')
+                            : 'week';
+                          pattern = interval === 1 
+                            ? `Every week${daysOfWeek?.length ? ` on ${days}` : ''}`
+                            : `Every ${interval} weeks${daysOfWeek?.length ? ` on ${days}` : ''}`;
+                        } else if (type === 'monthly') {
+                          pattern = interval === 1 ? 'Every month' : `Every ${interval} months`;
+                        }
+                        
+                        if (endDate) {
+                          pattern += ` • Until ${format(new Date(endDate), 'MMM d, yyyy')}`;
+                        }
+                        
+                        return pattern;
+                      };
+                      
+                      return (
+                        <div className="mt-2 text-xs text-blue-600 dark:text-blue-300 flex items-center gap-1">
+                          <CalendarLucide className="w-3 h-3" />
+                          {formatRecurrence()}
+                        </div>
+                      );
+                    })()}
                   </div>
                   
                   {/* Next Occurrences */}
