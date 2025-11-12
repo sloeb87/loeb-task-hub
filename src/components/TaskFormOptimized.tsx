@@ -980,7 +980,7 @@ export const TaskFormOptimized = React.memo(({
               </div>
 
               {/* Current Occurrence Section for Recurring Tasks - Always Visible */}
-              {(formData.isRecurring || task?.isRecurring || task?.parentTaskId) && (
+              {(task?.parentTaskId || task?.isRecurring || formData.isRecurring || (relatedRecurringTasks && relatedRecurringTasks.length > 0) || !!formData.recurrenceType || !!formData.recurrenceEndDate) && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Repeat className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -1035,7 +1035,13 @@ export const TaskFormOptimized = React.memo(({
                         startDate: formData.startDate
                       } : null;
                       
-                      if (!recurrenceInfo) return null;
+                      if (!recurrenceInfo) {
+                        return (
+                          <div className="text-xs text-blue-700 dark:text-blue-300 border-t border-blue-200 dark:border-blue-700 pt-3">
+                            Loading recurrence details...
+                          </div>
+                        );
+                      }
                       
                       // Calculate statistics
                       const today = new Date();
