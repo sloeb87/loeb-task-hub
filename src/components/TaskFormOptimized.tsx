@@ -472,7 +472,10 @@ export const TaskFormOptimized = React.memo(({
   // Sync displayed follow-ups with current task
   useEffect(() => {
     if (!isOpen || !task?.id) return;
-    setDisplayedFollowUps(task.followUps || []);
+    const sorted = [...(task.followUps || [])].sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+    setDisplayedFollowUps(sorted);
   }, [isOpen, task?.id, task?.followUps]);
 
   // Fetch related recurring tasks when task changes
@@ -649,7 +652,7 @@ export const TaskFormOptimized = React.memo(({
         timestamp: new Date().toISOString(),
         taskStatus: task.status,
       };
-      setDisplayedFollowUps(prev => [...prev, optimistic]);
+      setDisplayedFollowUps(prev => [optimistic, ...prev]);
       await onAddFollowUp(task.id, text);
       
       // Auto-save the task after adding follow-up
