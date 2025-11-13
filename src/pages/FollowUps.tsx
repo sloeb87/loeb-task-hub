@@ -15,7 +15,7 @@ import { FollowUpExport } from "@/components/FollowUpExport";
 import { TimeEntryFiltersComponent } from "@/components/TimeEntryFilters";
 import { TimeEntryFilters } from "@/types/timeEntry";
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, addWeeks, startOfMonth, endOfMonth, addMonths, format, parseISO } from "date-fns";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart, BarChart, Bar } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, ComposedChart, Line, LineChart, BarChart, Bar, PieChart, Pie, Cell, Legend } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -558,6 +558,61 @@ export const FollowUpsPage = ({
     fetchTimeEntries();
   }, [isAuthenticated, user]);
 
+  // Calculate pie chart data for open tasks per scope (without meetings)
+  const openTasksPerScopeData = useMemo(() => {
+    const openTasks = allTasks.filter(task => 
+      task.status !== 'Completed' && 
+      !task.taskType?.toLowerCase().includes('meeting')
+    );
+    
+    const scopeCounts: Record<string, number> = {};
+    openTasks.forEach(task => {
+      task.scope?.forEach(scope => {
+        scopeCounts[scope] = (scopeCounts[scope] || 0) + 1;
+      });
+    });
+    
+    return Object.entries(scopeCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [allTasks]);
+
+  // Calculate pie chart data for open tasks per project (without meetings)
+  const openTasksPerProjectData = useMemo(() => {
+    const openTasks = allTasks.filter(task => 
+      task.status !== 'Completed' && 
+      !task.taskType?.toLowerCase().includes('meeting')
+    );
+    
+    const projectCounts: Record<string, number> = {};
+    openTasks.forEach(task => {
+      const projectName = projects.find(p => p.id === task.project)?.name || 'No Project';
+      projectCounts[projectName] = (projectCounts[projectName] || 0) + 1;
+    });
+    
+    return Object.entries(projectCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [allTasks, projects]);
+
+  // Calculate pie chart data for open meetings per project
+  const openMeetingsPerProjectData = useMemo(() => {
+    const openMeetings = allTasks.filter(task => 
+      task.status !== 'Completed' && 
+      task.taskType?.toLowerCase().includes('meeting')
+    );
+    
+    const projectCounts: Record<string, number> = {};
+    openMeetings.forEach(task => {
+      const projectName = projects.find(p => p.id === task.project)?.name || 'No Project';
+      projectCounts[projectName] = (projectCounts[projectName] || 0) + 1;
+    });
+    
+    return Object.entries(projectCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [allTasks, projects]);
+
   // Calculate chart data for planned vs logged hours by month
   const plannedVsLoggedChartData = useMemo(() => {
     if (allTasks.length === 0) return [];
@@ -601,56 +656,33 @@ export const FollowUpsPage = ({
     return months;
   }, [allTasks, timeEntries]);
 
-  // Handle chart clicks - change to projects view with date filter
-  const handleProjectChartClick = (data: any, index: number) => {
-    console.log('Project chart clicked:', data, index);
-    if (data && projectsChartData[index]) {
-      const clickedData = projectsChartData[index];
-      const monthStart = startOfMonth(clickedData.date);
-      const monthEnd = endOfMonth(clickedData.date);
-      
-      navigate('/', {
-        state: {
-          view: 'projects',
-          dateFilter: {
-            from: monthStart,
-            to: monthEnd
-          }
-        }
-      });
+  // Handle pie chart clicks for scope filter
+  const handleScopePieClick = (data: any) => {
+    if (data && data.name) {
+      setMultiSelectFilters(prev => ({
+        ...prev,
+        scope: [data.name]
+      }));
     }
   };
 
-  // Handle chart clicks - navigate to tasks page with date filter  
-    const handleTaskChartClick = (data: any, index: number) => {
-    console.log('Task chart clicked:', data, index);
-    if (data && tasksChartData[index]) {
-      const clickedData = tasksChartData[index];
-      console.log('Chart clicked data:', {
-        clickedData,
-        date: clickedData.date,
-        count: clickedData.count,
-        week: clickedData.week
-      });
-      
-      const monthStart = startOfMonth(clickedData.date);
-      const monthEnd = endOfMonth(clickedData.date);
-      
-      console.log('Date filter range:', {
-        monthStart: monthStart.toISOString(),
-        monthEnd: monthEnd.toISOString(),
-        originalDate: clickedData.date.toISOString()
-      });
-      
-      navigate('/', {
-        state: {
-          activeView: 'tasks',
-          dateFilter: {
-            from: monthStart,
-            to: monthEnd
-          }
-        }
-      });
+  // Handle pie chart clicks for project filter (tasks)
+  const handleProjectTasksPieClick = (data: any) => {
+    if (data && data.name) {
+      setMultiSelectFilters(prev => ({
+        ...prev,
+        project: [data.name]
+      }));
+    }
+  };
+
+  // Handle pie chart clicks for project filter (meetings)
+  const handleProjectMeetingsPieClick = (data: any) => {
+    if (data && data.name) {
+      setMultiSelectFilters(prev => ({
+        ...prev,
+        project: [data.name]
+      }));
     }
   };
 
@@ -880,193 +912,123 @@ export const FollowUpsPage = ({
         />
       </div>
 
-      {/* Time-based Charts */}
+      {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Projects Open Over Time Chart */}
+        {/* Open Tasks per Scope (without meetings) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Projects Open Over Time</CardTitle>
-            <CardDescription>Monthly count of active projects</CardDescription>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Tasks by Scope</CardTitle>
+            <CardDescription>Distribution of open tasks across scopes (excluding meetings)</CardDescription>
           </CardHeader>
-            <CardContent>
-              <div className="relative group">
-                <ChartContainer
-                 config={{
-                   openProjects: {
-                     label: "Open Projects",
-                     color: "hsl(var(--chart-4))",
-                   },
-                 }}
-                 className="h-[300px]"
-               >
+          <CardContent>
+            <div className="relative group">
+              <ChartContainer
+                config={{}}
+                className="h-[300px]"
+              >
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={projectsChartData} onClick={(data, index) => {
-                    if (data && data.activePayload && data.activePayload[0]) {
-                      const clickedIndex = data.activeTooltipIndex;
-                      if (typeof clickedIndex === 'number') {
-                        handleProjectChartClick(data.activePayload[0].payload, clickedIndex);
-                      }
-                    }
-                  }}>
-                   <defs>
-                     <linearGradient id="projectsGradient" x1="0" y1="0" x2="0" y2="1">
-                       <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.3}/>
-                       <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0}/>
-                     </linearGradient>
-                   </defs>
-                   <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="week" 
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                      interval={0}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
-                    />
-                   <YAxis 
-                     axisLine={false}
-                     tickLine={false}
-                     className="text-xs"
-                   />
-                   <ChartTooltip content={<ChartTooltipContent />} />
-                   <Area 
-                     type="monotone" 
-                     dataKey="count" 
-                     stroke="hsl(var(--chart-4))" 
-                     strokeWidth={3}
-                     fill="url(#projectsGradient)"
-                     dot={false}
-                     style={{ cursor: 'pointer' }}
-                   />
-                 </AreaChart>
-                </ResponsiveContainer>
-             </ChartContainer>
-           </div>
-           </CardContent>
-        </Card>
-
-        {/* Tasks Open Over Time Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Tasks Open Over Time</CardTitle>
-            <CardDescription>Monthly count of active tasks</CardDescription>
-          </CardHeader>
-           <CardContent>
-               <div className="relative group">
-                  <ChartContainer
-                   config={{
-                     openTasks: {
-                       label: "Open Tasks",
-                       color: "hsl(var(--chart-3))",
-                     },
-                   }}
-                   className="h-[300px]"
-                 >
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={tasksChartData} onClick={(data, index) => {
-                      if (data && data.activePayload && data.activePayload[0]) {
-                        const clickedIndex = data.activeTooltipIndex;
-                        if (typeof clickedIndex === 'number') {
-                          handleTaskChartClick(data.activePayload[0].payload, clickedIndex);
-                        }
-                      }
-                    }}>
-                     <defs>
-                       <linearGradient id="tasksGradient" x1="0" y1="0" x2="0" y2="1">
-                         <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.3}/>
-                         <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0}/>
-                       </linearGradient>
-                     </defs>
-                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis 
-                        dataKey="week" 
-                        axisLine={false}
-                        tickLine={false}
-                        className="text-xs"
-                        interval={0}
-                        angle={-45}
-                        textAnchor="end"
-                        height={60}
-                      />
-                     <YAxis 
-                       axisLine={false}
-                       tickLine={false}
-                       className="text-xs"
-                     />
-                     <ChartTooltip content={<ChartTooltipContent />} />
-                     <Area 
-                       type="monotone" 
-                       dataKey="count" 
-                       stroke="hsl(var(--chart-3))" 
-                       strokeWidth={3}
-                       fill="url(#tasksGradient)"
-                       dot={false}
-                       style={{ cursor: 'pointer' }}
-                     />
-                  </AreaChart>
-                 </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-           </CardContent>
-        </Card>
-
-        {/* Hours Over Time Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Planned Hours Over Time</CardTitle>
-            <CardDescription>Monthly cumulative planned hours for active tasks</CardDescription>
-          </CardHeader>
-           <CardContent>
-               <div className="relative group">
-                 <ChartContainer
-                  config={{
-                    cumulativeHours: {
-                      label: "Cumulative PT Hours",
-                      color: "hsl(var(--chart-2))",
-                    },
-                  }}
-                  className="h-[300px]"
-                >
-                 <ResponsiveContainer width="100%" height="100%">
-                   <AreaChart data={hoursChartData}>
-                    <defs>
-                      <linearGradient id="hoursGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                     <XAxis 
-                       dataKey="week" 
-                       axisLine={false}
-                       tickLine={false}
-                       className="text-xs"
-                       interval={0}
-                       angle={-45}
-                       textAnchor="end"
-                       height={60}
-                     />
-                    <YAxis 
-                      axisLine={false}
-                      tickLine={false}
-                      className="text-xs"
-                    />
+                  <PieChart>
+                    <Pie
+                      data={openTasksPerScopeData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="hsl(var(--chart-1))"
+                      dataKey="value"
+                      onClick={(data) => handleScopePieClick(data)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {openTasksPerScopeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
+                      ))}
+                    </Pie>
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Area 
-                      type="monotone" 
-                      dataKey="cumulativeHours" 
-                      stroke="hsl(var(--chart-2))" 
-                      strokeWidth={3}
-                      fill="url(#hoursGradient)"
-                      dot={false}
-                    />
-                  </AreaChart>
-                 </ResponsiveContainer>
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
               </ChartContainer>
             </div>
-           </CardContent>
+          </CardContent>
+        </Card>
+
+        {/* Open Tasks per Project (without meetings) */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Tasks by Project</CardTitle>
+            <CardDescription>Distribution of open tasks across projects (excluding meetings)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="relative group">
+              <ChartContainer
+                config={{}}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={openTasksPerProjectData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="hsl(var(--chart-2))"
+                      dataKey="value"
+                      onClick={(data) => handleProjectTasksPieClick(data)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {openTasksPerProjectData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Open Meetings per Project */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Meetings by Project</CardTitle>
+            <CardDescription>Distribution of open meetings across projects</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="relative group">
+              <ChartContainer
+                config={{}}
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={openMeetingsPerProjectData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                      outerRadius={80}
+                      fill="hsl(var(--chart-3))"
+                      dataKey="value"
+                      onClick={(data) => handleProjectMeetingsPieClick(data)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {openMeetingsPerProjectData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
+                      ))}
+                    </Pie>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </div>
+          </CardContent>
         </Card>
       </div>
 
