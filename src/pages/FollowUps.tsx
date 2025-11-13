@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { MessageSquare, Search, Filter, Minimize2, Maximize2 } from "lucide-react";
+import { MessageSquare, Search, Filter, Minimize2, Maximize2, X, Pencil, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Task, FollowUp, Project } from "@/types/task";
 import { formatDate } from "@/utils/taskOperations";
@@ -762,6 +762,23 @@ export const FollowUpsPage = ({
     setFilters({});
   };
 
+  const clearChartFilters = () => {
+    setMultiSelectFilters({
+      date: [],
+      task: [],
+      project: [],
+      scope: [],
+      type: [],
+      environment: [],
+    });
+  };
+
+  const hasActiveChartFilters = 
+    multiSelectFilters.project.length > 0 || 
+    multiSelectFilters.scope.length > 0 || 
+    multiSelectFilters.type.length > 0 || 
+    multiSelectFilters.environment.length > 0;
+
   // Handle click on follow-up row to open related task
   const handleRowClick = (followUp: FollowUpWithTask, event: React.MouseEvent) => {
     // Don't open task if clicking on edit controls or buttons
@@ -955,6 +972,120 @@ export const FollowUpsPage = ({
           onClearFilters={clearFilters} 
           hideDateRange
         />
+        
+        {/* Chart Selection Filters */}
+        {hasActiveChartFilters && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-medium text-muted-foreground">Chart Filters:</span>
+                  {multiSelectFilters.scope.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Scope:</span>
+                      {multiSelectFilters.scope.map(scope => (
+                        <Badge 
+                          key={scope} 
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {scope}
+                          <X 
+                            className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                            onClick={() => {
+                              setMultiSelectFilters(prev => ({
+                                ...prev,
+                                scope: prev.scope.filter(s => s !== scope)
+                              }));
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {multiSelectFilters.project.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Project:</span>
+                      {multiSelectFilters.project.map(project => (
+                        <Badge 
+                          key={project} 
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {project}
+                          <X 
+                            className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                            onClick={() => {
+                              setMultiSelectFilters(prev => ({
+                                ...prev,
+                                project: prev.project.filter(p => p !== project)
+                              }));
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {multiSelectFilters.type.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Type:</span>
+                      {multiSelectFilters.type.map(type => (
+                        <Badge 
+                          key={type} 
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {type}
+                          <X 
+                            className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                            onClick={() => {
+                              setMultiSelectFilters(prev => ({
+                                ...prev,
+                                type: prev.type.filter(t => t !== type)
+                              }));
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  {multiSelectFilters.environment.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Environment:</span>
+                      {multiSelectFilters.environment.map(env => (
+                        <Badge 
+                          key={env} 
+                          variant="secondary"
+                          className="flex items-center gap-1"
+                        >
+                          {env}
+                          <X 
+                            className="w-3 h-3 cursor-pointer hover:text-destructive" 
+                            onClick={() => {
+                              setMultiSelectFilters(prev => ({
+                                ...prev,
+                                environment: prev.environment.filter(e => e !== env)
+                              }));
+                            }}
+                          />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearChartFilters}
+                  className="flex items-center gap-2"
+                >
+                  <X className="w-4 h-4" />
+                  Clear Chart Filters
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Charts Row */}
