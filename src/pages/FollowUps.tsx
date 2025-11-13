@@ -616,10 +616,17 @@ export const FollowUpsPage = ({
 
   // Calculate pie chart data for open tasks per project (without meetings)
   const openTasksPerProjectData = useMemo(() => {
-    const openTasks = allTasks.filter(task => 
+    let openTasks = allTasks.filter(task => 
       task.status !== 'Completed' && 
       !task.taskType?.toLowerCase().includes('meeting')
     );
+    
+    // Apply scope filter if active
+    if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
+      openTasks = openTasks.filter(task =>
+        task.scope?.some(s => multiSelectFilters.scope.includes(s))
+      );
+    }
     
     const projectCounts: Record<string, number> = {};
     openTasks.forEach(task => {
@@ -630,7 +637,7 @@ export const FollowUpsPage = ({
     return Object.entries(projectCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [allTasks, projects]);
+  }, [allTasks, projects, multiSelectFilters.scope]);
 
   const projectTotal = useMemo(() => 
     openTasksPerProjectData.reduce((sum, item) => sum + item.value, 0)
@@ -638,10 +645,17 @@ export const FollowUpsPage = ({
 
   // Calculate pie chart data for open meetings per project
   const openMeetingsPerProjectData = useMemo(() => {
-    const openMeetings = allTasks.filter(task => 
+    let openMeetings = allTasks.filter(task => 
       task.status !== 'Completed' && 
       task.taskType?.toLowerCase().includes('meeting')
     );
+    
+    // Apply scope filter if active
+    if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
+      openMeetings = openMeetings.filter(task =>
+        task.scope?.some(s => multiSelectFilters.scope.includes(s))
+      );
+    }
     
     const projectCounts: Record<string, number> = {};
     openMeetings.forEach(task => {
@@ -652,7 +666,7 @@ export const FollowUpsPage = ({
     return Object.entries(projectCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [allTasks, projects]);
+  }, [allTasks, projects, multiSelectFilters.scope]);
 
   const meetingTotal = useMemo(() => 
     openMeetingsPerProjectData.reduce((sum, item) => sum + item.value, 0)
