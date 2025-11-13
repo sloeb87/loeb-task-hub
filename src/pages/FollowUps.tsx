@@ -85,7 +85,8 @@ export const FollowUpsPage = ({
   const [allTasks, setAllTasks] = useState<Task[]>(tasks); // State to hold all tasks
   
   const {
-    getScopeStyle
+    getScopeStyle,
+    getScopeColor
   } = useScopeColor();
   const {
     getTaskTypeStyle
@@ -962,11 +963,11 @@ export const FollowUpsPage = ({
                 <PieChart>
                   <defs>
                     {openTasksPerScopeData.map((entry, index) => {
-                      const color = getScopeStyle(entry.name).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(entry.name);
                       return (
                         <linearGradient key={`scopeGradient-${index}`} id={`scopeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                         </linearGradient>
                       );
                     })}
@@ -997,12 +998,12 @@ export const FollowUpsPage = ({
                     onClick={(data) => handleScopePieClick(data)}
                   >
                     {openTasksPerScopeData.map((entry, index) => {
-                      const color = getScopeStyle(entry.name).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(entry.name);
                       return (
                         <Cell 
                           key={`scope-${entry.name}-${index}`} 
                           fill={`url(#scopeGradient-${index})`}
-                          stroke={`hsl(${color})`}
+                          stroke={color}
                           strokeWidth={1.5}
                         />
                       );
@@ -1030,11 +1031,11 @@ export const FollowUpsPage = ({
                       const projectScope = Array.isArray(project?.scope) 
                         ? project?.scope[0] || 'Unassigned'
                         : project?.scope || 'Unassigned';
-                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(projectScope);
                       return (
                         <linearGradient key={`projectGradient-${index}`} id={`projectGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                         </linearGradient>
                       );
                     })}
@@ -1070,12 +1071,12 @@ export const FollowUpsPage = ({
                       const projectScope = Array.isArray(project?.scope) 
                         ? project?.scope[0] || 'Unassigned'
                         : project?.scope || 'Unassigned';
-                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(projectScope);
                       return (
                         <Cell 
                           key={`project-${entry.name}-${index}`} 
                           fill={`url(#projectGradient-${index})`}
-                          stroke={`hsl(${color})`}
+                          stroke={color}
                           strokeWidth={1.5}
                         />
                       );
@@ -1103,11 +1104,11 @@ export const FollowUpsPage = ({
                       const projectScope = Array.isArray(project?.scope) 
                         ? project?.scope[0] || 'Unassigned'
                         : project?.scope || 'Unassigned';
-                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(projectScope);
                       return (
                         <linearGradient key={`meetingGradient-${index}`} id={`meetingGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
-                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                          <stop offset="5%" stopColor={color} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={color} stopOpacity={0.2}/>
                         </linearGradient>
                       );
                     })}
@@ -1143,12 +1144,12 @@ export const FollowUpsPage = ({
                       const projectScope = Array.isArray(project?.scope) 
                         ? project?.scope[0] || 'Unassigned'
                         : project?.scope || 'Unassigned';
-                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      const color = getScopeColor(projectScope);
                       return (
                         <Cell 
                           key={`meeting-${entry.name}-${index}`} 
                           fill={`url(#meetingGradient-${index})`}
-                          stroke={`hsl(${color})`}
+                          stroke={color}
                           strokeWidth={1.5}
                         />
                       );
