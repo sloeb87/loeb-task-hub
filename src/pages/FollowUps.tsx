@@ -342,8 +342,15 @@ export const FollowUpsPage = ({
       if (multiSelectFilters.project.length > 0 && !multiSelectFilters.project.includes(followUp.projectName)) {
         return false;
       }
-      if (multiSelectFilters.scope.length > 0 && !multiSelectFilters.scope.includes(followUp.taskScope)) {
-        return false;
+      // For scope filter, check if any selected scope is included in the task's scopes
+      if (multiSelectFilters.scope.length > 0) {
+        const taskScopes = followUp.taskScope.split(', ');
+        const hasMatchingScope = multiSelectFilters.scope.some(filterScope => 
+          taskScopes.includes(filterScope)
+        );
+        if (!hasMatchingScope) {
+          return false;
+        }
       }
       if (multiSelectFilters.type.length > 0 && !multiSelectFilters.type.includes(followUp.taskType)) {
         return false;
