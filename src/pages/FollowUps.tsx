@@ -676,6 +676,17 @@ export const FollowUpsPage = ({
   const plannedVsLoggedChartData = useMemo(() => {
     if (allTasks.length === 0) return [];
     
+    // Apply scope filter to tasks if active
+    let filteredTasks = allTasks;
+    if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
+      filteredTasks = allTasks.filter(task =>
+        task.scope?.some(s => multiSelectFilters.scope.includes(s))
+      );
+    }
+    
+    // Get task IDs for filtering time entries
+    const filteredTaskIds = new Set(filteredTasks.map(task => task.id));
+    
     const currentDate = new Date();
     
     // Generate monthly data points from 6 months before to 1 year from current month
@@ -687,18 +698,18 @@ export const FollowUpsPage = ({
       const monthEnd = endOfMonth(currentMonth);
       
       // Calculate planned hours for tasks due in this month
-      const plannedHours = allTasks
+      const plannedHours = filteredTasks
         .filter(task => {
           const taskDue = new Date(task.dueDate);
           return taskDue >= currentMonth && taskDue <= monthEnd;
         })
         .reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
       
-      // Calculate logged hours for time entries in this month
+      // Calculate logged hours for time entries in this month (only for filtered tasks)
       const loggedHours = timeEntries
         .filter(entry => {
           const entryDate = new Date(entry.start_time);
-          return entryDate >= currentMonth && entryDate <= monthEnd;
+          return entryDate >= currentMonth && entryDate <= monthEnd && filteredTaskIds.has(entry.task_id);
         })
         .reduce((sum, entry) => sum + ((entry.duration || 0) / 60), 0); // Convert minutes to hours
       
@@ -713,7 +724,7 @@ export const FollowUpsPage = ({
     }
     
     return months;
-  }, [allTasks, timeEntries]);
+  }, [allTasks, timeEntries, multiSelectFilters.scope]);
 
   // Handle pie chart clicks for scope filter
   const handleScopePieClick = (data: any) => {
