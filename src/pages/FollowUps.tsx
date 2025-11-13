@@ -126,7 +126,7 @@ export const FollowUpsPage = ({
           completionDate: task.completion_date || undefined,
           duration: task.duration || undefined,
           plannedTimeHours: task.planned_time_hours || 0,
-          project: '', // Will be filled from project lookup
+          project: task.project_id || '',
           scope: task.scope || [],
           taskType: task.task_type as any,
           environment: task.environment as any,
