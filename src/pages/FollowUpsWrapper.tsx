@@ -1,9 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 import { FollowUpsPage } from "./FollowUps";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const FollowUpsWrapper = () => {
   const { tasks, projects, updateFollowUp } = useSupabaseStorage();
+  const { user, isAuthenticated } = useAuth();
+  const [followUps, setFollowUps] = useState<any[]>([]);
 
   // SEO
   useEffect(() => {
@@ -16,10 +20,32 @@ const FollowUpsWrapper = () => {
     }
   }, []);
 
+  // Fetch follow-ups from database
+  useEffect(() => {
+    const fetchFollowUps = async () => {
+      if (!isAuthenticated || !user) return;
+
+      const { data, error } = await supabase
+        .from('follow_ups')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching follow-ups:', error);
+        return;
+      }
+
+      setFollowUps(data || []);
+    };
+
+    fetchFollowUps();
+  }, [isAuthenticated, user]);
+
   return (
     <FollowUpsPage 
       tasks={tasks} 
       projects={projects}
+      followUps={followUps}
       onEditTask={() => {}} // Will be handled by navigation
       onUpdateFollowUp={updateFollowUp}
     />

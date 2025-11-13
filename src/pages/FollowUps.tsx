@@ -38,6 +38,7 @@ const isAutomaticFollowUp = (text: string): boolean => {
 interface FollowUpsPageProps {
   tasks: Task[];
   projects: Project[];
+  followUps: any[];
   onEditTask?: (task: Task) => void;
   onUpdateFollowUp?: (taskId: string, followUpId: string, text: string, timestamp?: string) => void;
 }
@@ -75,6 +76,7 @@ const Group = ({ children }: { children: React.ReactNode }) => <>{children}</>;
 export const FollowUpsPage = ({
   tasks,
   projects,
+  followUps,
   onEditTask,
   onUpdateFollowUp
 }: FollowUpsPageProps) => {
@@ -210,23 +212,30 @@ export const FollowUpsPage = ({
 
   // Get all follow-ups with task information (flattened for filtering)
   const allFollowUps = useMemo(() => {
-    const followUps: FollowUpWithTask[] = [];
-    tasks.forEach(task => {
-      task.followUps.forEach(followUp => {
-        followUps.push({
-          ...followUp,
-          taskId: task.id,
-          taskTitle: task.title,
-          taskScope: task.scope.join(', '),
-          taskType: task.taskType,
-          taskEnvironment: task.environment,
-          taskStatus: followUp.taskStatus || 'Unknown',
-          projectName: task.project
-        });
+    const followUpsWithTask: FollowUpWithTask[] = [];
+    
+    followUps.forEach(followUp => {
+      // Find the task by task number (task.id is the task_number like T468)
+      const task = tasks.find(t => t.id === followUp.task_id);
+      if (!task) return;
+      
+      const project = projects.find(p => p.id === task.project);
+      
+      followUpsWithTask.push({
+        id: followUp.id,
+        text: followUp.text,
+        timestamp: followUp.created_at,
+        taskId: task.id,
+        taskTitle: task.title,
+        taskScope: task.scope.join(', '),
+        taskType: task.taskType,
+        taskEnvironment: task.environment,
+        taskStatus: followUp.task_status || task.status,
+        projectName: project?.name || task.project || 'Unknown'
       });
     });
-    return followUps;
-  }, [tasks]);
+    return followUpsWithTask;
+  }, [tasks, projects, followUps]);
 
   // Get unique values for multi-select filters
   const getUniqueValues = (filterType: keyof MultiSelectFilters): string[] => {
