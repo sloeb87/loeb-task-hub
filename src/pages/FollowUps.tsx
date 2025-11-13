@@ -678,14 +678,16 @@ export const FollowUpsPage = ({
     
     // Apply scope filter to tasks if active
     let filteredTasks = allTasks;
-    if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
+    const hasScopeFilter = multiSelectFilters.scope && multiSelectFilters.scope.length > 0;
+    
+    if (hasScopeFilter) {
       filteredTasks = allTasks.filter(task =>
         task.scope?.some(s => multiSelectFilters.scope.includes(s))
       );
     }
     
-    // Get task IDs for filtering time entries
-    const filteredTaskIds = new Set(filteredTasks.map(task => task.id));
+    // Get task IDs for filtering time entries (only when scope filter is active)
+    const filteredTaskIds = hasScopeFilter ? new Set(filteredTasks.map(task => task.id)) : null;
     
     const currentDate = new Date();
     
@@ -705,11 +707,14 @@ export const FollowUpsPage = ({
         })
         .reduce((sum, task) => sum + (task.plannedTimeHours || 0), 0);
       
-      // Calculate logged hours for time entries in this month (only for filtered tasks)
+      // Calculate logged hours for time entries in this month
       const loggedHours = timeEntries
         .filter(entry => {
           const entryDate = new Date(entry.start_time);
-          return entryDate >= currentMonth && entryDate <= monthEnd && filteredTaskIds.has(entry.task_id);
+          const isInDateRange = entryDate >= currentMonth && entryDate <= monthEnd;
+          // Only filter by task IDs when scope filter is active
+          const matchesFilter = !filteredTaskIds || filteredTaskIds.has(entry.task_id);
+          return isInDateRange && matchesFilter;
         })
         .reduce((sum, entry) => sum + ((entry.duration || 0) / 60), 0); // Convert minutes to hours
       
