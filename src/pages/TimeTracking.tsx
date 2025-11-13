@@ -1312,7 +1312,7 @@ export const TimeTrackingPage = ({ tasks, projects, onEditTask }: TimeTrackingPa
         </CardHeader>
         <CardContent className="px-0">
           <div className="relative group w-full">
-            <div className="w-full h-[600px]">
+            <div className="w-full h-[400px]">
               <ChartContainer config={{}} className="w-full h-full">
             <ComposedChart data={dailyDataWithWeeklyAverage} onClick={handleBarClick}>
               <defs>
