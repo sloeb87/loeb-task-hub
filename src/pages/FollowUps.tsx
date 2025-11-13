@@ -558,6 +558,31 @@ export const FollowUpsPage = ({
     fetchTimeEntries();
   }, [isAuthenticated, user]);
 
+  // Helper functions for pie chart labels
+  const formatPercentCeil = (num: number) => String(Math.min(100, Math.ceil(num)));
+  
+  const abbreviate = (text: string, max = 18) => (text && text.length > max ? `${text.slice(0, max - 1)}…` : text);
+  
+  // Outside multi-line label positioned near its slice
+  const makePieLabelOutside = (total: number) => (props: any) => {
+    const { cx, cy, midAngle, outerRadius, name, value } = props;
+    const RADIAN = Math.PI / 180;
+    const r = (outerRadius || 0) + 18;
+    const x = cx + r * Math.cos(-midAngle * RADIAN);
+    const y = cy + r * Math.sin(-midAngle * RADIAN);
+    const alignRight = x > cx;
+    const count = typeof value === 'number' ? value : 0;
+    const pctNum = total > 0 ? (count / total) * 100 : 0;
+    const pct = formatPercentCeil(pctNum);
+
+    return (
+      <text x={x} y={y} textAnchor={alignRight ? "start" : "end"} dominantBaseline="central" className="fill-current text-foreground">
+        <tspan x={x} dy="-0.5em">{abbreviate(name)}</tspan>
+        <tspan x={x} dy="1.1em">{`${pct}% • ${count}`}</tspan>
+      </text>
+    );
+  };
+
   // Calculate pie chart data for open tasks per scope (without meetings)
   const openTasksPerScopeData = useMemo(() => {
     const openTasks = allTasks.filter(task => 
@@ -577,6 +602,10 @@ export const FollowUpsPage = ({
       .sort((a, b) => b.value - a.value);
   }, [allTasks]);
 
+  const scopeTotal = useMemo(() => 
+    openTasksPerScopeData.reduce((sum, item) => sum + item.value, 0)
+  , [openTasksPerScopeData]);
+
   // Calculate pie chart data for open tasks per project (without meetings)
   const openTasksPerProjectData = useMemo(() => {
     const openTasks = allTasks.filter(task => 
@@ -595,6 +624,10 @@ export const FollowUpsPage = ({
       .sort((a, b) => b.value - a.value);
   }, [allTasks, projects]);
 
+  const projectTotal = useMemo(() => 
+    openTasksPerProjectData.reduce((sum, item) => sum + item.value, 0)
+  , [openTasksPerProjectData]);
+
   // Calculate pie chart data for open meetings per project
   const openMeetingsPerProjectData = useMemo(() => {
     const openMeetings = allTasks.filter(task => 
@@ -612,6 +645,10 @@ export const FollowUpsPage = ({
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [allTasks, projects]);
+
+  const meetingTotal = useMemo(() => 
+    openMeetingsPerProjectData.reduce((sum, item) => sum + item.value, 0)
+  , [openMeetingsPerProjectData]);
 
   // Calculate chart data for planned vs logged hours by month
   const plannedVsLoggedChartData = useMemo(() => {
@@ -916,38 +953,62 @@ export const FollowUpsPage = ({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Open Tasks per Scope (without meetings) */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Tasks by Scope</CardTitle>
-            <CardDescription>Distribution of open tasks across scopes (excluding meetings)</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle>Scope</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="relative group">
-              <ChartContainer
-                config={{}}
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={openTasksPerScopeData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
-                      fill="hsl(var(--chart-1))"
-                      dataKey="value"
-                      onClick={(data) => handleScopePieClick(data)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {openTasksPerScopeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
+              <ChartContainer config={{}} className="h-72 w-full">
+                <PieChart>
+                  <defs>
+                    {openTasksPerScopeData.map((entry, index) => {
+                      const color = getScopeStyle(entry.name).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <linearGradient key={`scopeGradient-${index}`} id={`scopeGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value: number, name: string) => {
+                          const count = Number(value) || 0;
+                          const pct = scopeTotal > 0 ? formatPercentCeil((count / scopeTotal) * 100) : '0';
+                          return [`${count} tasks • ${pct}%`, name];
+                        }}
+                      />
+                    }
+                  />
+                  <Pie
+                    data={openTasksPerScopeData}
+                    dataKey="value"
+                    nameKey="name"
+                    startAngle={90}
+                    endAngle={-270}
+                    innerRadius={70}
+                    outerRadius={110}
+                    strokeWidth={3}
+                    stroke="hsl(var(--background))"
+                    label={makePieLabelOutside(scopeTotal)}
+                    labelLine={true}
+                    onClick={(data) => handleScopePieClick(data)}
+                  >
+                    {openTasksPerScopeData.map((entry, index) => {
+                      const color = getScopeStyle(entry.name).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <Cell 
+                          key={`scope-${entry.name}-${index}`} 
+                          fill={`url(#scopeGradient-${index})`}
+                          stroke={`hsl(${color})`}
+                          strokeWidth={1.5}
+                        />
+                      );
+                    })}
+                  </Pie>
+                </PieChart>
               </ChartContainer>
             </div>
           </CardContent>
@@ -955,38 +1016,72 @@ export const FollowUpsPage = ({
 
         {/* Open Tasks per Project (without meetings) */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Tasks by Project</CardTitle>
-            <CardDescription>Distribution of open tasks across projects (excluding meetings)</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle>Project (Tasks)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="relative group">
-              <ChartContainer
-                config={{}}
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={openTasksPerProjectData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
-                      fill="hsl(var(--chart-2))"
-                      dataKey="value"
-                      onClick={(data) => handleProjectTasksPieClick(data)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {openTasksPerProjectData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
+              <ChartContainer config={{}} className="h-72 w-full">
+                <PieChart>
+                  <defs>
+                    {openTasksPerProjectData.map((entry, index) => {
+                      // Find the project and use its scope color
+                      const project = projects.find(p => p.name === entry.name);
+                      const projectScope = Array.isArray(project?.scope) 
+                        ? project?.scope[0] || 'Unassigned'
+                        : project?.scope || 'Unassigned';
+                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <linearGradient key={`projectGradient-${index}`} id={`projectGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value: number, name: string) => {
+                          const count = Number(value) || 0;
+                          const pct = projectTotal > 0 ? formatPercentCeil((count / projectTotal) * 100) : '0';
+                          return [`${count} tasks • ${pct}%`, name];
+                        }}
+                      />
+                    }
+                  />
+                  <Pie
+                    data={openTasksPerProjectData}
+                    dataKey="value"
+                    nameKey="name"
+                    startAngle={90}
+                    endAngle={-270}
+                    innerRadius={70}
+                    outerRadius={110}
+                    strokeWidth={3}
+                    stroke="hsl(var(--background))"
+                    label={makePieLabelOutside(projectTotal)}
+                    labelLine={true}
+                    onClick={(data) => handleProjectTasksPieClick(data)}
+                  >
+                    {openTasksPerProjectData.map((entry, index) => {
+                      // Find the project and use its scope color for stroke
+                      const project = projects.find(p => p.name === entry.name);
+                      const projectScope = Array.isArray(project?.scope) 
+                        ? project?.scope[0] || 'Unassigned'
+                        : project?.scope || 'Unassigned';
+                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <Cell 
+                          key={`project-${entry.name}-${index}`} 
+                          fill={`url(#projectGradient-${index})`}
+                          stroke={`hsl(${color})`}
+                          strokeWidth={1.5}
+                        />
+                      );
+                    })}
+                  </Pie>
+                </PieChart>
               </ChartContainer>
             </div>
           </CardContent>
@@ -994,38 +1089,72 @@ export const FollowUpsPage = ({
 
         {/* Open Meetings per Project */}
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Open Meetings by Project</CardTitle>
-            <CardDescription>Distribution of open meetings across projects</CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle>Project (Meetings)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="relative group">
-              <ChartContainer
-                config={{}}
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={openMeetingsPerProjectData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
-                      fill="hsl(var(--chart-3))"
-                      dataKey="value"
-                      onClick={(data) => handleProjectMeetingsPieClick(data)}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      {openMeetingsPerProjectData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={`hsl(var(--chart-${(index % 5) + 1}))`} />
-                      ))}
-                    </Pie>
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+            <div className="grid grid-cols-1 gap-6 items-center justify-items-center">
+              <ChartContainer config={{}} className="h-72 w-full">
+                <PieChart>
+                  <defs>
+                    {openMeetingsPerProjectData.map((entry, index) => {
+                      // Find the project and use its scope color
+                      const project = projects.find(p => p.name === entry.name);
+                      const projectScope = Array.isArray(project?.scope) 
+                        ? project?.scope[0] || 'Unassigned'
+                        : project?.scope || 'Unassigned';
+                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <linearGradient key={`meetingGradient-${index}`} id={`meetingGradient-${index}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={`hsl(${color})`} stopOpacity={0.8}/>
+                          <stop offset="95%" stopColor={`hsl(${color})`} stopOpacity={0.2}/>
+                        </linearGradient>
+                      );
+                    })}
+                  </defs>
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={(value: number, name: string) => {
+                          const count = Number(value) || 0;
+                          const pct = meetingTotal > 0 ? formatPercentCeil((count / meetingTotal) * 100) : '0';
+                          return [`${count} meetings • ${pct}%`, name];
+                        }}
+                      />
+                    }
+                  />
+                  <Pie
+                    data={openMeetingsPerProjectData}
+                    dataKey="value"
+                    nameKey="name"
+                    startAngle={90}
+                    endAngle={-270}
+                    innerRadius={70}
+                    outerRadius={110}
+                    strokeWidth={3}
+                    stroke="hsl(var(--background))"
+                    label={makePieLabelOutside(meetingTotal)}
+                    labelLine={true}
+                    onClick={(data) => handleProjectMeetingsPieClick(data)}
+                  >
+                    {openMeetingsPerProjectData.map((entry, index) => {
+                      // Find the project and use its scope color for stroke
+                      const project = projects.find(p => p.name === entry.name);
+                      const projectScope = Array.isArray(project?.scope) 
+                        ? project?.scope[0] || 'Unassigned'
+                        : project?.scope || 'Unassigned';
+                      const color = getScopeStyle(projectScope).backgroundColor.replace('hsl(', '').replace(')', '');
+                      return (
+                        <Cell 
+                          key={`meeting-${entry.name}-${index}`} 
+                          fill={`url(#meetingGradient-${index})`}
+                          stroke={`hsl(${color})`}
+                          strokeWidth={1.5}
+                        />
+                      );
+                    })}
+                  </Pie>
+                </PieChart>
               </ChartContainer>
             </div>
           </CardContent>
