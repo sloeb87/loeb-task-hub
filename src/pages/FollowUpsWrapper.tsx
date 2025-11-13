@@ -20,7 +20,7 @@ const FollowUpsWrapper = () => {
     }
   }, []);
 
-  // Fetch follow-ups from database
+  // Fetch follow-ups from database with real-time subscription
   useEffect(() => {
     const fetchFollowUps = async () => {
       if (!isAuthenticated || !user) return;
@@ -39,6 +39,30 @@ const FollowUpsWrapper = () => {
     };
 
     fetchFollowUps();
+
+    // Set up real-time subscription
+    if (isAuthenticated && user) {
+      const channel = supabase
+        .channel('follow_ups_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'follow_ups'
+          },
+          (payload) => {
+            console.log('Follow-up change detected:', payload);
+            // Refetch all follow-ups when any change occurs
+            fetchFollowUps();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
   }, [isAuthenticated, user]);
 
   return (
