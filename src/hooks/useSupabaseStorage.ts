@@ -1258,22 +1258,6 @@ export function useSupabaseStorage() {
       }
     }
 
-    // Add follow-up comment if task was just completed (except for Meeting tasks and recurring meetings)
-    if (isBeingCompleted && updatedTask.taskType !== 'Meeting' && !updatedTask.isRecurring) {
-      const { error: followUpError } = await supabase
-        .from('follow_ups')
-        .insert({
-          task_id: updatedTask.id,
-          text: "Task marked completed",
-          task_status: 'Completed',
-          created_at: new Date().toISOString()
-        });
-
-      if (followUpError) {
-        console.error('Error adding completion follow-up:', followUpError);
-      }
-    }
-
     // Remove from favorites when task is completed
     if (isBeingCompleted && existingTask.is_favorite) {
       const { error: favoriteError } = await supabase
@@ -1290,53 +1274,7 @@ export function useSupabaseStorage() {
       }
     }
 
-    // Create follow-ups for tracked field changes
-    const followUpsToCreate = [];
-    
-    // Check for Status change (excluding completion as it's handled above)
-    if (existingTask.status !== updatedTask.status && !isBeingCompleted) {
-      followUpsToCreate.push({
-        task_id: updatedTask.id,
-        text: `Status changed from "${existingTask.status}" to "${updatedTask.status}"`,
-        task_status: updatedTask.status,
-        created_at: new Date().toISOString()
-      });
-    }
-    
-    // Priority changes are now handled by the database trigger
-    
-    // Check for Task Type change
-    if (existingTask.task_type !== updatedTask.taskType) {
-      followUpsToCreate.push({
-        task_id: existingTask.id,
-        text: `Task type changed from "${existingTask.task_type}" to "${updatedTask.taskType}"`,
-        task_status: updatedTask.status,
-        created_at: new Date().toISOString()
-      });
-    }
-    
-    // Check for Due Date change
-    if (existingTask.due_date !== updatedTask.dueDate) {
-      followUpsToCreate.push({
-        task_id: existingTask.id,
-        text: `Due date changed from "${existingTask.due_date}" to "${updatedTask.dueDate}"`,
-        task_status: updatedTask.status,
-        created_at: new Date().toISOString()
-      });
-    }
-    
-    // Insert all change follow-ups at once
-    if (followUpsToCreate.length > 0) {
-      const { error: changeFollowUpError } = await supabase
-        .from('follow_ups')
-        .insert(followUpsToCreate);
-
-      if (changeFollowUpError) {
-        console.error('Error adding change follow-ups:', changeFollowUpError);
-      } else {
-        console.log(`Added ${followUpsToCreate.length} change follow-up(s)`);
-      }
-    }
+    // All follow-ups are now handled by the database trigger (create_task_update_followup)
 
     setTasks(prev => prev.map(task => task.id === updatedTask.id ? {
       ...updatedTask,
