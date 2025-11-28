@@ -319,6 +319,11 @@ export const FollowUpsPage = ({
   // Filter follow-ups based on search and filters
   const filteredFollowUps = useMemo(() => {
     return allFollowUps.filter(followUp => {
+      // Exclude automatic "Task updated:" follow-ups
+      if (followUp.text.startsWith('Task updated:')) {
+        return false;
+      }
+
       // Search filter
       if (searchTerm && !followUp.text.toLowerCase().includes(searchTerm.toLowerCase()) && !followUp.taskTitle.toLowerCase().includes(searchTerm.toLowerCase()) && !followUp.projectName.toLowerCase().includes(searchTerm.toLowerCase())) {
         return false;
