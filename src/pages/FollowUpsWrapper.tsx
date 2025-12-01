@@ -8,6 +8,7 @@ const FollowUpsWrapper = () => {
   const { tasks, projects, updateFollowUp } = useSupabaseStorage();
   const { user, isAuthenticated } = useAuth();
   const [followUps, setFollowUps] = useState<any[]>([]);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
 
   // SEO
   useEffect(() => {
@@ -19,6 +20,60 @@ const FollowUpsWrapper = () => {
       document.head.appendChild(meta);
     }
   }, []);
+
+  // Fetch all tasks including meetings
+  useEffect(() => {
+    const fetchAllTasks = async () => {
+      if (!isAuthenticated || !user) return;
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error fetching all tasks:', error);
+        return;
+      }
+
+      // Convert to Task type format
+      const convertedTasks = (data || []).map((task: any) => ({
+        id: task.task_number,
+        title: task.title,
+        description: task.description || '',
+        status: task.status,
+        priority: task.priority,
+        responsible: task.responsible,
+        startDate: task.start_date,
+        dueDate: task.due_date,
+        completionDate: task.completion_date || undefined,
+        duration: task.duration || undefined,
+        plannedTimeHours: task.planned_time_hours || 0,
+        project: task.project_id || '',
+        scope: task.scope || [],
+        taskType: task.task_type,
+        environment: task.environment,
+        dependencies: task.dependencies || [],
+        stakeholders: task.stakeholders || [],
+        details: task.details || '',
+        links: (task.links && typeof task.links === 'object' && !Array.isArray(task.links)) 
+          ? task.links 
+          : {},
+        checklist: typeof task.checklist === 'string' ? JSON.parse(task.checklist) : (Array.isArray(task.checklist) ? task.checklist : []),
+        creationDate: task.creation_date,
+        followUps: [],
+        isRecurring: task.is_recurring || false,
+        recurrenceType: task.recurrence_type || undefined,
+        recurrenceInterval: task.recurrence_interval || undefined,
+        recurrenceEndDate: task.recurrence_end_date || undefined,
+        parentTaskId: task.parent_task_id || undefined
+      }));
+
+      setAllTasks(convertedTasks);
+    };
+
+    fetchAllTasks();
+  }, [isAuthenticated, user]);
 
   // Fetch follow-ups from database with real-time subscription
   useEffect(() => {
@@ -67,7 +122,7 @@ const FollowUpsWrapper = () => {
 
   return (
     <FollowUpsPage 
-      tasks={tasks} 
+      tasks={allTasks} 
       projects={projects}
       followUps={followUps}
       onEditTask={() => {}} // Will be handled by navigation
