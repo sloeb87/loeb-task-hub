@@ -598,18 +598,10 @@ export const FollowUpsPage = ({
 
   // Calculate pie chart data for open tasks per scope (without meetings)
   const openTasksPerScopeData = useMemo(() => {
-    let openTasks = allTasks.filter(task => 
+    const openTasks = allTasks.filter(task => 
       task.status !== 'Completed' && 
       !task.taskType?.toLowerCase().includes('meeting')
     );
-    
-    // Apply date range filter if active
-    if (filters.dateRange) {
-      openTasks = openTasks.filter(task => {
-        const taskDue = new Date(task.dueDate);
-        return taskDue >= filters.dateRange!.from && taskDue <= filters.dateRange!.to;
-      });
-    }
     
     const scopeCounts: Record<string, number> = {};
     openTasks.forEach(task => {
@@ -621,7 +613,7 @@ export const FollowUpsPage = ({
     return Object.entries(scopeCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [allTasks, filters.dateRange]);
+  }, [allTasks]);
 
   const scopeTotal = useMemo(() => 
     openTasksPerScopeData.reduce((sum, item) => sum + item.value, 0)
@@ -633,14 +625,6 @@ export const FollowUpsPage = ({
       task.status !== 'Completed' && 
       !task.taskType?.toLowerCase().includes('meeting')
     );
-    
-    // Apply date range filter if active
-    if (filters.dateRange) {
-      openTasks = openTasks.filter(task => {
-        const taskDue = new Date(task.dueDate);
-        return taskDue >= filters.dateRange!.from && taskDue <= filters.dateRange!.to;
-      });
-    }
     
     // Apply scope filter if active
     if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
@@ -658,7 +642,7 @@ export const FollowUpsPage = ({
     return Object.entries(projectCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [allTasks, projects, multiSelectFilters.scope, filters.dateRange]);
+  }, [allTasks, projects, multiSelectFilters.scope]);
 
   const projectTotal = useMemo(() => 
     openTasksPerProjectData.reduce((sum, item) => sum + item.value, 0)
@@ -670,14 +654,6 @@ export const FollowUpsPage = ({
       task.status !== 'Completed' && 
       task.taskType?.toLowerCase().includes('meeting')
     );
-    
-    // Apply date range filter if active
-    if (filters.dateRange) {
-      openMeetings = openMeetings.filter(task => {
-        const taskDue = new Date(task.dueDate);
-        return taskDue >= filters.dateRange!.from && taskDue <= filters.dateRange!.to;
-      });
-    }
     
     // Apply scope filter if active
     if (multiSelectFilters.scope && multiSelectFilters.scope.length > 0) {
@@ -695,7 +671,7 @@ export const FollowUpsPage = ({
     return Object.entries(projectCounts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-  }, [allTasks, projects, multiSelectFilters.scope, filters.dateRange]);
+  }, [allTasks, projects, multiSelectFilters.scope]);
 
   const meetingTotal = useMemo(() => 
     openMeetingsPerProjectData.reduce((sum, item) => sum + item.value, 0)
